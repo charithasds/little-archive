@@ -1,44 +1,35 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import '../../domain/entities/user_entity.dart';
+import '../../domain/repositories/auth_repository.dart';
+import '../datasources/auth_remote_data_source.dart';
+import '../models/user_model.dart';
 
-class AuthRepository {
-  final FirebaseAuth _firebaseAuth;
-  final GoogleSignIn _googleSignIn;
+class AuthRepositoryImpl implements AuthRepository {
+  final AuthRemoteDataSource _dataSource;
 
-  AuthRepository(this._firebaseAuth, this._googleSignIn);
+  AuthRepositoryImpl(this._dataSource);
 
-  Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
-
-  User? get currentUser => _firebaseAuth.currentUser;
-
-  Future<void> signInWithGoogle() async {
-    if (kIsWeb) {
-      final googleProvider = GoogleAuthProvider();
-      await _firebaseAuth.signInWithPopup(googleProvider);
-    } else {
-      try {
-        final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-        if (googleUser == null) {
-          // User canceled the sign-in
-          return;
-        }
-        final GoogleSignInAuthentication googleAuth =
-            await googleUser.authentication; // Retrieve authentication tokens
-        final AuthCredential credential = GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken,
-          idToken: googleAuth.idToken,
-        );
-        await _firebaseAuth.signInWithCredential(credential);
-      } catch (e) {
-        // Handle error specifically if needed
-        rethrow;
-      }
-    }
+  @override
+  Stream<UserEntity?> get authStateChanges {
+    return _dataSource.authStateChanges.map((firebaseUser) {
+      if (firebaseUser == null) return null;
+      return UserModel.fromFirebase(firebaseUser);
+    });
   }
 
+  @override
+  UserEntity? get currentUser {
+    final firebaseUser = _dataSource.currentUser;
+    if (firebaseUser == null) return null;
+    return UserModel.fromFirebase(firebaseUser);
+  }
+
+  @override
+  Future<void> signInWithGoogle() async {
+    await _dataSource.signInWithGoogle();
+  }
+
+  @override
   Future<void> signOut() async {
-    await _googleSignIn.signOut();
-    await _firebaseAuth.signOut();
+    await _dataSource.signOut();
   }
 }

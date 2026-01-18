@@ -7,8 +7,13 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Watch current user to display their info if needed, though mostly we'll use auth state
-    final user = ref.watch(firebaseAuthProvider).currentUser;
+    // Watch current user to display their info
+    final userAsync = ref.watch(authStateProvider);
+    final user = userAsync.when(
+      data: (data) => data,
+      loading: () => null,
+      error: (_, _) => null,
+    );
 
     return Scaffold(
       appBar: AppBar(
