@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "959815093644",
+    "project_id": "little-archive",
+    "storage_bucket": "little-archive.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:959815093644:android:78949be7e96301389b1aa9",
+        "android_client_info": {
+          "package_name": "com.charithasds.little_archive"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "959815093644-0tvfjja854rr0q8be2k6l1tg0phi9dti.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.charithasds.little_archive",
+            "certificate_hash": "bfedcf1e52e92f873301143433770dec07f843df"
+          }
+        },
+        {
+          "client_id": "959815093644-mdq9akkmrevrafqb863cup4go3ss5jud.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCjG5NtmtOyiDuOYvNkBAKclvEtd3fyZMg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "959815093644-mdq9akkmrevrafqb863cup4go3ss5jud.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
