@@ -1,0 +1,14 @@
+import 'package:flutter/material.dart';
+
+class SequenceDetailPage extends StatelessWidget {
+  final String sequenceId;
+  const SequenceDetailPage({super.key, required this.sequenceId});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Sequence Details')),
+      body: Center(child: Text('Sequence ID: $sequenceId')),
+    );
+  }
+}
