@@ -8,6 +8,7 @@ import '../../../../core/enums/reading_status.dart';
 
 class BookEntity extends Equatable {
   final String id;
+  final String userId;
   final String title;
   final String? cover;
   final CompilationType compilationType;
@@ -31,13 +32,14 @@ class BookEntity extends Equatable {
   final DateTime lastUpdated;
   final List<String> authorIds;
   final List<String> translatorIds;
-  final List<String> shortIds;
+  final List<String> workIds;
   final String? sequenceVolumeId;
   final String? publisherId;
   final String? readerId;
 
   const BookEntity({
     required this.id,
+    required this.userId,
     required this.title,
     this.cover,
     required this.compilationType,
@@ -61,41 +63,76 @@ class BookEntity extends Equatable {
     required this.lastUpdated,
     required this.authorIds,
     required this.translatorIds,
-    required this.shortIds,
+    required this.workIds,
     this.sequenceVolumeId,
     this.publisherId,
     this.readerId,
   });
 
   @override
-  List<Object?> get props => [
-    id,
-    title,
-    cover,
-    compilationType,
-    language,
-    genre,
-    isbn,
-    publishedDate,
-    noOfPages,
-    isTranslation,
-    originalTitle,
-    originalLanguage,
-    collectionStatus,
-    collectedDate,
-    lendedDate,
-    dueDate,
-    readingStatus,
-    pausedPage,
-    completedDate,
-    notes,
-    createdDate,
-    lastUpdated,
-    authorIds,
-    translatorIds,
-    shortIds,
-    sequenceVolumeId,
-    publisherId,
-    readerId,
-  ];
+  List<Object?> get props => [id];
+
+  BookEntity copyWith({
+    String? id,
+    String? userId,
+    String? title,
+    String? cover,
+    CompilationType? compilationType,
+    Language? language,
+    Genre? genre,
+    String? isbn,
+    DateTime? publishedDate,
+    int? noOfPages,
+    bool? isTranslation,
+    String? originalTitle,
+    OriginalLanguage? originalLanguage,
+    CollectionStatus? collectionStatus,
+    DateTime? collectedDate,
+    DateTime? lendedDate,
+    DateTime? dueDate,
+    ReadingStatus? readingStatus,
+    int? pausedPage,
+    DateTime? completedDate,
+    String? notes,
+    DateTime? createdDate,
+    DateTime? lastUpdated,
+    List<String>? authorIds,
+    List<String>? translatorIds,
+    List<String>? workIds,
+    String? sequenceVolumeId,
+    String? publisherId,
+    String? readerId,
+  }) {
+    return BookEntity(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      title: title ?? this.title,
+      cover: cover ?? this.cover,
+      compilationType: compilationType ?? this.compilationType,
+      language: language ?? this.language,
+      genre: genre ?? this.genre,
+      isbn: isbn ?? this.isbn,
+      publishedDate: publishedDate ?? this.publishedDate,
+      noOfPages: noOfPages ?? this.noOfPages,
+      isTranslation: isTranslation ?? this.isTranslation,
+      originalTitle: originalTitle ?? this.originalTitle,
+      originalLanguage: originalLanguage ?? this.originalLanguage,
+      collectionStatus: collectionStatus ?? this.collectionStatus,
+      collectedDate: collectedDate ?? this.collectedDate,
+      lendedDate: lendedDate ?? this.lendedDate,
+      dueDate: dueDate ?? this.dueDate,
+      readingStatus: readingStatus ?? this.readingStatus,
+      pausedPage: pausedPage ?? this.pausedPage,
+      completedDate: completedDate ?? this.completedDate,
+      notes: notes ?? this.notes,
+      createdDate: createdDate ?? this.createdDate,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
+      authorIds: authorIds ?? this.authorIds,
+      translatorIds: translatorIds ?? this.translatorIds,
+      workIds: workIds ?? this.workIds,
+      sequenceVolumeId: sequenceVolumeId ?? this.sequenceVolumeId,
+      publisherId: publisherId ?? this.publisherId,
+      readerId: readerId ?? this.readerId,
+    );
+  }
 }

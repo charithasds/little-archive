@@ -9,7 +9,8 @@ class AuthorRepositoryImpl implements AuthorRepository {
   AuthorRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<List<AuthorEntity>> getAuthors() => remoteDataSource.getAuthors();
+  Future<List<AuthorEntity>> getAuthors(String userId) =>
+      remoteDataSource.getAuthors(userId);
 
   @override
   Future<AuthorEntity?> getAuthorById(String id) =>
@@ -20,13 +21,16 @@ class AuthorRepositoryImpl implements AuthorRepository {
     return remoteDataSource.addAuthor(
       AuthorModel(
         id: author.id,
+        userId: author.userId,
         name: author.name,
         image: author.image,
         otherName: author.otherName,
         website: author.website,
         facebook: author.facebook,
         bookIds: author.bookIds,
-        shortIds: author.shortIds,
+        workIds: author.workIds,
+        createdDate: author.createdDate,
+        lastUpdated: author.lastUpdated,
       ),
     );
   }
@@ -36,13 +40,16 @@ class AuthorRepositoryImpl implements AuthorRepository {
     return remoteDataSource.updateAuthor(
       AuthorModel(
         id: author.id,
+        userId: author.userId,
         name: author.name,
         image: author.image,
         otherName: author.otherName,
         website: author.website,
         facebook: author.facebook,
         bookIds: author.bookIds,
-        shortIds: author.shortIds,
+        workIds: author.workIds,
+        createdDate: author.createdDate,
+        lastUpdated: author.lastUpdated,
       ),
     );
   }
@@ -51,5 +58,6 @@ class AuthorRepositoryImpl implements AuthorRepository {
   Future<void> deleteAuthor(String id) => remoteDataSource.deleteAuthor(id);
 
   @override
-  Stream<List<AuthorEntity>> watchAuthors() => remoteDataSource.watchAuthors();
+  Stream<List<AuthorEntity>> watchAuthors(String userId) =>
+      remoteDataSource.watchAuthors(userId);
 }

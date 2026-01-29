@@ -4,6 +4,7 @@ import '../../data/datasources/translator_remote_datasource.dart';
 import '../../data/repositories/translator_repository_impl.dart';
 import '../../domain/repositories/translator_repository.dart';
 import '../../domain/entities/translator_entity.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 final translatorRemoteDataSourceProvider = Provider<TranslatorRemoteDataSource>(
   (ref) {
@@ -19,5 +20,7 @@ final translatorRepositoryProvider = Provider<TranslatorRepository>((ref) {
 
 final translatorsStreamProvider = StreamProvider<List<TranslatorEntity>>((ref) {
   final repository = ref.watch(translatorRepositoryProvider);
-  return repository.watchTranslators();
+  final user = ref.watch(authStateProvider).value;
+  if (user == null) return Stream.value([]);
+  return repository.watchTranslators(user.uid);
 });

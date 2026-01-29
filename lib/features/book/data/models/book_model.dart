@@ -10,6 +10,7 @@ import '../../domain/entities/book_entity.dart';
 class BookModel extends BookEntity {
   const BookModel({
     required super.id,
+    required super.userId,
     required super.title,
     super.cover,
     required super.compilationType,
@@ -33,7 +34,7 @@ class BookModel extends BookEntity {
     required super.lastUpdated,
     required super.authorIds,
     required super.translatorIds,
-    required super.shortIds,
+    required super.workIds,
     super.sequenceVolumeId,
     super.publisherId,
     super.readerId,
@@ -42,6 +43,7 @@ class BookModel extends BookEntity {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'userId': userId,
       'title': title,
       'cover': cover,
       'compilationType': compilationType.name,
@@ -71,7 +73,7 @@ class BookModel extends BookEntity {
       'lastUpdated': Timestamp.fromDate(lastUpdated),
       'authorIds': authorIds,
       'translatorIds': translatorIds,
-      'shortIds': shortIds,
+      'workIds': workIds,
       'sequenceVolumeId': sequenceVolumeId,
       'publisherId': publisherId,
       'readerId': readerId,
@@ -81,6 +83,7 @@ class BookModel extends BookEntity {
   factory BookModel.fromMap(Map<String, dynamic> map, String documentId) {
     return BookModel(
       id: documentId,
+      userId: map['userId'] ?? '',
       title: map['title'] ?? '',
       cover: map['cover'],
       compilationType: CompilationType.values.byName(
@@ -114,7 +117,7 @@ class BookModel extends BookEntity {
           (map['lastUpdated'] as Timestamp?)?.toDate() ?? DateTime.now(),
       authorIds: List<String>.from(map['authorIds'] ?? []),
       translatorIds: List<String>.from(map['translatorIds'] ?? []),
-      shortIds: List<String>.from(map['shortIds'] ?? []),
+      workIds: List<String>.from(map['workIds'] ?? []),
       sequenceVolumeId: map['sequenceVolumeId'],
       publisherId: map['publisherId'],
       readerId: map['readerId'],

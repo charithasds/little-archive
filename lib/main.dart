@@ -4,14 +4,37 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/presentation/providers/theme_provider.dart';
-import 'features/auth/presentation/pages/login_page.dart';
-import 'features/auth/presentation/providers/auth_provider.dart';
-import 'features/home/presentation/pages/home_page.dart';
+import 'core/router/app_router.dart';
 import 'firebase_options.dart';
+import 'core/widgets/connectivity_wrapper.dart';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
+  } catch (e) {
+    // Check for duplicate app error and ignore it, otherwise rethrow
+    if (!e.toString().contains('duplicate-app')) {
+      rethrow;
+    }
+  }
+
+  // Check connectivity and disable Firestore if offline to prevent startup logs
+  final connectivityResults = await Connectivity().checkConnectivity();
+  final isOffline =
+      connectivityResults.isEmpty ||
+      connectivityResults.every((r) => r == ConnectivityResult.none);
+
+  if (isOffline) {
+    await FirebaseFirestore.instance.disableNetwork();
+  }
 
   final sharedPreferences = await SharedPreferences.getInstance();
 
@@ -30,26 +53,19 @@ class LittleArchiveApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authStateProvider);
+    final router = ref.watch(routerProvider);
     final themeMode = ref.watch(themeProvider);
 
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Little Archive',
+      debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
-      home: authState.when(
-        data: (user) {
-          if (user != null) {
-            return const HomePage();
-          }
-          return const LoginPage();
-        },
-        loading: () =>
-            const Scaffold(body: Center(child: CircularProgressIndicator())),
-        error: (err, stack) =>
-            Scaffold(body: Center(child: Text('Error: $err'))),
-      ),
+      routerConfig: router,
+      builder: (context, child) {
+        return ConnectivityWrapper(child: child!);
+      },
     );
   }
 }

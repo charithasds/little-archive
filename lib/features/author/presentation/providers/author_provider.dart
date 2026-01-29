@@ -4,6 +4,7 @@ import '../../data/datasources/author_remote_datasource.dart';
 import '../../data/repositories/author_repository_impl.dart';
 import '../../domain/repositories/author_repository.dart';
 import '../../domain/entities/author_entity.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 final authorRemoteDataSourceProvider = Provider<AuthorRemoteDataSource>((ref) {
   final firestore = ref.watch(firestoreProvider);
@@ -17,5 +18,7 @@ final authorRepositoryProvider = Provider<AuthorRepository>((ref) {
 
 final authorsStreamProvider = StreamProvider<List<AuthorEntity>>((ref) {
   final repository = ref.watch(authorRepositoryProvider);
-  return repository.watchAuthors();
+  final user = ref.watch(authStateProvider).value;
+  if (user == null) return Stream.value([]);
+  return repository.watchAuthors(user.uid);
 });

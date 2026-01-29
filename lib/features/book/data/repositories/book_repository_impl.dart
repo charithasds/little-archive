@@ -9,7 +9,8 @@ class BookRepositoryImpl implements BookRepository {
   BookRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<List<BookEntity>> getBooks() => remoteDataSource.getBooks();
+  Future<List<BookEntity>> getBooks(String userId) =>
+      remoteDataSource.getBooks(userId);
 
   @override
   Future<BookEntity?> getBookById(String id) =>
@@ -20,6 +21,7 @@ class BookRepositoryImpl implements BookRepository {
     return remoteDataSource.addBook(
       BookModel(
         id: book.id,
+        userId: book.userId,
         title: book.title,
         cover: book.cover,
         compilationType: book.compilationType,
@@ -43,7 +45,7 @@ class BookRepositoryImpl implements BookRepository {
         lastUpdated: book.lastUpdated,
         authorIds: book.authorIds,
         translatorIds: book.translatorIds,
-        shortIds: book.shortIds,
+        workIds: book.workIds,
         sequenceVolumeId: book.sequenceVolumeId,
         publisherId: book.publisherId,
         readerId: book.readerId,
@@ -56,6 +58,7 @@ class BookRepositoryImpl implements BookRepository {
     return remoteDataSource.updateBook(
       BookModel(
         id: book.id,
+        userId: book.userId,
         title: book.title,
         cover: book.cover,
         compilationType: book.compilationType,
@@ -79,7 +82,7 @@ class BookRepositoryImpl implements BookRepository {
         lastUpdated: book.lastUpdated,
         authorIds: book.authorIds,
         translatorIds: book.translatorIds,
-        shortIds: book.shortIds,
+        workIds: book.workIds,
         sequenceVolumeId: book.sequenceVolumeId,
         publisherId: book.publisherId,
         readerId: book.readerId,
@@ -91,5 +94,6 @@ class BookRepositoryImpl implements BookRepository {
   Future<void> deleteBook(String id) => remoteDataSource.deleteBook(id);
 
   @override
-  Stream<List<BookEntity>> watchBooks() => remoteDataSource.watchBooks();
+  Stream<List<BookEntity>> watchBooks(String userId) =>
+      remoteDataSource.watchBooks(userId);
 }

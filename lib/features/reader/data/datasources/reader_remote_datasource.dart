@@ -1,13 +1,14 @@
+import '../../../../core/utils/firestore_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/reader_model.dart';
 
 abstract class ReaderRemoteDataSource {
-  Future<List<ReaderModel>> getReaders();
+  Future<List<ReaderModel>> getReaders(String userId);
   Future<ReaderModel?> getReaderById(String id);
   Future<void> addReader(ReaderModel reader);
   Future<void> updateReader(ReaderModel reader);
   Future<void> deleteReader(String id);
-  Stream<List<ReaderModel>> watchReaders();
+  Stream<List<ReaderModel>> watchReaders(String userId);
 }
 
 class ReaderRemoteDataSourceImpl implements ReaderRemoteDataSource {
@@ -17,22 +18,25 @@ class ReaderRemoteDataSourceImpl implements ReaderRemoteDataSource {
   ReaderRemoteDataSourceImpl({required this.firestore});
 
   @override
-  Future<List<ReaderModel>> getReaders() async {
-    final snapshot = await firestore.collection(collectionPath).get();
-    return snapshot.docs
-        .map((doc) => ReaderModel.fromMap(doc.data(), doc.id))
-        .toList();
+  Future<List<ReaderModel>> getReaders(String userId) async {
+    final docs = await FirestoreUtils.safeGetDocs(
+      firestore.collection(collectionPath).where('userId', isEqualTo: userId),
+    );
+    return docs.map((doc) => ReaderModel.fromMap(doc.data(), doc.id)).toList();
   }
 
   @override
   Future<ReaderModel?> getReaderById(String id) async {
-    final doc = await firestore.collection(collectionPath).doc(id).get();
-    if (!doc.exists) return null;
+    final doc = await FirestoreUtils.safeGetDoc(
+      firestore.collection(collectionPath).doc(id),
+    );
+    if (doc == null || !doc.exists) return null;
     return ReaderModel.fromMap(doc.data()!, doc.id);
   }
 
   @override
   Future<void> addReader(ReaderModel reader) async {
+    await FirestoreUtils.requireConnectivity();
     await firestore
         .collection(collectionPath)
         .doc(reader.id.isEmpty ? null : reader.id)
@@ -41,6 +45,7 @@ class ReaderRemoteDataSourceImpl implements ReaderRemoteDataSource {
 
   @override
   Future<void> updateReader(ReaderModel reader) async {
+    await FirestoreUtils.requireConnectivity();
     await firestore
         .collection(collectionPath)
         .doc(reader.id)
@@ -49,15 +54,20 @@ class ReaderRemoteDataSourceImpl implements ReaderRemoteDataSource {
 
   @override
   Future<void> deleteReader(String id) async {
+    await FirestoreUtils.requireConnectivity();
     await firestore.collection(collectionPath).doc(id).delete();
   }
 
   @override
-  Stream<List<ReaderModel>> watchReaders() {
-    return firestore.collection(collectionPath).snapshots().map((snapshot) {
-      return snapshot.docs
-          .map((doc) => ReaderModel.fromMap(doc.data(), doc.id))
-          .toList();
-    });
+  Stream<List<ReaderModel>> watchReaders(String userId) {
+    return firestore
+        .collection(collectionPath)
+        .where('userId', isEqualTo: userId)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => ReaderModel.fromMap(doc.data(), doc.id))
+              .toList();
+        });
   }
 }

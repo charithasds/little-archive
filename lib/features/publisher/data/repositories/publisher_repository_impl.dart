@@ -9,8 +9,8 @@ class PublisherRepositoryImpl implements PublisherRepository {
   PublisherRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<List<PublisherEntity>> getPublishers() =>
-      remoteDataSource.getPublishers();
+  Future<List<PublisherEntity>> getPublishers(String userId) =>
+      remoteDataSource.getPublishers(userId);
 
   @override
   Future<PublisherEntity?> getPublisherById(String id) =>
@@ -21,11 +21,17 @@ class PublisherRepositoryImpl implements PublisherRepository {
     return remoteDataSource.addPublisher(
       PublisherModel(
         id: publisher.id,
+        userId: publisher.userId,
         name: publisher.name,
         logo: publisher.logo,
+        otherName: publisher.otherName,
         website: publisher.website,
         email: publisher.email,
+        facebook: publisher.facebook,
+        phoneNumber: publisher.phoneNumber,
         bookIds: publisher.bookIds,
+        createdDate: publisher.createdDate,
+        lastUpdated: publisher.lastUpdated,
       ),
     );
   }
@@ -35,11 +41,17 @@ class PublisherRepositoryImpl implements PublisherRepository {
     return remoteDataSource.updatePublisher(
       PublisherModel(
         id: publisher.id,
+        userId: publisher.userId,
         name: publisher.name,
         logo: publisher.logo,
+        otherName: publisher.otherName,
         website: publisher.website,
         email: publisher.email,
+        facebook: publisher.facebook,
+        phoneNumber: publisher.phoneNumber,
         bookIds: publisher.bookIds,
+        createdDate: publisher.createdDate,
+        lastUpdated: publisher.lastUpdated,
       ),
     );
   }
@@ -49,6 +61,6 @@ class PublisherRepositoryImpl implements PublisherRepository {
       remoteDataSource.deletePublisher(id);
 
   @override
-  Stream<List<PublisherEntity>> watchPublishers() =>
-      remoteDataSource.watchPublishers();
+  Stream<List<PublisherEntity>> watchPublishers(String userId) =>
+      remoteDataSource.watchPublishers(userId);
 }

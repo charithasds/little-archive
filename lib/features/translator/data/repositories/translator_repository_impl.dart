@@ -9,8 +9,8 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
   TranslatorRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<List<TranslatorEntity>> getTranslators() =>
-      remoteDataSource.getTranslators();
+  Future<List<TranslatorEntity>> getTranslators(String userId) =>
+      remoteDataSource.getTranslators(userId);
 
   @override
   Future<TranslatorEntity?> getTranslatorById(String id) =>
@@ -21,13 +21,16 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
     return remoteDataSource.addTranslator(
       TranslatorModel(
         id: translator.id,
+        userId: translator.userId,
         name: translator.name,
         image: translator.image,
         otherName: translator.otherName,
         website: translator.website,
         facebook: translator.facebook,
         bookIds: translator.bookIds,
-        shortIds: translator.shortIds,
+        workIds: translator.workIds,
+        createdDate: translator.createdDate,
+        lastUpdated: translator.lastUpdated,
       ),
     );
   }
@@ -37,13 +40,16 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
     return remoteDataSource.updateTranslator(
       TranslatorModel(
         id: translator.id,
+        userId: translator.userId,
         name: translator.name,
         image: translator.image,
         otherName: translator.otherName,
         website: translator.website,
         facebook: translator.facebook,
         bookIds: translator.bookIds,
-        shortIds: translator.shortIds,
+        workIds: translator.workIds,
+        createdDate: translator.createdDate,
+        lastUpdated: translator.lastUpdated,
       ),
     );
   }
@@ -53,6 +59,6 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
       remoteDataSource.deleteTranslator(id);
 
   @override
-  Stream<List<TranslatorEntity>> watchTranslators() =>
-      remoteDataSource.watchTranslators();
+  Stream<List<TranslatorEntity>> watchTranslators(String userId) =>
+      remoteDataSource.watchTranslators(userId);
 }

@@ -1,1 +1,10 @@
-enum Language { english, sinhala, tamil, french, german, japanese, other }
+enum Language {
+  sinhala('Sinhala'),
+  english('English'),
+  tamil('Tamil'),
+  other('Other');
+
+  const Language(this.clientValue);
+
+  final String clientValue;
+}

@@ -9,13 +9,27 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Little Archive'),
+        title: Row(
+          children: [
+            Icon(
+              Icons.menu_book_rounded,
+              size: 28,
+              color: colorScheme.tertiary,
+            ),
+            const SizedBox(width: 12),
+            const Text('Little Archive'),
+          ],
+        ),
+        centerTitle: false,
         actions: [
           const ThemeToggle(),
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout_rounded),
+            tooltip: 'Sign Out',
             onPressed: () {
               ref.read(authControllerProvider.notifier).signOut();
             },

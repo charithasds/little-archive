@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#EBE3D5</color>
+    <!-- App icon colors -->
+    <color name="ic_launcher_background">#1e2d3d</color>
+    
+    <!-- Light theme splash colors -->
+    <color name="splash_background_light">#F8F6F3</color>
+    
+    <!-- Dark theme splash colors -->
+    <color name="splash_background_dark">#0d1318</color>
+    
+    <!-- Primary colors from icon -->
+    <color name="primary_dark">#1e2d3d</color>
+    <color name="tertiary_gold">#d4a855</color>
 </resources>
