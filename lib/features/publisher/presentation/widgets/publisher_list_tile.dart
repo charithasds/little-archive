@@ -3,9 +3,6 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/publisher_entity.dart';
 
 class PublisherListTile extends StatelessWidget {
-  final PublisherEntity publisher;
-  final VoidCallback onTap;
-  final VoidCallback onDelete;
 
   const PublisherListTile({
     super.key,
@@ -13,11 +10,14 @@ class PublisherListTile extends StatelessWidget {
     required this.onTap,
     required this.onDelete,
   });
+  final PublisherEntity publisher;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
-    final bookCount = publisher.bookIds.length;
-    final colorScheme = Theme.of(context).colorScheme;
+    final int bookCount = publisher.bookIds.length;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return InkWell(
       onTap: onTap,
@@ -25,7 +25,7 @@ class PublisherListTile extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
-          children: [
+          children: <Widget>[
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: SizedBox(
@@ -41,7 +41,7 @@ class PublisherListTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+                children: <Widget>[
                   Text(
                     publisher.name,
                     maxLines: 1,
@@ -78,7 +78,7 @@ class PublisherListTile extends StatelessWidget {
       return Image.network(
         logo,
         fit: BoxFit.contain,
-        errorBuilder: (context, error, stackTrace) =>
+        errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) =>
             _buildPlaceholder(colorScheme),
       );
     } else {

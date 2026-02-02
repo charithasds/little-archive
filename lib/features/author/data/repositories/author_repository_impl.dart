@@ -1,12 +1,12 @@
-import '../datasources/author_remote_datasource.dart';
 import '../../domain/entities/author_entity.dart';
 import '../../domain/repositories/author_repository.dart';
+import '../datasources/author_remote_datasource.dart';
 import '../models/author_model.dart';
 
 class AuthorRepositoryImpl implements AuthorRepository {
-  final AuthorRemoteDataSource remoteDataSource;
 
   AuthorRepositoryImpl({required this.remoteDataSource});
+  final AuthorRemoteDataSource remoteDataSource;
 
   @override
   Future<List<AuthorEntity>> getAuthors(String userId) =>

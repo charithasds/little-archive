@@ -16,8 +16,24 @@ class ReaderModel extends ReaderEntity {
     required super.lastUpdated,
   });
 
+  factory ReaderModel.fromMap(Map<String, dynamic> map, String documentId) {
+    return ReaderModel(
+      id: documentId,
+      userId: (map['userId'] as String?) ?? '',
+      name: (map['name'] as String?) ?? '',
+      image: map['image'] as String?,
+      otherName: map['otherName'] as String?,
+      email: map['email'] as String?,
+      facebook: map['facebook'] as String?,
+      phoneNumber: map['phoneNumber'] as String?,
+      bookIds: List<String>.from(map['bookIds'] as Iterable<dynamic>? ?? <String>[]),
+      createdDate: (map['createdDate'] as Timestamp).toDate(),
+      lastUpdated: (map['lastUpdated'] as Timestamp).toDate(),
+    );
+  }
+
   Map<String, dynamic> toMap() {
-    return {
+    return <String, dynamic>{
       'id': id,
       'userId': userId,
       'name': name,
@@ -30,21 +46,5 @@ class ReaderModel extends ReaderEntity {
       'createdDate': Timestamp.fromDate(createdDate),
       'lastUpdated': Timestamp.fromDate(lastUpdated),
     };
-  }
-
-  factory ReaderModel.fromMap(Map<String, dynamic> map, String documentId) {
-    return ReaderModel(
-      id: documentId,
-      userId: map['userId'] ?? '',
-      name: map['name'] ?? '',
-      image: map['image'],
-      otherName: map['otherName'],
-      email: map['email'],
-      facebook: map['facebook'],
-      phoneNumber: map['phoneNumber'],
-      bookIds: List<String>.from(map['bookIds'] ?? []),
-      createdDate: (map['createdDate'] as Timestamp).toDate(),
-      lastUpdated: (map['lastUpdated'] as Timestamp).toDate(),
-    );
   }
 }

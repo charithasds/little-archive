@@ -1,5 +1,6 @@
-import '../../../../core/utils/firestore_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../../../../core/utils/firestore_utils.dart';
 import '../models/translator_model.dart';
 
 abstract class TranslatorRemoteDataSource {
@@ -12,27 +13,29 @@ abstract class TranslatorRemoteDataSource {
 }
 
 class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
+
+  TranslatorRemoteDataSourceImpl({required this.firestore});
   final FirebaseFirestore firestore;
   final String collectionPath = 'translators';
 
-  TranslatorRemoteDataSourceImpl({required this.firestore});
-
   @override
   Future<List<TranslatorModel>> getTranslators(String userId) async {
-    final docs = await FirestoreUtils.safeGetDocs(
+    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await FirestoreUtils.safeGetDocs(
       firestore.collection(collectionPath).where('userId', isEqualTo: userId),
     );
     return docs
-        .map((doc) => TranslatorModel.fromMap(doc.data(), doc.id))
+        .map((QueryDocumentSnapshot<Map<String, dynamic>> doc) => TranslatorModel.fromMap(doc.data(), doc.id))
         .toList();
   }
 
   @override
   Future<TranslatorModel?> getTranslatorById(String id) async {
-    final doc = await FirestoreUtils.safeGetDoc(
+    final DocumentSnapshot<Map<String, dynamic>>? doc = await FirestoreUtils.safeGetDoc(
       firestore.collection(collectionPath).doc(id),
     );
-    if (doc == null || !doc.exists) return null;
+    if (doc == null || !doc.exists) {
+      return null;
+    }
     return TranslatorModel.fromMap(doc.data()!, doc.id);
   }
 
@@ -66,9 +69,9 @@ class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
         .collection(collectionPath)
         .where('userId', isEqualTo: userId)
         .snapshots()
-        .map((snapshot) {
+        .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
           return snapshot.docs
-              .map((doc) => TranslatorModel.fromMap(doc.data(), doc.id))
+              .map((QueryDocumentSnapshot<Map<String, dynamic>> doc) => TranslatorModel.fromMap(doc.data(), doc.id))
               .toList();
         });
   }

@@ -2,11 +2,6 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/sequence_entity.dart';
 
 class SequenceListTile extends StatelessWidget {
-  final SequenceEntity sequence;
-  final VoidCallback onTap;
-  final VoidCallback onDelete;
-  final int bookCount;
-  final int workCount;
 
   const SequenceListTile({
     super.key,
@@ -16,10 +11,15 @@ class SequenceListTile extends StatelessWidget {
     this.bookCount = 0,
     this.workCount = 0,
   });
+  final SequenceEntity sequence;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
+  final int bookCount;
+  final int workCount;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return InkWell(
       onTap: onTap,
@@ -27,7 +27,7 @@ class SequenceListTile extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
-          children: [
+          children: <Widget>[
             Container(
               width: 48,
               height: 48,
@@ -46,7 +46,7 @@ class SequenceListTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+                children: <Widget>[
                   Text(
                     sequence.name,
                     maxLines: 1,

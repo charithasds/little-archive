@@ -19,7 +19,6 @@ class AppTheme {
       brightness: Brightness.light,
       colorScheme: ColorScheme.light(
         primary: _primaryDark,
-        onPrimary: Colors.white,
         primaryContainer: _primaryLight.withValues(alpha: 0.15),
         onPrimaryContainer: _primaryDark,
         secondary: _secondary,
@@ -29,12 +28,11 @@ class AppTheme {
         tertiary: _tertiary,
         onTertiary: _primaryDark,
         tertiaryContainer: _tertiaryLight.withValues(alpha: 0.3),
-        onTertiaryContainer: Color(0xFF5c4a1f),
+        onTertiaryContainer: const Color(0xFF5c4a1f),
         surface: const Color(0xFFF8F6F3),
         onSurface: _primaryDark,
         surfaceContainerHighest: const Color(0xFFEDE9E4),
         error: const Color(0xFFBA1A1A),
-        onError: Colors.white,
         outline: _primaryLight.withValues(alpha: 0.4),
       ),
       appBarTheme: const AppBarTheme(

@@ -1,17 +1,6 @@
 import 'package:equatable/equatable.dart';
 
 class AuthorEntity extends Equatable {
-  final String id;
-  final String userId;
-  final String name;
-  final String? image;
-  final String? otherName;
-  final String? website;
-  final String? facebook;
-  final List<String> bookIds;
-  final List<String> workIds;
-  final DateTime createdDate;
-  final DateTime lastUpdated;
 
   const AuthorEntity({
     required this.id,
@@ -26,7 +15,18 @@ class AuthorEntity extends Equatable {
     required this.createdDate,
     required this.lastUpdated,
   });
+  final String id;
+  final String userId;
+  final String name;
+  final String? image;
+  final String? otherName;
+  final String? website;
+  final String? facebook;
+  final List<String> bookIds;
+  final List<String> workIds;
+  final DateTime createdDate;
+  final DateTime lastUpdated;
 
   @override
-  List<Object?> get props => [id];
+  List<Object?> get props => <Object?>[id];
 }

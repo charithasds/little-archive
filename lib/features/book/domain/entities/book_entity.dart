@@ -1,41 +1,13 @@
 import 'package:equatable/equatable.dart';
-import '../../../../core/enums/compilation_type.dart';
-import '../../../../core/enums/language.dart';
-import '../../../../core/enums/genre.dart';
-import '../../../../core/enums/original_language.dart';
+
 import '../../../../core/enums/collection_status.dart';
+import '../../../../core/enums/compilation_type.dart';
+import '../../../../core/enums/genre.dart';
+import '../../../../core/enums/language.dart';
+import '../../../../core/enums/original_language.dart';
 import '../../../../core/enums/reading_status.dart';
 
 class BookEntity extends Equatable {
-  final String id;
-  final String userId;
-  final String title;
-  final String? cover;
-  final CompilationType compilationType;
-  final Language language;
-  final Genre genre;
-  final String? isbn;
-  final DateTime? publishedDate;
-  final int? noOfPages;
-  final bool isTranslation;
-  final String? originalTitle;
-  final OriginalLanguage? originalLanguage;
-  final CollectionStatus collectionStatus;
-  final DateTime? collectedDate;
-  final DateTime? lendedDate;
-  final DateTime? dueDate;
-  final ReadingStatus readingStatus;
-  final int? pausedPage;
-  final DateTime? completedDate;
-  final String? notes;
-  final DateTime createdDate;
-  final DateTime lastUpdated;
-  final List<String> authorIds;
-  final List<String> translatorIds;
-  final List<String> workIds;
-  final String? sequenceVolumeId;
-  final String? publisherId;
-  final String? readerId;
 
   const BookEntity({
     required this.id,
@@ -68,9 +40,38 @@ class BookEntity extends Equatable {
     this.publisherId,
     this.readerId,
   });
+  final String id;
+  final String userId;
+  final String title;
+  final String? cover;
+  final CompilationType compilationType;
+  final Language language;
+  final Genre genre;
+  final String? isbn;
+  final DateTime? publishedDate;
+  final int? noOfPages;
+  final bool isTranslation;
+  final String? originalTitle;
+  final OriginalLanguage? originalLanguage;
+  final CollectionStatus collectionStatus;
+  final DateTime? collectedDate;
+  final DateTime? lendedDate;
+  final DateTime? dueDate;
+  final ReadingStatus readingStatus;
+  final int? pausedPage;
+  final DateTime? completedDate;
+  final String? notes;
+  final DateTime createdDate;
+  final DateTime lastUpdated;
+  final List<String> authorIds;
+  final List<String> translatorIds;
+  final List<String> workIds;
+  final String? sequenceVolumeId;
+  final String? publisherId;
+  final String? readerId;
 
   @override
-  List<Object?> get props => [id];
+  List<Object?> get props => <Object?>[id];
 
   BookEntity copyWith({
     String? id,

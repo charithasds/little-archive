@@ -3,9 +3,6 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/translator_entity.dart';
 
 class TranslatorListTile extends StatelessWidget {
-  final TranslatorEntity translator;
-  final VoidCallback onTap;
-  final VoidCallback onDelete;
 
   const TranslatorListTile({
     super.key,
@@ -13,12 +10,15 @@ class TranslatorListTile extends StatelessWidget {
     required this.onTap,
     required this.onDelete,
   });
+  final TranslatorEntity translator;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
-    final bookCount = translator.bookIds.length;
-    final workCount = translator.workIds.length;
-    final colorScheme = Theme.of(context).colorScheme;
+    final int bookCount = translator.bookIds.length;
+    final int workCount = translator.workIds.length;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return InkWell(
       onTap: onTap,
@@ -26,7 +26,7 @@ class TranslatorListTile extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
-          children: [
+          children: <Widget>[
             CircleAvatar(
               radius: 24,
               backgroundColor: colorScheme.primaryContainer,
@@ -47,7 +47,7 @@ class TranslatorListTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+                children: <Widget>[
                   Text(
                     translator.name,
                     maxLines: 1,

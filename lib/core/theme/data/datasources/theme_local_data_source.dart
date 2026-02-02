@@ -1,9 +1,9 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeLocalDataSource {
-  final SharedPreferences sharedPreferences;
 
   ThemeLocalDataSource(this.sharedPreferences);
+  final SharedPreferences sharedPreferences;
 
   static const String _themeKey = 'is_dark_mode';
 

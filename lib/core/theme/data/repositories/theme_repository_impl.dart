@@ -2,9 +2,9 @@ import '../../domain/repositories/theme_repository.dart';
 import '../datasources/theme_local_data_source.dart';
 
 class ThemeRepositoryImpl implements ThemeRepository {
-  final ThemeLocalDataSource localDataSource;
 
   ThemeRepositoryImpl(this.localDataSource);
+  final ThemeLocalDataSource localDataSource;
 
   @override
   Future<bool> getIsDarkMode() async {

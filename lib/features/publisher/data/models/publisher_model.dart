@@ -17,8 +17,25 @@ class PublisherModel extends PublisherEntity {
     required super.lastUpdated,
   });
 
+  factory PublisherModel.fromMap(Map<String, dynamic> map, String documentId) {
+    return PublisherModel(
+      id: documentId,
+      userId: (map['userId'] as String?) ?? '',
+      name: (map['name'] as String?) ?? '',
+      logo: map['logo'] as String?,
+      otherName: map['otherName'] as String?,
+      website: map['website'] as String?,
+      email: map['email'] as String?,
+      facebook: map['facebook'] as String?,
+      phoneNumber: map['phoneNumber'] as String?,
+      bookIds: List<String>.from(map['bookIds'] as Iterable<dynamic>? ?? <String>[]),
+      createdDate: (map['createdDate'] as Timestamp).toDate(),
+      lastUpdated: (map['lastUpdated'] as Timestamp).toDate(),
+    );
+  }
+
   Map<String, dynamic> toMap() {
-    return {
+    return <String, dynamic>{
       'id': id,
       'userId': userId,
       'name': name,
@@ -32,22 +49,5 @@ class PublisherModel extends PublisherEntity {
       'createdDate': Timestamp.fromDate(createdDate),
       'lastUpdated': Timestamp.fromDate(lastUpdated),
     };
-  }
-
-  factory PublisherModel.fromMap(Map<String, dynamic> map, String documentId) {
-    return PublisherModel(
-      id: documentId,
-      userId: map['userId'] ?? '',
-      name: map['name'] ?? '',
-      logo: map['logo'],
-      otherName: map['otherName'],
-      website: map['website'],
-      email: map['email'],
-      facebook: map['facebook'],
-      phoneNumber: map['phoneNumber'],
-      bookIds: List<String>.from(map['bookIds'] ?? []),
-      createdDate: (map['createdDate'] as Timestamp).toDate(),
-      lastUpdated: (map['lastUpdated'] as Timestamp).toDate(),
-    );
   }
 }

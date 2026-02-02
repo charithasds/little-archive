@@ -9,23 +9,25 @@ class SequenceModel extends SequenceEntity {
     required super.sequenceVolumeIds,
   });
 
+  factory SequenceModel.fromMap(Map<String, dynamic> map, String documentId) {
+    return SequenceModel(
+      id: documentId,
+      userId: (map['userId'] as String?) ?? '',
+      name: (map['name'] as String?) ?? '',
+      notes: map['notes'] as String?,
+      sequenceVolumeIds: List<String>.from(
+        map['sequenceVolumeIds'] as Iterable<dynamic>? ?? <String>[],
+      ),
+    );
+  }
+
   Map<String, dynamic> toMap() {
-    return {
+    return <String, dynamic>{
       'id': id,
       'userId': userId,
       'name': name,
       'notes': notes,
       'sequenceVolumeIds': sequenceVolumeIds,
     };
-  }
-
-  factory SequenceModel.fromMap(Map<String, dynamic> map, String documentId) {
-    return SequenceModel(
-      id: documentId,
-      userId: map['userId'] ?? '',
-      name: map['name'] ?? '',
-      notes: map['notes'],
-      sequenceVolumeIds: List<String>.from(map['sequenceVolumeIds'] ?? []),
-    );
   }
 }

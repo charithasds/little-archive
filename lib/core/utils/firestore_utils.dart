@@ -17,7 +17,7 @@ class FirestoreUtils {
   /// Call this method at the start of any CUD operation to prevent
   /// offline modifications that could lead to data inconsistencies.
   static Future<void> requireConnectivity() async {
-    final isConnected = await _connectivityService.isConnected();
+    final bool isConnected = await _connectivityService.isConnected();
     if (!isConnected) {
       throw const NoConnectionException(
         'Cannot perform this operation while offline. Please check your internet connection and try again.',
@@ -32,18 +32,18 @@ class FirestoreUtils {
     Query<T> query,
   ) async {
     try {
-      final snapshot = await query.get();
+      final QuerySnapshot<T> snapshot = await query.get();
       return snapshot.docs;
     } catch (e) {
       // If server fetch fails, try cache
       try {
-        final snapshot = await query.get(
+        final QuerySnapshot<T> snapshot = await query.get(
           const GetOptions(source: Source.cache),
         );
         return snapshot.docs;
       } catch (_) {
         // If cache also fails, return empty list instead of crashing
-        return [];
+        return <QueryDocumentSnapshot<T>>[];
       }
     }
   }

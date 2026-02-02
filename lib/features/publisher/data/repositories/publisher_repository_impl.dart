@@ -1,12 +1,12 @@
-import '../datasources/publisher_remote_datasource.dart';
 import '../../domain/entities/publisher_entity.dart';
 import '../../domain/repositories/publisher_repository.dart';
+import '../datasources/publisher_remote_datasource.dart';
 import '../models/publisher_model.dart';
 
 class PublisherRepositoryImpl implements PublisherRepository {
-  final PublisherRemoteDataSource remoteDataSource;
 
   PublisherRepositoryImpl({required this.remoteDataSource});
+  final PublisherRemoteDataSource remoteDataSource;
 
   @override
   Future<List<PublisherEntity>> getPublishers(String userId) =>

@@ -1,5 +1,6 @@
-import '../../../../core/utils/firestore_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../../../../core/utils/firestore_utils.dart';
 import '../models/sequence_model.dart';
 import '../models/sequence_volume_model.dart';
 
@@ -27,28 +28,30 @@ abstract class SequenceRemoteDataSource {
 }
 
 class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
+
+  SequenceRemoteDataSourceImpl({required this.firestore});
   final FirebaseFirestore firestore;
   final String collectionPath = 'sequences';
   final String volumesCollectionPath = 'sequence_volumes';
 
-  SequenceRemoteDataSourceImpl({required this.firestore});
-
   @override
   Future<List<SequenceModel>> getSequences(String userId) async {
-    final docs = await FirestoreUtils.safeGetDocs(
+    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await FirestoreUtils.safeGetDocs(
       firestore.collection(collectionPath).where('userId', isEqualTo: userId),
     );
     return docs
-        .map((doc) => SequenceModel.fromMap(doc.data(), doc.id))
+        .map((QueryDocumentSnapshot<Map<String, dynamic>> doc) => SequenceModel.fromMap(doc.data(), doc.id))
         .toList();
   }
 
   @override
   Future<SequenceModel?> getSequenceById(String id) async {
-    final doc = await FirestoreUtils.safeGetDoc(
+    final DocumentSnapshot<Map<String, dynamic>>? doc = await FirestoreUtils.safeGetDoc(
       firestore.collection(collectionPath).doc(id),
     );
-    if (doc == null || !doc.exists) return null;
+    if (doc == null || !doc.exists) {
+      return null;
+    }
     return SequenceModel.fromMap(doc.data()!, doc.id);
   }
 
@@ -82,9 +85,9 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
         .collection(collectionPath)
         .where('userId', isEqualTo: userId)
         .snapshots()
-        .map((snapshot) {
+        .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
           return snapshot.docs
-              .map((doc) => SequenceModel.fromMap(doc.data(), doc.id))
+              .map((QueryDocumentSnapshot<Map<String, dynamic>> doc) => SequenceModel.fromMap(doc.data(), doc.id))
               .toList();
         });
   }
@@ -95,14 +98,14 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
     String sequenceId,
     String userId,
   ) async {
-    final docs = await FirestoreUtils.safeGetDocs(
+    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await FirestoreUtils.safeGetDocs(
       firestore
           .collection(volumesCollectionPath)
           .where('sequenceId', isEqualTo: sequenceId)
           .where('userId', isEqualTo: userId),
     );
     return docs
-        .map((doc) => SequenceVolumeModel.fromMap(doc.data(), doc.id))
+        .map((QueryDocumentSnapshot<Map<String, dynamic>> doc) => SequenceVolumeModel.fromMap(doc.data(), doc.id))
         .toList();
   }
 
@@ -140,9 +143,9 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
         .where('sequenceId', isEqualTo: sequenceId)
         .where('userId', isEqualTo: userId)
         .snapshots()
-        .map((snapshot) {
+        .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
           return snapshot.docs
-              .map((doc) => SequenceVolumeModel.fromMap(doc.data(), doc.id))
+              .map((QueryDocumentSnapshot<Map<String, dynamic>> doc) => SequenceVolumeModel.fromMap(doc.data(), doc.id))
               .toList();
         });
   }

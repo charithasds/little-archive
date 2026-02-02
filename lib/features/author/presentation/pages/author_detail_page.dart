@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AuthorDetailPage extends StatelessWidget {
-  final String authorId;
   const AuthorDetailPage({super.key, required this.authorId});
+  final String authorId;
 
   @override
   Widget build(BuildContext context) {

@@ -1,5 +1,6 @@
-import '../../../../core/utils/firestore_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../../../../core/utils/firestore_utils.dart';
 import '../models/author_model.dart';
 
 abstract class AuthorRemoteDataSource {
@@ -12,25 +13,31 @@ abstract class AuthorRemoteDataSource {
 }
 
 class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
+  AuthorRemoteDataSourceImpl({required this.firestore});
   final FirebaseFirestore firestore;
   final String collectionPath = 'authors';
 
-  AuthorRemoteDataSourceImpl({required this.firestore});
-
   @override
   Future<List<AuthorModel>> getAuthors(String userId) async {
-    final docs = await FirestoreUtils.safeGetDocs(
+    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await FirestoreUtils.safeGetDocs(
       firestore.collection(collectionPath).where('userId', isEqualTo: userId),
     );
-    return docs.map((doc) => AuthorModel.fromMap(doc.data(), doc.id)).toList();
+    return docs
+        .map(
+          (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
+              AuthorModel.fromMap(doc.data(), doc.id),
+        )
+        .toList();
   }
 
   @override
   Future<AuthorModel?> getAuthorById(String id) async {
-    final doc = await FirestoreUtils.safeGetDoc(
+    final DocumentSnapshot<Map<String, dynamic>>? doc = await FirestoreUtils.safeGetDoc(
       firestore.collection(collectionPath).doc(id),
     );
-    if (doc == null || !doc.exists) return null;
+    if (doc == null || !doc.exists) {
+      return null;
+    }
     return AuthorModel.fromMap(doc.data()!, doc.id);
   }
 
@@ -46,10 +53,7 @@ class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
   @override
   Future<void> updateAuthor(AuthorModel author) async {
     await FirestoreUtils.requireConnectivity();
-    await firestore
-        .collection(collectionPath)
-        .doc(author.id)
-        .update(author.toMap());
+    await firestore.collection(collectionPath).doc(author.id).update(author.toMap());
   }
 
   @override
@@ -60,14 +64,15 @@ class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
 
   @override
   Stream<List<AuthorModel>> watchAuthors(String userId) {
-    return firestore
-        .collection(collectionPath)
-        .where('userId', isEqualTo: userId)
-        .snapshots()
-        .map((snapshot) {
-          return snapshot.docs
-              .map((doc) => AuthorModel.fromMap(doc.data(), doc.id))
-              .toList();
-        });
+    return firestore.collection(collectionPath).where('userId', isEqualTo: userId).snapshots().map((
+      QuerySnapshot<Map<String, dynamic>> snapshot,
+    ) {
+      return snapshot.docs
+          .map(
+            (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
+                AuthorModel.fromMap(doc.data(), doc.id),
+          )
+          .toList();
+    });
   }
 }

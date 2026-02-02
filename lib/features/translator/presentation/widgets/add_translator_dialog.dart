@@ -1,22 +1,25 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../core/error/exceptions.dart';
-import '../../domain/entities/translator_entity.dart';
-import '../providers/translator_provider.dart';
+import '../../../../core/utils/snackbar_utils.dart';
+import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../domain/entities/translator_entity.dart';
+import '../../domain/repositories/translator_repository.dart';
+import '../providers/translator_provider.dart';
 
 class AddTranslatorDialog extends ConsumerStatefulWidget {
   const AddTranslatorDialog({super.key});
 
   @override
-  ConsumerState<AddTranslatorDialog> createState() =>
-      _AddTranslatorDialogState();
+  ConsumerState<AddTranslatorDialog> createState() => _AddTranslatorDialogState();
 }
 
 class _AddTranslatorDialogState extends ConsumerState<AddTranslatorDialog> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _nameController = TextEditingController();
 
   @override
   void dispose() {
@@ -26,43 +29,36 @@ class _AddTranslatorDialogState extends ConsumerState<AddTranslatorDialog> {
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
-      final user = ref.read(authStateProvider).value;
-      if (user == null) return;
+      final UserEntity? user = ref.read<AsyncValue<UserEntity?>>(authStateProvider).value;
+      if (user == null) {
+        return;
+      }
 
-      final newTranslator = TranslatorEntity(
+      final TranslatorEntity newTranslator = TranslatorEntity(
         id: FirebaseFirestore.instance.collection('translators').doc().id,
         userId: user.uid,
         name: _nameController.text.trim(),
-        bookIds: [],
-        workIds: [],
+        bookIds: const <String>[],
+        workIds: const <String>[],
         createdDate: DateTime.now(),
         lastUpdated: DateTime.now(),
       );
 
       try {
         await ref
-            .read(translatorRepositoryProvider)
+            .read<TranslatorRepository>(translatorRepositoryProvider)
             .addTranslator(newTranslator);
         if (mounted) {
+          SnackBarUtils.showSuccess(context, 'Translator added successfully');
           Navigator.of(context).pop(newTranslator);
         }
       } on NoConnectionException catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(e.message),
-              backgroundColor: Colors.redAccent,
-            ),
-          );
+          SnackBarUtils.showError(context, e.message);
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error adding translator: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          SnackBarUtils.showError(context, 'Error adding translator: $e');
         }
       }
     }
@@ -77,15 +73,12 @@ class _AddTranslatorDialogState extends ConsumerState<AddTranslatorDialog> {
         child: TextFormField(
           controller: _nameController,
           decoration: const InputDecoration(labelText: 'Name'),
-          validator: (value) =>
-              value == null || value.isEmpty ? 'Required' : null,
+          validator: (String? value) => value == null || value.isEmpty ? 'Name is required' : null,
+          maxLength: 500,
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
+      actions: <Widget>[
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
         ElevatedButton(onPressed: _save, child: const Text('Add')),
       ],
     );

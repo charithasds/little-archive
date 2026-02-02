@@ -1,14 +1,6 @@
 import 'package:equatable/equatable.dart';
 
 class SequenceVolumeEntity extends Equatable {
-  final String id;
-  final String userId;
-  final String volume;
-  final String sequenceId;
-  final String? bookId;
-  final String? workId;
-  final DateTime createdDate;
-  final DateTime lastUpdated;
 
   const SequenceVolumeEntity({
     required this.id,
@@ -20,7 +12,15 @@ class SequenceVolumeEntity extends Equatable {
     required this.createdDate,
     required this.lastUpdated,
   });
+  final String id;
+  final String userId;
+  final String volume;
+  final String sequenceId;
+  final String? bookId;
+  final String? workId;
+  final DateTime createdDate;
+  final DateTime lastUpdated;
 
   @override
-  List<Object?> get props => [id];
+  List<Object?> get props => <Object?>[id];
 }

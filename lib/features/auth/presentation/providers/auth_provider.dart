@@ -10,15 +10,15 @@ import '../../domain/usecases/sign_in_with_google_usecase.dart';
 import '../../domain/usecases/sign_out_usecase.dart';
 
 // Data Sources and External Services
-final firebaseAuthProvider = Provider<FirebaseAuth>((ref) {
+final Provider<FirebaseAuth> firebaseAuthProvider = Provider<FirebaseAuth>((Ref ref) {
   return FirebaseAuth.instance;
 });
 
-final googleSignInProvider = Provider<GoogleSignIn>((ref) {
-  return GoogleSignIn(scopes: ['email', 'profile']);
+final Provider<GoogleSignIn> googleSignInProvider = Provider<GoogleSignIn>((Ref ref) {
+  return GoogleSignIn(scopes: <String>['email', 'profile']);
 });
 
-final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
+final Provider<AuthRemoteDataSource> authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((Ref ref) {
   return AuthRemoteDataSource(
     ref.watch(firebaseAuthProvider),
     ref.watch(googleSignInProvider),
@@ -26,33 +26,33 @@ final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
 });
 
 // Repository
-final authRepositoryProvider = Provider<AuthRepository>((ref) {
+final Provider<AuthRepository> authRepositoryProvider = Provider<AuthRepository>((Ref ref) {
   return AuthRepositoryImpl(ref.watch(authRemoteDataSourceProvider));
 });
 
 // Use Cases
-final signInWithGoogleUseCaseProvider = Provider<SignInWithGoogleUseCase>((
-  ref,
+final Provider<SignInWithGoogleUseCase> signInWithGoogleUseCaseProvider = Provider<SignInWithGoogleUseCase>((
+  Ref ref,
 ) {
   return SignInWithGoogleUseCase(ref.watch(authRepositoryProvider));
 });
 
-final signOutUseCaseProvider = Provider<SignOutUseCase>((ref) {
+final Provider<SignOutUseCase> signOutUseCaseProvider = Provider<SignOutUseCase>((Ref ref) {
   return SignOutUseCase(ref.watch(authRepositoryProvider));
 });
 
-final getAuthStateChangesUseCaseProvider = Provider<GetAuthStateChangesUseCase>(
-  (ref) {
+final Provider<GetAuthStateChangesUseCase> getAuthStateChangesUseCaseProvider = Provider<GetAuthStateChangesUseCase>(
+  (Ref ref) {
     return GetAuthStateChangesUseCase(ref.watch(authRepositoryProvider));
   },
 );
 
 // State & Controller
-final authStateProvider = StreamProvider<UserEntity?>((ref) {
+final StreamProvider<UserEntity?> authStateProvider = StreamProvider<UserEntity?>((Ref ref) {
   return ref.watch(getAuthStateChangesUseCaseProvider).call();
 });
 
-final authControllerProvider = NotifierProvider<AuthController, void>(() {
+final NotifierProvider<AuthController, void> authControllerProvider = NotifierProvider<AuthController, void>(() {
   return AuthController();
 });
 
@@ -63,12 +63,12 @@ class AuthController extends Notifier<void> {
   }
 
   Future<void> signInWithGoogle() async {
-    final signInuseCase = ref.read(signInWithGoogleUseCaseProvider);
+    final SignInWithGoogleUseCase signInuseCase = ref.read(signInWithGoogleUseCaseProvider);
     await signInuseCase();
   }
 
   Future<void> signOut() async {
-    final signOutUseCase = ref.read(signOutUseCaseProvider);
+    final SignOutUseCase signOutUseCase = ref.read(signOutUseCaseProvider);
     await signOutUseCase();
   }
 }

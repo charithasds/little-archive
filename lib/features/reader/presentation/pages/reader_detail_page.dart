@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class ReaderDetailPage extends StatelessWidget {
-  final String readerId;
   const ReaderDetailPage({super.key, required this.readerId});
+  final String readerId;
 
   @override
   Widget build(BuildContext context) {

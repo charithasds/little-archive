@@ -2,21 +2,19 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import '../utils/snackbar_utils.dart';
 
 /// A widget that monitors network connectivity and:
-/// 1. Shows a SnackBar when the device goes offline.
-/// 2. Disables Firestore network access when offline or when the app is in background.
+/// 1. Disables Firestore network access when offline or when the app is in background.
 class ConnectivityWrapper extends StatefulWidget {
-  final Widget child;
-
   const ConnectivityWrapper({super.key, required this.child});
+  final Widget child;
 
   @override
   State<ConnectivityWrapper> createState() => _ConnectivityWrapperState();
 }
 
-class _ConnectivityWrapperState extends State<ConnectivityWrapper>
-    with WidgetsBindingObserver {
+class _ConnectivityWrapperState extends State<ConnectivityWrapper> with WidgetsBindingObserver {
   late StreamSubscription<List<ConnectivityResult>> _subscription;
   bool _isOffline = false;
 
@@ -29,7 +27,7 @@ class _ConnectivityWrapperState extends State<ConnectivityWrapper>
     _checkConnectivity();
 
     // Listen to changes
-    _subscription = Connectivity().onConnectivityChanged.listen((results) {
+    _subscription = Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) {
       _updateConnectionStatus(results);
     });
   }
@@ -44,24 +42,28 @@ class _ConnectivityWrapperState extends State<ConnectivityWrapper>
   // Handle app lifecycle changes (Background/Foreground)
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.detached ||
-        state == AppLifecycleState.inactive) {
+    if (state == AppLifecycleState.detached) {
+      return;
+    }
+
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
       // App is in background or inactive, disable network immediately
-      FirebaseFirestore.instance.disableNetwork().catchError((_) {
-        // Suppress errors during network disable
-      });
+      try {
+        FirebaseFirestore.instance.disableNetwork();
+      } catch (_) {}
     } else if (state == AppLifecycleState.resumed) {
       // App is back, re-enable network if we have connectivity
       if (!_isOffline) {
-        FirebaseFirestore.instance.enableNetwork();
+        try {
+          FirebaseFirestore.instance.enableNetwork();
+        } catch (_) {}
       }
     }
   }
 
   Future<void> _checkConnectivity() async {
     try {
-      final results = await Connectivity().checkConnectivity();
+      final List<ConnectivityResult> results = await Connectivity().checkConnectivity();
       _updateConnectionStatus(results);
     } catch (_) {
       // Ignore errors during check
@@ -69,9 +71,13 @@ class _ConnectivityWrapperState extends State<ConnectivityWrapper>
   }
 
   void _updateConnectionStatus(List<ConnectivityResult> results) {
+    if (!mounted) {
+      return;
+    }
+
     // If none of the results indicate connection, we are offline
-    final isOffline =
-        results.isEmpty || results.every((r) => r == ConnectivityResult.none);
+    final bool isOffline =
+        results.isEmpty || results.every((ConnectivityResult r) => r == ConnectivityResult.none);
 
     if (isOffline != _isOffline) {
       setState(() {
@@ -91,15 +97,7 @@ class _ConnectivityWrapperState extends State<ConnectivityWrapper>
     FirebaseFirestore.instance.disableNetwork();
 
     // Show a message to the user
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('You are offline. Showing cached data.'),
-          duration: Duration(seconds: 4),
-          backgroundColor: Colors.redAccent,
-        ),
-      );
-    }
+    SnackBarUtils.showWarning(context, 'You are offline. Some features may be unavailable.');
   }
 
   void _handleOnline() {
@@ -107,15 +105,7 @@ class _ConnectivityWrapperState extends State<ConnectivityWrapper>
     FirebaseFirestore.instance.enableNetwork();
 
     // Show a message to the user
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('You are back online.'),
-          duration: Duration(seconds: 2),
-          backgroundColor: Colors.green,
-        ),
-      );
-    }
+    SnackBarUtils.showSuccess(context, 'You are back online.');
   }
 
   @override

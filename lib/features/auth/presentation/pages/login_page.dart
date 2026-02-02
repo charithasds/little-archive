@@ -6,9 +6,9 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colorScheme = theme.colorScheme;
+    final bool isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       body: Container(
@@ -17,12 +17,8 @@ class LoginPage extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isDark
-                ? [
-                    const Color(0xFF0d1318),
-                    const Color(0xFF121a22),
-                    const Color(0xFF1e2d3d),
-                  ]
-                : [
+                ? <Color>[const Color(0xFF0d1318), const Color(0xFF121a22), const Color(0xFF1e2d3d)]
+                : <Color>[
                     const Color(0xFFF8F6F3),
                     const Color(0xFFEDE9E4),
                     colorScheme.primaryContainer,
@@ -36,8 +32,7 @@ class LoginPage extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 32.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
+                  children: <Widget>[
                     // App Icon with decorative container
                     _buildAppIconSection(context, colorScheme, isDark),
 
@@ -72,22 +67,18 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAppIconSection(
-    BuildContext context,
-    ColorScheme colorScheme,
-    bool isDark,
-  ) {
+  Widget _buildAppIconSection(BuildContext context, ColorScheme colorScheme, bool isDark) {
     return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
+      tween: Tween<double>(begin: 0.0, end: 1.0),
       duration: const Duration(milliseconds: 800),
       curve: Curves.easeOutBack,
-      builder: (context, value, child) {
+      builder: (BuildContext context, double value, Widget? child) {
         return Transform.scale(scale: value, child: child);
       },
       child: Container(
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          boxShadow: [
+          boxShadow: <BoxShadow>[
             // Outer glow with tertiary (gold) color
             BoxShadow(
               color: colorScheme.tertiary.withValues(alpha: 0.4),
@@ -109,10 +100,7 @@ class LoginPage extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                colorScheme.tertiary,
-                colorScheme.tertiary.withValues(alpha: 0.7),
-              ],
+              colors: <Color>[colorScheme.tertiary, colorScheme.tertiary.withValues(alpha: 0.7)],
             ),
           ),
           child: ClipOval(
@@ -128,26 +116,19 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  Widget _buildWelcomeSection(
-    BuildContext context,
-    ThemeData theme,
-    ColorScheme colorScheme,
-  ) {
+  Widget _buildWelcomeSection(BuildContext context, ThemeData theme, ColorScheme colorScheme) {
     return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
+      tween: Tween<double>(begin: 0.0, end: 1.0),
       duration: const Duration(milliseconds: 600),
       curve: Curves.easeOut,
-      builder: (context, value, child) {
+      builder: (BuildContext context, double value, Widget? child) {
         return Opacity(
           opacity: value,
-          child: Transform.translate(
-            offset: Offset(0, 20 * (1 - value)),
-            child: child,
-          ),
+          child: Transform.translate(offset: Offset(0, 20 * (1 - value)), child: child),
         );
       },
       child: Column(
-        children: [
+        children: <Widget>[
           Text(
             'Welcome to',
             style: theme.textTheme.titleMedium?.copyWith(
@@ -158,8 +139,8 @@ class LoginPage extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           ShaderMask(
-            shaderCallback: (bounds) => LinearGradient(
-              colors: [colorScheme.primary, colorScheme.tertiary],
+            shaderCallback: (Rect bounds) => LinearGradient(
+              colors: <Color>[colorScheme.primary, colorScheme.tertiary],
             ).createShader(bounds),
             child: Text(
               'Little Archive',
@@ -175,22 +156,15 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSignInSection(
-    BuildContext context,
-    ColorScheme colorScheme,
-    bool isDark,
-  ) {
+  Widget _buildSignInSection(BuildContext context, ColorScheme colorScheme, bool isDark) {
     return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
+      tween: Tween<double>(begin: 0.0, end: 1.0),
       duration: const Duration(milliseconds: 700),
       curve: Curves.easeOut,
-      builder: (context, value, child) {
+      builder: (BuildContext context, double value, Widget? child) {
         return Opacity(
           opacity: value,
-          child: Transform.translate(
-            offset: Offset(0, 30 * (1 - value)),
-            child: child,
-          ),
+          child: Transform.translate(offset: Offset(0, 30 * (1 - value)), child: child),
         );
       },
       child: Container(
@@ -201,7 +175,7 @@ class LoginPage extends StatelessWidget {
               ? colorScheme.surface.withValues(alpha: 0.5)
               : Colors.white.withValues(alpha: 0.8),
           border: Border.all(color: colorScheme.outline.withValues(alpha: 0.2)),
-          boxShadow: [
+          boxShadow: <BoxShadow>[
             BoxShadow(
               color: colorScheme.primary.withValues(alpha: 0.08),
               blurRadius: 24,
@@ -210,12 +184,8 @@ class LoginPage extends StatelessWidget {
           ],
         ),
         child: Column(
-          children: [
-            Icon(
-              Icons.menu_book_rounded,
-              size: 48,
-              color: colorScheme.tertiary,
-            ),
+          children: <Widget>[
+            Icon(Icons.menu_book_rounded, size: 48, color: colorScheme.tertiary),
             const SizedBox(height: 16),
             Text(
               'Get Started',
@@ -227,9 +197,9 @@ class LoginPage extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Sign in to access your library',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurface.withValues(alpha: 0.6),
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurface.withValues(alpha: 0.6)),
             ),
             const SizedBox(height: 24),
             const GoogleSignInButton(),

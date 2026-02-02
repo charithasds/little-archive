@@ -3,10 +3,6 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/book_entity.dart';
 
 class BookListTile extends StatelessWidget {
-  final BookEntity book;
-  final VoidCallback onTap;
-  final VoidCallback onDelete;
-  final String? firstAuthorOrTranslatorName;
 
   const BookListTile({
     super.key,
@@ -15,16 +11,20 @@ class BookListTile extends StatelessWidget {
     required this.onDelete,
     this.firstAuthorOrTranslatorName,
   });
+  final BookEntity book;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
+  final String? firstAuthorOrTranslatorName;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     // Determine creator info
-    final isTranslation = book.isTranslation;
-    final creatorIds = isTranslation ? book.translatorIds : book.authorIds;
-    final creatorLabel = isTranslation ? 'Translator' : 'Author';
-    final additionalCount = creatorIds.length > 1 ? creatorIds.length - 1 : 0;
+    final bool isTranslation = book.isTranslation;
+    final List<String> creatorIds = isTranslation ? book.translatorIds : book.authorIds;
+    final String creatorLabel = isTranslation ? 'Translator' : 'Author';
+    final int additionalCount = creatorIds.length > 1 ? creatorIds.length - 1 : 0;
 
     String creatorText;
     if (firstAuthorOrTranslatorName != null &&
@@ -46,7 +46,7 @@ class BookListTile extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
-          children: [
+          children: <Widget>[
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: SizedBox(
@@ -62,7 +62,7 @@ class BookListTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+                children: <Widget>[
                   Text(
                     book.title,
                     maxLines: 1,
@@ -109,7 +109,7 @@ class BookListTile extends StatelessWidget {
       return Image.network(
         cover,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) =>
+        errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) =>
             _buildPlaceholder(colorScheme),
       );
     } else {

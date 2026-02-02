@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../../core/enums/language.dart';
+
 import '../../../../core/enums/genre.dart';
+import '../../../../core/enums/language.dart';
 import '../../../../core/enums/original_language.dart';
 import '../../../../core/enums/reading_status.dart';
 import '../../../../core/enums/work_type.dart';
@@ -30,8 +31,35 @@ class WorkModel extends WorkEntity {
     super.bookId,
   });
 
+  factory WorkModel.fromMap(Map<String, dynamic> map, String documentId) {
+    return WorkModel(
+      id: documentId,
+      userId: (map['userId'] as String?) ?? '',
+      title: (map['title'] as String?) ?? '',
+      language: Language.values.byName((map['language'] as String?) ?? 'english'),
+      genre: Genre.values.byName((map['genre'] as String?) ?? 'other'),
+      workType: WorkType.values.byName((map['workType'] as String?) ?? 'shortStory'),
+      noOfPages: map['noOfPages'] as int?,
+      isTranslation: (map['isTranslation'] as bool?) ?? false,
+      originalTitle: map['originalTitle'] as String?,
+      originalLanguage: map['originalLanguage'] != null
+          ? OriginalLanguage.values.byName(map['originalLanguage'] as String)
+          : null,
+      readingStatus: ReadingStatus.values.byName((map['readingStatus'] as String?) ?? 'notStarted'),
+      pausedPage: map['pausedPage'] as int?,
+      completedDate: (map['completedDate'] as Timestamp?)?.toDate(),
+      notes: map['notes'] as String?,
+      createdDate: (map['createdDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      lastUpdated: (map['lastUpdated'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      authorIds: List<String>.from(map['authorIds'] as Iterable<dynamic>? ?? <String>[]),
+      translatorIds: List<String>.from(map['translatorIds'] as Iterable<dynamic>? ?? <String>[]),
+      sequenceVolumeId: map['sequenceVolumeId'] as String?,
+      bookId: map['bookId'] as String?,
+    );
+  }
+
   Map<String, dynamic> toMap() {
-    return {
+    return <String, dynamic>{
       'id': id,
       'userId': userId,
       'title': title,
@@ -44,9 +72,7 @@ class WorkModel extends WorkEntity {
       'originalLanguage': originalLanguage?.name,
       'readingStatus': readingStatus.name,
       'pausedPage': pausedPage,
-      'completedDate': completedDate != null
-          ? Timestamp.fromDate(completedDate!)
-          : null,
+      'completedDate': completedDate != null ? Timestamp.fromDate(completedDate!) : null,
       'notes': notes,
       'createdDate': Timestamp.fromDate(createdDate),
       'lastUpdated': Timestamp.fromDate(lastUpdated),
@@ -55,36 +81,5 @@ class WorkModel extends WorkEntity {
       'sequenceVolumeId': sequenceVolumeId,
       'bookId': bookId,
     };
-  }
-
-  factory WorkModel.fromMap(Map<String, dynamic> map, String documentId) {
-    return WorkModel(
-      id: documentId,
-      userId: map['userId'] ?? '',
-      title: map['title'] ?? '',
-      language: Language.values.byName(map['language'] ?? 'english'),
-      genre: Genre.values.byName(map['genre'] ?? 'other'),
-      workType: WorkType.values.byName(map['workType'] ?? 'shortStory'),
-      noOfPages: map['noOfPages'],
-      isTranslation: map['isTranslation'] ?? false,
-      originalTitle: map['originalTitle'],
-      originalLanguage: map['originalLanguage'] != null
-          ? OriginalLanguage.values.byName(map['originalLanguage'])
-          : null,
-      readingStatus: ReadingStatus.values.byName(
-        map['readingStatus'] ?? 'notStarted',
-      ),
-      pausedPage: map['pausedPage'],
-      completedDate: (map['completedDate'] as Timestamp?)?.toDate(),
-      notes: map['notes'],
-      createdDate:
-          (map['createdDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      lastUpdated:
-          (map['lastUpdated'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      authorIds: List<String>.from(map['authorIds'] ?? []),
-      translatorIds: List<String>.from(map['translatorIds'] ?? []),
-      sequenceVolumeId: map['sequenceVolumeId'],
-      bookId: map['bookId'],
-    );
   }
 }

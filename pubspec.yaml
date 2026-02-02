@@ -39,6 +39,7 @@ dependencies:
   flutter_dotenv: ^6.0.0
   connectivity_plus: ^7.0.0
 
+  riverpod: any
 dev_dependencies:
   flutter_launcher_icons: ^0.14.4
   flutter_test:

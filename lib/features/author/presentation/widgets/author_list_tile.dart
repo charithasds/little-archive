@@ -3,9 +3,6 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/author_entity.dart';
 
 class AuthorListTile extends StatelessWidget {
-  final AuthorEntity author;
-  final VoidCallback onTap;
-  final VoidCallback onDelete;
 
   const AuthorListTile({
     super.key,
@@ -13,12 +10,15 @@ class AuthorListTile extends StatelessWidget {
     required this.onTap,
     required this.onDelete,
   });
+  final AuthorEntity author;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
-    final bookCount = author.bookIds.length;
-    final workCount = author.workIds.length;
-    final colorScheme = Theme.of(context).colorScheme;
+    final int bookCount = author.bookIds.length;
+    final int workCount = author.workIds.length;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return InkWell(
       onTap: onTap,
@@ -26,7 +26,7 @@ class AuthorListTile extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
-          children: [
+          children: <Widget>[
             CircleAvatar(
               radius: 24,
               backgroundColor: colorScheme.primaryContainer,
@@ -46,7 +46,7 @@ class AuthorListTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+                children: <Widget>[
                   Text(
                     author.name,
                     maxLines: 1,

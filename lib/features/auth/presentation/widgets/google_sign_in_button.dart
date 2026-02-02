@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/utils/snackbar_utils.dart';
 import '../providers/auth_provider.dart';
 
 class GoogleSignInButton extends ConsumerStatefulWidget {
@@ -14,8 +16,8 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -33,16 +35,13 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: isDark
-                      ? [
+                      ? <Color>[
                           colorScheme.primaryContainer,
                           colorScheme.primary.withValues(alpha: 0.8),
                         ]
-                      : [
-                          colorScheme.primary,
-                          colorScheme.primary.withValues(alpha: 0.85),
-                        ],
+                      : <Color>[colorScheme.primary, colorScheme.primary.withValues(alpha: 0.85)],
                 ),
-                boxShadow: [
+                boxShadow: <BoxShadow>[
                   BoxShadow(
                     color: colorScheme.primary.withValues(alpha: 0.3),
                     blurRadius: 12,
@@ -51,14 +50,11 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
                 ],
               ),
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+                  children: <Widget>[
                     if (_isLoading)
                       SizedBox(
                         width: 24,
@@ -66,9 +62,7 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
                         child: CircularProgressIndicator(
                           strokeWidth: 2.5,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            isDark
-                                ? colorScheme.onPrimaryContainer
-                                : colorScheme.onPrimary,
+                            isDark ? colorScheme.onPrimaryContainer : colorScheme.onPrimary,
                           ),
                         ),
                       )
@@ -82,14 +76,15 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Image.network(
-                          'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                              Icons.g_mobiledata_rounded,
-                              color: colorScheme.primary,
-                              size: 20,
-                            );
-                          },
+                          'https://developers.google.com/static/identity/images/g-logo.png',
+                          errorBuilder:
+                              (BuildContext context, Object error, StackTrace? stackTrace) {
+                                return Icon(
+                                  Icons.g_mobiledata_rounded,
+                                  color: colorScheme.primary,
+                                  size: 20,
+                                );
+                              },
                         ),
                       ),
                     const SizedBox(width: 16),
@@ -99,9 +94,7 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 0.5,
-                        color: isDark
-                            ? colorScheme.onPrimaryContainer
-                            : colorScheme.onPrimary,
+                        color: isDark ? colorScheme.onPrimaryContainer : colorScheme.onPrimary,
                       ),
                     ),
                   ],
@@ -120,15 +113,7 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
       await ref.read(authControllerProvider.notifier).signInWithGoogle();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to sign in: $e'),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
+        SnackBarUtils.showError(context, 'Failed to sign in: $e');
       }
     } finally {
       if (mounted) {

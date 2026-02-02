@@ -4,17 +4,16 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 /// Service class for checking network connectivity status.
 /// This is used to prevent CUD operations when the device is offline.
 class ConnectivityService {
-  final Connectivity _connectivity;
-
   ConnectivityService({Connectivity? connectivity})
     : _connectivity = connectivity ?? Connectivity();
+  final Connectivity _connectivity;
 
   /// Checks if the device currently has an active network connection.
   /// Returns true if connected (WiFi, mobile, ethernet, vpn, bluetooth),
   /// false otherwise.
   Future<bool> isConnected() async {
     try {
-      final results = await _connectivity.checkConnectivity();
+      final List<ConnectivityResult> results = await _connectivity.checkConnectivity();
       return _hasConnection(results);
     } catch (_) {
       // If we can't check, assume offline for safety
@@ -29,7 +28,9 @@ class ConnectivityService {
 
   /// Helper to determine if any of the results indicate a connection.
   bool _hasConnection(List<ConnectivityResult> results) {
-    if (results.isEmpty) return false;
-    return results.any((r) => r != ConnectivityResult.none);
+    if (results.isEmpty) {
+      return false;
+    }
+    return results.any((ConnectivityResult r) => r != ConnectivityResult.none);
   }
 }

@@ -1,33 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+
 import '../../../../core/error/exceptions.dart';
-import '../providers/book_provider.dart';
+import '../../../../core/utils/snackbar_utils.dart';
 import '../../domain/entities/book_entity.dart';
+import '../providers/book_provider.dart';
 
 class BookDetailPage extends ConsumerWidget {
+  const BookDetailPage({super.key, required this.bookId});
   final String bookId;
 
-  const BookDetailPage({super.key, required this.bookId});
-
-  Future<void> _editTitle(
-    BuildContext context,
-    WidgetRef ref,
-    BookEntity book,
-  ) async {
-    final controller = TextEditingController(text: book.title);
-    final newTitle = await showDialog<String>(
+  Future<void> _editTitle(BuildContext context, WidgetRef ref, BookEntity book) async {
+    final TextEditingController controller = TextEditingController(text: book.title);
+    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+    final String? newTitle = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (BuildContext context) => AlertDialog(
         title: const Text('Edit Title'),
-        content: TextField(controller: controller, autofocus: true),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+        content: Form(
+          key: formKey,
+          child: TextFormField(
+            controller: controller,
+            autofocus: true,
+            decoration: const InputDecoration(labelText: 'Title'),
+            validator: (String? v) => v == null || v.isEmpty ? 'Title is required' : null,
           ),
+        ),
+        actions: <Widget>[
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context, controller.text),
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(context, controller.text);
+              }
+            },
             child: const Text('Save'),
           ),
         ],
@@ -36,33 +43,18 @@ class BookDetailPage extends ConsumerWidget {
 
     if (newTitle != null && newTitle.isNotEmpty && newTitle != book.title) {
       try {
-        final updated = book.copyWith(title: newTitle);
+        final BookEntity updated = book.copyWith(title: newTitle);
         await ref.read(bookRepositoryProvider).updateBook(updated);
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Title updated successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          SnackBarUtils.showSuccess(context, 'Title updated');
         }
       } on NoConnectionException catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(e.message),
-              backgroundColor: Colors.redAccent,
-            ),
-          );
+          SnackBarUtils.showError(context, e.message);
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Update failed: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          SnackBarUtils.showError(context, 'Update failed: $e');
         }
       }
     }
@@ -72,31 +64,30 @@ class BookDetailPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final booksAsync = ref.watch(booksStreamProvider);
+    final AsyncValue<List<BookEntity>> booksAsync = ref.watch(booksStreamProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Book Details')),
       body: booksAsync.when(
-        data: (books) {
+        data: (List<BookEntity> books) {
           // Find book safely
           BookEntity? book;
           try {
-            book = books.firstWhere((b) => b.id == bookId);
+            book = books.firstWhere((BookEntity b) => b.id == bookId);
           } catch (e) {
             book = null;
           }
 
-          if (book == null) return const Center(child: Text('Book not found'));
+          if (book == null) {
+            return const Center(child: Text('Book not found'));
+          }
 
           return ListView(
             padding: const EdgeInsets.all(16),
-            children: [
+            children: <Widget>[
               ListTile(
                 title: const Text('Title'),
-                subtitle: Text(
-                  book.title,
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
+                subtitle: Text(book.title, style: Theme.of(context).textTheme.headlineSmall),
                 trailing: IconButton(
                   icon: const Icon(Icons.edit, size: 20),
                   onPressed: () => _editTitle(context, ref, book!),
@@ -106,26 +97,15 @@ class BookDetailPage extends ConsumerWidget {
               ListTile(
                 title: const Text('Author(s)'),
                 subtitle: Text(
-                  book.authorIds.isEmpty
-                      ? 'None'
-                      : '${book.authorIds.length} Authors',
+                  book.authorIds.isEmpty ? 'None' : '${book.authorIds.length} Authors',
                 ),
-                trailing: const Icon(
-                  Icons.edit,
-                  size: 20,
-                ), // Placeholder for edit logic
+                trailing: const Icon(Icons.edit, size: 20), // Placeholder for edit logic
                 onTap: () {
                   // Open Author selection dialog
                 },
               ),
-              ListTile(
-                title: const Text('Genre'),
-                subtitle: Text(book.genre.clientValue),
-              ),
-              ListTile(
-                title: const Text('Language'),
-                subtitle: Text(book.language.clientValue),
-              ),
+              ListTile(title: const Text('Genre'), subtitle: Text(book.genre.clientValue)),
+              ListTile(title: const Text('Language'), subtitle: Text(book.language.clientValue)),
               ListTile(
                 title: const Text('Status'),
                 subtitle: Text(book.collectionStatus.clientValue),
@@ -133,15 +113,10 @@ class BookDetailPage extends ConsumerWidget {
               if (book.publishedDate != null)
                 ListTile(
                   title: const Text('Published'),
-                  subtitle: Text(
-                    DateFormat.yMMMd().format(book.publishedDate!),
-                  ),
+                  subtitle: Text(DateFormat.yMMMd().format(book.publishedDate!)),
                 ),
               const SizedBox(height: 16),
-              const Text(
-                'Notes',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+              const Text('Notes', style: TextStyle(fontWeight: FontWeight.bold)),
               Container(
                 padding: const EdgeInsets.all(8),
                 color: Colors.grey[200],
@@ -151,7 +126,7 @@ class BookDetailPage extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, s) => Center(child: Text('Error: $e')),
+        error: (Object e, StackTrace s) => Center(child: Text('Error: $e')),
       ),
     );
   }

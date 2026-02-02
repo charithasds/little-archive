@@ -1,12 +1,12 @@
-import '../datasources/translator_remote_datasource.dart';
 import '../../domain/entities/translator_entity.dart';
 import '../../domain/repositories/translator_repository.dart';
+import '../datasources/translator_remote_datasource.dart';
 import '../models/translator_model.dart';
 
 class TranslatorRepositoryImpl implements TranslatorRepository {
-  final TranslatorRemoteDataSource remoteDataSource;
 
   TranslatorRepositoryImpl({required this.remoteDataSource});
+  final TranslatorRemoteDataSource remoteDataSource;
 
   @override
   Future<List<TranslatorEntity>> getTranslators(String userId) =>

@@ -1,12 +1,12 @@
-import '../datasources/reader_remote_datasource.dart';
 import '../../domain/entities/reader_entity.dart';
 import '../../domain/repositories/reader_repository.dart';
+import '../datasources/reader_remote_datasource.dart';
 import '../models/reader_model.dart';
 
 class ReaderRepositoryImpl implements ReaderRepository {
-  final ReaderRemoteDataSource remoteDataSource;
 
   ReaderRepositoryImpl({required this.remoteDataSource});
+  final ReaderRemoteDataSource remoteDataSource;
 
   @override
   Future<List<ReaderEntity>> getReaders(String userId) =>

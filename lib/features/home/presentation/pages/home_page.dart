@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
+
 import '../../../../core/theme/presentation/widgets/theme_toggle.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import 'dashboard_page.dart';
 
 class HomePage extends ConsumerWidget {
@@ -9,12 +10,12 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
         title: Row(
-          children: [
+          children: <Widget>[
             Icon(
               Icons.menu_book_rounded,
               size: 28,
@@ -25,7 +26,7 @@ class HomePage extends ConsumerWidget {
           ],
         ),
         centerTitle: false,
-        actions: [
+        actions: <Widget>[
           const ThemeToggle(),
           IconButton(
             icon: const Icon(Icons.logout_rounded),

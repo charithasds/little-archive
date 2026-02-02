@@ -3,9 +3,6 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/reader_entity.dart';
 
 class ReaderListTile extends StatelessWidget {
-  final ReaderEntity reader;
-  final VoidCallback onTap;
-  final VoidCallback onDelete;
 
   const ReaderListTile({
     super.key,
@@ -13,11 +10,14 @@ class ReaderListTile extends StatelessWidget {
     required this.onTap,
     required this.onDelete,
   });
+  final ReaderEntity reader;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
-    final bookCount = reader.bookIds.length;
-    final colorScheme = Theme.of(context).colorScheme;
+    final int bookCount = reader.bookIds.length;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return InkWell(
       onTap: onTap,
@@ -25,7 +25,7 @@ class ReaderListTile extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
-          children: [
+          children: <Widget>[
             CircleAvatar(
               radius: 24,
               backgroundColor: colorScheme.primaryContainer,
@@ -45,7 +45,7 @@ class ReaderListTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+                children: <Widget>[
                   Text(
                     reader.name,
                     maxLines: 1,

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class PublisherDetailPage extends StatelessWidget {
-  final String publisherId;
   const PublisherDetailPage({super.key, required this.publisherId});
+  final String publisherId;
 
   @override
   Widget build(BuildContext context) {

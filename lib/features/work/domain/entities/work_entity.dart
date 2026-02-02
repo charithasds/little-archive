@@ -1,31 +1,12 @@
 import 'package:equatable/equatable.dart';
-import '../../../../core/enums/language.dart';
+
 import '../../../../core/enums/genre.dart';
+import '../../../../core/enums/language.dart';
 import '../../../../core/enums/original_language.dart';
 import '../../../../core/enums/reading_status.dart';
 import '../../../../core/enums/work_type.dart';
 
 class WorkEntity extends Equatable {
-  final String id;
-  final String userId;
-  final String title;
-  final Language language;
-  final Genre genre;
-  final WorkType workType;
-  final int? noOfPages;
-  final bool isTranslation;
-  final String? originalTitle;
-  final OriginalLanguage? originalLanguage;
-  final ReadingStatus readingStatus;
-  final int? pausedPage;
-  final DateTime? completedDate;
-  final String? notes;
-  final DateTime createdDate;
-  final DateTime lastUpdated;
-  final List<String> authorIds;
-  final List<String> translatorIds;
-  final String? sequenceVolumeId;
-  final String? bookId;
 
   const WorkEntity({
     required this.id,
@@ -49,9 +30,29 @@ class WorkEntity extends Equatable {
     this.sequenceVolumeId,
     this.bookId,
   });
+  final String id;
+  final String userId;
+  final String title;
+  final Language language;
+  final Genre genre;
+  final WorkType workType;
+  final int? noOfPages;
+  final bool isTranslation;
+  final String? originalTitle;
+  final OriginalLanguage? originalLanguage;
+  final ReadingStatus readingStatus;
+  final int? pausedPage;
+  final DateTime? completedDate;
+  final String? notes;
+  final DateTime createdDate;
+  final DateTime lastUpdated;
+  final List<String> authorIds;
+  final List<String> translatorIds;
+  final String? sequenceVolumeId;
+  final String? bookId;
 
   @override
-  List<Object?> get props => [id];
+  List<Object?> get props => <Object?>[id];
 
   WorkEntity copyWith({
     String? id,

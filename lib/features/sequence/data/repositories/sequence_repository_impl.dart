@@ -1,14 +1,14 @@
-import '../datasources/sequence_remote_datasource.dart';
 import '../../domain/entities/sequence_entity.dart';
 import '../../domain/entities/sequence_volume_entity.dart';
 import '../../domain/repositories/sequence_repository.dart';
+import '../datasources/sequence_remote_datasource.dart';
 import '../models/sequence_model.dart';
 import '../models/sequence_volume_model.dart';
 
 class SequenceRepositoryImpl implements SequenceRepository {
-  final SequenceRemoteDataSource remoteDataSource;
 
   SequenceRepositoryImpl({required this.remoteDataSource});
+  final SequenceRemoteDataSource remoteDataSource;
 
   @override
   Future<List<SequenceEntity>> getSequences(String userId) =>

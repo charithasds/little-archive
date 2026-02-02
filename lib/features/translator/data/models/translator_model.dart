@@ -16,8 +16,24 @@ class TranslatorModel extends TranslatorEntity {
     required super.lastUpdated,
   });
 
+  factory TranslatorModel.fromMap(Map<String, dynamic> map, String documentId) {
+    return TranslatorModel(
+      id: documentId,
+      userId: (map['userId'] as String?) ?? '',
+      name: (map['name'] as String?) ?? '',
+      image: map['image'] as String?,
+      otherName: map['otherName'] as String?,
+      website: map['website'] as String?,
+      facebook: map['facebook'] as String?,
+      bookIds: List<String>.from(map['bookIds'] as Iterable<dynamic>? ?? <String>[]),
+      workIds: List<String>.from(map['workIds'] as Iterable<dynamic>? ?? <String>[]),
+      createdDate: (map['createdDate'] as Timestamp).toDate(),
+      lastUpdated: (map['lastUpdated'] as Timestamp).toDate(),
+    );
+  }
+
   Map<String, dynamic> toMap() {
-    return {
+    return <String, dynamic>{
       'id': id,
       'userId': userId,
       'name': name,
@@ -30,21 +46,5 @@ class TranslatorModel extends TranslatorEntity {
       'createdDate': Timestamp.fromDate(createdDate),
       'lastUpdated': Timestamp.fromDate(lastUpdated),
     };
-  }
-
-  factory TranslatorModel.fromMap(Map<String, dynamic> map, String documentId) {
-    return TranslatorModel(
-      id: documentId,
-      userId: map['userId'] ?? '',
-      name: map['name'] ?? '',
-      image: map['image'],
-      otherName: map['otherName'],
-      website: map['website'],
-      facebook: map['facebook'],
-      bookIds: List<String>.from(map['bookIds'] ?? []),
-      workIds: List<String>.from(map['workIds'] ?? []),
-      createdDate: (map['createdDate'] as Timestamp).toDate(),
-      lastUpdated: (map['lastUpdated'] as Timestamp).toDate(),
-    );
   }
 }

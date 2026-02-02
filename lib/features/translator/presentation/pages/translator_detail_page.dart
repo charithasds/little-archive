@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class TranslatorDetailPage extends StatelessWidget {
-  final String translatorId;
   const TranslatorDetailPage({super.key, required this.translatorId});
+  final String translatorId;
 
   @override
   Widget build(BuildContext context) {

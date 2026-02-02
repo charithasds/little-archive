@@ -1,13 +1,18 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+
 import '../../../../core/error/exceptions.dart';
+import '../../../../core/utils/snackbar_utils.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../auth/domain/entities/user_entity.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/author_entity.dart';
 import '../providers/author_provider.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
 
 class AddAuthorPage extends ConsumerStatefulWidget {
   const AddAuthorPage({super.key});
@@ -17,20 +22,20 @@ class AddAuthorPage extends ConsumerStatefulWidget {
 }
 
 class _AddAuthorPageState extends ConsumerState<AddAuthorPage> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _otherNameController = TextEditingController();
-  final _websiteController = TextEditingController();
-  final _facebookController = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _otherNameController = TextEditingController();
+  final TextEditingController _websiteController = TextEditingController();
+  final TextEditingController _facebookController = TextEditingController();
 
   String? _pickedBase64Image;
   bool _isLoading = false;
 
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final ImagePicker picker = ImagePicker();
+    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
-      final bytes = await pickedFile.readAsBytes();
+      final Uint8List bytes = await pickedFile.readAsBytes();
       setState(() {
         _pickedBase64Image = base64Encode(bytes);
       });
@@ -41,28 +46,22 @@ class _AddAuthorPageState extends ConsumerState<AddAuthorPage> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      final user = ref.read(authStateProvider).value;
+      final UserEntity? user = ref.read(authStateProvider).value;
       if (user == null) {
         setState(() => _isLoading = false);
         return;
       }
 
-      final newAuthor = AuthorEntity(
+      final AuthorEntity newAuthor = AuthorEntity(
         id: FirebaseFirestore.instance.collection('authors').doc().id,
         userId: user.uid,
         name: _nameController.text.trim(),
-        otherName: _otherNameController.text.isEmpty
-            ? null
-            : _otherNameController.text.trim(),
-        website: _websiteController.text.isEmpty
-            ? null
-            : _websiteController.text.trim(),
-        facebook: _facebookController.text.isEmpty
-            ? null
-            : _facebookController.text.trim(),
+        otherName: _otherNameController.text.isEmpty ? null : _otherNameController.text.trim(),
+        website: _websiteController.text.isEmpty ? null : _websiteController.text.trim(),
+        facebook: _facebookController.text.isEmpty ? null : _facebookController.text.trim(),
         image: _pickedBase64Image,
-        bookIds: [],
-        workIds: [],
+        bookIds: const <String>[],
+        workIds: const <String>[],
         createdDate: DateTime.now(),
         lastUpdated: DateTime.now(),
       );
@@ -70,31 +69,16 @@ class _AddAuthorPageState extends ConsumerState<AddAuthorPage> {
       try {
         await ref.read(authorRepositoryProvider).addAuthor(newAuthor);
         if (mounted) {
+          SnackBarUtils.showSuccess(context, 'Author added successfully');
           Navigator.of(context).pop();
         }
       } on NoConnectionException catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(e.message),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          );
+          SnackBarUtils.showError(context, e.message);
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error adding author: $e'),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          );
+          SnackBarUtils.showError(context, 'Error adding author: $e');
         }
       } finally {
         if (mounted) {
@@ -115,7 +99,7 @@ class _AddAuthorPageState extends ConsumerState<AddAuthorPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Add Author'), centerTitle: true),
@@ -123,7 +107,7 @@ class _AddAuthorPageState extends ConsumerState<AddAuthorPage> {
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(24),
-          children: [
+          children: <Widget>[
             // Profile Image Picker
             Center(
               child: GestureDetector(
@@ -137,19 +121,13 @@ class _AddAuthorPageState extends ConsumerState<AddAuthorPage> {
                     border: Border.all(color: colorScheme.primary, width: 3),
                     image: _pickedBase64Image != null
                         ? DecorationImage(
-                            image: MemoryImage(
-                              base64Decode(_pickedBase64Image!),
-                            ),
+                            image: MemoryImage(base64Decode(_pickedBase64Image!)),
                             fit: BoxFit.cover,
                           )
                         : null,
                   ),
                   child: _pickedBase64Image == null
-                      ? Icon(
-                          Icons.person_rounded,
-                          size: 56,
-                          color: colorScheme.onPrimaryContainer,
-                        )
+                      ? Icon(Icons.person_rounded, size: 56, color: colorScheme.onPrimaryContainer)
                       : null,
                 ),
               ),
@@ -159,9 +137,7 @@ class _AddAuthorPageState extends ConsumerState<AddAuthorPage> {
               child: TextButton.icon(
                 onPressed: _pickImage,
                 icon: const Icon(Icons.camera_alt_rounded),
-                label: Text(
-                  _pickedBase64Image == null ? 'Add Photo' : 'Change Photo',
-                ),
+                label: Text(_pickedBase64Image == null ? 'Add Image' : 'Change Photo'),
               ),
             ),
             const SizedBox(height: 24),
@@ -171,12 +147,10 @@ class _AddAuthorPageState extends ConsumerState<AddAuthorPage> {
               controller: _nameController,
               decoration: InputDecoration(
                 labelText: 'Name',
-                hintText: 'Enter author name',
+                hintText: 'Author name',
                 prefixIcon: const Icon(Icons.person_outline_rounded),
                 filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(
-                  alpha: 0.5,
-                ),
+                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,
@@ -199,7 +173,7 @@ class _AddAuthorPageState extends ConsumerState<AddAuthorPage> {
                 ),
               ),
               maxLength: 500,
-              validator: (v) => v!.trim().isEmpty ? 'Name is required' : null,
+              validator: (String? v) => v!.trim().isEmpty ? 'Name is required' : null,
             ),
             const SizedBox(height: 16),
 
@@ -207,12 +181,10 @@ class _AddAuthorPageState extends ConsumerState<AddAuthorPage> {
               controller: _otherNameController,
               decoration: InputDecoration(
                 labelText: 'Other Name',
-                hintText: 'Pen name or alias (optional)',
+                hintText: 'Alternative Name',
                 prefixIcon: const Icon(Icons.badge_outlined),
                 filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(
-                  alpha: 0.5,
-                ),
+                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,
@@ -234,12 +206,10 @@ class _AddAuthorPageState extends ConsumerState<AddAuthorPage> {
               controller: _websiteController,
               decoration: InputDecoration(
                 labelText: 'Website',
-                hintText: 'https://example.com',
+                hintText: 'https://www.example.com',
                 prefixIcon: const Icon(Icons.language_rounded),
                 filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(
-                  alpha: 0.5,
-                ),
+                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,
@@ -271,12 +241,10 @@ class _AddAuthorPageState extends ConsumerState<AddAuthorPage> {
               controller: _facebookController,
               decoration: InputDecoration(
                 labelText: 'Facebook',
-                hintText: 'https://facebook.com/username',
+                hintText: 'https://www.facebook.com/username',
                 prefixIcon: const Icon(Icons.facebook_rounded),
                 filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(
-                  alpha: 0.5,
-                ),
+                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,
@@ -320,9 +288,7 @@ class _AddAuthorPageState extends ConsumerState<AddAuthorPage> {
               label: Text(_isLoading ? 'Saving...' : 'Save Author'),
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(56),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
             ),
           ],

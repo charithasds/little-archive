@@ -1,18 +1,6 @@
 import 'package:equatable/equatable.dart';
 
 class PublisherEntity extends Equatable {
-  final String id;
-  final String userId;
-  final String name;
-  final String? logo; // acts as image
-  final String? otherName;
-  final String? website;
-  final String? email;
-  final String? facebook;
-  final String? phoneNumber;
-  final List<String> bookIds;
-  final DateTime createdDate;
-  final DateTime lastUpdated;
 
   const PublisherEntity({
     required this.id,
@@ -28,7 +16,19 @@ class PublisherEntity extends Equatable {
     required this.createdDate,
     required this.lastUpdated,
   });
+  final String id;
+  final String userId;
+  final String name;
+  final String? logo; // acts as image
+  final String? otherName;
+  final String? website;
+  final String? email;
+  final String? facebook;
+  final String? phoneNumber;
+  final List<String> bookIds;
+  final DateTime createdDate;
+  final DateTime lastUpdated;
 
   @override
-  List<Object?> get props => [id];
+  List<Object?> get props => <Object?>[id];
 }

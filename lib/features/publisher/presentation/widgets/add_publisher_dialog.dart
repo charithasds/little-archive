@@ -1,10 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../core/error/exceptions.dart';
-import '../../domain/entities/publisher_entity.dart';
-import '../providers/publisher_provider.dart';
+import '../../../../core/utils/snackbar_utils.dart';
+import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../domain/entities/publisher_entity.dart';
+import '../../domain/repositories/publisher_repository.dart';
+import '../providers/publisher_provider.dart';
 
 class AddPublisherDialog extends ConsumerStatefulWidget {
   const AddPublisherDialog({super.key});
@@ -14,8 +18,8 @@ class AddPublisherDialog extends ConsumerStatefulWidget {
 }
 
 class _AddPublisherDialogState extends ConsumerState<AddPublisherDialog> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _nameController = TextEditingController();
 
   @override
   void dispose() {
@@ -25,40 +29,33 @@ class _AddPublisherDialogState extends ConsumerState<AddPublisherDialog> {
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
-      final user = ref.read(authStateProvider).value;
-      if (user == null) return;
+      final UserEntity? user = ref.read<AsyncValue<UserEntity?>>(authStateProvider).value;
+      if (user == null) {
+        return;
+      }
 
-      final newPublisher = PublisherEntity(
+      final PublisherEntity newPublisher = PublisherEntity(
         id: FirebaseFirestore.instance.collection('publishers').doc().id,
         userId: user.uid,
         name: _nameController.text.trim(),
-        bookIds: [],
+        bookIds: const <String>[],
         createdDate: DateTime.now(),
         lastUpdated: DateTime.now(),
       );
 
       try {
-        await ref.read(publisherRepositoryProvider).addPublisher(newPublisher);
+        await ref.read<PublisherRepository>(publisherRepositoryProvider).addPublisher(newPublisher);
         if (mounted) {
+          SnackBarUtils.showSuccess(context, 'Publisher added successfully');
           Navigator.of(context).pop(newPublisher);
         }
       } on NoConnectionException catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(e.message),
-              backgroundColor: Colors.redAccent,
-            ),
-          );
+          SnackBarUtils.showError(context, e.message);
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error adding publisher: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          SnackBarUtils.showError(context, 'Error adding publisher: $e');
         }
       }
     }
@@ -73,15 +70,12 @@ class _AddPublisherDialogState extends ConsumerState<AddPublisherDialog> {
         child: TextFormField(
           controller: _nameController,
           decoration: const InputDecoration(labelText: 'Name'),
-          validator: (value) =>
-              value == null || value.isEmpty ? 'Required' : null,
+          validator: (String? value) => value == null || value.isEmpty ? 'Name is required' : null,
+          maxLength: 500,
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
+      actions: <Widget>[
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
         ElevatedButton(onPressed: _save, child: const Text('Add')),
       ],
     );

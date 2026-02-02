@@ -1,12 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthRemoteDataSource {
-  final FirebaseAuth _firebaseAuth;
-  final GoogleSignIn _googleSignIn;
 
   AuthRemoteDataSource(this._firebaseAuth, this._googleSignIn);
+  final FirebaseAuth _firebaseAuth;
+  final GoogleSignIn _googleSignIn;
 
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
@@ -14,7 +14,7 @@ class AuthRemoteDataSource {
 
   Future<void> signInWithGoogle() async {
     if (kIsWeb) {
-      final googleProvider = GoogleAuthProvider();
+      final GoogleAuthProvider googleProvider = GoogleAuthProvider();
       await _firebaseAuth.signInWithPopup(googleProvider);
     } else {
       try {

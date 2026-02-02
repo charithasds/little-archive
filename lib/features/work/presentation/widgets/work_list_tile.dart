@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/work_entity.dart';
 
 class WorkListTile extends StatelessWidget {
-  final WorkEntity work;
-  final VoidCallback onTap;
-  final VoidCallback onDelete;
-  final String? firstAuthorOrTranslatorName;
 
   const WorkListTile({
     super.key,
@@ -14,16 +10,20 @@ class WorkListTile extends StatelessWidget {
     required this.onDelete,
     this.firstAuthorOrTranslatorName,
   });
+  final WorkEntity work;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
+  final String? firstAuthorOrTranslatorName;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     // Determine creator info
-    final isTranslation = work.isTranslation;
-    final creatorIds = isTranslation ? work.translatorIds : work.authorIds;
-    final creatorLabel = isTranslation ? 'Translator' : 'Author';
-    final additionalCount = creatorIds.length > 1 ? creatorIds.length - 1 : 0;
+    final bool isTranslation = work.isTranslation;
+    final List<String> creatorIds = isTranslation ? work.translatorIds : work.authorIds;
+    final String creatorLabel = isTranslation ? 'Translator' : 'Author';
+    final int additionalCount = creatorIds.length > 1 ? creatorIds.length - 1 : 0;
 
     String creatorText;
     if (firstAuthorOrTranslatorName != null &&
@@ -45,7 +45,7 @@ class WorkListTile extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
-          children: [
+          children: <Widget>[
             Container(
               width: 48,
               height: 48,
@@ -64,7 +64,7 @@ class WorkListTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+                children: <Widget>[
                   Text(
                     work.title,
                     maxLines: 1,

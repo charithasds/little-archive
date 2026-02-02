@@ -1,5 +1,6 @@
-import '../../../../core/utils/firestore_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../../../../core/utils/firestore_utils.dart';
 import '../models/work_model.dart';
 
 abstract class WorkRemoteDataSource {
@@ -12,25 +13,27 @@ abstract class WorkRemoteDataSource {
 }
 
 class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
+
+  WorkRemoteDataSourceImpl({required this.firestore});
   final FirebaseFirestore firestore;
   final String collectionPath = 'Works';
 
-  WorkRemoteDataSourceImpl({required this.firestore});
-
   @override
   Future<List<WorkModel>> getWorks(String userId) async {
-    final docs = await FirestoreUtils.safeGetDocs(
+    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await FirestoreUtils.safeGetDocs(
       firestore.collection(collectionPath).where('userId', isEqualTo: userId),
     );
-    return docs.map((doc) => WorkModel.fromMap(doc.data(), doc.id)).toList();
+    return docs.map((QueryDocumentSnapshot<Map<String, dynamic>> doc) => WorkModel.fromMap(doc.data(), doc.id)).toList();
   }
 
   @override
   Future<WorkModel?> getWorkById(String id) async {
-    final doc = await FirestoreUtils.safeGetDoc(
+    final DocumentSnapshot<Map<String, dynamic>>? doc = await FirestoreUtils.safeGetDoc(
       firestore.collection(collectionPath).doc(id),
     );
-    if (doc == null || !doc.exists) return null;
+    if (doc == null || !doc.exists) {
+      return null;
+    }
     return WorkModel.fromMap(doc.data()!, doc.id);
   }
 
@@ -64,9 +67,9 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
         .collection(collectionPath)
         .where('userId', isEqualTo: userId)
         .snapshots()
-        .map((snapshot) {
+        .map((QuerySnapshot<Map<String, dynamic>> snapshot) {
           return snapshot.docs
-              .map((doc) => WorkModel.fromMap(doc.data(), doc.id))
+              .map((QueryDocumentSnapshot<Map<String, dynamic>> doc) => WorkModel.fromMap(doc.data(), doc.id))
               .toList();
         });
   }

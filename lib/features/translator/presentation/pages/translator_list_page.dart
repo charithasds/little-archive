@@ -2,103 +2,77 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/error/exceptions.dart';
+import '../../../../core/utils/snackbar_utils.dart';
+
+import '../../domain/entities/translator_entity.dart';
+import '../../domain/repositories/translator_repository.dart';
 import '../providers/translator_provider.dart';
 import '../widgets/translator_list_tile.dart';
 
 class TranslatorListPage extends ConsumerWidget {
   const TranslatorListPage({super.key});
 
-  Future<void> _handleDelete(
-    BuildContext context,
-    WidgetRef ref,
-    String translatorId,
-  ) async {
-    final confirmed = await showDialog<bool>(
+  Future<void> _handleDelete(BuildContext context, WidgetRef ref, String translatorId) async {
+    final bool? confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        icon: Icon(
-          Icons.warning_rounded,
-          color: Theme.of(context).colorScheme.error,
-          size: 48,
-        ),
+      builder: (BuildContext context) => AlertDialog(
+        icon: Icon(Icons.warning_rounded, color: Theme.of(context).colorScheme.error, size: 48),
         title: const Text('Delete Translator'),
         content: const Text(
           'Are you sure you want to delete this translator? This action cannot be undone.',
         ),
-        actions: [
+        actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
             child: const Text('Cancel'),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
+            style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
             child: const Text('Delete'),
           ),
         ],
       ),
     );
 
-    if (confirmed != true) return;
+    if (confirmed != true) {
+      return;
+    }
 
     try {
       await ref
-          .read(translatorRepositoryProvider)
+          .read<TranslatorRepository>(translatorRepositoryProvider)
           .deleteTranslator(translatorId);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Translator deleted successfully'),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
+        SnackBarUtils.showSuccess(context, 'Translator deleted successfully');
       }
     } on NoConnectionException catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
+        SnackBarUtils.showError(context, e.message);
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Delete failed: $e'),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
+        SnackBarUtils.showError(context, 'Delete failed: $e');
       }
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final translatorsAsync = ref.watch(translatorsStreamProvider);
-    final colorScheme = Theme.of(context).colorScheme;
+    final AsyncValue<List<TranslatorEntity>> translatorsAsync = ref.watch(
+      translatorsStreamProvider,
+    );
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Translators'), centerTitle: true),
       body: translatorsAsync.when(
-        data: (translators) {
+        data: (List<TranslatorEntity> translators) {
           if (translators.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+                children: <Widget>[
                   Icon(
                     Icons.translate_rounded,
                     size: 80,
@@ -107,34 +81,33 @@ class TranslatorListPage extends ConsumerWidget {
                   const SizedBox(height: 16),
                   Text(
                     'No Translators Yet',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: colorScheme.onSurface,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Tap the button below to add your first translator',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
             );
           }
           return LayoutBuilder(
-            builder: (context, constraints) {
+            builder: (BuildContext context, BoxConstraints constraints) {
               if (constraints.maxWidth < 600) {
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   itemCount: translators.length,
-                  itemBuilder: (context, index) {
-                    final translator = translators[index];
+                  itemBuilder: (BuildContext context, int index) {
+                    final TranslatorEntity translator = translators[index];
                     return TranslatorListTile(
                       translator: translator,
                       onTap: () => context.go('/translators/${translator.id}'),
-                      onDelete: () =>
-                          _handleDelete(context, ref, translator.id),
+                      onDelete: () => _handleDelete(context, ref, translator.id),
                     );
                   },
                 );
@@ -148,8 +121,8 @@ class TranslatorListPage extends ConsumerWidget {
                     mainAxisSpacing: 16,
                   ),
                   itemCount: translators.length,
-                  itemBuilder: (context, index) {
-                    final translator = translators[index];
+                  itemBuilder: (BuildContext context, int index) {
+                    final TranslatorEntity translator = translators[index];
                     return Card(
                       elevation: 0,
                       shape: RoundedRectangleBorder(
@@ -158,10 +131,8 @@ class TranslatorListPage extends ConsumerWidget {
                       ),
                       child: TranslatorListTile(
                         translator: translator,
-                        onTap: () =>
-                            context.go('/translators/${translator.id}'),
-                        onDelete: () =>
-                            _handleDelete(context, ref, translator.id),
+                        onTap: () => context.go('/translators/${translator.id}'),
+                        onDelete: () => _handleDelete(context, ref, translator.id),
                       ),
                     );
                   },
@@ -171,26 +142,19 @@ class TranslatorListPage extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(
+        error: (Object err, StackTrace stack) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline_rounded,
-                size: 64,
-                color: colorScheme.error,
-              ),
+            children: <Widget>[
+              Icon(Icons.error_outline_rounded, size: 64, color: colorScheme.error),
               const SizedBox(height: 16),
-              Text(
-                'Something went wrong',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
+              Text('Something went wrong', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 8),
               Text(
                 '$err',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                 textAlign: TextAlign.center,
               ),
             ],

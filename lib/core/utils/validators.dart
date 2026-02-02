@@ -5,21 +5,27 @@ class Validators {
   /// Validates a Facebook URL.
   ///
   /// Returns null if valid, or an error message if invalid.
-  /// Accepts the format: https://facebook.com/{username}
+  /// Accepts formats like:
+  /// - https://www.facebook.com/username
+  /// - https://facebook.com/username
+  /// - https://www.facebook.com/profile.php?id=12345
   ///
-  /// Example valid URL: https://facebook.com/janedoeofficial
+  /// Example valid URL: https://www.facebook.com/chandana.mendis.397
   static String? validateFacebookUrl(String? value) {
-    if (value == null || value.trim().isEmpty) return null;
+    if (value == null || value.trim().isEmpty) {
+      return null;
+    }
 
-    final trimmed = value.trim();
+    final String trimmed = value.trim();
 
-    // Pattern for Facebook URL: https://facebook.com/{username}
-    // Username can contain: letters, numbers, periods, and hyphens
-    const pattern = r'^https:\/\/facebook\.com\/[a-zA-Z0-9._-]+\/?$';
-    final regExp = RegExp(pattern);
+    // Pattern for Facebook URL: (https://)?(www.)?facebook.com/{path}
+    // Path can contain letters, numbers, periods, hyphens, slashes, and query params
+    const String pattern =
+        r'^(https?:\/\/)?(www\.)?(facebook\.com|fb\.com)\/[a-zA-Z0-9._\-\/]+(\?.*)?$';
+    final RegExp regExp = RegExp(pattern);
 
     if (!regExp.hasMatch(trimmed)) {
-      return 'Invalid Facebook URL. Use format: https://facebook.com/username';
+      return 'Invalid Facebook URL';
     }
 
     return null;
@@ -29,11 +35,13 @@ class Validators {
   ///
   /// Returns null if valid, or an error message if invalid.
   static String? validateWebsiteUrl(String? value) {
-    if (value == null || value.trim().isEmpty) return null;
+    if (value == null || value.trim().isEmpty) {
+      return null;
+    }
 
-    const pattern =
+    const String pattern =
         r'^(https?:\/\/)?([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}(\/[^\s]*)?$';
-    final regExp = RegExp(pattern);
+    final RegExp regExp = RegExp(pattern);
 
     if (!regExp.hasMatch(value.trim())) {
       return 'Invalid URL format';
@@ -58,12 +66,12 @@ class Validators {
     }
 
     // Remove all spaces, dashes, and parentheses
-    final cleaned = value.trim().replaceAll(RegExp(r'[\s\-\(\)]'), '');
+    final String cleaned = value.trim().replaceAll(RegExp(r'[\s\-\(\)]'), '');
 
     // Pattern for Sri Lankan phone numbers:
     // +94XXXXXXXXX (12 digits with +) or 0XXXXXXXXX (10 digits starting with 0)
-    const pattern = r'^(\+94[0-9]{9}|0[0-9]{9})$';
-    final regExp = RegExp(pattern);
+    const String pattern = r'^(\+94[0-9]{9}|0[0-9]{9})$';
+    final RegExp regExp = RegExp(pattern);
 
     if (!regExp.hasMatch(cleaned)) {
       return 'Invalid phone number. Use format: +94 XX XXXXXXX or 0XX XXXXXXX';
