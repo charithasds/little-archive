@@ -2,10 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/error/exceptions.dart';
-import '../../../../core/utils/snackbar_utils.dart';
-import '../../../auth/domain/entities/user_entity.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../core/auth/domain/entities/user_entity.dart';
+import '../../../../core/auth/presentation/providers/auth_provider.dart';
+import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 import '../../domain/entities/sequence_entity.dart';
 import '../providers/sequence_provider.dart';
 
@@ -80,7 +80,6 @@ class _AddSequencePageState extends ConsumerState<AddSequencePage> {
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: <Widget>[
-            // Header Icon
             Center(
               child: Container(
                 width: 120,
@@ -95,7 +94,6 @@ class _AddSequencePageState extends ConsumerState<AddSequencePage> {
             ),
             const SizedBox(height: 32),
 
-            // Form Fields
             TextFormField(
               controller: _nameController,
               decoration: InputDecoration(
@@ -152,7 +150,6 @@ class _AddSequencePageState extends ConsumerState<AddSequencePage> {
             ),
             const SizedBox(height: 32),
 
-            // Save Button
             FilledButton.icon(
               onPressed: _isLoading ? null : _save,
               icon: _isLoading

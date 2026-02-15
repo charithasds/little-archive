@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/sequence_entity.dart';
 
 class SequenceListTile extends StatelessWidget {
-
   const SequenceListTile({
     super.key,
     required this.sequence,
@@ -35,11 +34,7 @@ class SequenceListTile extends StatelessWidget {
                 color: colorScheme.primaryContainer,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                Icons.layers_rounded,
-                color: colorScheme.onPrimaryContainer,
-                size: 24,
-              ),
+              child: Icon(Icons.layers_rounded, color: colorScheme.onPrimaryContainer, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -51,31 +46,28 @@ class SequenceListTile extends StatelessWidget {
                     sequence.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '$bookCount ${bookCount == 1 ? 'Book' : 'Books'}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                   Text(
                     '$workCount ${workCount == 1 ? 'Work' : 'Works'}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
             ),
             IconButton(
-              icon: Icon(
-                Icons.delete_outline_rounded,
-                color: colorScheme.error,
-              ),
+              icon: Icon(Icons.delete_outline_rounded, color: colorScheme.error),
               onPressed: onDelete,
             ),
           ],

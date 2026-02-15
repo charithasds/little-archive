@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/error/exceptions.dart';
-import '../../../../core/utils/snackbar_utils.dart';
+import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 
 import '../../domain/entities/publisher_entity.dart';
 import '../../domain/repositories/publisher_repository.dart';

@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 
 class TranslatorEntity extends Equatable {
-
   const TranslatorEntity({
     required this.id,
     required this.userId,

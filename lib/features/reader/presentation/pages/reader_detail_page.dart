@@ -5,10 +5,8 @@ class ReaderDetailPage extends StatelessWidget {
   final String readerId;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Reader Details')),
-      body: Center(child: Text('Reader ID: $readerId')),
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Reader Details')),
+    body: Center(child: Text('Reader ID: $readerId')),
+  );
 }

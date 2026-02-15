@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 
 class PublisherEntity extends Equatable {
-
   const PublisherEntity({
     required this.id,
     required this.userId,
@@ -19,7 +18,7 @@ class PublisherEntity extends Equatable {
   final String id;
   final String userId;
   final String name;
-  final String? logo; // acts as image
+  final String? logo;
   final String? otherName;
   final String? website;
   final String? email;

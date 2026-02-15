@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 
 class SequenceEntity extends Equatable {
-
   const SequenceEntity({
     required this.id,
     required this.userId,

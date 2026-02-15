@@ -5,10 +5,8 @@ class PublisherDetailPage extends StatelessWidget {
   final String publisherId;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Publisher Details')),
-      body: Center(child: Text('Publisher ID: $publisherId')),
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Publisher Details')),
+    body: Center(child: Text('Publisher ID: $publisherId')),
+  );
 }

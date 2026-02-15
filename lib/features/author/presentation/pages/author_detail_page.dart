@@ -5,10 +5,8 @@ class AuthorDetailPage extends StatelessWidget {
   final String authorId;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Author Details')),
-      body: Center(child: Text('Author ID: $authorId')),
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Author Details')),
+    body: Center(child: Text('Author ID: $authorId')),
+  );
 }

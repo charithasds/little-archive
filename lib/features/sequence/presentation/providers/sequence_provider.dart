@@ -1,9 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/providers/firestore_provider.dart';
-import '../../../auth/domain/entities/user_entity.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../core/auth/domain/entities/user_entity.dart';
+import '../../../../core/auth/presentation/providers/auth_provider.dart';
+import '../../../../core/shared/data/services/firestore_service.dart';
+import '../../../../core/shared/presentation/providers/firestore_provider.dart';
 import '../../data/datasources/sequence_remote_datasource.dart';
 import '../../data/repositories/sequence_repository_impl.dart';
 import '../../domain/entities/sequence_entity.dart';
@@ -12,8 +12,8 @@ import '../../domain/repositories/sequence_repository.dart';
 
 final Provider<SequenceRemoteDataSource> sequenceRemoteDataSourceProvider =
     Provider<SequenceRemoteDataSource>((Ref ref) {
-      final FirebaseFirestore firestore = ref.watch(firestoreProvider);
-      return SequenceRemoteDataSourceImpl(firestore: firestore);
+      final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
+      return SequenceRemoteDataSourceImpl(firestoreService: firestoreService);
     });
 
 final Provider<SequenceRepository> sequenceRepositoryProvider = Provider<SequenceRepository>((
@@ -33,7 +33,6 @@ final StreamProvider<List<SequenceEntity>> sequencesStreamProvider =
       return repository.watchSequences(user.uid);
     });
 
-/// Family provider to watch sequence volumes for a specific sequence
 // ignore: always_specify_types
 final sequenceVolumesStreamProvider = StreamProvider.family<List<SequenceVolumeEntity>, String>((
   Ref ref,
@@ -47,14 +46,12 @@ final sequenceVolumesStreamProvider = StreamProvider.family<List<SequenceVolumeE
   return repository.watchSequenceVolumes(sequenceId, user.uid);
 });
 
-/// Helper class to hold book and work counts for a sequence
 class SequenceStats {
   const SequenceStats({this.bookCount = 0, this.workCount = 0});
   final int bookCount;
   final int workCount;
 }
 
-/// Family provider to compute book and work counts for a sequence
 // ignore: always_specify_types
 final sequenceStatsProvider = Provider.family<SequenceStats, String>((Ref ref, String sequenceId) {
   final AsyncValue<List<SequenceVolumeEntity>> volumesAsync = ref.watch(

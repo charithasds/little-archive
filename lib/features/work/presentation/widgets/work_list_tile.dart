@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/work_entity.dart';
 
 class WorkListTile extends StatelessWidget {
-
   const WorkListTile({
     super.key,
     required this.work,
@@ -19,22 +18,19 @@ class WorkListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
-    // Determine creator info
     final bool isTranslation = work.isTranslation;
     final List<String> creatorIds = isTranslation ? work.translatorIds : work.authorIds;
     final String creatorLabel = isTranslation ? 'Translator' : 'Author';
     final int additionalCount = creatorIds.length > 1 ? creatorIds.length - 1 : 0;
 
     String creatorText;
-    if (firstAuthorOrTranslatorName != null &&
-        firstAuthorOrTranslatorName!.isNotEmpty) {
+    if (firstAuthorOrTranslatorName != null && firstAuthorOrTranslatorName!.isNotEmpty) {
       creatorText = firstAuthorOrTranslatorName!;
       if (additionalCount > 0) {
         creatorText += ' +$additionalCount';
       }
     } else if (creatorIds.isNotEmpty) {
-      creatorText =
-          '$creatorLabel${additionalCount > 0 ? ' +$additionalCount' : ''}';
+      creatorText = '$creatorLabel${additionalCount > 0 ? ' +$additionalCount' : ''}';
     } else {
       creatorText = 'No ${creatorLabel}s';
     }
@@ -53,11 +49,7 @@ class WorkListTile extends StatelessWidget {
                 color: colorScheme.primaryContainer,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                Icons.article_rounded,
-                color: colorScheme.onPrimaryContainer,
-                size: 24,
-              ),
+              child: Icon(Icons.article_rounded, color: colorScheme.onPrimaryContainer, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -69,35 +61,32 @@ class WorkListTile extends StatelessWidget {
                     work.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     creatorText,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                   Text(
                     '${work.workType.clientValue} • ${work.readingStatus.clientValue}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
             ),
             IconButton(
-              icon: Icon(
-                Icons.delete_outline_rounded,
-                color: colorScheme.error,
-              ),
+              icon: Icon(Icons.delete_outline_rounded, color: colorScheme.error),
               onPressed: onDelete,
             ),
           ],

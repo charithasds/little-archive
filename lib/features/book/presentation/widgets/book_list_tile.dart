@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/book_entity.dart';
 
 class BookListTile extends StatelessWidget {
-
   const BookListTile({
     super.key,
     required this.book,
@@ -20,22 +19,19 @@ class BookListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
-    // Determine creator info
     final bool isTranslation = book.isTranslation;
     final List<String> creatorIds = isTranslation ? book.translatorIds : book.authorIds;
     final String creatorLabel = isTranslation ? 'Translator' : 'Author';
     final int additionalCount = creatorIds.length > 1 ? creatorIds.length - 1 : 0;
 
     String creatorText;
-    if (firstAuthorOrTranslatorName != null &&
-        firstAuthorOrTranslatorName!.isNotEmpty) {
+    if (firstAuthorOrTranslatorName != null && firstAuthorOrTranslatorName!.isNotEmpty) {
       creatorText = firstAuthorOrTranslatorName!;
       if (additionalCount > 0) {
         creatorText += ' +$additionalCount';
       }
     } else if (creatorIds.isNotEmpty) {
-      creatorText =
-          '$creatorLabel${additionalCount > 0 ? ' +$additionalCount' : ''}';
+      creatorText = '$creatorLabel${additionalCount > 0 ? ' +$additionalCount' : ''}';
     } else {
       creatorText = 'No ${creatorLabel}s';
     }
@@ -67,35 +63,32 @@ class BookListTile extends StatelessWidget {
                     book.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     creatorText,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                   Text(
                     '${book.collectionStatus.clientValue} • ${book.readingStatus.clientValue}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
             ),
             IconButton(
-              icon: Icon(
-                Icons.delete_outline_rounded,
-                color: colorScheme.error,
-              ),
+              icon: Icon(Icons.delete_outline_rounded, color: colorScheme.error),
               onPressed: onDelete,
             ),
           ],
@@ -121,17 +114,11 @@ class BookListTile extends StatelessWidget {
     }
   }
 
-  Widget _buildPlaceholder(ColorScheme colorScheme) {
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Icon(
-        Icons.book_rounded,
-        color: colorScheme.onPrimaryContainer,
-        size: 24,
-      ),
-    );
-  }
+  Widget _buildPlaceholder(ColorScheme colorScheme) => Container(
+    decoration: BoxDecoration(
+      color: colorScheme.primaryContainer,
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Icon(Icons.book_rounded, color: colorScheme.onPrimaryContainer, size: 24),
+  );
 }

@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 
 class SequenceVolumeEntity extends Equatable {
-
   const SequenceVolumeEntity({
     required this.id,
     required this.userId,

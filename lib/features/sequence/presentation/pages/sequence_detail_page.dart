@@ -5,10 +5,8 @@ class SequenceDetailPage extends StatelessWidget {
   final String sequenceId;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Sequence Details')),
-      body: Center(child: Text('Sequence ID: $sequenceId')),
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Sequence Details')),
+    body: Center(child: Text('Sequence ID: $sequenceId')),
+  );
 }

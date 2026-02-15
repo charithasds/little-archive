@@ -1,9 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/providers/firestore_provider.dart';
-import '../../../auth/domain/entities/user_entity.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../core/auth/domain/entities/user_entity.dart';
+import '../../../../core/auth/presentation/providers/auth_provider.dart';
+import '../../../../core/shared/data/services/firestore_service.dart';
+import '../../../../core/shared/presentation/providers/firestore_provider.dart';
 import '../../data/datasources/reader_remote_datasource.dart';
 import '../../data/repositories/reader_repository_impl.dart';
 import '../../domain/entities/reader_entity.dart';
@@ -11,8 +11,8 @@ import '../../domain/repositories/reader_repository.dart';
 
 final Provider<ReaderRemoteDataSource> readerRemoteDataSourceProvider =
     Provider<ReaderRemoteDataSource>((Ref ref) {
-      final FirebaseFirestore firestore = ref.watch(firestoreProvider);
-      return ReaderRemoteDataSourceImpl(firestore: firestore);
+      final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
+      return ReaderRemoteDataSourceImpl(firestoreService: firestoreService);
     });
 
 final Provider<ReaderRepository> readerRepositoryProvider = Provider<ReaderRepository>((Ref ref) {

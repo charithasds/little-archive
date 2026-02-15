@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/error/exceptions.dart';
-import '../../../../core/utils/snackbar_utils.dart';
+import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 import '../../domain/entities/book_entity.dart';
 import '../providers/book_provider.dart';
 
@@ -60,8 +60,6 @@ class BookDetailPage extends ConsumerWidget {
     }
   }
 
-  // Helper for other fields can be created similar to _editTitle
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AsyncValue<List<BookEntity>> booksAsync = ref.watch(booksStreamProvider);
@@ -70,7 +68,6 @@ class BookDetailPage extends ConsumerWidget {
       appBar: AppBar(title: const Text('Book Details')),
       body: booksAsync.when(
         data: (List<BookEntity> books) {
-          // Find book safely
           BookEntity? book;
           try {
             book = books.firstWhere((BookEntity b) => b.id == bookId);
@@ -99,10 +96,8 @@ class BookDetailPage extends ConsumerWidget {
                 subtitle: Text(
                   book.authorIds.isEmpty ? 'None' : '${book.authorIds.length} Authors',
                 ),
-                trailing: const Icon(Icons.edit, size: 20), // Placeholder for edit logic
-                onTap: () {
-                  // Open Author selection dialog
-                },
+                trailing: const Icon(Icons.edit, size: 20),
+                onTap: () {},
               ),
               ListTile(title: const Text('Genre'), subtitle: Text(book.genre.clientValue)),
               ListTile(title: const Text('Language'), subtitle: Text(book.language.clientValue)),

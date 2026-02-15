@@ -5,16 +5,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/enums/genre.dart';
-import '../../../../core/enums/language.dart';
-import '../../../../core/enums/original_language.dart';
-import '../../../../core/enums/reading_status.dart';
-import '../../../../core/enums/work_type.dart';
-import '../../../../core/error/exceptions.dart';
-import '../../../../core/utils/snackbar_utils.dart';
-import '../../../../core/widgets/form_fields.dart';
-import '../../../auth/domain/entities/user_entity.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../core/auth/domain/entities/user_entity.dart';
+import '../../../../core/auth/presentation/providers/auth_provider.dart';
+import '../../../../core/shared/domain/enums/genre.dart';
+import '../../../../core/shared/domain/enums/language.dart';
+import '../../../../core/shared/domain/enums/original_language.dart';
+import '../../../../core/shared/domain/enums/reading_status.dart';
+import '../../../../core/shared/domain/enums/work_type.dart';
+import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/widgets/form_fields.dart';
+import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 import '../../../author/domain/entities/author_entity.dart';
 import '../../../author/presentation/providers/author_provider.dart';
 import '../../../author/presentation/widgets/add_author_dialog.dart';
@@ -59,7 +59,6 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
   bool _isLoading = false;
   DateTime? _completedDate;
 
-  // Relationships
   List<AuthorEntity> _selectedAuthors = <AuthorEntity>[];
   List<TranslatorEntity> _selectedTranslators = <TranslatorEntity>[];
   BookEntity? _selectedBook;
@@ -90,7 +89,6 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
         final String workId = FirebaseFirestore.instance.collection('works').doc().id;
         String? sequenceVolumeId;
 
-        // Handle Sequence Volume
         if (_selectedSequence != null) {
           if (_sequenceVolumeController.text.isEmpty) {
             SnackBarUtils.showWarning(context, 'Please enter Sequence Volume number');
@@ -276,7 +274,6 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              // Header Icon - Shows Book cover if selected
               Center(
                 child: Container(
                   width: 100,
@@ -381,7 +378,6 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
 
               _buildSectionHeader('Relationships', Icons.people_rounded),
 
-              // Authors
               authorsAsync.when(
                 data: (List<AuthorEntity> authors) => MultiSelectField<AuthorEntity>(
                   label: 'Authors',
@@ -407,7 +403,6 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
               ),
               const SizedBox(height: 16),
 
-              // Book
               booksAsync.when(
                 data: (List<BookEntity> books) => SingleSelectField<BookEntity>(
                   label: 'Book (Anthology/Collection)',
@@ -422,7 +417,6 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
               ),
               const SizedBox(height: 16),
 
-              // Sequence
               sequencesAsync.when(
                 data: (List<SequenceEntity> sequences) => Column(
                   children: <Widget>[
@@ -602,7 +596,6 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
 
               const SizedBox(height: 32),
 
-              // Save Button
               FilledButton.icon(
                 onPressed: _isLoading ? null : _save,
                 icon: _isLoading

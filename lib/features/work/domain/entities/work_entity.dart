@@ -1,13 +1,12 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../../core/enums/genre.dart';
-import '../../../../core/enums/language.dart';
-import '../../../../core/enums/original_language.dart';
-import '../../../../core/enums/reading_status.dart';
-import '../../../../core/enums/work_type.dart';
+import '../../../../core/shared/domain/enums/genre.dart';
+import '../../../../core/shared/domain/enums/language.dart';
+import '../../../../core/shared/domain/enums/original_language.dart';
+import '../../../../core/shared/domain/enums/reading_status.dart';
+import '../../../../core/shared/domain/enums/work_type.dart';
 
 class WorkEntity extends Equatable {
-
   const WorkEntity({
     required this.id,
     required this.userId,
@@ -75,28 +74,26 @@ class WorkEntity extends Equatable {
     List<String>? translatorIds,
     String? sequenceVolumeId,
     String? bookId,
-  }) {
-    return WorkEntity(
-      id: id ?? this.id,
-      userId: userId ?? this.userId,
-      title: title ?? this.title,
-      language: language ?? this.language,
-      genre: genre ?? this.genre,
-      workType: workType ?? this.workType,
-      noOfPages: noOfPages ?? this.noOfPages,
-      isTranslation: isTranslation ?? this.isTranslation,
-      originalTitle: originalTitle ?? this.originalTitle,
-      originalLanguage: originalLanguage ?? this.originalLanguage,
-      readingStatus: readingStatus ?? this.readingStatus,
-      pausedPage: pausedPage ?? this.pausedPage,
-      completedDate: completedDate ?? this.completedDate,
-      notes: notes ?? this.notes,
-      createdDate: createdDate ?? this.createdDate,
-      lastUpdated: lastUpdated ?? this.lastUpdated,
-      authorIds: authorIds ?? this.authorIds,
-      translatorIds: translatorIds ?? this.translatorIds,
-      sequenceVolumeId: sequenceVolumeId ?? this.sequenceVolumeId,
-      bookId: bookId ?? this.bookId,
-    );
-  }
+  }) => WorkEntity(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    title: title ?? this.title,
+    language: language ?? this.language,
+    genre: genre ?? this.genre,
+    workType: workType ?? this.workType,
+    noOfPages: noOfPages ?? this.noOfPages,
+    isTranslation: isTranslation ?? this.isTranslation,
+    originalTitle: originalTitle ?? this.originalTitle,
+    originalLanguage: originalLanguage ?? this.originalLanguage,
+    readingStatus: readingStatus ?? this.readingStatus,
+    pausedPage: pausedPage ?? this.pausedPage,
+    completedDate: completedDate ?? this.completedDate,
+    notes: notes ?? this.notes,
+    createdDate: createdDate ?? this.createdDate,
+    lastUpdated: lastUpdated ?? this.lastUpdated,
+    authorIds: authorIds ?? this.authorIds,
+    translatorIds: translatorIds ?? this.translatorIds,
+    sequenceVolumeId: sequenceVolumeId ?? this.sequenceVolumeId,
+    bookId: bookId ?? this.bookId,
+  );
 }

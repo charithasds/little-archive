@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/utils/snackbar_utils.dart';
+import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 import '../../domain/entities/work_entity.dart';
 import '../providers/work_provider.dart';
 

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/publisher_entity.dart';
 
 class PublisherListTile extends StatelessWidget {
-
   const PublisherListTile({
     super.key,
     required this.publisher,
@@ -46,25 +45,22 @@ class PublisherListTile extends StatelessWidget {
                     publisher.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '$bookCount ${bookCount == 1 ? 'Book' : 'Books'}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
             ),
             IconButton(
-              icon: Icon(
-                Icons.delete_outline_rounded,
-                color: colorScheme.error,
-              ),
+              icon: Icon(Icons.delete_outline_rounded, color: colorScheme.error),
               onPressed: onDelete,
             ),
           ],
@@ -90,17 +86,11 @@ class PublisherListTile extends StatelessWidget {
     }
   }
 
-  Widget _buildPlaceholder(ColorScheme colorScheme) {
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Icon(
-        Icons.business_rounded,
-        color: colorScheme.onPrimaryContainer,
-        size: 24,
-      ),
-    );
-  }
+  Widget _buildPlaceholder(ColorScheme colorScheme) => Container(
+    decoration: BoxDecoration(
+      color: colorScheme.primaryContainer,
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Icon(Icons.business_rounded, color: colorScheme.onPrimaryContainer, size: 24),
+  );
 }

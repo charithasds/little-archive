@@ -1,14 +1,13 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../../core/enums/collection_status.dart';
-import '../../../../core/enums/compilation_type.dart';
-import '../../../../core/enums/genre.dart';
-import '../../../../core/enums/language.dart';
-import '../../../../core/enums/original_language.dart';
-import '../../../../core/enums/reading_status.dart';
+import '../../../../core/shared/domain/enums/collection_status.dart';
+import '../../../../core/shared/domain/enums/compilation_type.dart';
+import '../../../../core/shared/domain/enums/genre.dart';
+import '../../../../core/shared/domain/enums/language.dart';
+import '../../../../core/shared/domain/enums/original_language.dart';
+import '../../../../core/shared/domain/enums/reading_status.dart';
 
 class BookEntity extends Equatable {
-
   const BookEntity({
     required this.id,
     required this.userId,
@@ -103,37 +102,35 @@ class BookEntity extends Equatable {
     String? sequenceVolumeId,
     String? publisherId,
     String? readerId,
-  }) {
-    return BookEntity(
-      id: id ?? this.id,
-      userId: userId ?? this.userId,
-      title: title ?? this.title,
-      cover: cover ?? this.cover,
-      compilationType: compilationType ?? this.compilationType,
-      language: language ?? this.language,
-      genre: genre ?? this.genre,
-      isbn: isbn ?? this.isbn,
-      publishedDate: publishedDate ?? this.publishedDate,
-      noOfPages: noOfPages ?? this.noOfPages,
-      isTranslation: isTranslation ?? this.isTranslation,
-      originalTitle: originalTitle ?? this.originalTitle,
-      originalLanguage: originalLanguage ?? this.originalLanguage,
-      collectionStatus: collectionStatus ?? this.collectionStatus,
-      collectedDate: collectedDate ?? this.collectedDate,
-      lendedDate: lendedDate ?? this.lendedDate,
-      dueDate: dueDate ?? this.dueDate,
-      readingStatus: readingStatus ?? this.readingStatus,
-      pausedPage: pausedPage ?? this.pausedPage,
-      completedDate: completedDate ?? this.completedDate,
-      notes: notes ?? this.notes,
-      createdDate: createdDate ?? this.createdDate,
-      lastUpdated: lastUpdated ?? this.lastUpdated,
-      authorIds: authorIds ?? this.authorIds,
-      translatorIds: translatorIds ?? this.translatorIds,
-      workIds: workIds ?? this.workIds,
-      sequenceVolumeId: sequenceVolumeId ?? this.sequenceVolumeId,
-      publisherId: publisherId ?? this.publisherId,
-      readerId: readerId ?? this.readerId,
-    );
-  }
+  }) => BookEntity(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    title: title ?? this.title,
+    cover: cover ?? this.cover,
+    compilationType: compilationType ?? this.compilationType,
+    language: language ?? this.language,
+    genre: genre ?? this.genre,
+    isbn: isbn ?? this.isbn,
+    publishedDate: publishedDate ?? this.publishedDate,
+    noOfPages: noOfPages ?? this.noOfPages,
+    isTranslation: isTranslation ?? this.isTranslation,
+    originalTitle: originalTitle ?? this.originalTitle,
+    originalLanguage: originalLanguage ?? this.originalLanguage,
+    collectionStatus: collectionStatus ?? this.collectionStatus,
+    collectedDate: collectedDate ?? this.collectedDate,
+    lendedDate: lendedDate ?? this.lendedDate,
+    dueDate: dueDate ?? this.dueDate,
+    readingStatus: readingStatus ?? this.readingStatus,
+    pausedPage: pausedPage ?? this.pausedPage,
+    completedDate: completedDate ?? this.completedDate,
+    notes: notes ?? this.notes,
+    createdDate: createdDate ?? this.createdDate,
+    lastUpdated: lastUpdated ?? this.lastUpdated,
+    authorIds: authorIds ?? this.authorIds,
+    translatorIds: translatorIds ?? this.translatorIds,
+    workIds: workIds ?? this.workIds,
+    sequenceVolumeId: sequenceVolumeId ?? this.sequenceVolumeId,
+    publisherId: publisherId ?? this.publisherId,
+    readerId: readerId ?? this.readerId,
+  );
 }

@@ -13,29 +13,26 @@ class SequenceVolumeModel extends SequenceVolumeEntity {
     required super.lastUpdated,
   });
 
-  factory SequenceVolumeModel.fromMap(Map<String, dynamic> map, String documentId) {
-    return SequenceVolumeModel(
-      id: documentId,
-      userId: (map['userId'] as String?) ?? '',
-      volume: (map['volume'] as String?) ?? '',
-      sequenceId: (map['sequenceId'] as String?) ?? '',
-      bookId: map['bookId'] as String?,
-      workId: map['workId'] as String?,
-      createdDate: (map['createdDate'] as Timestamp).toDate(),
-      lastUpdated: (map['lastUpdated'] as Timestamp).toDate(),
-    );
-  }
+  factory SequenceVolumeModel.fromMap(Map<String, dynamic> map, String documentId) =>
+      SequenceVolumeModel(
+        id: documentId,
+        userId: (map['userId'] as String?) ?? '',
+        volume: (map['volume'] as String?) ?? '',
+        sequenceId: (map['sequenceId'] as String?) ?? '',
+        bookId: map['bookId'] as String?,
+        workId: map['workId'] as String?,
+        createdDate: (map['createdDate'] as Timestamp).toDate(),
+        lastUpdated: (map['lastUpdated'] as Timestamp).toDate(),
+      );
 
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'id': id,
-      'userId': userId,
-      'volume': volume,
-      'sequenceId': sequenceId,
-      'bookId': bookId,
-      'workId': workId,
-      'createdDate': Timestamp.fromDate(createdDate),
-      'lastUpdated': Timestamp.fromDate(lastUpdated),
-    };
-  }
+  Map<String, dynamic> toMap() => <String, dynamic>{
+    'id': id,
+    'userId': userId,
+    'volume': volume,
+    'sequenceId': sequenceId,
+    'bookId': bookId,
+    'workId': workId,
+    'createdDate': Timestamp.fromDate(createdDate),
+    'lastUpdated': Timestamp.fromDate(lastUpdated),
+  };
 }

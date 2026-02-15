@@ -1,29 +1,22 @@
-import '../../../../core/services/relationship_sync_service.dart';
+import '../../../../core/shared/data/services/relationship_sync_service.dart';
 import '../../domain/entities/work_entity.dart';
 import '../../domain/repositories/work_repository.dart';
 import '../datasources/work_remote_datasource.dart';
 import '../models/work_model.dart';
 
 class WorkRepositoryImpl implements WorkRepository {
-
-  WorkRepositoryImpl({
-    required this.remoteDataSource,
-    required this.relationshipSyncService,
-  });
+  WorkRepositoryImpl({required this.remoteDataSource, required this.relationshipSyncService});
   final WorkRemoteDataSource remoteDataSource;
   final RelationshipSyncService relationshipSyncService;
 
   @override
-  Future<List<WorkEntity>> getWorks(String userId) =>
-      remoteDataSource.getWorks(userId);
+  Future<List<WorkEntity>> getWorks(String userId) => remoteDataSource.getWorks(userId);
 
   @override
-  Future<WorkEntity?> getWorkById(String id) =>
-      remoteDataSource.getWorkById(id);
+  Future<WorkEntity?> getWorkById(String id) => remoteDataSource.getWorkById(id);
 
   @override
   Future<void> addWork(WorkEntity work) async {
-    // First, add the work to the database
     await remoteDataSource.addWork(
       WorkModel(
         id: work.id,
@@ -49,7 +42,6 @@ class WorkRepositoryImpl implements WorkRepository {
       ),
     );
 
-    // Then, sync the relationships (add workId to related entities)
     await relationshipSyncService.syncWorkRelationships(
       workId: work.id,
       newAuthorIds: work.authorIds,
@@ -59,10 +51,8 @@ class WorkRepositoryImpl implements WorkRepository {
 
   @override
   Future<void> updateWork(WorkEntity work) async {
-    // First, get the existing work to compare relationships
     final WorkModel? existingWork = await remoteDataSource.getWorkById(work.id);
 
-    // Update the work in the database
     await remoteDataSource.updateWork(
       WorkModel(
         id: work.id,
@@ -88,7 +78,6 @@ class WorkRepositoryImpl implements WorkRepository {
       ),
     );
 
-    // Sync relationships, comparing old and new values
     await relationshipSyncService.syncWorkRelationships(
       workId: work.id,
       newAuthorIds: work.authorIds,
@@ -100,11 +89,9 @@ class WorkRepositoryImpl implements WorkRepository {
 
   @override
   Future<void> deleteWork(String id) async {
-    // First, get the existing work to know which relationships to remove
     final WorkModel? existingWork = await remoteDataSource.getWorkById(id);
 
     if (existingWork != null) {
-      // Remove relationships from related entities
       await relationshipSyncService.removeWorkRelationships(
         workId: id,
         authorIds: existingWork.authorIds,
@@ -112,11 +99,9 @@ class WorkRepositoryImpl implements WorkRepository {
       );
     }
 
-    // Then delete the work
     await remoteDataSource.deleteWork(id);
   }
 
   @override
-  Stream<List<WorkEntity>> watchWorks(String userId) =>
-      remoteDataSource.watchWorks(userId);
+  Stream<List<WorkEntity>> watchWorks(String userId) => remoteDataSource.watchWorks(userId);
 }

@@ -16,35 +16,31 @@ class AuthorModel extends AuthorEntity {
     required super.lastUpdated,
   });
 
-  factory AuthorModel.fromMap(Map<String, dynamic> map, String documentId) {
-    return AuthorModel(
-      id: documentId,
-      userId: (map['userId'] as String?) ?? '',
-      name: (map['name'] as String?) ?? '',
-      image: map['image'] as String?,
-      otherName: map['otherName'] as String?,
-      website: map['website'] as String?,
-      facebook: map['facebook'] as String?,
-      bookIds: List<String>.from(map['bookIds'] as Iterable<dynamic>? ?? <String>[]),
-      workIds: List<String>.from(map['workIds'] as Iterable<dynamic>? ?? <String>[]),
-      createdDate: (map['createdDate'] as Timestamp).toDate(),
-      lastUpdated: (map['lastUpdated'] as Timestamp).toDate(),
-    );
-  }
+  factory AuthorModel.fromMap(Map<String, dynamic> map, String documentId) => AuthorModel(
+    id: documentId,
+    userId: (map['userId'] as String?) ?? '',
+    name: (map['name'] as String?) ?? '',
+    image: map['image'] as String?,
+    otherName: map['otherName'] as String?,
+    website: map['website'] as String?,
+    facebook: map['facebook'] as String?,
+    bookIds: List<String>.from(map['bookIds'] as Iterable<dynamic>? ?? <String>[]),
+    workIds: List<String>.from(map['workIds'] as Iterable<dynamic>? ?? <String>[]),
+    createdDate: (map['createdDate'] as Timestamp).toDate(),
+    lastUpdated: (map['lastUpdated'] as Timestamp).toDate(),
+  );
 
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'id': id,
-      'userId': userId,
-      'name': name,
-      'image': image,
-      'otherName': otherName,
-      'website': website,
-      'facebook': facebook,
-      'bookIds': bookIds,
-      'workIds': workIds,
-      'createdDate': Timestamp.fromDate(createdDate),
-      'lastUpdated': Timestamp.fromDate(lastUpdated),
-    };
-  }
+  Map<String, dynamic> toMap() => <String, dynamic>{
+    'id': id,
+    'userId': userId,
+    'name': name,
+    'image': image,
+    'otherName': otherName,
+    'website': website,
+    'facebook': facebook,
+    'bookIds': bookIds,
+    'workIds': workIds,
+    'createdDate': Timestamp.fromDate(createdDate),
+    'lastUpdated': Timestamp.fromDate(lastUpdated),
+  };
 }

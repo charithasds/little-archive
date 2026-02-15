@@ -1,10 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/providers/firestore_provider.dart';
-import '../../../../core/services/relationship_sync_service.dart';
-import '../../../auth/domain/entities/user_entity.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../core/auth/domain/entities/user_entity.dart';
+import '../../../../core/auth/presentation/providers/auth_provider.dart';
+import '../../../../core/shared/data/services/firestore_service.dart';
+import '../../../../core/shared/data/services/relationship_sync_service.dart';
+import '../../../../core/shared/presentation/providers/firestore_provider.dart';
 import '../../data/datasources/book_remote_datasource.dart';
 import '../../data/repositories/book_repository_impl.dart';
 import '../../domain/entities/book_entity.dart';
@@ -13,8 +13,8 @@ import '../../domain/repositories/book_repository.dart';
 final Provider<BookRemoteDataSource> bookRemoteDataSourceProvider = Provider<BookRemoteDataSource>((
   Ref ref,
 ) {
-  final FirebaseFirestore firestore = ref.watch(firestoreProvider);
-  return BookRemoteDataSourceImpl(firestore: firestore);
+  final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
+  return BookRemoteDataSourceImpl(firestoreService: firestoreService);
 });
 
 final Provider<BookRepository> bookRepositoryProvider = Provider<BookRepository>((Ref ref) {

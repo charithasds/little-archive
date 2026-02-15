@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/reader_entity.dart';
 
 class ReaderListTile extends StatelessWidget {
-
   const ReaderListTile({
     super.key,
     required this.reader,
@@ -33,11 +32,7 @@ class ReaderListTile extends StatelessWidget {
                   ? _getImageProvider(reader.image!)
                   : null,
               child: reader.image == null || reader.image!.isEmpty
-                  ? Icon(
-                      Icons.face_rounded,
-                      color: colorScheme.onPrimaryContainer,
-                      size: 24,
-                    )
+                  ? Icon(Icons.face_rounded, color: colorScheme.onPrimaryContainer, size: 24)
                   : null,
             ),
             const SizedBox(width: 16),
@@ -50,25 +45,22 @@ class ReaderListTile extends StatelessWidget {
                     reader.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '$bookCount ${bookCount == 1 ? 'Book' : 'Books'}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
             ),
             IconButton(
-              icon: Icon(
-                Icons.delete_outline_rounded,
-                color: colorScheme.error,
-              ),
+              icon: Icon(Icons.delete_outline_rounded, color: colorScheme.error),
               onPressed: onDelete,
             ),
           ],
@@ -84,7 +76,7 @@ class ReaderListTile extends StatelessWidget {
       try {
         return MemoryImage(base64Decode(image));
       } catch (e) {
-        return const AssetImage('assets/icon/app_icon.png'); // Fallback
+        return const AssetImage('assets/icon/app_icon.png');
       }
     }
   }

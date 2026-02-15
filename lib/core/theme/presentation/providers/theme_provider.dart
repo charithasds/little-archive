@@ -1,32 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../shared/presentation/providers/shared_preferences_provider.dart';
 import '../../data/datasources/theme_local_data_source.dart';
 import '../../data/repositories/theme_repository_impl.dart';
 import '../../domain/repositories/theme_repository.dart';
 
-// Provider for SharedPreferences - This will be overridden in main.dart
-final Provider<SharedPreferences> sharedPreferencesProvider = Provider<SharedPreferences>((Ref ref) {
-  throw UnimplementedError();
-});
+final FutureProvider<ThemeLocalDataSource> themeLocalDataSourceProvider =
+    FutureProvider<ThemeLocalDataSource>((Ref ref) async {
+      final SharedPreferences sharedPreferences = await ref
+          .watch(sharedPreferencesServiceProvider)
+          .initialize();
 
-// Provider for ThemeLocalDataSource
-final Provider<ThemeLocalDataSource> themeLocalDataSourceProvider = Provider<ThemeLocalDataSource>((Ref ref) {
-  final SharedPreferences sharedPrefs = ref.watch(sharedPreferencesProvider);
-  return ThemeLocalDataSource(sharedPrefs);
-});
+      return ThemeLocalDataSource(sharedPreferences);
+    });
 
-// Provider for ThemeRepository
 final Provider<ThemeRepository> themeRepositoryProvider = Provider<ThemeRepository>((Ref ref) {
-  final ThemeLocalDataSource localDataSource = ref.watch(themeLocalDataSourceProvider);
+  final ThemeLocalDataSource localDataSource = ref.watch(themeLocalDataSourceProvider).requireValue;
+
   return ThemeRepositoryImpl(localDataSource);
 });
 
-// Notifier for ThemeMode
 class ThemeNotifier extends Notifier<ThemeMode> {
   @override
   ThemeMode build() {
-    final ThemeLocalDataSource localDataSource = ref.watch(themeLocalDataSourceProvider);
+    final ThemeLocalDataSource localDataSource = ref
+        .watch(themeLocalDataSourceProvider)
+        .requireValue;
+
     return localDataSource.getIsDarkMode() ? ThemeMode.dark : ThemeMode.light;
   }
 
@@ -40,6 +42,5 @@ class ThemeNotifier extends Notifier<ThemeMode> {
   }
 }
 
-final NotifierProvider<ThemeNotifier, ThemeMode> themeProvider = NotifierProvider<ThemeNotifier, ThemeMode>(() {
-  return ThemeNotifier();
-});
+final NotifierProvider<ThemeNotifier, ThemeMode> themeProvider =
+    NotifierProvider<ThemeNotifier, ThemeMode>(ThemeNotifier.new);

@@ -7,17 +7,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/enums/collection_status.dart';
-import '../../../../core/enums/compilation_type.dart';
-import '../../../../core/enums/genre.dart';
-import '../../../../core/enums/language.dart';
-import '../../../../core/enums/original_language.dart';
-import '../../../../core/enums/reading_status.dart';
-import '../../../../core/error/exceptions.dart';
-import '../../../../core/utils/snackbar_utils.dart';
-import '../../../../core/widgets/form_fields.dart';
-import '../../../auth/domain/entities/user_entity.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../core/auth/domain/entities/user_entity.dart';
+import '../../../../core/auth/presentation/providers/auth_provider.dart';
+import '../../../../core/shared/domain/enums/collection_status.dart';
+import '../../../../core/shared/domain/enums/compilation_type.dart';
+import '../../../../core/shared/domain/enums/genre.dart';
+import '../../../../core/shared/domain/enums/language.dart';
+import '../../../../core/shared/domain/enums/original_language.dart';
+import '../../../../core/shared/domain/enums/reading_status.dart';
+import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/widgets/form_fields.dart';
+import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 import '../../../author/domain/entities/author_entity.dart';
 import '../../../author/presentation/providers/author_provider.dart';
 import '../../../author/presentation/widgets/add_author_dialog.dart';
@@ -51,7 +51,6 @@ class AddBookPage extends ConsumerStatefulWidget {
 class _AddBookPageState extends ConsumerState<AddBookPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  // Text Controllers
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _isbnController = TextEditingController();
   final TextEditingController _noOfPagesController = TextEditingController();
@@ -60,7 +59,6 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
   final TextEditingController _notesController = TextEditingController();
   final TextEditingController _sequenceVolumeController = TextEditingController();
 
-  // Enums
   CompilationType _compilationType = CompilationType.single;
   Language _language = Language.english;
   Genre _genre = Genre.fantasy;
@@ -68,21 +66,17 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
   ReadingStatus _readingStatus = ReadingStatus.notStarted;
   OriginalLanguage? _originalLanguage;
 
-  // Booleans
   bool _isTranslation = false;
   bool _isLoading = false;
 
-  // Cover image
   String? _pickedBase64Image;
 
-  // Dates
   DateTime? _publishedDate;
   DateTime? _collectedDate;
   DateTime? _lendedDate;
   DateTime? _dueDate;
   DateTime? _completedDate;
 
-  // Relationships
   List<AuthorEntity> _selectedAuthors = <AuthorEntity>[];
   List<TranslatorEntity> _selectedTranslators = <TranslatorEntity>[];
   PublisherEntity? _selectedPublisher;
@@ -142,7 +136,6 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
         final String bookId = FirebaseFirestore.instance.collection('books').doc().id;
         String? sequenceVolumeId;
 
-        // Handle Sequence Volume
         if (_selectedSequence != null) {
           if (_sequenceVolumeController.text.isEmpty) {
             SnackBarUtils.showWarning(context, 'Please enter Sequence Volume number');
@@ -307,7 +300,6 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
-    // Watch providers
     final AsyncValue<List<AuthorEntity>> authorsAsync = ref.watch(authorsStreamProvider);
     final AsyncValue<List<TranslatorEntity>> translatorsAsync = ref.watch(
       translatorsStreamProvider,
@@ -326,7 +318,6 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              // Cover Image Picker
               Center(
                 child: GestureDetector(
                   onTap: _pickImage,
@@ -394,7 +385,6 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
               ),
               const SizedBox(height: 16),
 
-              // Basic Enums
               DropdownButtonFormField<CompilationType>(
                 initialValue: _compilationType,
                 decoration: _buildInputDecoration(
@@ -441,7 +431,6 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
 
               _buildSectionHeader('Relationships', Icons.people_rounded),
 
-              // Authors
               authorsAsync.when(
                 data: (List<AuthorEntity> authors) => MultiSelectField<AuthorEntity>(
                   label: 'Authors',
@@ -467,7 +456,6 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
               ),
               const SizedBox(height: 16),
 
-              // Publishers
               publishersAsync.when(
                 data: (List<PublisherEntity> publishers) => SingleSelectField<PublisherEntity>(
                   label: 'Publisher',
@@ -491,7 +479,6 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
               ),
               const SizedBox(height: 16),
 
-              // Readers
               readersAsync.when(
                 data: (List<ReaderEntity> readers) => SingleSelectField<ReaderEntity>(
                   label: 'Reader',
@@ -515,7 +502,6 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
               ),
               const SizedBox(height: 16),
 
-              // Sequence
               sequencesAsync.when(
                 data: (List<SequenceEntity> sequences) => Column(
                   children: <Widget>[
@@ -555,7 +541,6 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
               ),
               const SizedBox(height: 16),
 
-              // Works
               worksAsync.when(
                 data: (List<WorkEntity> works) => MultiSelectField<WorkEntity>(
                   label: 'Works',
@@ -703,7 +688,6 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
               ),
               const SizedBox(height: 16),
 
-              // Lended Date
               _buildStyledContainer(
                 child: ListTile(
                   leading: Icon(Icons.share_rounded, color: colorScheme.primary),
@@ -725,7 +709,6 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
               ),
               const SizedBox(height: 16),
 
-              // Due Date
               _buildStyledContainer(
                 child: ListTile(
                   leading: Icon(Icons.event_rounded, color: colorScheme.primary),
@@ -804,7 +787,6 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
 
               const SizedBox(height: 32),
 
-              // Save Button
               FilledButton.icon(
                 onPressed: _isLoading ? null : _save,
                 icon: _isLoading

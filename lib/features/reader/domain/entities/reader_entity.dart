@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 
 class ReaderEntity extends Equatable {
-
   const ReaderEntity({
     required this.id,
     required this.userId,

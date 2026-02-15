@@ -2,10 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/error/exceptions.dart';
-import '../../../../core/utils/snackbar_utils.dart';
-import '../../../auth/domain/entities/user_entity.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../core/auth/domain/entities/user_entity.dart';
+import '../../../../core/auth/presentation/providers/auth_provider.dart';
+import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 import '../../domain/entities/sequence_entity.dart';
 import '../../domain/repositories/sequence_repository.dart';
 import '../providers/sequence_provider.dart';
@@ -63,36 +63,34 @@ class _AddSequenceDialogState extends ConsumerState<AddSequenceDialog> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Add Sequence'),
-      content: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Name'),
-                validator: (String? value) =>
-                    value == null || value.isEmpty ? 'Name is required' : null,
-                maxLength: 500,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _notesController,
-                decoration: const InputDecoration(labelText: 'Notes'),
-                maxLines: 3,
-              ),
-            ],
-          ),
+  Widget build(BuildContext context) => AlertDialog(
+    title: const Text('Add Sequence'),
+    content: SingleChildScrollView(
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            TextFormField(
+              controller: _nameController,
+              decoration: const InputDecoration(labelText: 'Name'),
+              validator: (String? value) =>
+                  value == null || value.isEmpty ? 'Name is required' : null,
+              maxLength: 500,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _notesController,
+              decoration: const InputDecoration(labelText: 'Notes'),
+              maxLines: 3,
+            ),
+          ],
         ),
       ),
-      actions: <Widget>[
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
-        ElevatedButton(onPressed: _save, child: const Text('Add')),
-      ],
-    );
-  }
+    ),
+    actions: <Widget>[
+      TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+      ElevatedButton(onPressed: _save, child: const Text('Add')),
+    ],
+  );
 }

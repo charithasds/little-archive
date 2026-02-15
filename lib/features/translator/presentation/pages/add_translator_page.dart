@@ -6,11 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../../core/error/exceptions.dart';
-import '../../../../core/utils/snackbar_utils.dart';
-import '../../../../core/utils/validators.dart';
-import '../../../auth/domain/entities/user_entity.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../core/auth/domain/entities/user_entity.dart';
+import '../../../../core/auth/presentation/providers/auth_provider.dart';
+import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/domain/validators.dart';
+import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 import '../../domain/entities/translator_entity.dart';
 import '../providers/translator_provider.dart';
 
@@ -108,7 +108,6 @@ class _AddTranslatorPageState extends ConsumerState<AddTranslatorPage> {
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: <Widget>[
-            // Profile Image Picker
             Center(
               child: GestureDetector(
                 onTap: _pickImage,
@@ -146,7 +145,6 @@ class _AddTranslatorPageState extends ConsumerState<AddTranslatorPage> {
             ),
             const SizedBox(height: 24),
 
-            // Form Fields
             TextFormField(
               controller: _nameController,
               decoration: InputDecoration(
@@ -276,7 +274,6 @@ class _AddTranslatorPageState extends ConsumerState<AddTranslatorPage> {
             ),
             const SizedBox(height: 32),
 
-            // Save Button
             FilledButton.icon(
               onPressed: _isLoading ? null : _save,
               icon: _isLoading

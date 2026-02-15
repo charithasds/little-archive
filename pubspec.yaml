@@ -40,8 +40,8 @@ dependencies:
   connectivity_plus: ^7.0.0
 
   riverpod: any
+  google_fonts: ^8.0.1
 dev_dependencies:
-  flutter_launcher_icons: ^0.14.4
   flutter_test:
     sdk: flutter
 
@@ -91,16 +91,3 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
-
-flutter_launcher_icons:
-  android: "launcher_icon"
-  image_path: "assets/icon/app_icon.png"
-  min_sdk_android: 21
-  adaptive_icon_background: "#1e2d3d"
-  adaptive_icon_foreground: "assets/icon/app_icon.png"
-  adaptive_icon_monochrome: "assets/icon/app_icon.png"
-  web:
-    generate: true
-    image_path: "assets/icon/app_icon.png"
-    background_color: "#1e2d3d"
-    theme_color: "#1e2d3d"

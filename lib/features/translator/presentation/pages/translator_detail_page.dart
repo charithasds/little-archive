@@ -5,10 +5,8 @@ class TranslatorDetailPage extends StatelessWidget {
   final String translatorId;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Translator Details')),
-      body: Center(child: Text('Translator ID: $translatorId')),
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Translator Details')),
+    body: Center(child: Text('Translator ID: $translatorId')),
+  );
 }

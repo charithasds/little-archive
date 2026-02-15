@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/author_entity.dart';
 
 class AuthorListTile extends StatelessWidget {
-
   const AuthorListTile({
     super.key,
     required this.author,
@@ -34,11 +33,7 @@ class AuthorListTile extends StatelessWidget {
                   ? _getImageProvider(author.image!)
                   : null,
               child: author.image == null || author.image!.isEmpty
-                  ? Icon(
-                      Icons.person_rounded,
-                      color: colorScheme.onPrimaryContainer,
-                      size: 24,
-                    )
+                  ? Icon(Icons.person_rounded, color: colorScheme.onPrimaryContainer, size: 24)
                   : null,
             ),
             const SizedBox(width: 16),
@@ -51,31 +46,28 @@ class AuthorListTile extends StatelessWidget {
                     author.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '$bookCount ${bookCount == 1 ? 'Book' : 'Books'}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                   Text(
                     '$workCount ${workCount == 1 ? 'Work' : 'Works'}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),
             ),
             IconButton(
-              icon: Icon(
-                Icons.delete_outline_rounded,
-                color: colorScheme.error,
-              ),
+              icon: Icon(Icons.delete_outline_rounded, color: colorScheme.error),
               onPressed: onDelete,
             ),
           ],
@@ -91,7 +83,7 @@ class AuthorListTile extends StatelessWidget {
       try {
         return MemoryImage(base64Decode(image));
       } catch (e) {
-        return const AssetImage('assets/icon/app_icon.png'); // Fallback
+        return const AssetImage('assets/icon/app_icon.png');
       }
     }
   }
