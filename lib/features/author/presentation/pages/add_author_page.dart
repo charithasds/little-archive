@@ -10,6 +10,7 @@ import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/validators.dart';
+import '../../../../core/shared/presentation/widgets/form_text_field.dart';
 import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 import '../../domain/entities/author_entity.dart';
 import '../providers/author_provider.dart';
@@ -54,7 +55,6 @@ class _AddAuthorPageState extends ConsumerState<AddAuthorPage> {
 
       final AuthorEntity newAuthor = AuthorEntity(
         id: FirebaseFirestore.instance.collection('authors').doc().id,
-        userId: user.uid,
         name: _nameController.text.trim(),
         otherName: _otherNameController.text.isEmpty ? null : _otherNameController.text.trim(),
         website: _websiteController.text.isEmpty ? null : _websiteController.text.trim(),
@@ -141,129 +141,41 @@ class _AddAuthorPageState extends ConsumerState<AddAuthorPage> {
             ),
             const SizedBox(height: 24),
 
-            TextFormField(
+            FormTextField(
               controller: _nameController,
-              decoration: InputDecoration(
-                labelText: 'Name',
-                hintText: 'Author name',
-                prefixIcon: const Icon(Icons.person_outline_rounded),
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.error, width: 2),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.error, width: 2),
-                ),
-              ),
+              label: 'Name',
+              hint: 'Author name',
+              prefixIcon: Icons.person_outline_rounded,
               maxLength: 500,
-              validator: (String? v) => v!.trim().isEmpty ? 'Name is required' : null,
+              isRequired: true,
             ),
             const SizedBox(height: 16),
 
-            TextFormField(
+            FormTextField(
               controller: _otherNameController,
-              decoration: InputDecoration(
-                labelText: 'Other Name',
-                hintText: 'Alternative Name',
-                prefixIcon: const Icon(Icons.badge_outlined),
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                ),
-              ),
+              label: 'Other Name',
+              hint: 'Alternative Name',
+              prefixIcon: Icons.badge_outlined,
               maxLength: 500,
             ),
             const SizedBox(height: 16),
 
-            TextFormField(
+            FormTextField(
               controller: _websiteController,
-              decoration: InputDecoration(
-                labelText: 'Website',
-                hintText: 'https://www.example.com',
-                prefixIcon: const Icon(Icons.language_rounded),
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.error, width: 2),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.error, width: 2),
-                ),
-              ),
+              label: 'Website',
+              hint: 'https://www.example.com',
+              prefixIcon: Icons.language_rounded,
               maxLength: 200,
               keyboardType: TextInputType.url,
               validator: Validators.validateWebsiteUrl,
             ),
             const SizedBox(height: 16),
 
-            TextFormField(
+            FormTextField(
               controller: _facebookController,
-              decoration: InputDecoration(
-                labelText: 'Facebook',
-                hintText: 'https://www.facebook.com/username',
-                prefixIcon: const Icon(Icons.facebook_rounded),
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.error, width: 2),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.error, width: 2),
-                ),
-              ),
+              label: 'Facebook',
+              hint: 'https://www.facebook.com/username',
+              prefixIcon: Icons.facebook_rounded,
               maxLength: 200,
               keyboardType: TextInputType.url,
               validator: Validators.validateFacebookUrl,

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/widgets/form_text_field.dart';
 import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 import '../../domain/entities/sequence_entity.dart';
 import '../../domain/repositories/sequence_repository.dart';
@@ -31,14 +32,14 @@ class _AddSequenceDialogState extends ConsumerState<AddSequenceDialog> {
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
-      final UserEntity? user = ref.read<AsyncValue<UserEntity?>>(authStateProvider).value;
+      final UserEntity? user = ref.read(authStateProvider).value;
       if (user == null) {
         return;
       }
 
       final SequenceEntity newSequence = SequenceEntity(
         id: FirebaseFirestore.instance.collection('sequences').doc().id,
-        userId: user.uid,
+
         name: _nameController.text.trim(),
         notes: _notesController.text.trim(),
         sequenceVolumeIds: const <String>[],
@@ -71,19 +72,15 @@ class _AddSequenceDialogState extends ConsumerState<AddSequenceDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            TextFormField(
+            FormTextField(
               controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Name'),
-              validator: (String? value) =>
-                  value == null || value.isEmpty ? 'Name is required' : null,
+              label: 'Name',
+              hint: 'Sequence Name',
+              isRequired: true,
               maxLength: 500,
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              controller: _notesController,
-              decoration: const InputDecoration(labelText: 'Notes'),
-              maxLines: 3,
-            ),
+            FormTextField(controller: _notesController, label: 'Notes', maxLines: 3),
           ],
         ),
       ),

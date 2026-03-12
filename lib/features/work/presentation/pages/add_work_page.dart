@@ -1,9 +1,7 @@
 import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
@@ -13,7 +11,11 @@ import '../../../../core/shared/domain/enums/original_language.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../../../core/shared/domain/enums/work_type.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
-import '../../../../core/shared/presentation/widgets/form_fields.dart';
+import '../../../../core/shared/presentation/widgets/form_date_field.dart';
+import '../../../../core/shared/presentation/widgets/form_decoration.dart';
+import '../../../../core/shared/presentation/widgets/form_text_field.dart';
+import '../../../../core/shared/presentation/widgets/multi_select_field.dart';
+import '../../../../core/shared/presentation/widgets/single_select_field.dart';
 import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 import '../../../author/domain/entities/author_entity.dart';
 import '../../../author/presentation/providers/author_provider.dart';
@@ -102,7 +104,7 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
               .id;
           final SequenceVolumeEntity volume = SequenceVolumeEntity(
             id: volumeId,
-            userId: user.uid,
+
             volume: _sequenceVolumeController.text,
             sequenceId: _selectedSequence!.id,
             workId: workId,
@@ -113,7 +115,7 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
           await ref.read<SequenceRepository>(sequenceRepositoryProvider).addSequenceVolume(volume);
           final SequenceEntity updatedSequence = SequenceEntity(
             id: _selectedSequence!.id,
-            userId: _selectedSequence!.userId,
+
             name: _selectedSequence!.name,
             notes: _selectedSequence!.notes,
             sequenceVolumeIds: <String>[..._selectedSequence!.sequenceVolumeIds, volumeId],
@@ -127,7 +129,7 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
 
         final WorkEntity newWork = WorkEntity(
           id: workId,
-          userId: user.uid,
+
           title: _titleController.text.trim(),
           language: _language,
           genre: _genre,
@@ -167,64 +169,6 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
         }
       }
     }
-  }
-
-  Future<void> _selectDate(BuildContext context, void Function(DateTime) onPicked) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1000),
-      lastDate: DateTime(3000),
-    );
-    if (picked != null) {
-      setState(() {
-        onPicked(picked);
-      });
-    }
-  }
-
-  InputDecoration _buildInputDecoration({
-    required String label,
-    String? hint,
-    IconData? prefixIcon,
-    bool alignLabelWithHint = false,
-  }) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    return InputDecoration(
-      labelText: label,
-      hintText: hint,
-      prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
-      alignLabelWithHint: alignLabelWithHint,
-      filled: true,
-      fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide.none,
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide.none,
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: colorScheme.primary, width: 2),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: colorScheme.error),
-      ),
-    );
-  }
-
-  Widget _buildStyledContainer({required Widget child}) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: child,
-    );
   }
 
   Widget _buildSectionHeader(String title, IconData icon) {
@@ -298,44 +242,21 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
               ),
               const SizedBox(height: 24),
 
-              TextFormField(
+              FormTextField(
                 controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: 'Title',
-                  hintText: 'Work title',
-                  prefixIcon: const Icon(Icons.title_rounded),
-                  filled: true,
-                  fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                  ),
-                  errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: colorScheme.error, width: 2),
-                  ),
-                  focusedErrorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: colorScheme.error, width: 2),
-                  ),
-                ),
+                label: 'Title',
+                hint: 'Work title',
+                prefixIcon: Icons.title_rounded,
+                isRequired: true,
                 maxLength: 500,
-                validator: (String? v) => v!.trim().isEmpty ? 'Title is required' : null,
               ),
               const SizedBox(height: 16),
 
               DropdownButtonFormField<Language>(
                 initialValue: _language,
-                decoration: _buildInputDecoration(
-                  label: 'Language',
+                decoration: buildFormDecoration(
+                  colorScheme,
+                  labelText: 'Language',
                   prefixIcon: Icons.language_rounded,
                 ),
                 items: Language.values
@@ -350,8 +271,9 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
 
               DropdownButtonFormField<Genre>(
                 initialValue: _genre,
-                decoration: _buildInputDecoration(
-                  label: 'Genre',
+                decoration: buildFormDecoration(
+                  colorScheme,
+                  labelText: 'Genre',
                   prefixIcon: Icons.theater_comedy_rounded,
                 ),
                 items: Genre.values
@@ -363,8 +285,9 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
 
               DropdownButtonFormField<WorkType>(
                 initialValue: _workType,
-                decoration: _buildInputDecoration(
-                  label: 'Work Type',
+                decoration: buildFormDecoration(
+                  colorScheme,
+                  labelText: 'Work Type',
                   prefixIcon: Icons.category_rounded,
                 ),
                 items: WorkType.values
@@ -440,13 +363,11 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
                     if (_selectedSequence != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 12),
-                        child: TextFormField(
+                        child: FormTextField(
                           controller: _sequenceVolumeController,
-                          decoration: _buildInputDecoration(
-                            label: 'Volume Number',
-                            hint: 'e.g., 1, 2, 3...',
-                            prefixIcon: Icons.format_list_numbered_rounded,
-                          ),
+                          label: 'Volume Number',
+                          hint: 'e.g., 1, 2, 3...',
+                          prefixIcon: Icons.format_list_numbered_rounded,
                         ),
                       ),
                   ],
@@ -457,7 +378,11 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
 
               _buildSectionHeader('Details', Icons.info_outline_rounded),
 
-              _buildStyledContainer(
+              Container(
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: SwitchListTile(
                   title: const Text('Is Translation?'),
                   subtitle: const Text('Enable if this work is translated'),
@@ -472,18 +397,17 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
 
               if (_isTranslation) ...<Widget>[
                 const SizedBox(height: 16),
-                TextFormField(
+                FormTextField(
                   controller: _originalTitleController,
-                  decoration: _buildInputDecoration(
-                    label: 'Original Title',
-                    prefixIcon: Icons.translate_rounded,
-                  ),
+                  label: 'Original Title',
+                  prefixIcon: Icons.translate_rounded,
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<OriginalLanguage>(
                   initialValue: _originalLanguage,
-                  decoration: _buildInputDecoration(
-                    label: 'Original Language',
+                  decoration: buildFormDecoration(
+                    colorScheme,
+                    labelText: 'Original Language',
                     prefixIcon: Icons.language_rounded,
                   ),
                   items: OriginalLanguage.values
@@ -527,12 +451,10 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
               ],
 
               const SizedBox(height: 16),
-              TextFormField(
+              FormTextField(
                 controller: _noOfPagesController,
-                decoration: _buildInputDecoration(
-                  label: 'Number of Pages',
-                  prefixIcon: Icons.numbers_rounded,
-                ),
+                label: 'Number of Pages',
+                prefixIcon: Icons.numbers_rounded,
                 keyboardType: TextInputType.number,
               ),
 
@@ -540,8 +462,9 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
 
               DropdownButtonFormField<ReadingStatus>(
                 initialValue: _readingStatus,
-                decoration: _buildInputDecoration(
-                  label: 'Reading Status',
+                decoration: buildFormDecoration(
+                  colorScheme,
+                  labelText: 'Reading Status',
                   prefixIcon: Icons.menu_book_rounded,
                 ),
                 items: ReadingStatus.values
@@ -555,43 +478,32 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
 
               if (_readingStatus == ReadingStatus.paused) ...<Widget>[
                 const SizedBox(height: 16),
-                TextFormField(
+                FormTextField(
                   controller: _pausedPageController,
-                  decoration: _buildInputDecoration(
-                    label: 'Paused Page',
-                    prefixIcon: Icons.bookmark_border_rounded,
-                  ),
+                  label: 'Paused Page',
+                  prefixIcon: Icons.bookmark_border_rounded,
                   keyboardType: TextInputType.number,
                 ),
               ],
 
               if (_readingStatus == ReadingStatus.completed) ...<Widget>[
                 const SizedBox(height: 16),
-                _buildStyledContainer(
-                  child: ListTile(
-                    leading: Icon(Icons.check_circle_outline_rounded, color: colorScheme.primary),
-                    title: Text(
-                      _completedDate == null
-                          ? 'Completed Date'
-                          : 'Completed: ${DateFormat.yMMMd().format(_completedDate!)}',
-                    ),
-                    subtitle: _completedDate == null ? const Text('Tap to select') : null,
-                    onTap: () => _selectDate(context, (DateTime d) => _completedDate = d),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  ),
+                FormDateField(
+                  label: 'Completed Date',
+                  value: _completedDate,
+                  onDateSelected: (DateTime d) => setState(() => _completedDate = d),
+                  icon: Icons.check_circle_outline_rounded,
                 ),
               ],
 
               const SizedBox(height: 16),
-              TextFormField(
+              FormTextField(
                 controller: _notesController,
-                decoration: _buildInputDecoration(
-                  label: 'Notes',
-                  hint: 'Notes about this work',
-                  prefixIcon: Icons.notes_rounded,
-                  alignLabelWithHint: true,
-                ),
+                label: 'Notes',
+                hint: 'Notes about this work',
+                prefixIcon: Icons.notes_rounded,
                 maxLines: 3,
+                alignLabelWithHint: true,
               ),
 
               const SizedBox(height: 32),

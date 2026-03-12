@@ -10,7 +10,7 @@ import '../../../../core/shared/domain/enums/reading_status.dart';
 class BookEntity extends Equatable {
   const BookEntity({
     required this.id,
-    required this.userId,
+
     required this.title,
     this.cover,
     required this.compilationType,
@@ -40,7 +40,7 @@ class BookEntity extends Equatable {
     this.readerId,
   });
   final String id;
-  final String userId;
+
   final String title;
   final String? cover;
   final CompilationType compilationType;
@@ -74,7 +74,7 @@ class BookEntity extends Equatable {
 
   BookEntity copyWith({
     String? id,
-    String? userId,
+
     String? title,
     String? cover,
     CompilationType? compilationType,
@@ -104,7 +104,7 @@ class BookEntity extends Equatable {
     String? readerId,
   }) => BookEntity(
     id: id ?? this.id,
-    userId: userId ?? this.userId,
+
     title: title ?? this.title,
     cover: cover ?? this.cover,
     compilationType: compilationType ?? this.compilationType,

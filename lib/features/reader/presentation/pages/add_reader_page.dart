@@ -10,6 +10,7 @@ import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/validators.dart';
+import '../../../../core/shared/presentation/widgets/form_text_field.dart';
 import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 import '../../domain/entities/reader_entity.dart';
 import '../providers/reader_provider.dart';
@@ -54,7 +55,7 @@ class _AddReaderPageState extends ConsumerState<AddReaderPage> {
 
       final ReaderEntity newReader = ReaderEntity(
         id: FirebaseFirestore.instance.collection('readers').doc().id,
-        userId: user.uid,
+
         name: _nameController.text.trim(),
         image: _pickedBase64Image,
         email: _emailController.text.isEmpty ? null : _emailController.text.trim(),
@@ -140,123 +141,44 @@ class _AddReaderPageState extends ConsumerState<AddReaderPage> {
             ),
             const SizedBox(height: 24),
 
-            TextFormField(
+            FormTextField(
               controller: _nameController,
-              decoration: InputDecoration(
-                labelText: 'Name',
-                hintText: 'Reader name',
-                prefixIcon: const Icon(Icons.person_outline_rounded),
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.error),
-                ),
-              ),
+              label: 'Name',
+              hint: 'Reader name',
+              prefixIcon: Icons.person_outline_rounded,
               maxLength: 500,
-              validator: (String? v) => v!.trim().isEmpty ? 'Name is required' : null,
+              isRequired: true,
             ),
             const SizedBox(height: 16),
 
-            TextFormField(
+            FormTextField(
               controller: _emailController,
-              decoration: InputDecoration(
-                labelText: 'Email',
-                hintText: 'reader@example.com',
-                prefixIcon: const Icon(Icons.email_outlined),
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                ),
-              ),
+              label: 'Email',
+              hint: 'reader@example.com',
+              prefixIcon: Icons.email_outlined,
               maxLength: 200,
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 16),
 
-            TextFormField(
+            FormTextField(
               controller: _facebookController,
-              decoration: InputDecoration(
-                labelText: 'Facebook',
-                hintText: 'https://www.facebook.com/username',
-                prefixIcon: const Icon(Icons.facebook_rounded),
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.error),
-                ),
-              ),
+              label: 'Facebook',
+              hint: 'https://www.facebook.com/username',
+              prefixIcon: Icons.facebook_rounded,
               maxLength: 200,
+              keyboardType: TextInputType.url,
               validator: Validators.validateFacebookUrl,
             ),
             const SizedBox(height: 16),
 
-            TextFormField(
+            FormTextField(
               controller: _phoneController,
-              decoration: InputDecoration(
-                labelText: 'Phone Number',
-                hintText: '+94 77 123 4567 or 077 123 4567',
-                prefixIcon: const Icon(Icons.phone_outlined),
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.error, width: 2),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.error, width: 2),
-                ),
-              ),
-              keyboardType: TextInputType.phone,
+              label: 'Phone Number',
+              hint: '+94 77 123 4567 or 077 123 4567',
+              prefixIcon: Icons.phone_outlined,
               maxLength: 20,
+              keyboardType: TextInputType.phone,
               validator: Validators.validateSriLankanPhoneNumber,
             ),
             const SizedBox(height: 32),

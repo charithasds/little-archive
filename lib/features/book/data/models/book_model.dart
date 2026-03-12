@@ -11,7 +11,7 @@ import '../../domain/entities/book_entity.dart';
 class BookModel extends BookEntity {
   const BookModel({
     required super.id,
-    required super.userId,
+
     required super.title,
     super.cover,
     required super.compilationType,
@@ -43,7 +43,7 @@ class BookModel extends BookEntity {
 
   factory BookModel.fromMap(Map<String, dynamic> map, String documentId) => BookModel(
     id: documentId,
-    userId: (map['userId'] as String?) ?? '',
+
     title: (map['title'] as String?) ?? '',
     cover: map['cover'] as String?,
     compilationType: CompilationType.values.byName((map['compilationType'] as String?) ?? 'single'),
@@ -79,7 +79,7 @@ class BookModel extends BookEntity {
 
   Map<String, dynamic> toMap() => <String, dynamic>{
     'id': id,
-    'userId': userId,
+
     'title': title,
     'cover': cover,
     'compilationType': compilationType.name,

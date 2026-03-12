@@ -10,6 +10,7 @@ import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/validators.dart';
+import '../../../../core/shared/presentation/widgets/form_text_field.dart';
 import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 import '../../domain/entities/publisher_entity.dart';
 import '../providers/publisher_provider.dart';
@@ -56,7 +57,6 @@ class _AddPublisherPageState extends ConsumerState<AddPublisherPage> {
 
       final PublisherEntity newPublisher = PublisherEntity(
         id: FirebaseFirestore.instance.collection('publishers').doc().id,
-        userId: user.uid,
         name: _nameController.text.trim(),
         otherName: _otherNameController.text.isEmpty ? null : _otherNameController.text.trim(),
         logo: _pickedBase64Logo,
@@ -150,170 +150,64 @@ class _AddPublisherPageState extends ConsumerState<AddPublisherPage> {
             ),
             const SizedBox(height: 24),
 
-            TextFormField(
+            FormTextField(
               controller: _nameController,
-              decoration: InputDecoration(
-                labelText: 'Name',
-                hintText: 'Publisher name',
-                prefixIcon: const Icon(Icons.business_outlined),
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.error),
-                ),
-              ),
+              label: 'Name',
+              hint: 'Publisher name',
+              prefixIcon: Icons.business_outlined,
               maxLength: 500,
-              validator: (String? v) => v!.trim().isEmpty ? 'Name is required' : null,
+              isRequired: true,
             ),
             const SizedBox(height: 16),
 
-            TextFormField(
+            FormTextField(
               controller: _otherNameController,
-              decoration: InputDecoration(
-                labelText: 'Other Name',
-                hintText: 'Alternative name',
-                prefixIcon: const Icon(Icons.badge_outlined),
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                ),
-              ),
+              label: 'Other Name',
+              hint: 'Alternative name',
+              prefixIcon: Icons.badge_outlined,
               maxLength: 500,
             ),
             const SizedBox(height: 16),
 
-            TextFormField(
+            FormTextField(
               controller: _websiteController,
-              decoration: InputDecoration(
-                labelText: 'Website',
-                hintText: 'https://www.example.com',
-                prefixIcon: const Icon(Icons.language_rounded),
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.error),
-                ),
-              ),
+              label: 'Website',
+              hint: 'https://www.example.com',
+              prefixIcon: Icons.language_rounded,
               maxLength: 200,
+              keyboardType: TextInputType.url,
               validator: Validators.validateWebsiteUrl,
             ),
             const SizedBox(height: 16),
 
-            TextFormField(
+            FormTextField(
               controller: _emailController,
-              decoration: InputDecoration(
-                labelText: 'Email',
-                hintText: 'publisher@example.com',
-                prefixIcon: const Icon(Icons.email_outlined),
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                ),
-              ),
+              label: 'Email',
+              hint: 'publisher@example.com',
+              prefixIcon: Icons.email_outlined,
               maxLength: 200,
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 16),
 
-            TextFormField(
+            FormTextField(
               controller: _facebookController,
-              decoration: InputDecoration(
-                labelText: 'Facebook',
-                hintText: 'https://www.facebook.com/username',
-                prefixIcon: const Icon(Icons.facebook_rounded),
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.error),
-                ),
-              ),
+              label: 'Facebook',
+              hint: 'https://www.facebook.com/username',
+              prefixIcon: Icons.facebook_rounded,
               maxLength: 200,
+              keyboardType: TextInputType.url,
               validator: Validators.validateFacebookUrl,
             ),
             const SizedBox(height: 16),
 
-            TextFormField(
+            FormTextField(
               controller: _phoneController,
-              decoration: InputDecoration(
-                labelText: 'Phone Number',
-                hintText: '+94 77 123 4567 or 077 123 4567',
-                prefixIcon: const Icon(Icons.phone_outlined),
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                ),
-              ),
-              keyboardType: TextInputType.phone,
+              label: 'Phone Number',
+              hint: '+94 77 123 4567 or 077 123 4567',
+              prefixIcon: Icons.phone_outlined,
               maxLength: 50,
+              keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: 32),
 

@@ -4,7 +4,7 @@ import '../../domain/entities/sequence_volume_entity.dart';
 class SequenceVolumeModel extends SequenceVolumeEntity {
   const SequenceVolumeModel({
     required super.id,
-    required super.userId,
+
     required super.volume,
     required super.sequenceId,
     super.bookId,
@@ -16,7 +16,7 @@ class SequenceVolumeModel extends SequenceVolumeEntity {
   factory SequenceVolumeModel.fromMap(Map<String, dynamic> map, String documentId) =>
       SequenceVolumeModel(
         id: documentId,
-        userId: (map['userId'] as String?) ?? '',
+
         volume: (map['volume'] as String?) ?? '',
         sequenceId: (map['sequenceId'] as String?) ?? '',
         bookId: map['bookId'] as String?,
@@ -27,7 +27,7 @@ class SequenceVolumeModel extends SequenceVolumeEntity {
 
   Map<String, dynamic> toMap() => <String, dynamic>{
     'id': id,
-    'userId': userId,
+
     'volume': volume,
     'sequenceId': sequenceId,
     'bookId': bookId,

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/widgets/form_text_field.dart';
 import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 import '../../domain/entities/sequence_entity.dart';
 import '../providers/sequence_provider.dart';
@@ -34,7 +35,7 @@ class _AddSequencePageState extends ConsumerState<AddSequencePage> {
 
       final SequenceEntity newSequence = SequenceEntity(
         id: FirebaseFirestore.instance.collection('sequences').doc().id,
-        userId: user.uid,
+
         name: _nameController.text.trim(),
         notes: _notesController.text.isEmpty ? '' : _notesController.text.trim(),
         sequenceVolumeIds: const <String>[],
@@ -94,59 +95,24 @@ class _AddSequencePageState extends ConsumerState<AddSequencePage> {
             ),
             const SizedBox(height: 32),
 
-            TextFormField(
+            FormTextField(
               controller: _nameController,
-              decoration: InputDecoration(
-                labelText: 'Name',
-                hintText: 'Sequence name',
-                prefixIcon: const Icon(Icons.layers_outlined),
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.error),
-                ),
-              ),
-              validator: (String? v) => v!.isEmpty ? 'Name is required' : null,
+              label: 'Name',
+              hint: 'Sequence name',
+              prefixIcon: Icons.layers_outlined,
+              maxLength: 500,
+              isRequired: true,
             ),
             const SizedBox(height: 16),
 
-            TextFormField(
+            FormTextField(
               controller: _notesController,
-              decoration: InputDecoration(
-                labelText: 'Notes',
-                hintText: 'Notes about this sequence',
-                prefixIcon: const Icon(Icons.notes_rounded),
-                alignLabelWithHint: true,
-                filled: true,
-                fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: colorScheme.primary, width: 2),
-                ),
-              ),
+              label: 'Notes',
+              hint: 'Notes about this sequence',
+              prefixIcon: Icons.notes_rounded,
               maxLines: 4,
               maxLength: 1000,
+              alignLabelWithHint: true,
             ),
             const SizedBox(height: 32),
 

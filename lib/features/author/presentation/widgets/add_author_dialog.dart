@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/widgets/form_text_field.dart';
 import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 import '../../domain/entities/author_entity.dart';
 import '../../domain/repositories/author_repository.dart';
@@ -29,14 +30,13 @@ class _AddAuthorDialogState extends ConsumerState<AddAuthorDialog> {
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
-      final UserEntity? user = ref.read<AsyncValue<UserEntity?>>(authStateProvider).value;
+      final UserEntity? user = ref.read(authStateProvider).value;
       if (user == null) {
         return;
       }
 
       final AuthorEntity newAuthor = AuthorEntity(
         id: FirebaseFirestore.instance.collection('authors').doc().id,
-        userId: user.uid,
         name: _nameController.text.trim(),
         bookIds: const <String>[],
         workIds: const <String>[],
@@ -67,11 +67,13 @@ class _AddAuthorDialogState extends ConsumerState<AddAuthorDialog> {
     title: const Text('Add Author'),
     content: Form(
       key: _formKey,
-      child: TextFormField(
+      child: FormTextField(
         controller: _nameController,
-        decoration: const InputDecoration(labelText: 'Name'),
-        validator: (String? value) => value == null || value.isEmpty ? 'Name is required' : null,
+        label: 'Name',
+        hint: 'Author Name',
+        isRequired: true,
         maxLength: 500,
+        autofocus: true,
       ),
     ),
     actions: <Widget>[

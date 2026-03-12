@@ -4,7 +4,7 @@ import '../../domain/entities/author_entity.dart';
 class AuthorModel extends AuthorEntity {
   const AuthorModel({
     required super.id,
-    required super.userId,
+
     required super.name,
     super.image,
     super.otherName,
@@ -18,7 +18,7 @@ class AuthorModel extends AuthorEntity {
 
   factory AuthorModel.fromMap(Map<String, dynamic> map, String documentId) => AuthorModel(
     id: documentId,
-    userId: (map['userId'] as String?) ?? '',
+
     name: (map['name'] as String?) ?? '',
     image: map['image'] as String?,
     otherName: map['otherName'] as String?,
@@ -32,7 +32,7 @@ class AuthorModel extends AuthorEntity {
 
   Map<String, dynamic> toMap() => <String, dynamic>{
     'id': id,
-    'userId': userId,
+
     'name': name,
     'image': image,
     'otherName': otherName,

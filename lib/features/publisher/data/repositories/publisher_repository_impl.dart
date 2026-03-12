@@ -18,7 +18,7 @@ class PublisherRepositoryImpl implements PublisherRepository {
   Future<void> addPublisher(PublisherEntity publisher) => remoteDataSource.addPublisher(
     PublisherModel(
       id: publisher.id,
-      userId: publisher.userId,
+
       name: publisher.name,
       logo: publisher.logo,
       otherName: publisher.otherName,
@@ -36,7 +36,7 @@ class PublisherRepositoryImpl implements PublisherRepository {
   Future<void> updatePublisher(PublisherEntity publisher) => remoteDataSource.updatePublisher(
     PublisherModel(
       id: publisher.id,
-      userId: publisher.userId,
+
       name: publisher.name,
       logo: publisher.logo,
       otherName: publisher.otherName,

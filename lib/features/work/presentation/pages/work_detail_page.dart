@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/shared/presentation/widgets/form_text_field.dart';
 import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 import '../../domain/entities/work_entity.dart';
 import '../providers/work_provider.dart';
@@ -18,11 +19,11 @@ class WorkDetailPage extends ConsumerWidget {
         title: const Text('Edit Title'),
         content: Form(
           key: formKey,
-          child: TextFormField(
+          child: FormTextField(
             controller: controller,
+            label: 'Title',
+            isRequired: true,
             autofocus: true,
-            decoration: const InputDecoration(labelText: 'Title'),
-            validator: (String? v) => v == null || v.isEmpty ? 'Title is required' : null,
           ),
         ),
         actions: <Widget>[

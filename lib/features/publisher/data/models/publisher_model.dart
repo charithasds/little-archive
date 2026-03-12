@@ -4,7 +4,7 @@ import '../../domain/entities/publisher_entity.dart';
 class PublisherModel extends PublisherEntity {
   const PublisherModel({
     required super.id,
-    required super.userId,
+
     required super.name,
     super.logo,
     super.otherName,
@@ -19,7 +19,7 @@ class PublisherModel extends PublisherEntity {
 
   factory PublisherModel.fromMap(Map<String, dynamic> map, String documentId) => PublisherModel(
     id: documentId,
-    userId: (map['userId'] as String?) ?? '',
+
     name: (map['name'] as String?) ?? '',
     logo: map['logo'] as String?,
     otherName: map['otherName'] as String?,
@@ -34,7 +34,7 @@ class PublisherModel extends PublisherEntity {
 
   Map<String, dynamic> toMap() => <String, dynamic>{
     'id': id,
-    'userId': userId,
+
     'name': name,
     'logo': logo,
     'otherName': otherName,

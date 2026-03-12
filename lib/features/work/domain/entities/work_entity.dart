@@ -9,7 +9,7 @@ import '../../../../core/shared/domain/enums/work_type.dart';
 class WorkEntity extends Equatable {
   const WorkEntity({
     required this.id,
-    required this.userId,
+
     required this.title,
     required this.language,
     required this.genre,
@@ -30,7 +30,7 @@ class WorkEntity extends Equatable {
     this.bookId,
   });
   final String id;
-  final String userId;
+
   final String title;
   final Language language;
   final Genre genre;
@@ -55,7 +55,7 @@ class WorkEntity extends Equatable {
 
   WorkEntity copyWith({
     String? id,
-    String? userId,
+
     String? title,
     Language? language,
     Genre? genre,
@@ -76,7 +76,7 @@ class WorkEntity extends Equatable {
     String? bookId,
   }) => WorkEntity(
     id: id ?? this.id,
-    userId: userId ?? this.userId,
+
     title: title ?? this.title,
     language: language ?? this.language,
     genre: genre ?? this.genre,

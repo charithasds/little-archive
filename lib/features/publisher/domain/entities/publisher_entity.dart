@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 class PublisherEntity extends Equatable {
   const PublisherEntity({
     required this.id,
-    required this.userId,
+
     required this.name,
     this.logo,
     this.otherName,
@@ -16,7 +16,7 @@ class PublisherEntity extends Equatable {
     required this.lastUpdated,
   });
   final String id;
-  final String userId;
+
   final String name;
   final String? logo;
   final String? otherName;

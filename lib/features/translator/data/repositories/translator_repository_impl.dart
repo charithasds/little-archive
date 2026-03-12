@@ -18,7 +18,7 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
   Future<void> addTranslator(TranslatorEntity translator) => remoteDataSource.addTranslator(
     TranslatorModel(
       id: translator.id,
-      userId: translator.userId,
+
       name: translator.name,
       image: translator.image,
       otherName: translator.otherName,
@@ -35,7 +35,7 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
   Future<void> updateTranslator(TranslatorEntity translator) => remoteDataSource.updateTranslator(
     TranslatorModel(
       id: translator.id,
-      userId: translator.userId,
+
       name: translator.name,
       image: translator.image,
       otherName: translator.otherName,

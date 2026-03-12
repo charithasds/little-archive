@@ -17,7 +17,7 @@ class ReaderRepositoryImpl implements ReaderRepository {
   Future<void> addReader(ReaderEntity reader) => remoteDataSource.addReader(
     ReaderModel(
       id: reader.id,
-      userId: reader.userId,
+
       name: reader.name,
       image: reader.image,
       otherName: reader.otherName,
@@ -34,7 +34,7 @@ class ReaderRepositoryImpl implements ReaderRepository {
   Future<void> updateReader(ReaderEntity reader) => remoteDataSource.updateReader(
     ReaderModel(
       id: reader.id,
-      userId: reader.userId,
+
       name: reader.name,
       image: reader.image,
       otherName: reader.otherName,

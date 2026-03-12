@@ -10,7 +10,7 @@ import '../../domain/entities/work_entity.dart';
 class WorkModel extends WorkEntity {
   const WorkModel({
     required super.id,
-    required super.userId,
+
     required super.title,
     required super.language,
     required super.genre,
@@ -33,7 +33,7 @@ class WorkModel extends WorkEntity {
 
   factory WorkModel.fromMap(Map<String, dynamic> map, String documentId) => WorkModel(
     id: documentId,
-    userId: (map['userId'] as String?) ?? '',
+
     title: (map['title'] as String?) ?? '',
     language: Language.values.byName((map['language'] as String?) ?? 'english'),
     genre: Genre.values.byName((map['genre'] as String?) ?? 'other'),
@@ -58,7 +58,7 @@ class WorkModel extends WorkEntity {
 
   Map<String, dynamic> toMap() => <String, dynamic>{
     'id': id,
-    'userId': userId,
+
     'title': title,
     'language': language.name,
     'genre': genre.name,

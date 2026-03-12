@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/shared/data/services/firestore_service.dart';
 import '../models/sequence_model.dart';
@@ -22,15 +23,24 @@ abstract class SequenceRemoteDataSource {
 class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   SequenceRemoteDataSourceImpl({required this.firestoreService});
   final FirestoreService firestoreService;
-  final String collectionPath = 'sequences';
-  final String volumesCollectionPath = 'sequence_volumes';
 
   FirebaseFirestore get firestore => firestoreService.instance;
+
+  String get _currentUserId {
+    final User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw Exception('User must be logged in to perform this operation.');
+    }
+    return user.uid;
+  }
+
+  String collectionPath(String uid) => 'users/$uid/sequences';
+  String volumesCollectionPath(String uid) => 'users/$uid/sequence_volumes';
 
   @override
   Future<List<SequenceModel>> getSequences(String userId) async {
     final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(firestore.collection(collectionPath).where('userId', isEqualTo: userId));
+        .safeGetDocs(firestore.collection(collectionPath(userId)));
     return docs
         .map(
           (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
@@ -42,7 +52,7 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   @override
   Future<SequenceModel?> getSequenceById(String id) async {
     final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
-      firestore.collection(collectionPath).doc(id),
+      firestore.collection(collectionPath(_currentUserId)).doc(id),
     );
     if (doc == null || !doc.exists) {
       return null;
@@ -54,7 +64,7 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   Future<void> addSequence(SequenceModel sequence) async {
     await firestoreService.requireConnectivity();
     await firestore
-        .collection(collectionPath)
+        .collection(collectionPath(_currentUserId))
         .doc(sequence.id.isEmpty ? null : sequence.id)
         .set(sequence.toMap());
   }
@@ -62,35 +72,38 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   @override
   Future<void> updateSequence(SequenceModel sequence) async {
     await firestoreService.requireConnectivity();
-    await firestore.collection(collectionPath).doc(sequence.id).update(sequence.toMap());
+    await firestore
+        .collection(collectionPath(_currentUserId))
+        .doc(sequence.id)
+        .update(sequence.toMap());
   }
 
   @override
   Future<void> deleteSequence(String id) async {
     await firestoreService.requireConnectivity();
-    await firestore.collection(collectionPath).doc(id).delete();
+    await firestore.collection(collectionPath(_currentUserId)).doc(id).delete();
   }
 
   @override
   Stream<List<SequenceModel>> watchSequences(String userId) => firestore
-      .collection(collectionPath)
-      .where('userId', isEqualTo: userId)
+      .collection(collectionPath(userId))
       .snapshots()
-      .map((QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
+      .map(
+        (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
             .map(
               (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
                   SequenceModel.fromMap(doc.data(), doc.id),
             )
-            .toList());
+            .toList(),
+      );
 
   @override
   Future<List<SequenceVolumeModel>> getSequenceVolumes(String sequenceId, String userId) async {
     final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
         .safeGetDocs(
           firestore
-              .collection(volumesCollectionPath)
-              .where('sequenceId', isEqualTo: sequenceId)
-              .where('userId', isEqualTo: userId),
+              .collection(volumesCollectionPath(userId))
+              .where('sequenceId', isEqualTo: sequenceId),
         );
     return docs
         .map(
@@ -104,7 +117,7 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   Future<void> addSequenceVolume(SequenceVolumeModel volume) async {
     await firestoreService.requireConnectivity();
     await firestore
-        .collection(volumesCollectionPath)
+        .collection(volumesCollectionPath(_currentUserId))
         .doc(volume.id.isEmpty ? null : volume.id)
         .set(volume.toMap());
   }
@@ -112,26 +125,30 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   @override
   Future<void> updateSequenceVolume(SequenceVolumeModel volume) async {
     await firestoreService.requireConnectivity();
-    await firestore.collection(volumesCollectionPath).doc(volume.id).update(volume.toMap());
+    await firestore
+        .collection(volumesCollectionPath(_currentUserId))
+        .doc(volume.id)
+        .update(volume.toMap());
   }
 
   @override
   Future<void> deleteSequenceVolume(String id) async {
     await firestoreService.requireConnectivity();
-    await firestore.collection(volumesCollectionPath).doc(id).delete();
+    await firestore.collection(volumesCollectionPath(_currentUserId)).doc(id).delete();
   }
 
   @override
   Stream<List<SequenceVolumeModel>> watchSequenceVolumes(String sequenceId, String userId) =>
       firestore
-          .collection(volumesCollectionPath)
+          .collection(volumesCollectionPath(userId))
           .where('sequenceId', isEqualTo: sequenceId)
-          .where('userId', isEqualTo: userId)
           .snapshots()
-          .map((QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
+          .map(
+            (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
                 .map(
                   (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
                       SequenceVolumeModel.fromMap(doc.data(), doc.id),
                 )
-                .toList());
+                .toList(),
+          );
 }

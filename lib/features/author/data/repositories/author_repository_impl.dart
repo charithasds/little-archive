@@ -17,7 +17,7 @@ class AuthorRepositoryImpl implements AuthorRepository {
   Future<void> addAuthor(AuthorEntity author) => remoteDataSource.addAuthor(
     AuthorModel(
       id: author.id,
-      userId: author.userId,
+
       name: author.name,
       image: author.image,
       otherName: author.otherName,
@@ -34,7 +34,7 @@ class AuthorRepositoryImpl implements AuthorRepository {
   Future<void> updateAuthor(AuthorEntity author) => remoteDataSource.updateAuthor(
     AuthorModel(
       id: author.id,
-      userId: author.userId,
+
       name: author.name,
       image: author.image,
       otherName: author.otherName,
