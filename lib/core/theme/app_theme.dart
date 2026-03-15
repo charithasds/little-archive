@@ -9,7 +9,7 @@ class AppTheme {
   static const Color _tertiary = Color(0xFFd4a855);
   static const Color _tertiaryLight = Color(0xFFe8c77b);
 
-  static TextTheme get _textTheme => GoogleFonts.loraTextTheme();
+  static TextTheme get _textTheme => GoogleFonts.cabinTextTheme();
 
   static ThemeData get lightTheme => ThemeData(
     useMaterial3: true,

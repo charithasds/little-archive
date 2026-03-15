@@ -1,6 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../data/services/shared_preferences_service.dart';
-
-final Provider<SharedPreferencesService> sharedPreferencesServiceProvider =
-    Provider<SharedPreferencesService>((Ref ref) => SharedPreferencesService());
+/// A single, shared [SharedPreferences] instance for the entire app.
+/// Initialized once during app startup via [initializationProvider].
+final FutureProvider<SharedPreferences> sharedPreferencesProvider =
+    FutureProvider<SharedPreferences>(
+      (Ref ref) async => SharedPreferences.getInstance(),
+    );

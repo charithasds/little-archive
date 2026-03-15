@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../shared/presentation/widgets/snackbar_utils.dart';
@@ -112,9 +113,13 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
     setState(() => _isLoading = true);
     try {
       await ref.read(authControllerProvider.notifier).signInWithGoogle();
+    } on NoConnectionException catch (e) {
+      if (mounted) {
+        SnackBarUtils.showError(context, e.message);
+      }
     } catch (e) {
       if (mounted) {
-        SnackBarUtils.showError(context, 'Failed to sign in: $e');
+        SnackBarUtils.showError(context, 'Sign in failed. Please try again.');
       }
     } finally {
       if (mounted) {

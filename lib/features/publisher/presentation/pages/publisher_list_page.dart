@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/widgets/connectivity_guard.dart';
 import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 
 import '../../domain/entities/publisher_entity.dart';
@@ -102,7 +103,14 @@ class PublisherListPage extends ConsumerWidget {
                     final PublisherEntity publisher = publishers[index];
                     return PublisherListTile(
                       publisher: publisher,
-                      onTap: () => context.go('/publishers/${publisher.id}'),
+                      onTap: () async {
+                        if (!await ref.requireConnectivity(context)) {
+                          return;
+                        }
+                        if (context.mounted) {
+                          context.go('/publishers/${publisher.id}');
+                        }
+                      },
                       onDelete: () => _handleDelete(context, ref, publisher.id),
                     );
                   },
@@ -127,7 +135,14 @@ class PublisherListPage extends ConsumerWidget {
                       ),
                       child: PublisherListTile(
                         publisher: publisher,
-                        onTap: () => context.go('/publishers/${publisher.id}'),
+                        onTap: () async {
+                          if (!await ref.requireConnectivity(context)) {
+                            return;
+                          }
+                          if (context.mounted) {
+                            context.go('/publishers/${publisher.id}');
+                          }
+                        },
                         onDelete: () => _handleDelete(context, ref, publisher.id),
                       ),
                     );
@@ -158,7 +173,14 @@ class PublisherListPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.go('/publishers/add'),
+        onPressed: () async {
+          if (!await ref.requireConnectivity(context)) {
+            return;
+          }
+          if (context.mounted) {
+            context.go('/publishers/add');
+          }
+        },
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Publisher'),
       ),

@@ -3,27 +3,29 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../theme/app_theme.dart';
 import '../../../theme/presentation/providers/theme_provider.dart';
+import '../widgets/snackbar_utils.dart';
 
-class InitializationErrorPage extends ConsumerWidget {
+class InitializationErrorPage extends ConsumerStatefulWidget {
   const InitializationErrorPage({required this.error, this.onRetry, super.key});
 
   final Object error;
   final VoidCallback? onRetry;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    ThemeMode themeMode;
-    try {
-      themeMode = ref.watch(themeProvider);
-    } catch (_) {
-      themeMode = ThemeMode.light;
-    }
+  ConsumerState<InitializationErrorPage> createState() => _InitializationErrorPageState();
+}
 
+class _InitializationErrorPageState extends ConsumerState<InitializationErrorPage> {
+  @override
+  Widget build(BuildContext context) {
+    final ThemeMode themeMode = ref.watch(themeProvider);
     final ThemeData theme = themeMode == ThemeMode.dark ? AppTheme.darkTheme : AppTheme.lightTheme;
     final ColorScheme colorScheme = theme.colorScheme;
     final bool isDark = themeMode == ThemeMode.dark;
 
     return MaterialApp(
+      title: 'Little Archive',
+      scaffoldMessengerKey: SnackBarUtils.messengerKey,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
@@ -208,7 +210,7 @@ class InitializationErrorPage extends ConsumerWidget {
                   color: colorScheme.errorContainer.withValues(alpha: 0.3),
                 ),
                 child: SelectableText(
-                  error.toString(),
+                  widget.error.toString(),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurface.withValues(alpha: 0.8),
                     fontFamily: 'monospace',
@@ -216,10 +218,10 @@ class InitializationErrorPage extends ConsumerWidget {
                   textAlign: TextAlign.center,
                 ),
               ),
-              if (onRetry != null) ...<Widget>[
+              if (widget.onRetry != null) ...<Widget>[
                 const SizedBox(height: 24),
                 FilledButton.icon(
-                  onPressed: onRetry,
+                  onPressed: widget.onRetry,
                   icon: const Icon(Icons.refresh_rounded),
                   label: const Text('Try Again'),
                   style: FilledButton.styleFrom(

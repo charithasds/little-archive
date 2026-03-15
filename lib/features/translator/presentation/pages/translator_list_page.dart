@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/widgets/connectivity_guard.dart';
 import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 
 import '../../domain/entities/translator_entity.dart';
@@ -106,7 +107,14 @@ class TranslatorListPage extends ConsumerWidget {
                     final TranslatorEntity translator = translators[index];
                     return TranslatorListTile(
                       translator: translator,
-                      onTap: () => context.go('/translators/${translator.id}'),
+                      onTap: () async {
+                        if (!await ref.requireConnectivity(context)) {
+                          return;
+                        }
+                        if (context.mounted) {
+                          context.go('/translators/${translator.id}');
+                        }
+                      },
                       onDelete: () => _handleDelete(context, ref, translator.id),
                     );
                   },
@@ -131,7 +139,14 @@ class TranslatorListPage extends ConsumerWidget {
                       ),
                       child: TranslatorListTile(
                         translator: translator,
-                        onTap: () => context.go('/translators/${translator.id}'),
+                        onTap: () async {
+                          if (!await ref.requireConnectivity(context)) {
+                            return;
+                          }
+                          if (context.mounted) {
+                            context.go('/translators/${translator.id}');
+                          }
+                        },
                         onDelete: () => _handleDelete(context, ref, translator.id),
                       ),
                     );
@@ -162,7 +177,14 @@ class TranslatorListPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.go('/translators/add'),
+        onPressed: () async {
+          if (!await ref.requireConnectivity(context)) {
+            return;
+          }
+          if (context.mounted) {
+            context.go('/translators/add');
+          }
+        },
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Translator'),
       ),

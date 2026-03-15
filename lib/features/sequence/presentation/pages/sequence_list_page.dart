@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/widgets/connectivity_guard.dart';
 import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 
 import '../../domain/entities/sequence_entity.dart';
@@ -103,7 +104,14 @@ class SequenceListPage extends ConsumerWidget {
                     final SequenceStats stats = ref.watch(sequenceStatsProvider(sequence.id));
                     return SequenceListTile(
                       sequence: sequence,
-                      onTap: () => context.go('/sequences/${sequence.id}'),
+                      onTap: () async {
+                        if (!await ref.requireConnectivity(context)) {
+                          return;
+                        }
+                        if (context.mounted) {
+                          context.go('/sequences/${sequence.id}');
+                        }
+                      },
                       onDelete: () => _handleDelete(context, ref, sequence.id),
                       bookCount: stats.bookCount,
                       workCount: stats.workCount,
@@ -131,7 +139,14 @@ class SequenceListPage extends ConsumerWidget {
                       ),
                       child: SequenceListTile(
                         sequence: sequence,
-                        onTap: () => context.go('/sequences/${sequence.id}'),
+                        onTap: () async {
+                          if (!await ref.requireConnectivity(context)) {
+                            return;
+                          }
+                          if (context.mounted) {
+                            context.go('/sequences/${sequence.id}');
+                          }
+                        },
                         onDelete: () => _handleDelete(context, ref, sequence.id),
                         bookCount: stats.bookCount,
                         workCount: stats.workCount,
@@ -164,7 +179,14 @@ class SequenceListPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.go('/sequences/add'),
+        onPressed: () async {
+          if (!await ref.requireConnectivity(context)) {
+            return;
+          }
+          if (context.mounted) {
+            context.go('/sequences/add');
+          }
+        },
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Sequence'),
       ),

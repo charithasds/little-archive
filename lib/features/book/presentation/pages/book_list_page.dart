@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/widgets/connectivity_guard.dart';
 import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 import '../../domain/entities/book_entity.dart';
 import '../../domain/repositories/book_repository.dart';
@@ -101,7 +102,14 @@ class BookListPage extends ConsumerWidget {
                     final BookEntity book = books[index];
                     return BookListTile(
                       book: book,
-                      onTap: () => context.go('/books/${book.id}'),
+                      onTap: () async {
+                        if (!await ref.requireConnectivity(context)) {
+                          return;
+                        }
+                        if (context.mounted) {
+                          context.go('/books/${book.id}');
+                        }
+                      },
                       onDelete: () => _handleDelete(context, ref, book.id),
                     );
                   },
@@ -126,7 +134,14 @@ class BookListPage extends ConsumerWidget {
                       ),
                       child: BookListTile(
                         book: book,
-                        onTap: () => context.go('/books/${book.id}'),
+                        onTap: () async {
+                          if (!await ref.requireConnectivity(context)) {
+                            return;
+                          }
+                          if (context.mounted) {
+                            context.go('/books/${book.id}');
+                          }
+                        },
                         onDelete: () => _handleDelete(context, ref, book.id),
                       ),
                     );
@@ -157,7 +172,14 @@ class BookListPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.go('/books/add'),
+        onPressed: () async {
+          if (!await ref.requireConnectivity(context)) {
+            return;
+          }
+          if (context.mounted) {
+            context.go('/books/add');
+          }
+        },
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Book'),
       ),

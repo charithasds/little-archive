@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/widgets/connectivity_guard.dart';
 import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 
 import '../../domain/entities/author_entity.dart';
@@ -102,7 +103,14 @@ class AuthorListPage extends ConsumerWidget {
                     final AuthorEntity author = authors[index];
                     return AuthorListTile(
                       author: author,
-                      onTap: () => context.go('/authors/${author.id}'),
+                      onTap: () async {
+                        if (!await ref.requireConnectivity(context)) {
+                          return;
+                        }
+                        if (context.mounted) {
+                          context.go('/authors/${author.id}');
+                        }
+                      },
                       onDelete: () => _handleDelete(context, ref, author.id),
                     );
                   },
@@ -127,7 +135,14 @@ class AuthorListPage extends ConsumerWidget {
                       ),
                       child: AuthorListTile(
                         author: author,
-                        onTap: () => context.go('/authors/${author.id}'),
+                        onTap: () async {
+                          if (!await ref.requireConnectivity(context)) {
+                            return;
+                          }
+                          if (context.mounted) {
+                            context.go('/authors/${author.id}');
+                          }
+                        },
                         onDelete: () => _handleDelete(context, ref, author.id),
                       ),
                     );
@@ -158,7 +173,14 @@ class AuthorListPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.go('/authors/add'),
+        onPressed: () async {
+          if (!await ref.requireConnectivity(context)) {
+            return;
+          }
+          if (context.mounted) {
+            context.go('/authors/add');
+          }
+        },
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Author'),
       ),

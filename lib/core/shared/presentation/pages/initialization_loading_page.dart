@@ -3,24 +3,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../theme/app_theme.dart';
 import '../../../theme/presentation/providers/theme_provider.dart';
+import '../widgets/snackbar_utils.dart';
 
-class InitializationLoadingPage extends ConsumerWidget {
+class InitializationLoadingPage extends ConsumerStatefulWidget {
   const InitializationLoadingPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    ThemeMode themeMode;
-    try {
-      themeMode = ref.watch(themeProvider);
-    } catch (_) {
-      themeMode = ThemeMode.light;
-    }
+  ConsumerState<InitializationLoadingPage> createState() => _InitializationLoadingPageState();
+}
 
+class _InitializationLoadingPageState extends ConsumerState<InitializationLoadingPage> {
+  @override
+  Widget build(BuildContext context) {
+    final ThemeMode themeMode = ref.watch(themeProvider);
     final ThemeData theme = themeMode == ThemeMode.dark ? AppTheme.darkTheme : AppTheme.lightTheme;
     final ColorScheme colorScheme = theme.colorScheme;
     final bool isDark = themeMode == ThemeMode.dark;
 
     return MaterialApp(
+      title: 'Little Archive',
+      scaffoldMessengerKey: SnackBarUtils.messengerKey,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

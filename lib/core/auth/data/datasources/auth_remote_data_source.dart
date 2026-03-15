@@ -3,36 +3,44 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
 
+import '../../../shared/data/services/connectivity_service.dart';
+import '../../../shared/domain/error/exceptions.dart';
+
 class AuthRemoteDataSource {
-  AuthRemoteDataSource(this._firebaseAuth, this._googleSignIn);
+  AuthRemoteDataSource(this._firebaseAuth, this._googleSignIn, this._connectivityService);
+
   final FirebaseAuth _firebaseAuth;
   final GoogleSignIn _googleSignIn;
+  final ConnectivityService _connectivityService;
 
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
   User? get currentUser => _firebaseAuth.currentUser;
 
   Future<void> signInWithGoogle() async {
+    final bool isConnected = await _connectivityService.isConnected();
+    if (!isConnected) {
+      throw const NoConnectionException(
+        'Sign in requires an internet connection. Please check your network and try again.',
+      );
+    }
+
     if (kIsWeb) {
       final GoogleAuthProvider googleProvider = GoogleAuthProvider();
       final UserCredential userCredential = await _firebaseAuth.signInWithPopup(googleProvider);
       await _createUserDoc(userCredential.user);
     } else {
-      try {
-        final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-        if (googleUser == null) {
-          return;
-        }
-        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-        final AuthCredential credential = GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken,
-          idToken: googleAuth.idToken,
-        );
-        final UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
-        await _createUserDoc(userCredential.user);
-      } catch (e) {
-        rethrow;
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        return;
       }
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      final UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
+      await _createUserDoc(userCredential.user);
     }
   }
 
@@ -46,7 +54,6 @@ class AuthRemoteDataSource {
       return;
     }
 
-    // Check if user doc exists
     final DocumentReference<Map<String, dynamic>> userDoc = FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid);
@@ -63,7 +70,6 @@ class AuthRemoteDataSource {
         'lastLogin': FieldValue.serverTimestamp(),
       });
     } else {
-      // Update last login
       await userDoc.update(<String, dynamic>{'lastLogin': FieldValue.serverTimestamp()});
     }
   }

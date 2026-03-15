@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/widgets/connectivity_guard.dart';
 import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 import '../../domain/entities/work_entity.dart';
 import '../../domain/repositories/work_repository.dart';
@@ -101,7 +102,14 @@ class WorkListPage extends ConsumerWidget {
                     final WorkEntity work = works[index];
                     return WorkListTile(
                       work: work,
-                      onTap: () => context.go('/works/${work.id}'),
+                      onTap: () async {
+                        if (!await ref.requireConnectivity(context)) {
+                          return;
+                        }
+                        if (context.mounted) {
+                          context.go('/works/${work.id}');
+                        }
+                      },
                       onDelete: () => _handleDelete(context, ref, work.id),
                     );
                   },
@@ -126,7 +134,14 @@ class WorkListPage extends ConsumerWidget {
                       ),
                       child: WorkListTile(
                         work: work,
-                        onTap: () => context.go('/works/${work.id}'),
+                        onTap: () async {
+                          if (!await ref.requireConnectivity(context)) {
+                            return;
+                          }
+                          if (context.mounted) {
+                            context.go('/works/${work.id}');
+                          }
+                        },
                         onDelete: () => _handleDelete(context, ref, work.id),
                       ),
                     );
@@ -157,7 +172,14 @@ class WorkListPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.go('/works/add'),
+        onPressed: () async {
+          if (!await ref.requireConnectivity(context)) {
+            return;
+          }
+          if (context.mounted) {
+            context.go('/works/add');
+          }
+        },
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Work'),
       ),

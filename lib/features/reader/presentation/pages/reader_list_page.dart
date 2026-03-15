@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/widgets/connectivity_guard.dart';
 import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
 
 import '../../domain/entities/reader_entity.dart';
@@ -102,7 +103,14 @@ class ReaderListPage extends ConsumerWidget {
                     final ReaderEntity reader = readers[index];
                     return ReaderListTile(
                       reader: reader,
-                      onTap: () => context.go('/readers/${reader.id}'),
+                      onTap: () async {
+                        if (!await ref.requireConnectivity(context)) {
+                          return;
+                        }
+                        if (context.mounted) {
+                          context.go('/readers/${reader.id}');
+                        }
+                      },
                       onDelete: () => _handleDelete(context, ref, reader.id),
                     );
                   },
@@ -127,7 +135,14 @@ class ReaderListPage extends ConsumerWidget {
                       ),
                       child: ReaderListTile(
                         reader: reader,
-                        onTap: () => context.go('/readers/${reader.id}'),
+                        onTap: () async {
+                          if (!await ref.requireConnectivity(context)) {
+                            return;
+                          }
+                          if (context.mounted) {
+                            context.go('/readers/${reader.id}');
+                          }
+                        },
                         onDelete: () => _handleDelete(context, ref, reader.id),
                       ),
                     );
@@ -158,7 +173,14 @@ class ReaderListPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.go('/readers/add'),
+        onPressed: () async {
+          if (!await ref.requireConnectivity(context)) {
+            return;
+          }
+          if (context.mounted) {
+            context.go('/readers/add');
+          }
+        },
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Reader'),
       ),

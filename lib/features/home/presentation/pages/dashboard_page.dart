@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/shared/presentation/widgets/connectivity_guard.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../author/domain/entities/author_entity.dart';
@@ -21,6 +22,9 @@ import '../../../work/presentation/providers/work_provider.dart';
 
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
+
+  Future<bool> _checkConnection(BuildContext context, WidgetRef ref) =>
+      ref.requireConnectivity(context);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -71,7 +75,14 @@ class DashboardPage extends ConsumerWidget {
                     count: bookCount,
                     theme: theme,
                     colorScheme: colorScheme,
-                    onTap: () => context.go('/books'),
+                    onTap: () async {
+                      if (!await _checkConnection(context, ref)) {
+                        return;
+                      }
+                      if (context.mounted) {
+                        context.go('/books');
+                      }
+                    },
                   ),
                   _DashboardCard(
                     title: _getTitle(workCount, 'Work'),
@@ -81,7 +92,14 @@ class DashboardPage extends ConsumerWidget {
                     count: workCount,
                     theme: theme,
                     colorScheme: colorScheme,
-                    onTap: () => context.go('/works'),
+                    onTap: () async {
+                      if (!await _checkConnection(context, ref)) {
+                        return;
+                      }
+                      if (context.mounted) {
+                        context.go('/works');
+                      }
+                    },
                   ),
                   _DashboardCard(
                     title: _getTitle(authorCount, 'Author'),
@@ -91,7 +109,14 @@ class DashboardPage extends ConsumerWidget {
                     count: authorCount,
                     theme: theme,
                     colorScheme: colorScheme,
-                    onTap: () => context.go('/authors'),
+                    onTap: () async {
+                      if (!await _checkConnection(context, ref)) {
+                        return;
+                      }
+                      if (context.mounted) {
+                        context.go('/authors');
+                      }
+                    },
                   ),
                   _DashboardCard(
                     title: _getTitle(translatorCount, 'Translator'),
@@ -101,7 +126,14 @@ class DashboardPage extends ConsumerWidget {
                     count: translatorCount,
                     theme: theme,
                     colorScheme: colorScheme,
-                    onTap: () => context.go('/translators'),
+                    onTap: () async {
+                      if (!await _checkConnection(context, ref)) {
+                        return;
+                      }
+                      if (context.mounted) {
+                        context.go('/translators');
+                      }
+                    },
                   ),
                   _DashboardCard(
                     title: _getTitle(publisherCount, 'Publisher'),
@@ -111,7 +143,14 @@ class DashboardPage extends ConsumerWidget {
                     count: publisherCount,
                     theme: theme,
                     colorScheme: colorScheme,
-                    onTap: () => context.go('/publishers'),
+                    onTap: () async {
+                      if (!await _checkConnection(context, ref)) {
+                        return;
+                      }
+                      if (context.mounted) {
+                        context.go('/publishers');
+                      }
+                    },
                   ),
                   _DashboardCard(
                     title: _getTitle(sequenceCount, 'Sequence'),
@@ -121,7 +160,14 @@ class DashboardPage extends ConsumerWidget {
                     count: sequenceCount,
                     theme: theme,
                     colorScheme: colorScheme,
-                    onTap: () => context.go('/sequences'),
+                    onTap: () async {
+                      if (!await _checkConnection(context, ref)) {
+                        return;
+                      }
+                      if (context.mounted) {
+                        context.go('/sequences');
+                      }
+                    },
                   ),
                   _DashboardCard(
                     title: _getTitle(readerCount, 'Reader'),
@@ -131,7 +177,14 @@ class DashboardPage extends ConsumerWidget {
                     count: readerCount,
                     theme: theme,
                     colorScheme: colorScheme,
-                    onTap: () => context.go('/readers'),
+                    onTap: () async {
+                      if (!await _checkConnection(context, ref)) {
+                        return;
+                      }
+                      if (context.mounted) {
+                        context.go('/readers');
+                      }
+                    },
                   ),
                 ]),
               ),
@@ -176,7 +229,7 @@ class _DashboardCard extends StatelessWidget {
   final int? count;
   final ThemeData theme;
   final ColorScheme colorScheme;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) => Card(
@@ -187,7 +240,7 @@ class _DashboardCard extends StatelessWidget {
       side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
     ),
     child: InkWell(
-      onTap: onTap,
+      onTap: onTap != null ? () => onTap!() : null,
       borderRadius: BorderRadius.circular(20),
       child: Container(
         decoration: BoxDecoration(

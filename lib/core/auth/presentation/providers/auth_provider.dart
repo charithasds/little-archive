@@ -1,6 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+
+import '../../../shared/presentation/providers/connectivity_provider.dart';
+import '../../../shared/presentation/providers/firebase_provider.dart';
 import '../../data/datasources/auth_remote_data_source.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../domain/entities/user_entity.dart';
@@ -9,18 +11,18 @@ import '../../domain/usecases/get_auth_state_changes_usecase.dart';
 import '../../domain/usecases/sign_in_with_google_usecase.dart';
 import '../../domain/usecases/sign_out_usecase.dart';
 
-final Provider<FirebaseAuth> firebaseAuthProvider = Provider<FirebaseAuth>(
-  (Ref ref) => FirebaseAuth.instance,
-);
-
 final Provider<GoogleSignIn> googleSignInProvider = Provider<GoogleSignIn>(
   (Ref ref) => GoogleSignIn(scopes: <String>['email', 'profile']),
 );
 
-final Provider<AuthRemoteDataSource> authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>(
-  (Ref ref) =>
-      AuthRemoteDataSource(ref.watch(firebaseAuthProvider), ref.watch(googleSignInProvider)),
-);
+final Provider<AuthRemoteDataSource> authRemoteDataSourceProvider =
+    Provider<AuthRemoteDataSource>(
+      (Ref ref) => AuthRemoteDataSource(
+        ref.watch(firebaseAuthProvider),
+        ref.watch(googleSignInProvider),
+        ref.watch(connectivityServiceProvider),
+      ),
+    );
 
 final Provider<AuthRepository> authRepositoryProvider = Provider<AuthRepository>(
   (Ref ref) => AuthRepositoryImpl(ref.watch(authRemoteDataSourceProvider)),
@@ -40,24 +42,23 @@ final Provider<GetAuthStateChangesUseCase> getAuthStateChangesUseCaseProvider =
       (Ref ref) => GetAuthStateChangesUseCase(ref.watch(authRepositoryProvider)),
     );
 
+/// Streams the current authenticated [UserEntity], or null when signed out.
 final StreamProvider<UserEntity?> authStateProvider = StreamProvider<UserEntity?>(
   (Ref ref) => ref.watch(getAuthStateChangesUseCaseProvider).call(),
 );
 
 final NotifierProvider<AuthController, void> authControllerProvider =
-    NotifierProvider<AuthController, void>(() => AuthController());
+    NotifierProvider<AuthController, void>(AuthController.new);
 
 class AuthController extends Notifier<void> {
   @override
   void build() {}
 
   Future<void> signInWithGoogle() async {
-    final SignInWithGoogleUseCase signInuseCase = ref.read(signInWithGoogleUseCaseProvider);
-    await signInuseCase();
+    await ref.read(signInWithGoogleUseCaseProvider)();
   }
 
   Future<void> signOut() async {
-    final SignOutUseCase signOutUseCase = ref.read(signOutUseCaseProvider);
-    await signOutUseCase();
+    await ref.read(signOutUseCaseProvider)();
   }
 }
