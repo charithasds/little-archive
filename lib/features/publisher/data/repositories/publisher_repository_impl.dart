@@ -1,11 +1,13 @@
+import '../../../../core/shared/data/services/relationship_sync_service.dart';
 import '../../domain/entities/publisher_entity.dart';
 import '../../domain/repositories/publisher_repository.dart';
 import '../datasources/publisher_remote_datasource.dart';
 import '../models/publisher_model.dart';
 
 class PublisherRepositoryImpl implements PublisherRepository {
-  PublisherRepositoryImpl({required this.remoteDataSource});
+  PublisherRepositoryImpl({required this.remoteDataSource, required this.relationshipSyncService});
   final PublisherRemoteDataSource remoteDataSource;
+  final RelationshipSyncService relationshipSyncService;
 
   @override
   Future<List<PublisherEntity>> getPublishers(String userId) =>
@@ -51,7 +53,16 @@ class PublisherRepositoryImpl implements PublisherRepository {
   );
 
   @override
-  Future<void> deletePublisher(String id) => remoteDataSource.deletePublisher(id);
+  Future<void> deletePublisher(String id) async {
+    final PublisherModel? existingPublisher = await remoteDataSource.getPublisherById(id);
+    if (existingPublisher != null) {
+      await relationshipSyncService.removePublisherRelationships(
+        publisherId: id,
+        bookIds: existingPublisher.bookIds,
+      );
+    }
+    await remoteDataSource.deletePublisher(id);
+  }
 
   @override
   Stream<List<PublisherEntity>> watchPublishers(String userId) =>

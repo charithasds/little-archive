@@ -28,4 +28,28 @@ class ReaderEntity extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[id];
+
+  ReaderEntity copyWith({
+    String? id,
+    String? name,
+    String? image,
+    String? otherName,
+    String? email,
+    String? facebook,
+    String? phoneNumber,
+    List<String>? bookIds,
+    DateTime? createdDate,
+    DateTime? lastUpdated,
+  }) => ReaderEntity(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    image: image ?? this.image,
+    otherName: otherName ?? this.otherName,
+    email: email ?? this.email,
+    facebook: facebook ?? this.facebook,
+    phoneNumber: phoneNumber ?? this.phoneNumber,
+    bookIds: bookIds ?? this.bookIds,
+    createdDate: createdDate ?? this.createdDate,
+    lastUpdated: lastUpdated ?? this.lastUpdated,
+  );
 }

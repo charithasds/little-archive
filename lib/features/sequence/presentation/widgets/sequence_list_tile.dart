@@ -6,12 +6,14 @@ class SequenceListTile extends StatelessWidget {
     super.key,
     required this.sequence,
     required this.onTap,
+    required this.onEdit,
     required this.onDelete,
     this.bookCount = 0,
     this.workCount = 0,
   });
   final SequenceEntity sequence;
   final VoidCallback onTap;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
   final int bookCount;
   final int workCount;
@@ -53,12 +55,16 @@ class SequenceListTile extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     '$bookCount ${bookCount == 1 ? 'Book' : 'Books'}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                   Text(
                     '$workCount ${workCount == 1 ? 'Work' : 'Works'}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
@@ -66,9 +72,18 @@ class SequenceListTile extends StatelessWidget {
                 ],
               ),
             ),
-            IconButton(
-              icon: Icon(Icons.delete_outline_rounded, color: colorScheme.error),
-              onPressed: onDelete,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                IconButton(
+                  icon: Icon(Icons.edit_outlined, color: colorScheme.primary),
+                  onPressed: onEdit,
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete_outline_rounded, color: colorScheme.error),
+                  onPressed: onDelete,
+                ),
+              ],
             ),
           ],
         ),

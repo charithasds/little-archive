@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/data/services/firestore_service.dart';
+import '../../../../core/shared/data/services/relationship_sync_service.dart';
 import '../../../../core/shared/presentation/providers/firestore_provider.dart';
 import '../../data/datasources/author_remote_datasource.dart';
 import '../../data/repositories/author_repository_impl.dart';
@@ -17,7 +18,13 @@ final Provider<AuthorRemoteDataSource> authorRemoteDataSourceProvider =
 
 final Provider<AuthorRepository> authorRepositoryProvider = Provider<AuthorRepository>((Ref ref) {
   final AuthorRemoteDataSource remoteDataSource = ref.watch(authorRemoteDataSourceProvider);
-  return AuthorRepositoryImpl(remoteDataSource: remoteDataSource);
+  final RelationshipSyncService relationshipSyncService = ref.watch(
+    relationshipSyncServiceProvider,
+  );
+  return AuthorRepositoryImpl(
+    remoteDataSource: remoteDataSource,
+    relationshipSyncService: relationshipSyncService,
+  );
 });
 
 final StreamProvider<List<AuthorEntity>> authorsStreamProvider = StreamProvider<List<AuthorEntity>>(

@@ -112,6 +112,14 @@ class SequenceListPage extends ConsumerWidget {
                           context.go('/sequences/${sequence.id}');
                         }
                       },
+                      onEdit: () async {
+                        if (!await ref.requireConnectivity(context)) {
+                          return;
+                        }
+                        if (context.mounted) {
+                          context.push('/sequences/add', extra: sequence);
+                        }
+                      },
                       onDelete: () => _handleDelete(context, ref, sequence.id),
                       bookCount: stats.bookCount,
                       workCount: stats.workCount,
@@ -123,7 +131,7 @@ class SequenceListPage extends ConsumerWidget {
                   padding: const EdgeInsets.all(24),
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 320,
-                    childAspectRatio: 2.5,
+                    mainAxisExtent: 120,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                   ),
@@ -145,6 +153,14 @@ class SequenceListPage extends ConsumerWidget {
                           }
                           if (context.mounted) {
                             context.go('/sequences/${sequence.id}');
+                          }
+                        },
+                        onEdit: () async {
+                          if (!await ref.requireConnectivity(context)) {
+                            return;
+                          }
+                          if (context.mounted) {
+                            context.push('/sequences/add', extra: sequence);
                           }
                         },
                         onDelete: () => _handleDelete(context, ref, sequence.id),

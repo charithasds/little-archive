@@ -16,7 +16,9 @@ import '../../domain/entities/translator_entity.dart';
 import '../providers/translator_provider.dart';
 
 class AddTranslatorPage extends ConsumerStatefulWidget {
-  const AddTranslatorPage({super.key});
+  const AddTranslatorPage({super.key, this.existingTranslator});
+
+  final TranslatorEntity? existingTranslator;
 
   @override
   ConsumerState<AddTranslatorPage> createState() => _AddTranslatorPageState();
@@ -31,6 +33,19 @@ class _AddTranslatorPageState extends ConsumerState<AddTranslatorPage> {
 
   String? _pickedBase64Image;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingTranslator != null) {
+      final TranslatorEntity translator = widget.existingTranslator!;
+      _nameController.text = translator.name;
+      _otherNameController.text = translator.otherName ?? '';
+      _websiteController.text = translator.website ?? '';
+      _facebookController.text = translator.facebook ?? '';
+      _pickedBase64Image = translator.image;
+    }
+  }
 
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
@@ -53,23 +68,45 @@ class _AddTranslatorPageState extends ConsumerState<AddTranslatorPage> {
         return;
       }
 
-      final TranslatorEntity newTranslator = TranslatorEntity(
-        id: FirebaseFirestore.instance.collection('translators').doc().id,
-        name: _nameController.text.trim(),
-        otherName: _otherNameController.text.isEmpty ? null : _otherNameController.text.trim(),
-        website: _websiteController.text.isEmpty ? null : _websiteController.text.trim(),
-        facebook: _facebookController.text.isEmpty ? null : _facebookController.text.trim(),
-        image: _pickedBase64Image,
-        bookIds: const <String>[],
-        workIds: const <String>[],
-        createdDate: DateTime.now(),
-        lastUpdated: DateTime.now(),
-      );
+      final TranslatorEntity newTranslator = widget.existingTranslator != null
+          ? widget.existingTranslator!.copyWith(
+              name: _nameController.text.trim(),
+              otherName: _otherNameController.text.isEmpty
+                  ? null
+                  : _otherNameController.text.trim(),
+              website: _websiteController.text.isEmpty ? null : _websiteController.text.trim(),
+              facebook: _facebookController.text.isEmpty ? null : _facebookController.text.trim(),
+              image: _pickedBase64Image,
+              lastUpdated: DateTime.now(),
+            )
+          : TranslatorEntity(
+              id: FirebaseFirestore.instance.collection('translators').doc().id,
+              name: _nameController.text.trim(),
+              otherName: _otherNameController.text.isEmpty
+                  ? null
+                  : _otherNameController.text.trim(),
+              website: _websiteController.text.isEmpty ? null : _websiteController.text.trim(),
+              facebook: _facebookController.text.isEmpty ? null : _facebookController.text.trim(),
+              image: _pickedBase64Image,
+              bookIds: const <String>[],
+              workIds: const <String>[],
+              createdDate: DateTime.now(),
+              lastUpdated: DateTime.now(),
+            );
 
       try {
-        await ref.read(translatorRepositoryProvider).addTranslator(newTranslator);
+        if (widget.existingTranslator != null) {
+          await ref.read(translatorRepositoryProvider).updateTranslator(newTranslator);
+        } else {
+          await ref.read(translatorRepositoryProvider).addTranslator(newTranslator);
+        }
         if (mounted) {
-          SnackBarUtils.showSuccess(context, 'Translator added successfully');
+          SnackBarUtils.showSuccess(
+            context,
+            widget.existingTranslator != null
+                ? 'Translator updated successfully'
+                : 'Translator added successfully',
+          );
           Navigator.of(context).pop();
         }
       } on NoConnectionException catch (e) {
@@ -78,7 +115,12 @@ class _AddTranslatorPageState extends ConsumerState<AddTranslatorPage> {
         }
       } catch (e) {
         if (mounted) {
-          SnackBarUtils.showError(context, 'Error adding translator: $e');
+          SnackBarUtils.showError(
+            context,
+            widget.existingTranslator != null
+                ? 'Error updating translator: $e'
+                : 'Error adding translator: $e',
+          );
         }
       } finally {
         if (mounted) {
@@ -102,7 +144,10 @@ class _AddTranslatorPageState extends ConsumerState<AddTranslatorPage> {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Translator'), centerTitle: true),
+      appBar: AppBar(
+        title: Text(widget.existingTranslator != null ? 'Edit Translator' : 'Add Translator'),
+        centerTitle: true,
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -198,7 +243,11 @@ class _AddTranslatorPageState extends ConsumerState<AddTranslatorPage> {
                       ),
                     )
                   : const Icon(Icons.save_rounded),
-              label: Text(_isLoading ? 'Saving...' : 'Save Translator'),
+              label: Text(
+                _isLoading
+                    ? 'Saving...'
+                    : (widget.existingTranslator != null ? 'Update Translator' : 'Save Translator'),
+              ),
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(56),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

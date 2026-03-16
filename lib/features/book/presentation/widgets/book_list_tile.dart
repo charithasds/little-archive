@@ -7,11 +7,13 @@ class BookListTile extends StatelessWidget {
     super.key,
     required this.book,
     required this.onTap,
+    required this.onEdit,
     required this.onDelete,
     this.firstAuthorOrTranslatorName,
   });
   final BookEntity book;
   final VoidCallback onTap;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
   final String? firstAuthorOrTranslatorName;
 
@@ -87,9 +89,18 @@ class BookListTile extends StatelessWidget {
                 ],
               ),
             ),
-            IconButton(
-              icon: Icon(Icons.delete_outline_rounded, color: colorScheme.error),
-              onPressed: onDelete,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                IconButton(
+                  icon: Icon(Icons.edit_outlined, color: colorScheme.primary),
+                  onPressed: onEdit,
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete_outline_rounded, color: colorScheme.error),
+                  onPressed: onDelete,
+                ),
+              ],
             ),
           ],
         ),

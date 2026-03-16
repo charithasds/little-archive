@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/presentation/widgets/connectivity_guard.dart';
 import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
+import '../../../../features/author/domain/entities/author_entity.dart';
+import '../../../../features/author/presentation/providers/author_provider.dart';
+import '../../../../features/translator/domain/entities/translator_entity.dart';
+import '../../../../features/translator/presentation/providers/translator_provider.dart';
 import '../../domain/entities/work_entity.dart';
 import '../../domain/repositories/work_repository.dart';
 import '../providers/work_provider.dart';
@@ -58,6 +63,9 @@ class WorkListPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AsyncValue<List<WorkEntity>> worksAsync = ref.watch(worksStreamProvider);
+    final List<AuthorEntity> authors = ref.watch(authorsStreamProvider).value ?? <AuthorEntity>[];
+    final List<TranslatorEntity> translators =
+        ref.watch(translatorsStreamProvider).value ?? <TranslatorEntity>[];
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -100,14 +108,39 @@ class WorkListPage extends ConsumerWidget {
                   itemCount: works.length,
                   itemBuilder: (BuildContext context, int index) {
                     final WorkEntity work = works[index];
+                    String? creatorName;
+                    if (work.isTranslation) {
+                      if (work.translatorIds.isNotEmpty) {
+                        creatorName = translators
+                            .where((TranslatorEntity t) => t.id == work.translatorIds.first)
+                            .firstOrNull
+                            ?.name;
+                      }
+                    } else {
+                      if (work.authorIds.isNotEmpty) {
+                        creatorName = authors
+                            .where((AuthorEntity a) => a.id == work.authorIds.first)
+                            .firstOrNull
+                            ?.name;
+                      }
+                    }
                     return WorkListTile(
                       work: work,
+                      firstAuthorOrTranslatorName: creatorName,
                       onTap: () async {
                         if (!await ref.requireConnectivity(context)) {
                           return;
                         }
                         if (context.mounted) {
                           context.go('/works/${work.id}');
+                        }
+                      },
+                      onEdit: () async {
+                        if (!await ref.requireConnectivity(context)) {
+                          return;
+                        }
+                        if (context.mounted) {
+                          context.push('/works/add', extra: work);
                         }
                       },
                       onDelete: () => _handleDelete(context, ref, work.id),
@@ -119,13 +152,29 @@ class WorkListPage extends ConsumerWidget {
                   padding: const EdgeInsets.all(24),
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 320,
-                    childAspectRatio: 2.5,
+                    mainAxisExtent: 120,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                   ),
                   itemCount: works.length,
                   itemBuilder: (BuildContext context, int index) {
                     final WorkEntity work = works[index];
+                    String? creatorName;
+                    if (work.isTranslation) {
+                      if (work.translatorIds.isNotEmpty) {
+                        creatorName = translators
+                            .where((TranslatorEntity t) => t.id == work.translatorIds.first)
+                            .firstOrNull
+                            ?.name;
+                      }
+                    } else {
+                      if (work.authorIds.isNotEmpty) {
+                        creatorName = authors
+                            .where((AuthorEntity a) => a.id == work.authorIds.first)
+                            .firstOrNull
+                            ?.name;
+                      }
+                    }
                     return Card(
                       elevation: 0,
                       shape: RoundedRectangleBorder(
@@ -134,12 +183,21 @@ class WorkListPage extends ConsumerWidget {
                       ),
                       child: WorkListTile(
                         work: work,
+                        firstAuthorOrTranslatorName: creatorName,
                         onTap: () async {
                           if (!await ref.requireConnectivity(context)) {
                             return;
                           }
                           if (context.mounted) {
                             context.go('/works/${work.id}');
+                          }
+                        },
+                        onEdit: () async {
+                          if (!await ref.requireConnectivity(context)) {
+                            return;
+                          }
+                          if (context.mounted) {
+                            context.push('/works/add', extra: work);
                           }
                         },
                         onDelete: () => _handleDelete(context, ref, work.id),

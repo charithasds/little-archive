@@ -2,25 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../features/author/domain/entities/author_entity.dart';
 import '../../../../features/author/presentation/pages/add_author_page.dart';
 import '../../../../features/author/presentation/pages/author_detail_page.dart';
 import '../../../../features/author/presentation/pages/author_list_page.dart';
+import '../../../../features/book/domain/entities/book_entity.dart';
 import '../../../../features/book/presentation/pages/add_book_page.dart';
 import '../../../../features/book/presentation/pages/book_detail_page.dart';
 import '../../../../features/book/presentation/pages/book_list_page.dart';
 import '../../../../features/home/presentation/pages/home_page.dart';
+import '../../../../features/publisher/domain/entities/publisher_entity.dart';
 import '../../../../features/publisher/presentation/pages/add_publisher_page.dart';
 import '../../../../features/publisher/presentation/pages/publisher_detail_page.dart';
 import '../../../../features/publisher/presentation/pages/publisher_list_page.dart';
+import '../../../../features/reader/domain/entities/reader_entity.dart';
 import '../../../../features/reader/presentation/pages/add_reader_page.dart';
 import '../../../../features/reader/presentation/pages/reader_detail_page.dart';
 import '../../../../features/reader/presentation/pages/reader_list_page.dart';
+import '../../../../features/sequence/domain/entities/sequence_entity.dart';
 import '../../../../features/sequence/presentation/pages/add_sequence_page.dart';
 import '../../../../features/sequence/presentation/pages/sequence_detail_page.dart';
 import '../../../../features/sequence/presentation/pages/sequence_list_page.dart';
+import '../../../../features/translator/domain/entities/translator_entity.dart';
 import '../../../../features/translator/presentation/pages/add_translator_page.dart';
 import '../../../../features/translator/presentation/pages/translator_detail_page.dart';
 import '../../../../features/translator/presentation/pages/translator_list_page.dart';
+import '../../../../features/work/domain/entities/work_entity.dart';
 import '../../../../features/work/presentation/pages/add_work_page.dart';
 import '../../../../features/work/presentation/pages/work_detail_page.dart';
 import '../../../../features/work/presentation/pages/work_list_page.dart';
@@ -49,7 +56,8 @@ class RouterService {
           routes: <RouteBase>[
             GoRoute(
               path: 'add',
-              builder: (BuildContext context, GoRouterState state) => const AddWorkPage(),
+              builder: (BuildContext context, GoRouterState state) =>
+                  AddWorkPage(existingWork: state.extra as WorkEntity?),
             ),
             GoRoute(
               path: ':id',
@@ -67,7 +75,8 @@ class RouterService {
           routes: <RouteBase>[
             GoRoute(
               path: 'add',
-              builder: (BuildContext context, GoRouterState state) => const AddBookPage(),
+              builder: (BuildContext context, GoRouterState state) =>
+                  AddBookPage(existingBook: state.extra as BookEntity?),
             ),
             GoRoute(
               path: ':id',
@@ -85,7 +94,8 @@ class RouterService {
           routes: <RouteBase>[
             GoRoute(
               path: 'add',
-              builder: (BuildContext context, GoRouterState state) => const AddAuthorPage(),
+              builder: (BuildContext context, GoRouterState state) =>
+                  AddAuthorPage(existingAuthor: state.extra as AuthorEntity?),
             ),
             GoRoute(
               path: ':id',
@@ -103,7 +113,8 @@ class RouterService {
           routes: <RouteBase>[
             GoRoute(
               path: 'add',
-              builder: (BuildContext context, GoRouterState state) => const AddTranslatorPage(),
+              builder: (BuildContext context, GoRouterState state) =>
+                  AddTranslatorPage(existingTranslator: state.extra as TranslatorEntity?),
             ),
             GoRoute(
               path: ':id',
@@ -121,7 +132,8 @@ class RouterService {
           routes: <RouteBase>[
             GoRoute(
               path: 'add',
-              builder: (BuildContext context, GoRouterState state) => const AddPublisherPage(),
+              builder: (BuildContext context, GoRouterState state) =>
+                  AddPublisherPage(existingPublisher: state.extra as PublisherEntity?),
             ),
             GoRoute(
               path: ':id',
@@ -139,7 +151,8 @@ class RouterService {
           routes: <RouteBase>[
             GoRoute(
               path: 'add',
-              builder: (BuildContext context, GoRouterState state) => const AddSequencePage(),
+              builder: (BuildContext context, GoRouterState state) =>
+                  AddSequencePage(existingSequence: state.extra as SequenceEntity?),
             ),
             GoRoute(
               path: ':id',
@@ -157,7 +170,8 @@ class RouterService {
           routes: <RouteBase>[
             GoRoute(
               path: 'add',
-              builder: (BuildContext context, GoRouterState state) => const AddReaderPage(),
+              builder: (BuildContext context, GoRouterState state) =>
+                  AddReaderPage(existingReader: state.extra as ReaderEntity?),
             ),
             GoRoute(
               path: ':id',

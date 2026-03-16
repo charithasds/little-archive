@@ -111,6 +111,14 @@ class AuthorListPage extends ConsumerWidget {
                           context.go('/authors/${author.id}');
                         }
                       },
+                      onEdit: () async {
+                        if (!await ref.requireConnectivity(context)) {
+                          return;
+                        }
+                        if (context.mounted) {
+                          context.push('/authors/add', extra: author);
+                        }
+                      },
                       onDelete: () => _handleDelete(context, ref, author.id),
                     );
                   },
@@ -120,7 +128,7 @@ class AuthorListPage extends ConsumerWidget {
                   padding: const EdgeInsets.all(24),
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 320,
-                    childAspectRatio: 2.5,
+                    mainAxisExtent: 120,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                   ),
@@ -141,6 +149,14 @@ class AuthorListPage extends ConsumerWidget {
                           }
                           if (context.mounted) {
                             context.go('/authors/${author.id}');
+                          }
+                        },
+                        onEdit: () async {
+                          if (!await ref.requireConnectivity(context)) {
+                            return;
+                          }
+                          if (context.mounted) {
+                            context.push('/authors/add', extra: author);
                           }
                         },
                         onDelete: () => _handleDelete(context, ref, author.id),

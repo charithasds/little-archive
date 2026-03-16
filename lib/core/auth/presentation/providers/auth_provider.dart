@@ -15,14 +15,13 @@ final Provider<GoogleSignIn> googleSignInProvider = Provider<GoogleSignIn>(
   (Ref ref) => GoogleSignIn(scopes: <String>['email', 'profile']),
 );
 
-final Provider<AuthRemoteDataSource> authRemoteDataSourceProvider =
-    Provider<AuthRemoteDataSource>(
-      (Ref ref) => AuthRemoteDataSource(
-        ref.watch(firebaseAuthProvider),
-        ref.watch(googleSignInProvider),
-        ref.watch(connectivityServiceProvider),
-      ),
-    );
+final Provider<AuthRemoteDataSource> authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>(
+  (Ref ref) => AuthRemoteDataSource(
+    ref.watch(firebaseAuthProvider),
+    ref.watch(googleSignInProvider),
+    ref.watch(connectivityServiceProvider),
+  ),
+);
 
 final Provider<AuthRepository> authRepositoryProvider = Provider<AuthRepository>(
   (Ref ref) => AuthRepositoryImpl(ref.watch(authRemoteDataSourceProvider)),

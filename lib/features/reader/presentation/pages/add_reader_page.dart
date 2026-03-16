@@ -16,7 +16,9 @@ import '../../domain/entities/reader_entity.dart';
 import '../providers/reader_provider.dart';
 
 class AddReaderPage extends ConsumerStatefulWidget {
-  const AddReaderPage({super.key});
+  const AddReaderPage({super.key, this.existingReader});
+
+  final ReaderEntity? existingReader;
 
   @override
   ConsumerState<AddReaderPage> createState() => _AddReaderPageState();
@@ -31,6 +33,19 @@ class _AddReaderPageState extends ConsumerState<AddReaderPage> {
 
   String? _pickedBase64Image;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingReader != null) {
+      final ReaderEntity reader = widget.existingReader!;
+      _nameController.text = reader.name;
+      _emailController.text = reader.email ?? '';
+      _facebookController.text = reader.facebook ?? '';
+      _phoneController.text = reader.phoneNumber ?? '';
+      _pickedBase64Image = reader.image;
+    }
+  }
 
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
@@ -53,23 +68,40 @@ class _AddReaderPageState extends ConsumerState<AddReaderPage> {
         return;
       }
 
-      final ReaderEntity newReader = ReaderEntity(
-        id: FirebaseFirestore.instance.collection('readers').doc().id,
-
-        name: _nameController.text.trim(),
-        image: _pickedBase64Image,
-        email: _emailController.text.isEmpty ? null : _emailController.text.trim(),
-        facebook: _facebookController.text.isEmpty ? null : _facebookController.text.trim(),
-        phoneNumber: _phoneController.text.trim(),
-        bookIds: const <String>[],
-        createdDate: DateTime.now(),
-        lastUpdated: DateTime.now(),
-      );
+      final ReaderEntity newReader = widget.existingReader != null
+          ? widget.existingReader!.copyWith(
+              name: _nameController.text.trim(),
+              image: _pickedBase64Image,
+              email: _emailController.text.isEmpty ? null : _emailController.text.trim(),
+              facebook: _facebookController.text.isEmpty ? null : _facebookController.text.trim(),
+              phoneNumber: _phoneController.text.trim(),
+              lastUpdated: DateTime.now(),
+            )
+          : ReaderEntity(
+              id: FirebaseFirestore.instance.collection('readers').doc().id,
+              name: _nameController.text.trim(),
+              image: _pickedBase64Image,
+              email: _emailController.text.isEmpty ? null : _emailController.text.trim(),
+              facebook: _facebookController.text.isEmpty ? null : _facebookController.text.trim(),
+              phoneNumber: _phoneController.text.trim(),
+              bookIds: const <String>[],
+              createdDate: DateTime.now(),
+              lastUpdated: DateTime.now(),
+            );
 
       try {
-        await ref.read(readerRepositoryProvider).addReader(newReader);
+        if (widget.existingReader != null) {
+          await ref.read(readerRepositoryProvider).updateReader(newReader);
+        } else {
+          await ref.read(readerRepositoryProvider).addReader(newReader);
+        }
         if (mounted) {
-          SnackBarUtils.showSuccess(context, 'Reader added successfully');
+          SnackBarUtils.showSuccess(
+            context,
+            widget.existingReader != null
+                ? 'Reader updated successfully'
+                : 'Reader added successfully',
+          );
           Navigator.of(context).pop();
         }
       } on NoConnectionException catch (e) {
@@ -78,7 +110,10 @@ class _AddReaderPageState extends ConsumerState<AddReaderPage> {
         }
       } catch (e) {
         if (mounted) {
-          SnackBarUtils.showError(context, 'Error adding reader: $e');
+          SnackBarUtils.showError(
+            context,
+            widget.existingReader != null ? 'Error updating reader: $e' : 'Error adding reader: $e',
+          );
         }
       } finally {
         if (mounted) {
@@ -102,7 +137,10 @@ class _AddReaderPageState extends ConsumerState<AddReaderPage> {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Reader'), centerTitle: true),
+      appBar: AppBar(
+        title: Text(widget.existingReader != null ? 'Edit Reader' : 'Add Reader'),
+        centerTitle: true,
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -195,7 +233,11 @@ class _AddReaderPageState extends ConsumerState<AddReaderPage> {
                       ),
                     )
                   : const Icon(Icons.save_rounded),
-              label: Text(_isLoading ? 'Saving...' : 'Save Reader'),
+              label: Text(
+                _isLoading
+                    ? 'Saving...'
+                    : (widget.existingReader != null ? 'Update Reader' : 'Save Reader'),
+              ),
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(56),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

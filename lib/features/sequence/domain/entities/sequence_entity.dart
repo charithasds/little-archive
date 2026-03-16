@@ -16,4 +16,16 @@ class SequenceEntity extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[id];
+
+  SequenceEntity copyWith({
+    String? id,
+    String? name,
+    String? notes,
+    List<String>? sequenceVolumeIds,
+  }) => SequenceEntity(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    notes: notes ?? this.notes,
+    sequenceVolumeIds: sequenceVolumeIds ?? this.sequenceVolumeIds,
+  );
 }

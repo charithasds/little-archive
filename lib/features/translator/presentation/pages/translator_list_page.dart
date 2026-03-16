@@ -115,6 +115,14 @@ class TranslatorListPage extends ConsumerWidget {
                           context.go('/translators/${translator.id}');
                         }
                       },
+                      onEdit: () async {
+                        if (!await ref.requireConnectivity(context)) {
+                          return;
+                        }
+                        if (context.mounted) {
+                          context.push('/translators/add', extra: translator);
+                        }
+                      },
                       onDelete: () => _handleDelete(context, ref, translator.id),
                     );
                   },
@@ -124,7 +132,7 @@ class TranslatorListPage extends ConsumerWidget {
                   padding: const EdgeInsets.all(24),
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 320,
-                    childAspectRatio: 2.5,
+                    mainAxisExtent: 120,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                   ),
@@ -145,6 +153,14 @@ class TranslatorListPage extends ConsumerWidget {
                           }
                           if (context.mounted) {
                             context.go('/translators/${translator.id}');
+                          }
+                        },
+                        onEdit: () async {
+                          if (!await ref.requireConnectivity(context)) {
+                            return;
+                          }
+                          if (context.mounted) {
+                            context.push('/translators/add', extra: translator);
                           }
                         },
                         onDelete: () => _handleDelete(context, ref, translator.id),

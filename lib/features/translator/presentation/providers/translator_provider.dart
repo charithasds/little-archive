@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/data/services/firestore_service.dart';
+import '../../../../core/shared/data/services/relationship_sync_service.dart';
 import '../../../../core/shared/presentation/providers/firestore_provider.dart';
 import '../../data/datasources/translator_remote_datasource.dart';
 import '../../data/repositories/translator_repository_impl.dart';
@@ -19,7 +20,13 @@ final Provider<TranslatorRepository> translatorRepositoryProvider = Provider<Tra
   Ref ref,
 ) {
   final TranslatorRemoteDataSource remoteDataSource = ref.watch(translatorRemoteDataSourceProvider);
-  return TranslatorRepositoryImpl(remoteDataSource: remoteDataSource);
+  final RelationshipSyncService relationshipSyncService = ref.watch(
+    relationshipSyncServiceProvider,
+  );
+  return TranslatorRepositoryImpl(
+    remoteDataSource: remoteDataSource,
+    relationshipSyncService: relationshipSyncService,
+  );
 });
 
 final StreamProvider<List<TranslatorEntity>> translatorsStreamProvider =

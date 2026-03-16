@@ -180,6 +180,86 @@ class RelationshipSyncService {
     await batch.commit();
   }
 
+  Future<void> removeAuthorRelationships({
+    required String authorId,
+    required List<String> bookIds,
+    required List<String> workIds,
+  }) async {
+    final WriteBatch batch = _firestore.batch();
+
+    for (final String bookId in bookIds) {
+      batch.update(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
+        'authorIds': FieldValue.arrayRemove(<dynamic>[authorId]),
+        'lastUpdated': FieldValue.serverTimestamp(),
+      });
+    }
+
+    for (final String workId in workIds) {
+      batch.update(_firestore.collection(_collectionPath('works')).doc(workId), <String, dynamic>{
+        'authorIds': FieldValue.arrayRemove(<dynamic>[authorId]),
+        'lastUpdated': FieldValue.serverTimestamp(),
+      });
+    }
+
+    await batch.commit();
+  }
+
+  Future<void> removeTranslatorRelationships({
+    required String translatorId,
+    required List<String> bookIds,
+    required List<String> workIds,
+  }) async {
+    final WriteBatch batch = _firestore.batch();
+
+    for (final String bookId in bookIds) {
+      batch.update(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
+        'translatorIds': FieldValue.arrayRemove(<dynamic>[translatorId]),
+        'lastUpdated': FieldValue.serverTimestamp(),
+      });
+    }
+
+    for (final String workId in workIds) {
+      batch.update(_firestore.collection(_collectionPath('works')).doc(workId), <String, dynamic>{
+        'translatorIds': FieldValue.arrayRemove(<dynamic>[translatorId]),
+        'lastUpdated': FieldValue.serverTimestamp(),
+      });
+    }
+
+    await batch.commit();
+  }
+
+  Future<void> removePublisherRelationships({
+    required String publisherId,
+    required List<String> bookIds,
+  }) async {
+    final WriteBatch batch = _firestore.batch();
+
+    for (final String bookId in bookIds) {
+      batch.update(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
+        'publisherId': null,
+        'lastUpdated': FieldValue.serverTimestamp(),
+      });
+    }
+
+    await batch.commit();
+  }
+
+  Future<void> removeReaderRelationships({
+    required String readerId,
+    required List<String> bookIds,
+  }) async {
+    final WriteBatch batch = _firestore.batch();
+
+    for (final String bookId in bookIds) {
+      batch.update(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
+        'readerId': null,
+        'lastUpdated': FieldValue.serverTimestamp(),
+      });
+    }
+
+    await batch.commit();
+  }
+
   Future<void> _syncEntityRelationship({
     required WriteBatch batch,
     required String collection,

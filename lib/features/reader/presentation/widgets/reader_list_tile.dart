@@ -7,10 +7,12 @@ class ReaderListTile extends StatelessWidget {
     super.key,
     required this.reader,
     required this.onTap,
+    required this.onEdit,
     required this.onDelete,
   });
   final ReaderEntity reader;
   final VoidCallback onTap;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   @override
@@ -52,6 +54,8 @@ class ReaderListTile extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     '$bookCount ${bookCount == 1 ? 'Book' : 'Books'}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
@@ -59,9 +63,18 @@ class ReaderListTile extends StatelessWidget {
                 ],
               ),
             ),
-            IconButton(
-              icon: Icon(Icons.delete_outline_rounded, color: colorScheme.error),
-              onPressed: onDelete,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                IconButton(
+                  icon: Icon(Icons.edit_outlined, color: colorScheme.primary),
+                  onPressed: onEdit,
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete_outline_rounded, color: colorScheme.error),
+                  onPressed: onDelete,
+                ),
+              ],
             ),
           ],
         ),

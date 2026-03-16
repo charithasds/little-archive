@@ -11,7 +11,9 @@ import '../../domain/entities/sequence_entity.dart';
 import '../providers/sequence_provider.dart';
 
 class AddSequencePage extends ConsumerStatefulWidget {
-  const AddSequencePage({super.key});
+  const AddSequencePage({super.key, this.existingSequence});
+
+  final SequenceEntity? existingSequence;
 
   @override
   ConsumerState<AddSequencePage> createState() => _AddSequencePageState();
@@ -23,6 +25,16 @@ class _AddSequencePageState extends ConsumerState<AddSequencePage> {
   final TextEditingController _notesController = TextEditingController();
   bool _isLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingSequence != null) {
+      final SequenceEntity sequence = widget.existingSequence!;
+      _nameController.text = sequence.name;
+      _notesController.text = sequence.notes ?? '';
+    }
+  }
+
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
@@ -33,18 +45,31 @@ class _AddSequencePageState extends ConsumerState<AddSequencePage> {
         return;
       }
 
-      final SequenceEntity newSequence = SequenceEntity(
-        id: FirebaseFirestore.instance.collection('sequences').doc().id,
-
-        name: _nameController.text.trim(),
-        notes: _notesController.text.isEmpty ? '' : _notesController.text.trim(),
-        sequenceVolumeIds: const <String>[],
-      );
+      final SequenceEntity newSequence = widget.existingSequence != null
+          ? widget.existingSequence!.copyWith(
+              name: _nameController.text.trim(),
+              notes: _notesController.text.isEmpty ? null : _notesController.text.trim(),
+            )
+          : SequenceEntity(
+              id: FirebaseFirestore.instance.collection('sequences').doc().id,
+              name: _nameController.text.trim(),
+              notes: _notesController.text.isEmpty ? null : _notesController.text.trim(),
+              sequenceVolumeIds: const <String>[],
+            );
 
       try {
-        await ref.read(sequenceRepositoryProvider).addSequence(newSequence);
+        if (widget.existingSequence != null) {
+          await ref.read(sequenceRepositoryProvider).updateSequence(newSequence);
+        } else {
+          await ref.read(sequenceRepositoryProvider).addSequence(newSequence);
+        }
         if (mounted) {
-          SnackBarUtils.showSuccess(context, 'Sequence added successfully');
+          SnackBarUtils.showSuccess(
+            context,
+            widget.existingSequence != null
+                ? 'Sequence updated successfully'
+                : 'Sequence added successfully',
+          );
           Navigator.of(context).pop();
         }
       } on NoConnectionException catch (e) {
@@ -53,7 +78,12 @@ class _AddSequencePageState extends ConsumerState<AddSequencePage> {
         }
       } catch (e) {
         if (mounted) {
-          SnackBarUtils.showError(context, 'Error adding sequence: $e');
+          SnackBarUtils.showError(
+            context,
+            widget.existingSequence != null
+                ? 'Error updating sequence: $e'
+                : 'Error adding sequence: $e',
+          );
         }
       } finally {
         if (mounted) {
@@ -75,7 +105,10 @@ class _AddSequencePageState extends ConsumerState<AddSequencePage> {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Sequence'), centerTitle: true),
+      appBar: AppBar(
+        title: Text(widget.existingSequence != null ? 'Edit Sequence' : 'Add Sequence'),
+        centerTitle: true,
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -128,7 +161,11 @@ class _AddSequencePageState extends ConsumerState<AddSequencePage> {
                       ),
                     )
                   : const Icon(Icons.save_rounded),
-              label: Text(_isLoading ? 'Saving...' : 'Save Sequence'),
+              label: Text(
+                _isLoading
+                    ? 'Saving...'
+                    : (widget.existingSequence != null ? 'Update Sequence' : 'Save Sequence'),
+              ),
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(56),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

@@ -45,7 +45,9 @@ import '../../domain/repositories/book_repository.dart';
 import '../providers/book_provider.dart';
 
 class AddBookPage extends ConsumerStatefulWidget {
-  const AddBookPage({super.key});
+  const AddBookPage({super.key, this.existingBook});
+
+  final BookEntity? existingBook;
 
   @override
   ConsumerState<AddBookPage> createState() => _AddBookPageState();
@@ -86,6 +88,35 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
   ReaderEntity? _selectedReader;
   SequenceEntity? _selectedSequence;
   List<WorkEntity> _selectedWorks = <WorkEntity>[];
+
+  bool _isEditingInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingBook != null) {
+      final BookEntity book = widget.existingBook!;
+      _titleController.text = book.title;
+      _isbnController.text = book.isbn ?? '';
+      _noOfPagesController.text = book.noOfPages?.toString() ?? '';
+      _originalTitleController.text = book.originalTitle ?? '';
+      _pausedPageController.text = book.pausedPage?.toString() ?? '';
+      _notesController.text = book.notes ?? '';
+      _compilationType = book.compilationType;
+      _language = book.language;
+      _genre = book.genre;
+      _collectionStatus = book.collectionStatus;
+      _readingStatus = book.readingStatus;
+      _originalLanguage = book.originalLanguage;
+      _isTranslation = book.isTranslation;
+      _pickedBase64Image = book.cover;
+      _publishedDate = book.publishedDate;
+      _collectedDate = book.collectedDate;
+      _lendedDate = book.lendedDate;
+      _dueDate = book.dueDate;
+      _completedDate = book.completedDate;
+    }
+  }
 
   @override
   void dispose() {
@@ -161,41 +192,77 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
           sequenceVolumeId = volumeId;
         }
 
-        final BookEntity newBook = BookEntity(
-          id: bookId,
+        final BookEntity newBook = widget.existingBook != null
+            ? widget.existingBook!.copyWith(
+                title: _titleController.text.trim(),
+                cover: _pickedBase64Image,
+                compilationType: _compilationType,
+                language: _language,
+                genre: _genre,
+                isbn: _isbnController.text.isNotEmpty ? _isbnController.text : null,
+                publishedDate: _publishedDate,
+                noOfPages: int.tryParse(_noOfPagesController.text),
+                isTranslation: _isTranslation,
+                originalTitle: _isTranslation ? _originalTitleController.text : null,
+                originalLanguage: _isTranslation ? _originalLanguage : null,
+                collectionStatus: _collectionStatus,
+                collectedDate: _collectedDate,
+                lendedDate: _lendedDate,
+                dueDate: _dueDate,
+                readingStatus: _readingStatus,
+                pausedPage: int.tryParse(_pausedPageController.text),
+                completedDate: _completedDate,
+                notes: _notesController.text,
+                lastUpdated: DateTime.now(),
+                authorIds: _selectedAuthors.map((AuthorEntity e) => e.id).toList(),
+                translatorIds: _selectedTranslators.map((TranslatorEntity e) => e.id).toList(),
+                workIds: _selectedWorks.map((WorkEntity e) => e.id).toList(),
+                sequenceVolumeId: sequenceVolumeId ?? widget.existingBook!.sequenceVolumeId,
+                publisherId: _selectedPublisher?.id,
+                readerId: _selectedReader?.id,
+              )
+            : BookEntity(
+                id: bookId,
+                title: _titleController.text.trim(),
+                cover: _pickedBase64Image,
+                compilationType: _compilationType,
+                language: _language,
+                genre: _genre,
+                isbn: _isbnController.text.isNotEmpty ? _isbnController.text : null,
+                publishedDate: _publishedDate,
+                noOfPages: int.tryParse(_noOfPagesController.text),
+                isTranslation: _isTranslation,
+                originalTitle: _isTranslation ? _originalTitleController.text : null,
+                originalLanguage: _isTranslation ? _originalLanguage : null,
+                collectionStatus: _collectionStatus,
+                collectedDate: _collectedDate,
+                lendedDate: _lendedDate,
+                dueDate: _dueDate,
+                readingStatus: _readingStatus,
+                pausedPage: int.tryParse(_pausedPageController.text),
+                completedDate: _completedDate,
+                notes: _notesController.text,
+                createdDate: DateTime.now(),
+                lastUpdated: DateTime.now(),
+                authorIds: _selectedAuthors.map((AuthorEntity e) => e.id).toList(),
+                translatorIds: _selectedTranslators.map((TranslatorEntity e) => e.id).toList(),
+                workIds: _selectedWorks.map((WorkEntity e) => e.id).toList(),
+                sequenceVolumeId: sequenceVolumeId,
+                publisherId: _selectedPublisher?.id,
+                readerId: _selectedReader?.id,
+              );
 
-          title: _titleController.text.trim(),
-          cover: _pickedBase64Image,
-          compilationType: _compilationType,
-          language: _language,
-          genre: _genre,
-          isbn: _isbnController.text.isNotEmpty ? _isbnController.text : null,
-          publishedDate: _publishedDate,
-          noOfPages: int.tryParse(_noOfPagesController.text),
-          isTranslation: _isTranslation,
-          originalTitle: _isTranslation ? _originalTitleController.text : null,
-          originalLanguage: _isTranslation ? _originalLanguage : null,
-          collectionStatus: _collectionStatus,
-          collectedDate: _collectedDate,
-          lendedDate: _lendedDate,
-          dueDate: _dueDate,
-          readingStatus: _readingStatus,
-          pausedPage: int.tryParse(_pausedPageController.text),
-          completedDate: _completedDate,
-          notes: _notesController.text,
-          createdDate: DateTime.now(),
-          lastUpdated: DateTime.now(),
-          authorIds: _selectedAuthors.map((AuthorEntity e) => e.id).toList(),
-          translatorIds: _selectedTranslators.map((TranslatorEntity e) => e.id).toList(),
-          workIds: _selectedWorks.map((WorkEntity e) => e.id).toList(),
-          sequenceVolumeId: sequenceVolumeId,
-          publisherId: _selectedPublisher?.id,
-          readerId: _selectedReader?.id,
-        );
+        if (widget.existingBook != null) {
+          await ref.read<BookRepository>(bookRepositoryProvider).updateBook(newBook);
+        } else {
+          await ref.read<BookRepository>(bookRepositoryProvider).addBook(newBook);
+        }
 
-        await ref.read<BookRepository>(bookRepositoryProvider).addBook(newBook);
         if (mounted) {
-          SnackBarUtils.showSuccess(context, 'Book added successfully');
+          SnackBarUtils.showSuccess(
+            context,
+            widget.existingBook != null ? 'Book updated successfully' : 'Book added successfully',
+          );
           Navigator.of(context).pop();
         }
       } on NoConnectionException catch (e) {
@@ -204,7 +271,10 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
         }
       } catch (e) {
         if (mounted) {
-          SnackBarUtils.showError(context, 'Error adding book: $e');
+          SnackBarUtils.showError(
+            context,
+            widget.existingBook != null ? 'Error updating book: $e' : 'Error adding book: $e',
+          );
         }
       } finally {
         if (mounted) {
@@ -254,8 +324,44 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
     final AsyncValue<List<SequenceEntity>> sequencesAsync = ref.watch(sequencesStreamProvider);
     final AsyncValue<List<WorkEntity>> worksAsync = ref.watch(worksStreamProvider);
 
+    if (widget.existingBook != null && !_isEditingInitialized) {
+      if (authorsAsync.hasValue &&
+          translatorsAsync.hasValue &&
+          publishersAsync.hasValue &&
+          readersAsync.hasValue &&
+          worksAsync.hasValue) {
+        final BookEntity book = widget.existingBook!;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) {
+            return;
+          }
+          setState(() {
+            _selectedAuthors = authorsAsync.value!
+                .where((AuthorEntity a) => book.authorIds.contains(a.id))
+                .toList();
+            _selectedTranslators = translatorsAsync.value!
+                .where((TranslatorEntity t) => book.translatorIds.contains(t.id))
+                .toList();
+            _selectedWorks = worksAsync.value!
+                .where((WorkEntity w) => book.workIds.contains(w.id))
+                .toList();
+            _selectedPublisher = publishersAsync.value!
+                .where((PublisherEntity p) => p.id == book.publisherId)
+                .firstOrNull;
+            _selectedReader = readersAsync.value!
+                .where((ReaderEntity r) => r.id == book.readerId)
+                .firstOrNull;
+            _isEditingInitialized = true;
+          });
+        });
+      }
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Book'), centerTitle: true),
+      appBar: AppBar(
+        title: Text(widget.existingBook != null ? 'Edit Book' : 'Add Book'),
+        centerTitle: true,
+      ),
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -678,7 +784,11 @@ class _AddBookPageState extends ConsumerState<AddBookPage> {
                         ),
                       )
                     : const Icon(Icons.save_rounded),
-                label: Text(_isLoading ? 'Saving...' : 'Save Book'),
+                label: Text(
+                  _isLoading
+                      ? 'Saving...'
+                      : (widget.existingBook != null ? 'Update Book' : 'Save Book'),
+                ),
                 style: FilledButton.styleFrom(
                   minimumSize: const Size.fromHeight(56),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

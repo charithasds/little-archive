@@ -111,6 +111,14 @@ class ReaderListPage extends ConsumerWidget {
                           context.go('/readers/${reader.id}');
                         }
                       },
+                      onEdit: () async {
+                        if (!await ref.requireConnectivity(context)) {
+                          return;
+                        }
+                        if (context.mounted) {
+                          context.push('/readers/add', extra: reader);
+                        }
+                      },
                       onDelete: () => _handleDelete(context, ref, reader.id),
                     );
                   },
@@ -120,7 +128,7 @@ class ReaderListPage extends ConsumerWidget {
                   padding: const EdgeInsets.all(24),
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 320,
-                    childAspectRatio: 2.5,
+                    mainAxisExtent: 120,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                   ),
@@ -141,6 +149,14 @@ class ReaderListPage extends ConsumerWidget {
                           }
                           if (context.mounted) {
                             context.go('/readers/${reader.id}');
+                          }
+                        },
+                        onEdit: () async {
+                          if (!await ref.requireConnectivity(context)) {
+                            return;
+                          }
+                          if (context.mounted) {
+                            context.push('/readers/add', extra: reader);
                           }
                         },
                         onDelete: () => _handleDelete(context, ref, reader.id),

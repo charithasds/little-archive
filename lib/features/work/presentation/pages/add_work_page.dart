@@ -35,7 +35,9 @@ import '../../domain/repositories/work_repository.dart';
 import '../providers/work_provider.dart';
 
 class AddWorkPage extends ConsumerStatefulWidget {
-  const AddWorkPage({super.key});
+  const AddWorkPage({super.key, this.existingWork});
+
+  final WorkEntity? existingWork;
 
   @override
   ConsumerState<AddWorkPage> createState() => _AddWorkPageState();
@@ -65,6 +67,28 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
   List<TranslatorEntity> _selectedTranslators = <TranslatorEntity>[];
   BookEntity? _selectedBook;
   SequenceEntity? _selectedSequence;
+
+  bool _isEditingInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingWork != null) {
+      final WorkEntity work = widget.existingWork!;
+      _titleController.text = work.title;
+      _noOfPagesController.text = work.noOfPages?.toString() ?? '';
+      _originalTitleController.text = work.originalTitle ?? '';
+      _pausedPageController.text = work.pausedPage?.toString() ?? '';
+      _notesController.text = work.notes ?? '';
+      _language = work.language;
+      _genre = work.genre;
+      _workType = work.workType;
+      _readingStatus = work.readingStatus;
+      _originalLanguage = work.originalLanguage;
+      _isTranslation = work.isTranslation;
+      _completedDate = work.completedDate;
+    }
+  }
 
   @override
   void dispose() {
@@ -127,32 +151,59 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
           sequenceVolumeId = volumeId;
         }
 
-        final WorkEntity newWork = WorkEntity(
-          id: workId,
+        final WorkEntity newWork = widget.existingWork != null
+            ? widget.existingWork!.copyWith(
+                title: _titleController.text.trim(),
+                language: _language,
+                genre: _genre,
+                workType: _workType,
+                noOfPages: int.tryParse(_noOfPagesController.text),
+                isTranslation: _isTranslation,
+                originalTitle: _isTranslation ? _originalTitleController.text : null,
+                originalLanguage: _isTranslation ? _originalLanguage : null,
+                readingStatus: _readingStatus,
+                pausedPage: int.tryParse(_pausedPageController.text),
+                completedDate: _completedDate,
+                notes: _notesController.text,
+                lastUpdated: DateTime.now(),
+                authorIds: _selectedAuthors.map((AuthorEntity e) => e.id).toList(),
+                translatorIds: _selectedTranslators.map((TranslatorEntity e) => e.id).toList(),
+                sequenceVolumeId: sequenceVolumeId ?? widget.existingWork!.sequenceVolumeId,
+                bookId: _selectedBook?.id,
+              )
+            : WorkEntity(
+                id: workId,
+                title: _titleController.text.trim(),
+                language: _language,
+                genre: _genre,
+                workType: _workType,
+                noOfPages: int.tryParse(_noOfPagesController.text),
+                isTranslation: _isTranslation,
+                originalTitle: _isTranslation ? _originalTitleController.text : null,
+                originalLanguage: _isTranslation ? _originalLanguage : null,
+                readingStatus: _readingStatus,
+                pausedPage: int.tryParse(_pausedPageController.text),
+                completedDate: _completedDate,
+                notes: _notesController.text,
+                createdDate: DateTime.now(),
+                lastUpdated: DateTime.now(),
+                authorIds: _selectedAuthors.map((AuthorEntity e) => e.id).toList(),
+                translatorIds: _selectedTranslators.map((TranslatorEntity e) => e.id).toList(),
+                sequenceVolumeId: sequenceVolumeId,
+                bookId: _selectedBook?.id,
+              );
 
-          title: _titleController.text.trim(),
-          language: _language,
-          genre: _genre,
-          workType: _workType,
-          noOfPages: int.tryParse(_noOfPagesController.text),
-          isTranslation: _isTranslation,
-          originalTitle: _isTranslation ? _originalTitleController.text : null,
-          originalLanguage: _isTranslation ? _originalLanguage : null,
-          readingStatus: _readingStatus,
-          pausedPage: int.tryParse(_pausedPageController.text),
-          completedDate: _completedDate,
-          notes: _notesController.text,
-          createdDate: DateTime.now(),
-          lastUpdated: DateTime.now(),
-          authorIds: _selectedAuthors.map((AuthorEntity e) => e.id).toList(),
-          translatorIds: _selectedTranslators.map((TranslatorEntity e) => e.id).toList(),
-          sequenceVolumeId: sequenceVolumeId,
-          bookId: _selectedBook?.id,
-        );
+        if (widget.existingWork != null) {
+          await ref.read<WorkRepository>(workRepositoryProvider).updateWork(newWork);
+        } else {
+          await ref.read<WorkRepository>(workRepositoryProvider).addWork(newWork);
+        }
 
-        await ref.read<WorkRepository>(workRepositoryProvider).addWork(newWork);
         if (mounted) {
-          SnackBarUtils.showSuccess(context, 'Work added successfully');
+          SnackBarUtils.showSuccess(
+            context,
+            widget.existingWork != null ? 'Work updated successfully' : 'Work added successfully',
+          );
           Navigator.of(context).pop();
         }
       } on NoConnectionException catch (e) {
@@ -161,7 +212,10 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
         }
       } catch (e) {
         if (mounted) {
-          SnackBarUtils.showError(context, 'Error adding work: $e');
+          SnackBarUtils.showError(
+            context,
+            widget.existingWork != null ? 'Error updating work: $e' : 'Error adding work: $e',
+          );
         }
       } finally {
         if (mounted) {
@@ -209,8 +263,34 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
     final AsyncValue<List<BookEntity>> booksAsync = ref.watch(booksStreamProvider);
     final AsyncValue<List<SequenceEntity>> sequencesAsync = ref.watch(sequencesStreamProvider);
 
+    if (widget.existingWork != null && !_isEditingInitialized) {
+      if (authorsAsync.hasValue && translatorsAsync.hasValue && booksAsync.hasValue) {
+        final WorkEntity work = widget.existingWork!;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) {
+            return;
+          }
+          setState(() {
+            _selectedAuthors = authorsAsync.value!
+                .where((AuthorEntity a) => work.authorIds.contains(a.id))
+                .toList();
+            _selectedTranslators = translatorsAsync.value!
+                .where((TranslatorEntity t) => work.translatorIds.contains(t.id))
+                .toList();
+            _selectedBook = booksAsync.value!
+                .where((BookEntity b) => b.id == work.bookId)
+                .firstOrNull;
+            _isEditingInitialized = true;
+          });
+        });
+      }
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Work'), centerTitle: true),
+      appBar: AppBar(
+        title: Text(widget.existingWork != null ? 'Edit Work' : 'Add Work'),
+        centerTitle: true,
+      ),
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -520,7 +600,11 @@ class _AddWorkPageState extends ConsumerState<AddWorkPage> {
                         ),
                       )
                     : const Icon(Icons.save_rounded),
-                label: Text(_isLoading ? 'Saving...' : 'Save Work'),
+                label: Text(
+                  _isLoading
+                      ? 'Saving...'
+                      : (widget.existingWork != null ? 'Update Work' : 'Save Work'),
+                ),
                 style: FilledButton.styleFrom(
                   minimumSize: const Size.fromHeight(56),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

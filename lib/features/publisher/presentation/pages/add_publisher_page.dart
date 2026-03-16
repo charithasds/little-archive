@@ -16,7 +16,9 @@ import '../../domain/entities/publisher_entity.dart';
 import '../providers/publisher_provider.dart';
 
 class AddPublisherPage extends ConsumerStatefulWidget {
-  const AddPublisherPage({super.key});
+  const AddPublisherPage({super.key, this.existingPublisher});
+
+  final PublisherEntity? existingPublisher;
 
   @override
   ConsumerState<AddPublisherPage> createState() => _AddPublisherPageState();
@@ -33,6 +35,21 @@ class _AddPublisherPageState extends ConsumerState<AddPublisherPage> {
 
   String? _pickedBase64Logo;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingPublisher != null) {
+      final PublisherEntity publisher = widget.existingPublisher!;
+      _nameController.text = publisher.name;
+      _otherNameController.text = publisher.otherName ?? '';
+      _websiteController.text = publisher.website ?? '';
+      _emailController.text = publisher.email ?? '';
+      _facebookController.text = publisher.facebook ?? '';
+      _phoneController.text = publisher.phoneNumber ?? '';
+      _pickedBase64Logo = publisher.logo;
+    }
+  }
 
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
@@ -55,24 +72,48 @@ class _AddPublisherPageState extends ConsumerState<AddPublisherPage> {
         return;
       }
 
-      final PublisherEntity newPublisher = PublisherEntity(
-        id: FirebaseFirestore.instance.collection('publishers').doc().id,
-        name: _nameController.text.trim(),
-        otherName: _otherNameController.text.isEmpty ? null : _otherNameController.text.trim(),
-        logo: _pickedBase64Logo,
-        website: _websiteController.text.isEmpty ? null : _websiteController.text.trim(),
-        email: _emailController.text.isEmpty ? null : _emailController.text.trim(),
-        facebook: _facebookController.text.isEmpty ? null : _facebookController.text.trim(),
-        phoneNumber: _phoneController.text.isEmpty ? null : _phoneController.text.trim(),
-        bookIds: const <String>[],
-        createdDate: DateTime.now(),
-        lastUpdated: DateTime.now(),
-      );
+      final PublisherEntity newPublisher = widget.existingPublisher != null
+          ? widget.existingPublisher!.copyWith(
+              name: _nameController.text.trim(),
+              otherName: _otherNameController.text.isEmpty
+                  ? null
+                  : _otherNameController.text.trim(),
+              logo: _pickedBase64Logo,
+              website: _websiteController.text.isEmpty ? null : _websiteController.text.trim(),
+              email: _emailController.text.isEmpty ? null : _emailController.text.trim(),
+              facebook: _facebookController.text.isEmpty ? null : _facebookController.text.trim(),
+              phoneNumber: _phoneController.text.isEmpty ? null : _phoneController.text.trim(),
+              lastUpdated: DateTime.now(),
+            )
+          : PublisherEntity(
+              id: FirebaseFirestore.instance.collection('publishers').doc().id,
+              name: _nameController.text.trim(),
+              otherName: _otherNameController.text.isEmpty
+                  ? null
+                  : _otherNameController.text.trim(),
+              logo: _pickedBase64Logo,
+              website: _websiteController.text.isEmpty ? null : _websiteController.text.trim(),
+              email: _emailController.text.isEmpty ? null : _emailController.text.trim(),
+              facebook: _facebookController.text.isEmpty ? null : _facebookController.text.trim(),
+              phoneNumber: _phoneController.text.isEmpty ? null : _phoneController.text.trim(),
+              bookIds: const <String>[],
+              createdDate: DateTime.now(),
+              lastUpdated: DateTime.now(),
+            );
 
       try {
-        await ref.read(publisherRepositoryProvider).addPublisher(newPublisher);
+        if (widget.existingPublisher != null) {
+          await ref.read(publisherRepositoryProvider).updatePublisher(newPublisher);
+        } else {
+          await ref.read(publisherRepositoryProvider).addPublisher(newPublisher);
+        }
         if (mounted) {
-          SnackBarUtils.showSuccess(context, 'Publisher added successfully');
+          SnackBarUtils.showSuccess(
+            context,
+            widget.existingPublisher != null
+                ? 'Publisher updated successfully'
+                : 'Publisher added successfully',
+          );
           Navigator.of(context).pop();
         }
       } on NoConnectionException catch (e) {
@@ -81,7 +122,12 @@ class _AddPublisherPageState extends ConsumerState<AddPublisherPage> {
         }
       } catch (e) {
         if (mounted) {
-          SnackBarUtils.showError(context, 'Error adding publisher: $e');
+          SnackBarUtils.showError(
+            context,
+            widget.existingPublisher != null
+                ? 'Error updating publisher: $e'
+                : 'Error adding publisher: $e',
+          );
         }
       } finally {
         if (mounted) {
@@ -107,7 +153,10 @@ class _AddPublisherPageState extends ConsumerState<AddPublisherPage> {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Publisher'), centerTitle: true),
+      appBar: AppBar(
+        title: Text(widget.existingPublisher != null ? 'Edit Publisher' : 'Add Publisher'),
+        centerTitle: true,
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -223,7 +272,11 @@ class _AddPublisherPageState extends ConsumerState<AddPublisherPage> {
                       ),
                     )
                   : const Icon(Icons.save_rounded),
-              label: Text(_isLoading ? 'Saving...' : 'Save Publisher'),
+              label: Text(
+                _isLoading
+                    ? 'Saving...'
+                    : (widget.existingPublisher != null ? 'Update Publisher' : 'Save Publisher'),
+              ),
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(56),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

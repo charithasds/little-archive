@@ -28,4 +28,28 @@ class AuthorEntity extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[id];
+
+  AuthorEntity copyWith({
+    String? id,
+    String? name,
+    String? image,
+    String? otherName,
+    String? website,
+    String? facebook,
+    List<String>? bookIds,
+    List<String>? workIds,
+    DateTime? createdDate,
+    DateTime? lastUpdated,
+  }) => AuthorEntity(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    image: image ?? this.image,
+    otherName: otherName ?? this.otherName,
+    website: website ?? this.website,
+    facebook: facebook ?? this.facebook,
+    bookIds: bookIds ?? this.bookIds,
+    workIds: workIds ?? this.workIds,
+    createdDate: createdDate ?? this.createdDate,
+    lastUpdated: lastUpdated ?? this.lastUpdated,
+  );
 }

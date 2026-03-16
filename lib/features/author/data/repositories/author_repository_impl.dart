@@ -1,11 +1,13 @@
+import '../../../../core/shared/data/services/relationship_sync_service.dart';
 import '../../domain/entities/author_entity.dart';
 import '../../domain/repositories/author_repository.dart';
 import '../datasources/author_remote_datasource.dart';
 import '../models/author_model.dart';
 
 class AuthorRepositoryImpl implements AuthorRepository {
-  AuthorRepositoryImpl({required this.remoteDataSource});
+  AuthorRepositoryImpl({required this.remoteDataSource, required this.relationshipSyncService});
   final AuthorRemoteDataSource remoteDataSource;
+  final RelationshipSyncService relationshipSyncService;
 
   @override
   Future<List<AuthorEntity>> getAuthors(String userId) => remoteDataSource.getAuthors(userId);
@@ -48,7 +50,17 @@ class AuthorRepositoryImpl implements AuthorRepository {
   );
 
   @override
-  Future<void> deleteAuthor(String id) => remoteDataSource.deleteAuthor(id);
+  Future<void> deleteAuthor(String id) async {
+    final AuthorModel? existingAuthor = await remoteDataSource.getAuthorById(id);
+    if (existingAuthor != null) {
+      await relationshipSyncService.removeAuthorRelationships(
+        authorId: id,
+        bookIds: existingAuthor.bookIds,
+        workIds: existingAuthor.workIds,
+      );
+    }
+    await remoteDataSource.deleteAuthor(id);
+  }
 
   @override
   Stream<List<AuthorEntity>> watchAuthors(String userId) => remoteDataSource.watchAuthors(userId);

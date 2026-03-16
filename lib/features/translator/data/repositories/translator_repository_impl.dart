@@ -1,11 +1,13 @@
+import '../../../../core/shared/data/services/relationship_sync_service.dart';
 import '../../domain/entities/translator_entity.dart';
 import '../../domain/repositories/translator_repository.dart';
 import '../datasources/translator_remote_datasource.dart';
 import '../models/translator_model.dart';
 
 class TranslatorRepositoryImpl implements TranslatorRepository {
-  TranslatorRepositoryImpl({required this.remoteDataSource});
+  TranslatorRepositoryImpl({required this.remoteDataSource, required this.relationshipSyncService});
   final TranslatorRemoteDataSource remoteDataSource;
+  final RelationshipSyncService relationshipSyncService;
 
   @override
   Future<List<TranslatorEntity>> getTranslators(String userId) =>
@@ -49,7 +51,17 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
   );
 
   @override
-  Future<void> deleteTranslator(String id) => remoteDataSource.deleteTranslator(id);
+  Future<void> deleteTranslator(String id) async {
+    final TranslatorModel? existingTranslator = await remoteDataSource.getTranslatorById(id);
+    if (existingTranslator != null) {
+      await relationshipSyncService.removeTranslatorRelationships(
+        translatorId: id,
+        bookIds: existingTranslator.bookIds,
+        workIds: existingTranslator.workIds,
+      );
+    }
+    await remoteDataSource.deleteTranslator(id);
+  }
 
   @override
   Stream<List<TranslatorEntity>> watchTranslators(String userId) =>

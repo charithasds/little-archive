@@ -22,4 +22,22 @@ class SequenceVolumeEntity extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[id];
+
+  SequenceVolumeEntity copyWith({
+    String? id,
+    String? volume,
+    String? sequenceId,
+    String? bookId,
+    String? workId,
+    DateTime? createdDate,
+    DateTime? lastUpdated,
+  }) => SequenceVolumeEntity(
+    id: id ?? this.id,
+    volume: volume ?? this.volume,
+    sequenceId: sequenceId ?? this.sequenceId,
+    bookId: bookId ?? this.bookId,
+    workId: workId ?? this.workId,
+    createdDate: createdDate ?? this.createdDate,
+    lastUpdated: lastUpdated ?? this.lastUpdated,
+  );
 }

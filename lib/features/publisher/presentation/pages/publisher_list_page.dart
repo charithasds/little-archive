@@ -111,6 +111,14 @@ class PublisherListPage extends ConsumerWidget {
                           context.go('/publishers/${publisher.id}');
                         }
                       },
+                      onEdit: () async {
+                        if (!await ref.requireConnectivity(context)) {
+                          return;
+                        }
+                        if (context.mounted) {
+                          context.push('/publishers/add', extra: publisher);
+                        }
+                      },
                       onDelete: () => _handleDelete(context, ref, publisher.id),
                     );
                   },
@@ -120,7 +128,7 @@ class PublisherListPage extends ConsumerWidget {
                   padding: const EdgeInsets.all(24),
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 320,
-                    childAspectRatio: 2.5,
+                    mainAxisExtent: 120,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                   ),
@@ -141,6 +149,14 @@ class PublisherListPage extends ConsumerWidget {
                           }
                           if (context.mounted) {
                             context.go('/publishers/${publisher.id}');
+                          }
+                        },
+                        onEdit: () async {
+                          if (!await ref.requireConnectivity(context)) {
+                            return;
+                          }
+                          if (context.mounted) {
+                            context.push('/publishers/add', extra: publisher);
                           }
                         },
                         onDelete: () => _handleDelete(context, ref, publisher.id),
