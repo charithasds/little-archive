@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
-import '../../../../core/shared/presentation/widgets/connectivity_guard.dart';
-import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
+import '../../../../core/shared/presentation/utils/snack_bars.dart';
+import '../../../../core/theme/presentation/providers/theme_provider.dart';
 
 import '../../domain/entities/sequence_entity.dart';
 import '../../domain/repositories/sequence_repository.dart';
@@ -14,10 +14,12 @@ class SequenceListPage extends ConsumerWidget {
   const SequenceListPage({super.key});
 
   Future<void> _handleDelete(BuildContext context, WidgetRef ref, String sequenceId) async {
+    final ThemeData theme = ref.read(activeThemeDataProvider);
+
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        icon: Icon(Icons.warning_rounded, color: Theme.of(context).colorScheme.error, size: 48),
+        icon: Icon(Icons.warning_rounded, color: theme.colorScheme.error, size: 48),
         title: const Text('Delete Sequence'),
         content: const Text(
           'Are you sure you want to delete this sequence? This action cannot be undone.',
@@ -29,7 +31,7 @@ class SequenceListPage extends ConsumerWidget {
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
+            style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.error),
             child: const Text('Delete'),
           ),
         ],
@@ -43,15 +45,15 @@ class SequenceListPage extends ConsumerWidget {
     try {
       await ref.read<SequenceRepository>(sequenceRepositoryProvider).deleteSequence(sequenceId);
       if (context.mounted) {
-        SnackBarUtils.showSuccess(context, 'Sequence deleted successfully');
+        SnackBars.showSuccess(context, 'Sequence deleted successfully');
       }
     } on NoConnectionException catch (e) {
       if (context.mounted) {
-        SnackBarUtils.showError(context, e.message);
+        SnackBars.showError(context, e.message);
       }
     } catch (e) {
       if (context.mounted) {
-        SnackBarUtils.showError(context, 'Delete failed: $e');
+        SnackBars.showError(context, 'Delete failed: $e');
       }
     }
   }
@@ -59,7 +61,8 @@ class SequenceListPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AsyncValue<List<SequenceEntity>> sequencesAsync = ref.watch(sequencesStreamProvider);
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
+    final ColorScheme colorScheme = theme.colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Sequences'), centerTitle: true),
@@ -78,16 +81,14 @@ class SequenceListPage extends ConsumerWidget {
                   const SizedBox(height: 16),
                   Text(
                     'No Sequences Yet',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface),
+                    style: theme.textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Tap the button below to add your first sequence',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -104,22 +105,8 @@ class SequenceListPage extends ConsumerWidget {
                     final SequenceStats stats = ref.watch(sequenceStatsProvider(sequence.id));
                     return SequenceListTile(
                       sequence: sequence,
-                      onTap: () async {
-                        if (!await ref.requireConnectivity(context)) {
-                          return;
-                        }
-                        if (context.mounted) {
-                          context.go('/sequences/${sequence.id}');
-                        }
-                      },
-                      onEdit: () async {
-                        if (!await ref.requireConnectivity(context)) {
-                          return;
-                        }
-                        if (context.mounted) {
-                          context.push('/sequences/add', extra: sequence);
-                        }
-                      },
+                      onTap: () => context.go('/sequences/${sequence.id}'),
+                      onEdit: () => context.push('/sequences/add', extra: sequence),
                       onDelete: () => _handleDelete(context, ref, sequence.id),
                       bookCount: stats.bookCount,
                       workCount: stats.workCount,
@@ -147,22 +134,8 @@ class SequenceListPage extends ConsumerWidget {
                       ),
                       child: SequenceListTile(
                         sequence: sequence,
-                        onTap: () async {
-                          if (!await ref.requireConnectivity(context)) {
-                            return;
-                          }
-                          if (context.mounted) {
-                            context.go('/sequences/${sequence.id}');
-                          }
-                        },
-                        onEdit: () async {
-                          if (!await ref.requireConnectivity(context)) {
-                            return;
-                          }
-                          if (context.mounted) {
-                            context.push('/sequences/add', extra: sequence);
-                          }
-                        },
+                        onTap: () => context.go('/sequences/${sequence.id}'),
+                        onEdit: () => context.push('/sequences/add', extra: sequence),
                         onDelete: () => _handleDelete(context, ref, sequence.id),
                         bookCount: stats.bookCount,
                         workCount: stats.workCount,
@@ -181,13 +154,11 @@ class SequenceListPage extends ConsumerWidget {
             children: <Widget>[
               Icon(Icons.error_outline_rounded, size: 64, color: colorScheme.error),
               const SizedBox(height: 16),
-              Text('Something went wrong', style: Theme.of(context).textTheme.titleLarge),
+              Text('Something went wrong', style: theme.textTheme.titleLarge),
               const SizedBox(height: 8),
               Text(
                 '$err',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -195,14 +166,7 @@ class SequenceListPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          if (!await ref.requireConnectivity(context)) {
-            return;
-          }
-          if (context.mounted) {
-            context.go('/sequences/add');
-          }
-        },
+        onPressed: () => context.go('/sequences/add'),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Sequence'),
       ),

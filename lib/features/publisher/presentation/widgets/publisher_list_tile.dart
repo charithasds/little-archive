@@ -1,8 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/publisher_entity.dart';
 
-class PublisherListTile extends StatelessWidget {
+/// A tile that displays summary information for a [PublisherEntity] in a list.
+class PublisherListTile extends ConsumerWidget {
+  /// Creates a [PublisherListTile].
   const PublisherListTile({
     super.key,
     required this.publisher,
@@ -10,15 +15,25 @@ class PublisherListTile extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
   });
+
+  /// The publisher entity to display.
   final PublisherEntity publisher;
+
+  /// Callback when the tile is tapped.
   final VoidCallback onTap;
+
+  /// Callback when the edit button is tapped.
   final VoidCallback onEdit;
+
+  /// Callback when the delete button is tapped.
   final VoidCallback onDelete;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final int bookCount = publisher.bookIds.length;
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
+    final ColorScheme colorScheme = theme.colorScheme;
 
     return InkWell(
       onTap: onTap,
@@ -47,18 +62,14 @@ class PublisherListTile extends StatelessWidget {
                     publisher.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '$bookCount ${bookCount == 1 ? 'Book' : 'Books'}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),

@@ -10,6 +10,9 @@ class BookRepositoryImpl implements BookRepository {
   final RelationshipSyncService relationshipSyncService;
 
   @override
+  String generateId() => remoteDataSource.generateId();
+
+  @override
   Future<List<BookEntity>> getBooks(String userId) => remoteDataSource.getBooks(userId);
 
   @override
@@ -45,7 +48,7 @@ class BookRepositoryImpl implements BookRepository {
         authorIds: book.authorIds,
         translatorIds: book.translatorIds,
         workIds: book.workIds,
-        sequenceVolumeId: book.sequenceVolumeId,
+        sequenceVolumeIds: book.sequenceVolumeIds,
         publisherId: book.publisherId,
         readerId: book.readerId,
       ),
@@ -92,7 +95,7 @@ class BookRepositoryImpl implements BookRepository {
         authorIds: book.authorIds,
         translatorIds: book.translatorIds,
         workIds: book.workIds,
-        sequenceVolumeId: book.sequenceVolumeId,
+        sequenceVolumeIds: book.sequenceVolumeIds,
         publisherId: book.publisherId,
         readerId: book.readerId,
       ),

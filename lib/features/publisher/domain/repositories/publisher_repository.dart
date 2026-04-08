@@ -1,6 +1,7 @@
 import '../entities/publisher_entity.dart';
 
 abstract class PublisherRepository {
+  String generateId();
   Future<List<PublisherEntity>> getPublishers(String userId);
   Future<PublisherEntity?> getPublisherById(String id);
   Future<void> addPublisher(PublisherEntity publisher);

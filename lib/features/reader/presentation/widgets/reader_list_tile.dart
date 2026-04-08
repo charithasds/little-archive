@@ -1,8 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/reader_entity.dart';
 
-class ReaderListTile extends StatelessWidget {
+/// A tile that displays summary information for a [ReaderEntity] in a list.
+class ReaderListTile extends ConsumerWidget {
+  /// Creates a [ReaderListTile].
   const ReaderListTile({
     super.key,
     required this.reader,
@@ -10,15 +15,25 @@ class ReaderListTile extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
   });
+
+  /// The reader entity to display.
   final ReaderEntity reader;
+
+  /// Callback when the tile is tapped.
   final VoidCallback onTap;
+
+  /// Callback when the edit button is tapped.
   final VoidCallback onEdit;
+
+  /// Callback when the delete button is tapped.
   final VoidCallback onDelete;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final int bookCount = reader.bookIds.length;
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
+    final ColorScheme colorScheme = theme.colorScheme;
 
     return InkWell(
       onTap: onTap,
@@ -47,18 +62,14 @@ class ReaderListTile extends StatelessWidget {
                     reader.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '$bookCount ${bookCount == 1 ? 'Book' : 'Books'}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),

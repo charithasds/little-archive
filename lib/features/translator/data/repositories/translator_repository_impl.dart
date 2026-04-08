@@ -10,6 +10,9 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
   final RelationshipSyncService relationshipSyncService;
 
   @override
+  String generateId() => remoteDataSource.generateId();
+
+  @override
   Future<List<TranslatorEntity>> getTranslators(String userId) =>
       remoteDataSource.getTranslators(userId);
 

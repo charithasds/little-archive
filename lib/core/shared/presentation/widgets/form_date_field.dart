@@ -2,13 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../theme/app_theme.dart';
 import '../../../theme/presentation/providers/theme_provider.dart';
 
-/// A reusable date picker field that matches the app's design system.
-///
-/// Displays the selected date or a placeholder title. Supports an optional
-/// clear button via [isClearable]. Uses [showDatePicker] to select a date.
+// TODO(charithasds): double-check this
 class FormDateField extends ConsumerWidget {
   const FormDateField({
     super.key,
@@ -45,8 +41,7 @@ class FormDateField extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ThemeMode themeMode = ref.watch(themeProvider);
-    final ThemeData theme = themeMode == ThemeMode.dark ? AppTheme.darkTheme : AppTheme.lightTheme;
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
 
     return Container(

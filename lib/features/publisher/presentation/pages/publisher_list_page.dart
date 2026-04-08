@@ -2,22 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
-import '../../../../core/shared/presentation/widgets/connectivity_guard.dart';
-import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
+import '../../../../core/shared/presentation/utils/snack_bars.dart';
+import '../../../../core/theme/presentation/providers/theme_provider.dart';
 
 import '../../domain/entities/publisher_entity.dart';
 import '../../domain/repositories/publisher_repository.dart';
 import '../providers/publisher_provider.dart';
 import '../widgets/publisher_list_tile.dart';
 
+/// A page that displays a list of all publishers.
 class PublisherListPage extends ConsumerWidget {
+  /// Creates a [PublisherListPage].
   const PublisherListPage({super.key});
 
   Future<void> _handleDelete(BuildContext context, WidgetRef ref, String publisherId) async {
+    final ThemeData theme = ref.read(activeThemeDataProvider);
+
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        icon: Icon(Icons.warning_rounded, color: Theme.of(context).colorScheme.error, size: 48),
+        icon: Icon(Icons.warning_rounded, color: theme.colorScheme.error, size: 48),
         title: const Text('Delete Publisher'),
         content: const Text(
           'Are you sure you want to delete this publisher? This action cannot be undone.',
@@ -29,7 +33,7 @@ class PublisherListPage extends ConsumerWidget {
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
+            style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.error),
             child: const Text('Delete'),
           ),
         ],
@@ -43,15 +47,15 @@ class PublisherListPage extends ConsumerWidget {
     try {
       await ref.read<PublisherRepository>(publisherRepositoryProvider).deletePublisher(publisherId);
       if (context.mounted) {
-        SnackBarUtils.showSuccess(context, 'Publisher deleted successfully');
+        SnackBars.showSuccess(context, 'Publisher deleted successfully');
       }
     } on NoConnectionException catch (e) {
       if (context.mounted) {
-        SnackBarUtils.showError(context, e.message);
+        SnackBars.showError(context, e.message);
       }
     } catch (e) {
       if (context.mounted) {
-        SnackBarUtils.showError(context, 'Delete failed: $e');
+        SnackBars.showError(context, 'Delete failed: $e');
       }
     }
   }
@@ -59,7 +63,9 @@ class PublisherListPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AsyncValue<List<PublisherEntity>> publishersAsync = ref.watch(publishersStreamProvider);
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
+    final ColorScheme colorScheme = theme.colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Publishers'), centerTitle: true),
@@ -78,16 +84,14 @@ class PublisherListPage extends ConsumerWidget {
                   const SizedBox(height: 16),
                   Text(
                     'No Publishers Yet',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface),
+                    style: theme.textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Tap the button below to add your first publisher',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -103,22 +107,8 @@ class PublisherListPage extends ConsumerWidget {
                     final PublisherEntity publisher = publishers[index];
                     return PublisherListTile(
                       publisher: publisher,
-                      onTap: () async {
-                        if (!await ref.requireConnectivity(context)) {
-                          return;
-                        }
-                        if (context.mounted) {
-                          context.go('/publishers/${publisher.id}');
-                        }
-                      },
-                      onEdit: () async {
-                        if (!await ref.requireConnectivity(context)) {
-                          return;
-                        }
-                        if (context.mounted) {
-                          context.push('/publishers/add', extra: publisher);
-                        }
-                      },
+                      onTap: () => context.go('/publishers/${publisher.id}'),
+                      onEdit: () => context.push('/publishers/add', extra: publisher),
                       onDelete: () => _handleDelete(context, ref, publisher.id),
                     );
                   },
@@ -143,22 +133,8 @@ class PublisherListPage extends ConsumerWidget {
                       ),
                       child: PublisherListTile(
                         publisher: publisher,
-                        onTap: () async {
-                          if (!await ref.requireConnectivity(context)) {
-                            return;
-                          }
-                          if (context.mounted) {
-                            context.go('/publishers/${publisher.id}');
-                          }
-                        },
-                        onEdit: () async {
-                          if (!await ref.requireConnectivity(context)) {
-                            return;
-                          }
-                          if (context.mounted) {
-                            context.push('/publishers/add', extra: publisher);
-                          }
-                        },
+                        onTap: () => context.go('/publishers/${publisher.id}'),
+                        onEdit: () => context.push('/publishers/add', extra: publisher),
                         onDelete: () => _handleDelete(context, ref, publisher.id),
                       ),
                     );
@@ -175,13 +151,11 @@ class PublisherListPage extends ConsumerWidget {
             children: <Widget>[
               Icon(Icons.error_outline_rounded, size: 64, color: colorScheme.error),
               const SizedBox(height: 16),
-              Text('Something went wrong', style: Theme.of(context).textTheme.titleLarge),
+              Text('Something went wrong', style: theme.textTheme.titleLarge),
               const SizedBox(height: 8),
               Text(
                 '$err',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -189,14 +163,7 @@ class PublisherListPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          if (!await ref.requireConnectivity(context)) {
-            return;
-          }
-          if (context.mounted) {
-            context.go('/publishers/add');
-          }
-        },
+        onPressed: () => context.go('/publishers/add'),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Publisher'),
       ),

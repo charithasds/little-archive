@@ -2,9 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/shared/data/services/firestore_service.dart';
+import '../../../../core/shared/domain/error/exceptions.dart';
 import '../models/book_model.dart';
 
 abstract class BookRemoteDataSource {
+  String generateId();
   Future<List<BookModel>> getBooks(String userId);
   Future<BookModel?> getBookById(String id);
   Future<void> addBook(BookModel book);
@@ -17,12 +19,15 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
   BookRemoteDataSourceImpl({required this.firestoreService});
   final FirestoreService firestoreService;
 
-  FirebaseFirestore get firestore => firestoreService.instance;
+  FirebaseFirestore get firestore => firestoreService.firebaseFirestore;
+
+  @override
+  String generateId() => firestoreService.generateId('books');
 
   String get _currentUserId {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      throw Exception('User must be logged in to perform this operation.');
+      throw const UnauthorizedException();
     }
     return user.uid;
   }

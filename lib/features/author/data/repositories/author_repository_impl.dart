@@ -10,6 +10,9 @@ class AuthorRepositoryImpl implements AuthorRepository {
   final RelationshipSyncService relationshipSyncService;
 
   @override
+  String generateId() => remoteDataSource.generateId();
+
+  @override
   Future<List<AuthorEntity>> getAuthors(String userId) => remoteDataSource.getAuthors(userId);
 
   @override

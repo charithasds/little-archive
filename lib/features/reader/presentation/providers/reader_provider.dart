@@ -4,11 +4,13 @@ import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/data/services/firestore_service.dart';
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
-import '../../../../core/shared/presentation/providers/firestore_provider.dart';
+import '../../../../core/shared/presentation/providers/firestore_service_provider.dart';
+import '../../../../core/shared/presentation/providers/relationship_sync_service_provider.dart';
 import '../../data/datasources/reader_remote_datasource.dart';
 import '../../data/repositories/reader_repository_impl.dart';
 import '../../domain/entities/reader_entity.dart';
 import '../../domain/repositories/reader_repository.dart';
+import '../../domain/usecases/reader_usecases.dart';
 
 final Provider<ReaderRemoteDataSource> readerRemoteDataSourceProvider =
     Provider<ReaderRemoteDataSource>((Ref ref) {
@@ -27,13 +29,32 @@ final Provider<ReaderRepository> readerRepositoryProvider = Provider<ReaderRepos
   );
 });
 
+final Provider<GetReadersUseCase> getReadersUseCaseProvider = Provider<GetReadersUseCase>(
+  (Ref ref) => GetReadersUseCase(ref.watch(readerRepositoryProvider)),
+);
+final Provider<WatchReadersUseCase> watchReadersUseCaseProvider = Provider<WatchReadersUseCase>(
+  (Ref ref) => WatchReadersUseCase(ref.watch(readerRepositoryProvider)),
+);
+final Provider<GetReaderByIdUseCase> getReaderByIdUseCaseProvider = Provider<GetReaderByIdUseCase>(
+  (Ref ref) => GetReaderByIdUseCase(ref.watch(readerRepositoryProvider)),
+);
+final Provider<AddReaderUseCase> addReaderUseCaseProvider = Provider<AddReaderUseCase>(
+  (Ref ref) => AddReaderUseCase(ref.watch(readerRepositoryProvider)),
+);
+final Provider<UpdateReaderUseCase> updateReaderUseCaseProvider = Provider<UpdateReaderUseCase>(
+  (Ref ref) => UpdateReaderUseCase(ref.watch(readerRepositoryProvider)),
+);
+final Provider<DeleteReaderUseCase> deleteReaderUseCaseProvider = Provider<DeleteReaderUseCase>(
+  (Ref ref) => DeleteReaderUseCase(ref.watch(readerRepositoryProvider)),
+);
+
 final StreamProvider<List<ReaderEntity>> readersStreamProvider = StreamProvider<List<ReaderEntity>>(
   (Ref ref) {
-    final ReaderRepository repository = ref.watch(readerRepositoryProvider);
+    final WatchReadersUseCase watchReaders = ref.watch(watchReadersUseCaseProvider);
     final UserEntity? user = ref.watch(authStateProvider).value;
     if (user == null) {
       return Stream<List<ReaderEntity>>.value(<ReaderEntity>[]);
     }
-    return repository.watchReaders(user.uid);
+    return watchReaders(user.uid);
   },
 );

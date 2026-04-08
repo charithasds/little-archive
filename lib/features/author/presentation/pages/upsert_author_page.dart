@@ -1,0 +1,200 @@
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/shared/presentation/utils/snack_bars.dart';
+import '../../../../core/shared/presentation/widgets/form_text_field.dart';
+import '../../../../core/theme/presentation/providers/theme_provider.dart';
+import '../../domain/entities/author_entity.dart';
+import '../providers/upsert_author_controller.dart';
+
+class UpsertAuthorPage extends ConsumerStatefulWidget {
+  const UpsertAuthorPage({super.key, this.existingAuthor});
+
+  final AuthorEntity? existingAuthor;
+
+  @override
+  ConsumerState<UpsertAuthorPage> createState() => _UpsertAuthorPageState();
+}
+
+class _UpsertAuthorPageState extends ConsumerState<UpsertAuthorPage> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _otherNameController = TextEditingController();
+  final TextEditingController _websiteController = TextEditingController();
+  final TextEditingController _facebookController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingAuthor != null) {
+      final AuthorEntity author = widget.existingAuthor!;
+      _nameController.text = author.name;
+      _otherNameController.text = author.otherName ?? '';
+      _websiteController.text = author.website ?? '';
+      _facebookController.text = author.facebook ?? '';
+    }
+
+    // Schedule state initialization for after build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(upsertAuthorControllerProvider.notifier).initializeWith(widget.existingAuthor);
+    });
+  }
+
+  Future<void> _save() async {
+    if (_formKey.currentState!.validate()) {
+      final AuthorEntity? savedAuthor = await ref
+          .read(upsertAuthorControllerProvider.notifier)
+          .saveAuthor(
+            existingAuthor: widget.existingAuthor,
+            name: _nameController.text.trim(),
+            otherName: _otherNameController.text.trim(),
+            website: _websiteController.text.trim(),
+            facebook: _facebookController.text.trim(),
+          );
+
+      final bool isSuccess = savedAuthor != null;
+
+      if (isSuccess && mounted) {
+        SnackBars.showSuccess(
+          context,
+          widget.existingAuthor != null
+              ? 'Author updated successfully'
+              : 'Author added successfully',
+        );
+        Navigator.of(context).pop();
+      } else if (!isSuccess && mounted) {
+        final UpsertAuthorState state = ref.read(upsertAuthorControllerProvider);
+        if (state.error != null) {
+          SnackBars.showError(context, state.error!);
+        }
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _otherNameController.dispose();
+    _websiteController.dispose();
+    _facebookController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
+    final ColorScheme colorScheme = theme.colorScheme;
+    final UpsertAuthorState state = ref.watch(upsertAuthorControllerProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.existingAuthor != null ? 'Edit Author' : 'Add Author'),
+        centerTitle: true,
+      ),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(24),
+          children: <Widget>[
+            Center(
+              child: GestureDetector(
+                onTap: () => ref.read(upsertAuthorControllerProvider.notifier).pickImage(),
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: colorScheme.primaryContainer,
+                    border: Border.all(color: colorScheme.primary, width: 3),
+                    image: state.pickedBase64Image != null
+                        ? DecorationImage(
+                            image: MemoryImage(base64Decode(state.pickedBase64Image!)),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  child: state.pickedBase64Image == null
+                      ? Icon(Icons.person_rounded, size: 56, color: colorScheme.onPrimaryContainer)
+                      : null,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Center(
+              child: TextButton.icon(
+                onPressed: () => ref.read(upsertAuthorControllerProvider.notifier).pickImage(),
+                icon: const Icon(Icons.camera_alt_rounded),
+                label: Text(state.pickedBase64Image == null ? 'Add Image' : 'Change Photo'),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            FormTextField(
+              controller: _nameController,
+              label: 'Name',
+              hint: 'Author name',
+              prefixIcon: Icons.person_outline_rounded,
+              maxLength: 500,
+              isRequired: true,
+            ),
+            const SizedBox(height: 16),
+
+            FormTextField(
+              controller: _otherNameController,
+              label: 'Other Name',
+              hint: 'Alternative Name',
+              prefixIcon: Icons.badge_outlined,
+              maxLength: 500,
+            ),
+            const SizedBox(height: 16),
+
+            FormTextField(
+              controller: _websiteController,
+              label: 'Website',
+              hint: 'https://www.example.com',
+              prefixIcon: Icons.language_rounded,
+              maxLength: 200,
+              keyboardType: TextInputType.url,
+            ),
+            const SizedBox(height: 16),
+
+            FormTextField(
+              controller: _facebookController,
+              label: 'Facebook',
+              hint: 'https://www.facebook.com/username',
+              prefixIcon: Icons.facebook_rounded,
+              maxLength: 200,
+              keyboardType: TextInputType.url,
+            ),
+            const SizedBox(height: 32),
+
+            FilledButton.icon(
+              onPressed: state.isLoading ? null : _save,
+              icon: state.isLoading
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: colorScheme.onPrimary,
+                      ),
+                    )
+                  : const Icon(Icons.save_rounded),
+              label: Text(
+                state.isLoading
+                    ? 'Saving...'
+                    : (widget.existingAuthor != null ? 'Update Author' : 'Save Author'),
+              ),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(56),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../theme/app_theme.dart';
 import '../../../theme/presentation/providers/theme_provider.dart';
 import 'form_decoration.dart';
 
+// TODO(charithasds): double-check this
 class MultiSelectField<T> extends ConsumerWidget {
   const MultiSelectField({
     super.key,
@@ -34,8 +34,7 @@ class MultiSelectField<T> extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ThemeMode themeMode = ref.watch(themeProvider);
-    final ThemeData theme = themeMode == ThemeMode.dark ? AppTheme.darkTheme : AppTheme.lightTheme;
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
 
     final List<T> syncedSelectedItems = <T>[];
@@ -57,33 +56,28 @@ class MultiSelectField<T> extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text(label, style: theme.textTheme.titleSmall),
-        const SizedBox(height: 8),
-        InputDecorator(
-          decoration: buildFormDecoration(colorScheme, contentPadding: const EdgeInsets.all(8)),
-          child: Wrap(
-            spacing: 8.0,
-            children: <Widget>[
-              if (syncedSelectedItems.isEmpty)
-                Text(
-                  'No items selected',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.5),
-                  ),
-                ),
-              ...syncedSelectedItems.map(
-                (T item) => Chip(
-                  label: Text(itemLabel(item)),
-                  onDeleted: () {
-                    final List<T> newList = List<T>.from(syncedSelectedItems)..remove(item);
-                    onChanged(newList);
-                  },
-                ),
-              ),
-            ],
+        if (syncedSelectedItems.isNotEmpty) ...<Widget>[
+          Text(label, style: theme.textTheme.titleSmall),
+          const SizedBox(height: 8),
+          InputDecorator(
+            decoration: buildFormDecoration(colorScheme, contentPadding: const EdgeInsets.all(8)),
+            child: Wrap(
+              spacing: 8.0,
+              children: syncedSelectedItems
+                  .map(
+                    (T item) => Chip(
+                      label: Text(itemLabel(item)),
+                      onDeleted: () {
+                        final List<T> newList = List<T>.from(syncedSelectedItems)..remove(item);
+                        onChanged(newList);
+                      },
+                    ),
+                  )
+                  .toList(),
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
+          const SizedBox(height: 8),
+        ],
         Row(
           children: <Widget>[
             Expanded(
@@ -104,12 +98,14 @@ class MultiSelectField<T> extends ConsumerWidget {
                             ),
                           )
                           .toList(),
-                onChanged: (T? value) {
-                  if (value != null) {
-                    final List<T> newList = List<T>.from(syncedSelectedItems)..add(value);
-                    onChanged(newList);
-                  }
-                },
+                onChanged: availableItems.isEmpty
+                    ? null
+                    : (T? value) {
+                        if (value != null) {
+                          final List<T> newList = List<T>.from(syncedSelectedItems)..add(value);
+                          onChanged(newList);
+                        }
+                      },
               ),
             ),
             if (onAdd != null) ...<Widget>[

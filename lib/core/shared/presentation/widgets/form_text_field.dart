@@ -2,14 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../theme/app_theme.dart';
 import '../../../theme/presentation/providers/theme_provider.dart';
 
-/// A reusable text form field that matches the app's design system.
-///
-/// Configurable for various field types (name, email, phone, url, notes, etc.)
-/// via parameters. Handles capitalization, keyboard type, validation, and
-/// consistent styling automatically.
+// TODO(charithasds): double-check this
 class FormTextField extends ConsumerWidget {
   const FormTextField({
     super.key,
@@ -68,8 +63,7 @@ class FormTextField extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ThemeMode themeMode = ref.watch(themeProvider);
-    final ThemeData theme = themeMode == ThemeMode.dark ? AppTheme.darkTheme : AppTheme.lightTheme;
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
 
     return TextFormField(

@@ -1,32 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
-import '../../../shared/presentation/providers/connectivity_provider.dart';
-import '../../../shared/presentation/providers/firebase_provider.dart';
-import '../../data/datasources/auth_remote_data_source.dart';
-import '../../data/repositories/auth_repository.dart';
+import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/user_entity.dart';
-import '../../domain/repositories/auth_repository.dart';
-import '../../domain/usecases/get_auth_state_changes_usecase.dart';
-import '../../domain/usecases/sign_in_with_google_usecase.dart';
-import '../../domain/usecases/sign_out_usecase.dart';
+import '../../domain/usecases/auth_usecases.dart';
 
-final Provider<GoogleSignIn> googleSignInProvider = Provider<GoogleSignIn>(
-  (Ref ref) => GoogleSignIn(scopes: <String>['email', 'profile']),
-);
-
-final Provider<AuthRemoteDataSource> authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>(
-  (Ref ref) => AuthRemoteDataSource(
-    ref.watch(firebaseAuthProvider),
-    ref.watch(googleSignInProvider),
-    ref.watch(connectivityServiceProvider),
-  ),
-);
-
-final Provider<AuthRepository> authRepositoryProvider = Provider<AuthRepository>(
-  (Ref ref) => AuthRepositoryImpl(ref.watch(authRemoteDataSourceProvider)),
-);
-
+/// Grouped authentication use cases.
+///
+/// These providers bridge the domain layer use cases with the data layer repository.
 final Provider<SignInWithGoogleUseCase> signInWithGoogleUseCaseProvider =
     Provider<SignInWithGoogleUseCase>(
       (Ref ref) => SignInWithGoogleUseCase(ref.watch(authRepositoryProvider)),
@@ -46,18 +26,25 @@ final StreamProvider<UserEntity?> authStateProvider = StreamProvider<UserEntity?
   (Ref ref) => ref.watch(getAuthStateChangesUseCaseProvider).call(),
 );
 
-final NotifierProvider<AuthController, void> authControllerProvider =
-    NotifierProvider<AuthController, void>(AuthController.new);
+/// Controller for authentication-related UI actions.
+final NotifierProvider<AuthController, AsyncValue<void>> authControllerProvider =
+    NotifierProvider<AuthController, AsyncValue<void>>(AuthController.new);
 
-class AuthController extends Notifier<void> {
+/// [AuthController] manages user actions like signing in and out.
+/// It uses [AsyncValue] to track the current status of the operation (e.g., loading).
+class AuthController extends Notifier<AsyncValue<void>> {
   @override
-  void build() {}
+  AsyncValue<void> build() => const AsyncValue<void>.data(null);
 
+  /// Signs the user in with Google and updates the state.
   Future<void> signInWithGoogle() async {
-    await ref.read(signInWithGoogleUseCaseProvider)();
+    state = const AsyncValue<void>.loading();
+    state = await AsyncValue.guard(() => ref.read(signInWithGoogleUseCaseProvider).call());
   }
 
+  /// Signs the user out from both Firebase and Google.
   Future<void> signOut() async {
-    await ref.read(signOutUseCaseProvider)();
+    state = const AsyncValue<void>.loading();
+    state = await AsyncValue.guard(() => ref.read(signOutUseCaseProvider).call());
   }
 }

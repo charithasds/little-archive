@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Shared [InputDecoration] builder used by form widgets across the app.
-///
-/// Provides consistent styling for dropdown fields, input decorators,
-/// and any other widget that uses [InputDecoration].
+// TODO(charithasds): double-check this
 InputDecoration buildFormDecoration(
   ColorScheme colorScheme, {
   String? labelText,

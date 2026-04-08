@@ -2,9 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/shared/data/services/firestore_service.dart';
+import '../../../../core/shared/domain/error/exceptions.dart';
 import '../models/work_model.dart';
 
 abstract class WorkRemoteDataSource {
+  String generateId();
   Future<List<WorkModel>> getWorks(String userId);
   Future<WorkModel?> getWorkById(String id);
   Future<void> addWork(WorkModel work);
@@ -17,12 +19,15 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
   WorkRemoteDataSourceImpl({required this.firestoreService});
   final FirestoreService firestoreService;
 
-  FirebaseFirestore get firestore => firestoreService.instance;
+  FirebaseFirestore get firestore => firestoreService.firebaseFirestore;
+
+  @override
+  String generateId() => firestoreService.generateId('works');
 
   String get _currentUserId {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      throw Exception('User must be logged in to perform this operation.');
+      throw const UnauthorizedException();
     }
     return user.uid;
   }

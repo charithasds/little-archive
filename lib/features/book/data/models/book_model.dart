@@ -36,7 +36,7 @@ class BookModel extends BookEntity {
     required super.authorIds,
     required super.translatorIds,
     required super.workIds,
-    super.sequenceVolumeId,
+    required super.sequenceVolumeIds,
     super.publisherId,
     super.readerId,
   });
@@ -72,7 +72,9 @@ class BookModel extends BookEntity {
     authorIds: List<String>.from(map['authorIds'] as Iterable<dynamic>? ?? <String>[]),
     translatorIds: List<String>.from(map['translatorIds'] as Iterable<dynamic>? ?? <String>[]),
     workIds: List<String>.from(map['workIds'] as Iterable<dynamic>? ?? <String>[]),
-    sequenceVolumeId: map['sequenceVolumeId'] as String?,
+    sequenceVolumeIds: List<String>.from(
+      map['sequenceVolumeIds'] as Iterable<dynamic>? ?? <String>[],
+    ),
     publisherId: map['publisherId'] as String?,
     readerId: map['readerId'] as String?,
   );
@@ -104,7 +106,7 @@ class BookModel extends BookEntity {
     'authorIds': authorIds,
     'translatorIds': translatorIds,
     'workIds': workIds,
-    'sequenceVolumeId': sequenceVolumeId,
+    'sequenceVolumeIds': sequenceVolumeIds,
     'publisherId': publisherId,
     'readerId': readerId,
   };

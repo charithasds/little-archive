@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../../core/shared/domain/enums/content_category.dart';
 import '../../../../core/shared/domain/enums/genre.dart';
 import '../../../../core/shared/domain/enums/language.dart';
 import '../../../../core/shared/domain/enums/original_language.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
-import '../../../../core/shared/domain/enums/work_type.dart';
 import '../../domain/entities/work_entity.dart';
 
 class WorkModel extends WorkEntity {
@@ -14,7 +14,7 @@ class WorkModel extends WorkEntity {
     required super.title,
     required super.language,
     required super.genre,
-    required super.workType,
+    required super.contentCategory,
     super.noOfPages,
     required super.isTranslation,
     super.originalTitle,
@@ -27,7 +27,7 @@ class WorkModel extends WorkEntity {
     required super.lastUpdated,
     required super.authorIds,
     required super.translatorIds,
-    super.sequenceVolumeId,
+    required super.sequenceVolumeIds,
     super.bookId,
   });
 
@@ -37,7 +37,9 @@ class WorkModel extends WorkEntity {
     title: (map['title'] as String?) ?? '',
     language: Language.values.byName((map['language'] as String?) ?? 'english'),
     genre: Genre.values.byName((map['genre'] as String?) ?? 'other'),
-    workType: WorkType.values.byName((map['workType'] as String?) ?? 'shortStory'),
+    contentCategory: ContentCategory.values.byName(
+      (map['contentCategory'] as String?) ?? 'shortStory',
+    ),
     noOfPages: map['noOfPages'] as int?,
     isTranslation: (map['isTranslation'] as bool?) ?? false,
     originalTitle: map['originalTitle'] as String?,
@@ -52,7 +54,9 @@ class WorkModel extends WorkEntity {
     lastUpdated: (map['lastUpdated'] as Timestamp?)?.toDate() ?? DateTime.now(),
     authorIds: List<String>.from(map['authorIds'] as Iterable<dynamic>? ?? <String>[]),
     translatorIds: List<String>.from(map['translatorIds'] as Iterable<dynamic>? ?? <String>[]),
-    sequenceVolumeId: map['sequenceVolumeId'] as String?,
+    sequenceVolumeIds: List<String>.from(
+      map['sequenceVolumeIds'] as Iterable<dynamic>? ?? <String>[],
+    ),
     bookId: map['bookId'] as String?,
   );
 
@@ -62,7 +66,7 @@ class WorkModel extends WorkEntity {
     'title': title,
     'language': language.name,
     'genre': genre.name,
-    'workType': workType.name,
+    'contentCategory': contentCategory.name,
     'noOfPages': noOfPages,
     'isTranslation': isTranslation,
     'originalTitle': originalTitle,
@@ -75,7 +79,7 @@ class WorkModel extends WorkEntity {
     'lastUpdated': Timestamp.fromDate(lastUpdated),
     'authorIds': authorIds,
     'translatorIds': translatorIds,
-    'sequenceVolumeId': sequenceVolumeId,
+    'sequenceVolumeIds': sequenceVolumeIds,
     'bookId': bookId,
   };
 }

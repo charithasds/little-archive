@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/shared/presentation/widgets/connectivity_guard.dart';
-import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../author/domain/entities/author_entity.dart';
 import '../../../author/presentation/providers/author_provider.dart';
@@ -23,13 +21,9 @@ import '../../../work/presentation/providers/work_provider.dart';
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
-  Future<bool> _checkConnection(BuildContext context, WidgetRef ref) =>
-      ref.requireConnectivity(context);
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ThemeMode themeMode = ref.watch(themeProvider);
-    final ThemeData theme = themeMode == ThemeMode.dark ? AppTheme.darkTheme : AppTheme.lightTheme;
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
 
     final AsyncValue<List<BookEntity>> booksAsync = ref.watch(booksStreamProvider);
@@ -75,14 +69,7 @@ class DashboardPage extends ConsumerWidget {
                     count: bookCount,
                     theme: theme,
                     colorScheme: colorScheme,
-                    onTap: () async {
-                      if (!await _checkConnection(context, ref)) {
-                        return;
-                      }
-                      if (context.mounted) {
-                        context.go('/books');
-                      }
-                    },
+                    onTap: () => context.go('/books'),
                   ),
                   _DashboardCard(
                     title: _getTitle(workCount, 'Work'),
@@ -92,14 +79,7 @@ class DashboardPage extends ConsumerWidget {
                     count: workCount,
                     theme: theme,
                     colorScheme: colorScheme,
-                    onTap: () async {
-                      if (!await _checkConnection(context, ref)) {
-                        return;
-                      }
-                      if (context.mounted) {
-                        context.go('/works');
-                      }
-                    },
+                    onTap: () => context.go('/works'),
                   ),
                   _DashboardCard(
                     title: _getTitle(authorCount, 'Author'),
@@ -109,14 +89,7 @@ class DashboardPage extends ConsumerWidget {
                     count: authorCount,
                     theme: theme,
                     colorScheme: colorScheme,
-                    onTap: () async {
-                      if (!await _checkConnection(context, ref)) {
-                        return;
-                      }
-                      if (context.mounted) {
-                        context.go('/authors');
-                      }
-                    },
+                    onTap: () => context.go('/authors'),
                   ),
                   _DashboardCard(
                     title: _getTitle(translatorCount, 'Translator'),
@@ -126,14 +99,7 @@ class DashboardPage extends ConsumerWidget {
                     count: translatorCount,
                     theme: theme,
                     colorScheme: colorScheme,
-                    onTap: () async {
-                      if (!await _checkConnection(context, ref)) {
-                        return;
-                      }
-                      if (context.mounted) {
-                        context.go('/translators');
-                      }
-                    },
+                    onTap: () => context.go('/translators'),
                   ),
                   _DashboardCard(
                     title: _getTitle(publisherCount, 'Publisher'),
@@ -143,14 +109,7 @@ class DashboardPage extends ConsumerWidget {
                     count: publisherCount,
                     theme: theme,
                     colorScheme: colorScheme,
-                    onTap: () async {
-                      if (!await _checkConnection(context, ref)) {
-                        return;
-                      }
-                      if (context.mounted) {
-                        context.go('/publishers');
-                      }
-                    },
+                    onTap: () => context.go('/publishers'),
                   ),
                   _DashboardCard(
                     title: _getTitle(sequenceCount, 'Sequence'),
@@ -160,14 +119,7 @@ class DashboardPage extends ConsumerWidget {
                     count: sequenceCount,
                     theme: theme,
                     colorScheme: colorScheme,
-                    onTap: () async {
-                      if (!await _checkConnection(context, ref)) {
-                        return;
-                      }
-                      if (context.mounted) {
-                        context.go('/sequences');
-                      }
-                    },
+                    onTap: () => context.go('/sequences'),
                   ),
                   _DashboardCard(
                     title: _getTitle(readerCount, 'Reader'),
@@ -177,14 +129,7 @@ class DashboardPage extends ConsumerWidget {
                     count: readerCount,
                     theme: theme,
                     colorScheme: colorScheme,
-                    onTap: () async {
-                      if (!await _checkConnection(context, ref)) {
-                        return;
-                      }
-                      if (context.mounted) {
-                        context.go('/readers');
-                      }
-                    },
+                    onTap: () => context.go('/readers'),
                   ),
                 ]),
               ),

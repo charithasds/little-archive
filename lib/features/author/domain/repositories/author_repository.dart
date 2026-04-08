@@ -1,6 +1,7 @@
 import '../entities/author_entity.dart';
 
 abstract class AuthorRepository {
+  String generateId();
   Future<List<AuthorEntity>> getAuthors(String userId);
   Future<AuthorEntity?> getAuthorById(String id);
   Future<void> addAuthor(AuthorEntity author);

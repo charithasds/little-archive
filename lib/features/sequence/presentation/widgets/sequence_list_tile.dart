@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/sequence_entity.dart';
 
-class SequenceListTile extends StatelessWidget {
+/// A tile that displays summary information for a [SequenceEntity] in a list.
+class SequenceListTile extends ConsumerWidget {
+  /// Creates a [SequenceListTile].
   const SequenceListTile({
     super.key,
     required this.sequence,
@@ -11,16 +16,29 @@ class SequenceListTile extends StatelessWidget {
     this.bookCount = 0,
     this.workCount = 0,
   });
+
+  /// The sequence entity to display.
   final SequenceEntity sequence;
+
+  /// Callback when the tile is tapped.
   final VoidCallback onTap;
+
+  /// Callback when the edit button is tapped.
   final VoidCallback onEdit;
+
+  /// Callback when the delete button is tapped.
   final VoidCallback onDelete;
+
+  /// Number of books in this sequence.
   final int bookCount;
+
+  /// Number of works in this sequence.
   final int workCount;
 
   @override
-  Widget build(BuildContext context) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
+    final ColorScheme colorScheme = theme.colorScheme;
 
     return InkWell(
       onTap: onTap,
@@ -48,26 +66,20 @@ class SequenceListTile extends StatelessWidget {
                     sequence.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '$bookCount ${bookCount == 1 ? 'Book' : 'Books'}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                   Text(
                     '$workCount ${workCount == 1 ? 'Work' : 'Works'}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),

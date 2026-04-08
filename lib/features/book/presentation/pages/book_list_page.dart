@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/domain/error/exceptions.dart';
-import '../../../../core/shared/presentation/widgets/connectivity_guard.dart';
-import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
+import '../../../../core/shared/presentation/utils/snack_bars.dart';
+import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../../features/author/domain/entities/author_entity.dart';
 import '../../../../features/author/presentation/providers/author_provider.dart';
 import '../../../../features/translator/domain/entities/translator_entity.dart';
@@ -14,14 +14,18 @@ import '../../domain/repositories/book_repository.dart';
 import '../providers/book_provider.dart';
 import '../widgets/book_list_tile.dart';
 
+/// A page that displays a list of all books.
 class BookListPage extends ConsumerWidget {
+  /// Creates a [BookListPage].
   const BookListPage({super.key});
 
   Future<void> _handleDelete(BuildContext context, WidgetRef ref, String bookId) async {
+    final ThemeData theme = ref.read(activeThemeDataProvider);
+
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        icon: Icon(Icons.warning_rounded, color: Theme.of(context).colorScheme.error, size: 48),
+        icon: Icon(Icons.warning_rounded, color: theme.colorScheme.error, size: 48),
         title: const Text('Delete Book'),
         content: const Text(
           'Are you sure you want to delete this book? This action cannot be undone.',
@@ -33,7 +37,7 @@ class BookListPage extends ConsumerWidget {
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
+            style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.error),
             child: const Text('Delete'),
           ),
         ],
@@ -47,15 +51,15 @@ class BookListPage extends ConsumerWidget {
     try {
       await ref.read<BookRepository>(bookRepositoryProvider).deleteBook(bookId);
       if (context.mounted) {
-        SnackBarUtils.showSuccess(context, 'Book deleted successfully');
+        SnackBars.showSuccess(context, 'Book deleted successfully');
       }
     } on NoConnectionException catch (e) {
       if (context.mounted) {
-        SnackBarUtils.showError(context, e.message);
+        SnackBars.showError(context, e.message);
       }
     } catch (e) {
       if (context.mounted) {
-        SnackBarUtils.showError(context, 'Delete failed: $e');
+        SnackBars.showError(context, 'Delete failed: $e');
       }
     }
   }
@@ -66,7 +70,9 @@ class BookListPage extends ConsumerWidget {
     final List<AuthorEntity> authors = ref.watch(authorsStreamProvider).value ?? <AuthorEntity>[];
     final List<TranslatorEntity> translators =
         ref.watch(translatorsStreamProvider).value ?? <TranslatorEntity>[];
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
+    final ColorScheme colorScheme = theme.colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Books'), centerTitle: true),
@@ -85,16 +91,14 @@ class BookListPage extends ConsumerWidget {
                   const SizedBox(height: 16),
                   Text(
                     'No Books Yet',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface),
+                    style: theme.textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Tap the button below to add your first book',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -127,22 +131,8 @@ class BookListPage extends ConsumerWidget {
                     return BookListTile(
                       book: book,
                       firstAuthorOrTranslatorName: creatorName,
-                      onTap: () async {
-                        if (!await ref.requireConnectivity(context)) {
-                          return;
-                        }
-                        if (context.mounted) {
-                          context.go('/books/${book.id}');
-                        }
-                      },
-                      onEdit: () async {
-                        if (!await ref.requireConnectivity(context)) {
-                          return;
-                        }
-                        if (context.mounted) {
-                          context.push('/books/add', extra: book);
-                        }
-                      },
+                      onTap: () => context.go('/books/${book.id}'),
+                      onEdit: () => context.push('/books/add', extra: book),
                       onDelete: () => _handleDelete(context, ref, book.id),
                     );
                   },
@@ -184,22 +174,8 @@ class BookListPage extends ConsumerWidget {
                       child: BookListTile(
                         book: book,
                         firstAuthorOrTranslatorName: creatorName,
-                        onTap: () async {
-                          if (!await ref.requireConnectivity(context)) {
-                            return;
-                          }
-                          if (context.mounted) {
-                            context.go('/books/${book.id}');
-                          }
-                        },
-                        onEdit: () async {
-                          if (!await ref.requireConnectivity(context)) {
-                            return;
-                          }
-                          if (context.mounted) {
-                            context.push('/books/add', extra: book);
-                          }
-                        },
+                        onTap: () => context.go('/books/${book.id}'),
+                        onEdit: () => context.push('/books/add', extra: book),
                         onDelete: () => _handleDelete(context, ref, book.id),
                       ),
                     );
@@ -216,13 +192,11 @@ class BookListPage extends ConsumerWidget {
             children: <Widget>[
               Icon(Icons.error_outline_rounded, size: 64, color: colorScheme.error),
               const SizedBox(height: 16),
-              Text('Something went wrong', style: Theme.of(context).textTheme.titleLarge),
+              Text('Something went wrong', style: theme.textTheme.titleLarge),
               const SizedBox(height: 8),
               Text(
                 '$err',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -230,14 +204,7 @@ class BookListPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          if (!await ref.requireConnectivity(context)) {
-            return;
-          }
-          if (context.mounted) {
-            context.go('/books/add');
-          }
-        },
+        onPressed: () => context.go('/books/add'),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Book'),
       ),

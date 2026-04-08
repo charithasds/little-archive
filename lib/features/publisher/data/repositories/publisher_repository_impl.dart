@@ -10,6 +10,9 @@ class PublisherRepositoryImpl implements PublisherRepository {
   final RelationshipSyncService relationshipSyncService;
 
   @override
+  String generateId() => remoteDataSource.generateId();
+
+  @override
   Future<List<PublisherEntity>> getPublishers(String userId) =>
       remoteDataSource.getPublishers(userId);
 

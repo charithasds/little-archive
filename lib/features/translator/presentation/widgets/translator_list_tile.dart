@@ -1,8 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/translator_entity.dart';
 
-class TranslatorListTile extends StatelessWidget {
+/// A tile that displays summary information for a [TranslatorEntity] in a list.
+class TranslatorListTile extends ConsumerWidget {
+  /// Creates a [TranslatorListTile].
   const TranslatorListTile({
     super.key,
     required this.translator,
@@ -10,16 +15,26 @@ class TranslatorListTile extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
   });
+
+  /// The translator entity to display.
   final TranslatorEntity translator;
+
+  /// Callback when the tile is tapped.
   final VoidCallback onTap;
+
+  /// Callback when the edit button is tapped.
   final VoidCallback onEdit;
+
+  /// Callback when the delete button is tapped.
   final VoidCallback onDelete;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final int bookCount = translator.bookIds.length;
     final int workCount = translator.workIds.length;
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
+    final ColorScheme colorScheme = theme.colorScheme;
 
     return InkWell(
       onTap: onTap,
@@ -48,26 +63,20 @@ class TranslatorListTile extends StatelessWidget {
                     translator.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '$bookCount ${bookCount == 1 ? 'Book' : 'Books'}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                   Text(
                     '$workCount ${workCount == 1 ? 'Work' : 'Works'}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),

@@ -1,6 +1,7 @@
 import '../entities/book_entity.dart';
 
 abstract class BookRepository {
+  String generateId();
   Future<List<BookEntity>> getBooks(String userId);
   Future<BookEntity?> getBookById(String id);
   Future<void> addBook(BookEntity book);

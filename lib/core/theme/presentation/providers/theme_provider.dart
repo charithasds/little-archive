@@ -1,65 +1,79 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../shared/presentation/providers/shared_preferences_provider.dart';
 import '../../data/datasources/theme_local_data_source.dart';
 import '../../data/repositories/theme_repository_impl.dart';
 import '../../domain/repositories/theme_repository.dart';
+import '../../domain/usecases/theme_usecases.dart';
+import '../theme/theme_service.dart';
 
-/// Returns null while [sharedPreferencesProvider] is still loading —
-/// which happens during the initialization splash. Once resolved, returns
-/// the real data source backed by SharedPreferences.
-final Provider<ThemeLocalDataSource?> themeLocalDataSourceProvider =
-    Provider<ThemeLocalDataSource?>((Ref ref) {
-      final SharedPreferences? prefs = ref.watch(sharedPreferencesProvider).asData?.value;
+/// Provider for the [ThemeService] instance.
+final Provider<ThemeService> themeServiceProvider = Provider<ThemeService>(
+  (Ref ref) => ThemeService(),
+);
 
-      if (prefs == null) {
-        return null;
-      }
+/// Provider for [GetThemeModeUseCase].
+/// Null until the repository is ready.
+final Provider<GetThemeModeUseCase?> getThemeModeUseCaseProvider = Provider<GetThemeModeUseCase?>((
+  Ref ref,
+) {
+  final ThemeRepository? repository = ref.watch(themeRepositoryProvider);
 
-      return ThemeLocalDataSource(prefs);
-    });
-
-/// Only accessed after initialization (from [ThemeNotifier.toggleTheme]),
-/// so the data source is guaranteed to be non-null by then.
-final Provider<ThemeRepository?> themeRepositoryProvider = Provider<ThemeRepository?>((Ref ref) {
-  final ThemeLocalDataSource? localDataSource = ref.watch(themeLocalDataSourceProvider);
-
-  if (localDataSource == null) {
-    return null;
-  }
-
-  return ThemeRepositoryImpl(localDataSource);
+  return repository != null ? GetThemeModeUseCase(repository) : null;
 });
 
+/// Provider for [SetThemeModeUseCase].
+/// Null until the repository is ready.
+final Provider<SetThemeModeUseCase?> setThemeModeUseCaseProvider = Provider<SetThemeModeUseCase?>((
+  Ref ref,
+) {
+  final ThemeRepository? repository = ref.watch(themeRepositoryProvider);
+
+  return repository != null ? SetThemeModeUseCase(repository) : null;
+});
+
+/// A notifier that manages the application's [ThemeMode].
 class ThemeNotifier extends Notifier<ThemeMode> {
   @override
   ThemeMode build() {
     final ThemeLocalDataSource? localDataSource = ref.watch(themeLocalDataSourceProvider);
 
-    // SharedPreferences not yet loaded (shown during initialization splash/error).
-    // Defaults to light — the notifier rebuilds automatically once resolved.
+    // Initial build defaults to light if data source isn't ready.
     if (localDataSource == null) {
       return ThemeMode.light;
     }
 
+    // Synchronously reads the last saved value to avoid flicker where possible.
     return localDataSource.getIsDarkMode() ? ThemeMode.dark : ThemeMode.light;
   }
 
+  /// Toggles between light and dark themes.
   Future<void> toggleTheme() async {
-    final ThemeRepository? repository = ref.read(themeRepositoryProvider);
+    final SetThemeModeUseCase? setThemeModeUseCase = ref.read(setThemeModeUseCaseProvider);
+    final bool newIsDark;
 
-    // Guard: not null in practice, but safe to skip if somehow called during loading.
-    if (repository == null) {
+    if (setThemeModeUseCase == null) {
       return;
     }
 
-    final bool newIsDark = state != ThemeMode.dark;
+    newIsDark = state != ThemeMode.dark;
     state = newIsDark ? ThemeMode.dark : ThemeMode.light;
-    await repository.setIsDarkMode(newIsDark);
+
+    await setThemeModeUseCase(isDarkMode: newIsDark);
   }
 }
 
-final NotifierProvider<ThemeNotifier, ThemeMode> themeProvider =
+/// Provider for the [ThemeNotifier].
+final NotifierProvider<ThemeNotifier, ThemeMode> themeModeProvider =
     NotifierProvider<ThemeNotifier, ThemeMode>(ThemeNotifier.new);
+
+/// Provider for the currently active [ThemeData].
+///
+/// Reacts to changes in [themeModeProvider] and returns the corresponding
+/// light or dark theme values from [ThemeService].
+final Provider<ThemeData> activeThemeDataProvider = Provider<ThemeData>((Ref ref) {
+  final ThemeMode mode = ref.watch(themeModeProvider);
+  final ThemeService service = ref.watch(themeServiceProvider);
+
+  return mode == ThemeMode.dark ? service.darkTheme : service.lightTheme;
+});

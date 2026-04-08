@@ -1,8 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/book_entity.dart';
 
-class BookListTile extends StatelessWidget {
+/// A tile that displays summary information for a [BookEntity] in a list.
+class BookListTile extends ConsumerWidget {
+  /// Creates a [BookListTile].
   const BookListTile({
     super.key,
     required this.book,
@@ -11,15 +16,26 @@ class BookListTile extends StatelessWidget {
     required this.onDelete,
     this.firstAuthorOrTranslatorName,
   });
+
+  /// The book entity to display.
   final BookEntity book;
+
+  /// Callback when the tile is tapped.
   final VoidCallback onTap;
+
+  /// Callback when the edit button is tapped.
   final VoidCallback onEdit;
+
+  /// Callback when the delete button is tapped.
   final VoidCallback onDelete;
+
+  /// Name of the first author or translator (if available).
   final String? firstAuthorOrTranslatorName;
 
   @override
-  Widget build(BuildContext context) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
+    final ColorScheme colorScheme = theme.colorScheme;
 
     final bool isTranslation = book.isTranslation;
     final List<String> creatorIds = isTranslation ? book.translatorIds : book.authorIds;
@@ -65,26 +81,20 @@ class BookListTile extends StatelessWidget {
                     book.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     creatorText,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                   Text(
                     '${book.collectionStatus.clientValue} • ${book.readingStatus.clientValue}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),

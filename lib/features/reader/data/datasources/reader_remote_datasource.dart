@@ -2,9 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/shared/data/services/firestore_service.dart';
+import '../../../../core/shared/domain/error/exceptions.dart';
 import '../models/reader_model.dart';
 
 abstract class ReaderRemoteDataSource {
+  String generateId();
   Future<List<ReaderModel>> getReaders(String userId);
   Future<ReaderModel?> getReaderById(String id);
   Future<void> addReader(ReaderModel reader);
@@ -17,12 +19,15 @@ class ReaderRemoteDataSourceImpl implements ReaderRemoteDataSource {
   ReaderRemoteDataSourceImpl({required this.firestoreService});
   final FirestoreService firestoreService;
 
-  FirebaseFirestore get firestore => firestoreService.instance;
+  FirebaseFirestore get firestore => firestoreService.firebaseFirestore;
+
+  @override
+  String generateId() => firestoreService.generateId('readers');
 
   String get _currentUserId {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      throw Exception('User must be logged in to perform this operation.');
+      throw const UnauthorizedException();
     }
     return user.uid;
   }

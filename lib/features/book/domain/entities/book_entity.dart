@@ -35,7 +35,7 @@ class BookEntity extends Equatable {
     required this.authorIds,
     required this.translatorIds,
     required this.workIds,
-    this.sequenceVolumeId,
+    required this.sequenceVolumeIds,
     this.publisherId,
     this.readerId,
   });
@@ -65,7 +65,7 @@ class BookEntity extends Equatable {
   final List<String> authorIds;
   final List<String> translatorIds;
   final List<String> workIds;
-  final String? sequenceVolumeId;
+  final List<String> sequenceVolumeIds;
   final String? publisherId;
   final String? readerId;
 
@@ -99,7 +99,7 @@ class BookEntity extends Equatable {
     List<String>? authorIds,
     List<String>? translatorIds,
     List<String>? workIds,
-    String? sequenceVolumeId,
+    List<String>? sequenceVolumeIds,
     String? publisherId,
     String? readerId,
   }) => BookEntity(
@@ -129,7 +129,7 @@ class BookEntity extends Equatable {
     authorIds: authorIds ?? this.authorIds,
     translatorIds: translatorIds ?? this.translatorIds,
     workIds: workIds ?? this.workIds,
-    sequenceVolumeId: sequenceVolumeId ?? this.sequenceVolumeId,
+    sequenceVolumeIds: sequenceVolumeIds ?? this.sequenceVolumeIds,
     publisherId: publisherId ?? this.publisherId,
     readerId: readerId ?? this.readerId,
   );

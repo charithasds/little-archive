@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../theme/app_theme.dart';
 import '../../../theme/presentation/providers/theme_provider.dart';
 import 'form_decoration.dart';
 
+// TODO(charithasds): double-check this
 class SingleSelectField<T> extends ConsumerWidget {
   const SingleSelectField({
     super.key,
@@ -36,8 +36,7 @@ class SingleSelectField<T> extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ThemeMode themeMode = ref.watch(themeProvider);
-    final ThemeData theme = themeMode == ThemeMode.dark ? AppTheme.darkTheme : AppTheme.lightTheme;
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
 
     final List<T> effectiveItems = <T>[...items];
@@ -55,7 +54,10 @@ class SingleSelectField<T> extends ConsumerWidget {
         Expanded(
           child: DropdownButtonFormField<T>(
             key: ValueKey<String>(effectiveItems.map((T i) => i.hashCode).join(',')),
-            decoration: buildFormDecoration(colorScheme, labelText: label),
+            decoration: buildFormDecoration(
+              colorScheme,
+              labelText: label.startsWith('Add') ? label : 'Add $label',
+            ),
             items: <DropdownMenuItem<T>>[
               if (isNullable) DropdownMenuItem<T>(child: const Text('None')),
               ...effectiveItems.map(
@@ -66,7 +68,7 @@ class SingleSelectField<T> extends ConsumerWidget {
               ),
             ],
             initialValue: effectiveValue,
-            onChanged: onChanged,
+            onChanged: items.isEmpty ? null : onChanged,
             validator: (T? val) {
               if (!isNullable && val == null) {
                 return 'Required';

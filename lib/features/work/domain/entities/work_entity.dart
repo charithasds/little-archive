@@ -1,10 +1,10 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/shared/domain/enums/content_category.dart';
 import '../../../../core/shared/domain/enums/genre.dart';
 import '../../../../core/shared/domain/enums/language.dart';
 import '../../../../core/shared/domain/enums/original_language.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
-import '../../../../core/shared/domain/enums/work_type.dart';
 
 class WorkEntity extends Equatable {
   const WorkEntity({
@@ -13,7 +13,7 @@ class WorkEntity extends Equatable {
     required this.title,
     required this.language,
     required this.genre,
-    required this.workType,
+    required this.contentCategory,
     this.noOfPages,
     required this.isTranslation,
     this.originalTitle,
@@ -26,7 +26,7 @@ class WorkEntity extends Equatable {
     required this.lastUpdated,
     required this.authorIds,
     required this.translatorIds,
-    this.sequenceVolumeId,
+    required this.sequenceVolumeIds,
     this.bookId,
   });
   final String id;
@@ -34,7 +34,7 @@ class WorkEntity extends Equatable {
   final String title;
   final Language language;
   final Genre genre;
-  final WorkType workType;
+  final ContentCategory contentCategory;
   final int? noOfPages;
   final bool isTranslation;
   final String? originalTitle;
@@ -47,7 +47,7 @@ class WorkEntity extends Equatable {
   final DateTime lastUpdated;
   final List<String> authorIds;
   final List<String> translatorIds;
-  final String? sequenceVolumeId;
+  final List<String> sequenceVolumeIds;
   final String? bookId;
 
   @override
@@ -59,7 +59,7 @@ class WorkEntity extends Equatable {
     String? title,
     Language? language,
     Genre? genre,
-    WorkType? workType,
+    ContentCategory? contentCategory,
     int? noOfPages,
     bool? isTranslation,
     String? originalTitle,
@@ -72,7 +72,7 @@ class WorkEntity extends Equatable {
     DateTime? lastUpdated,
     List<String>? authorIds,
     List<String>? translatorIds,
-    String? sequenceVolumeId,
+    List<String>? sequenceVolumeIds,
     String? bookId,
   }) => WorkEntity(
     id: id ?? this.id,
@@ -80,7 +80,7 @@ class WorkEntity extends Equatable {
     title: title ?? this.title,
     language: language ?? this.language,
     genre: genre ?? this.genre,
-    workType: workType ?? this.workType,
+    contentCategory: contentCategory ?? this.contentCategory,
     noOfPages: noOfPages ?? this.noOfPages,
     isTranslation: isTranslation ?? this.isTranslation,
     originalTitle: originalTitle ?? this.originalTitle,
@@ -93,7 +93,7 @@ class WorkEntity extends Equatable {
     lastUpdated: lastUpdated ?? this.lastUpdated,
     authorIds: authorIds ?? this.authorIds,
     translatorIds: translatorIds ?? this.translatorIds,
-    sequenceVolumeId: sequenceVolumeId ?? this.sequenceVolumeId,
+    sequenceVolumeIds: sequenceVolumeIds ?? this.sequenceVolumeIds,
     bookId: bookId ?? this.bookId,
   );
 }

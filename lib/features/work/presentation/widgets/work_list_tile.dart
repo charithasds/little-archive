@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/work_entity.dart';
 
-class WorkListTile extends StatelessWidget {
+/// A tile that displays summary information for a [WorkEntity] in a list.
+class WorkListTile extends ConsumerWidget {
+  /// Creates a [WorkListTile].
   const WorkListTile({
     super.key,
     required this.work,
@@ -10,15 +15,26 @@ class WorkListTile extends StatelessWidget {
     required this.onDelete,
     this.firstAuthorOrTranslatorName,
   });
+
+  /// The work entity to display.
   final WorkEntity work;
+
+  /// Callback when the tile is tapped.
   final VoidCallback onTap;
+
+  /// Callback when the edit button is tapped.
   final VoidCallback onEdit;
+
+  /// Callback when the delete button is tapped.
   final VoidCallback onDelete;
+
+  /// The name of the first author or translator (if already fetched).
   final String? firstAuthorOrTranslatorName;
 
   @override
-  Widget build(BuildContext context) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
+    final ColorScheme colorScheme = theme.colorScheme;
 
     final bool isTranslation = work.isTranslation;
     final List<String> creatorIds = isTranslation ? work.translatorIds : work.authorIds;
@@ -63,26 +79,20 @@ class WorkListTile extends StatelessWidget {
                     work.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     creatorText,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                   Text(
-                    '${work.workType.clientValue} • ${work.readingStatus.clientValue}',
+                    '${work.contentCategory.clientValue} • ${work.readingStatus.clientValue}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                 ],
               ),

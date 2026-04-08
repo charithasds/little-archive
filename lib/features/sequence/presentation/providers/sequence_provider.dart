@@ -3,12 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/data/services/firestore_service.dart';
-import '../../../../core/shared/presentation/providers/firestore_provider.dart';
+import '../../../../core/shared/presentation/providers/firestore_service_provider.dart';
 import '../../data/datasources/sequence_remote_datasource.dart';
 import '../../data/repositories/sequence_repository_impl.dart';
 import '../../domain/entities/sequence_entity.dart';
 import '../../domain/entities/sequence_volume_entity.dart';
 import '../../domain/repositories/sequence_repository.dart';
+import '../../domain/usecases/sequence_usecases.dart';
 
 final Provider<SequenceRemoteDataSource> sequenceRemoteDataSourceProvider =
     Provider<SequenceRemoteDataSource>((Ref ref) {
@@ -23,14 +24,53 @@ final Provider<SequenceRepository> sequenceRepositoryProvider = Provider<Sequenc
   return SequenceRepositoryImpl(remoteDataSource: remoteDataSource);
 });
 
+final Provider<GetSequencesUseCase> getSequencesUseCaseProvider = Provider<GetSequencesUseCase>(
+  (Ref ref) => GetSequencesUseCase(ref.watch(sequenceRepositoryProvider)),
+);
+
+final Provider<WatchSequencesUseCase> watchSequencesUseCaseProvider =
+    Provider<WatchSequencesUseCase>(
+      (Ref ref) => WatchSequencesUseCase(ref.watch(sequenceRepositoryProvider)),
+    );
+
+final Provider<AddSequenceUseCase> addSequenceUseCaseProvider = Provider<AddSequenceUseCase>(
+  (Ref ref) => AddSequenceUseCase(ref.watch(sequenceRepositoryProvider)),
+);
+
+final Provider<UpdateSequenceUseCase> updateSequenceUseCaseProvider =
+    Provider<UpdateSequenceUseCase>(
+      (Ref ref) => UpdateSequenceUseCase(ref.watch(sequenceRepositoryProvider)),
+    );
+
+final Provider<DeleteSequenceUseCase> deleteSequenceUseCaseProvider =
+    Provider<DeleteSequenceUseCase>(
+      (Ref ref) => DeleteSequenceUseCase(ref.watch(sequenceRepositoryProvider)),
+    );
+
+final Provider<GetSequenceVolumeByIdUseCase> getSequenceVolumeByIdUseCaseProvider =
+    Provider<GetSequenceVolumeByIdUseCase>(
+      (Ref ref) => GetSequenceVolumeByIdUseCase(ref.watch(sequenceRepositoryProvider)),
+    );
+
+final Provider<GetSequenceVolumesByBookIdUseCase> getSequenceVolumesByBookIdUseCaseProvider =
+    Provider<GetSequenceVolumesByBookIdUseCase>(
+      (Ref ref) => GetSequenceVolumesByBookIdUseCase(ref.watch(sequenceRepositoryProvider)),
+    );
+
+final Provider<GetSequenceVolumesByWorkIdUseCase> getSequenceVolumesByWorkIdUseCaseProvider =
+    Provider<GetSequenceVolumesByWorkIdUseCase>(
+      (Ref ref) => GetSequenceVolumesByWorkIdUseCase(ref.watch(sequenceRepositoryProvider)),
+    );
+
 final StreamProvider<List<SequenceEntity>> sequencesStreamProvider =
-    StreamProvider<List<SequenceEntity>>((Ref ref) {
-      final SequenceRepository repository = ref.watch(sequenceRepositoryProvider);
+    StreamProvider<List<SequenceEntity>>((Ref ref) async* {
       final UserEntity? user = ref.watch(authStateProvider).value;
       if (user == null) {
-        return Stream<List<SequenceEntity>>.value(<SequenceEntity>[]);
+        yield <SequenceEntity>[];
+      } else {
+        final WatchSequencesUseCase watchSequences = ref.watch(watchSequencesUseCaseProvider);
+        yield* await watchSequences(user.uid);
       }
-      return repository.watchSequences(user.uid);
     });
 
 // ignore: always_specify_types

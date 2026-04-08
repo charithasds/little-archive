@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../../shared/domain/error/exceptions.dart';
+
+// TODO(charithasds): double-check this
 class RelationshipSyncService {
   RelationshipSyncService({required FirebaseFirestore firestore}) : _firestore = firestore;
 
@@ -9,7 +12,7 @@ class RelationshipSyncService {
   String get _currentUserId {
     final User? user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      throw Exception('User must be logged in to perform this operation.');
+      throw const UnauthorizedException();
     }
     return user.uid;
   }

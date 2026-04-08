@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
-import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
+import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/work_entity.dart';
 import '../providers/work_provider.dart';
 
@@ -45,11 +46,11 @@ class WorkDetailPage extends ConsumerWidget {
         final WorkEntity updated = work.copyWith(title: newTitle);
         await ref.read(workRepositoryProvider).updateWork(updated);
         if (context.mounted) {
-          SnackBarUtils.showSuccess(context, 'Title updated');
+          SnackBars.showSuccess(context, 'Title updated');
         }
       } catch (e) {
         if (context.mounted) {
-          SnackBarUtils.showError(context, 'Update failed: $e');
+          SnackBars.showError(context, 'Update failed: $e');
         }
       }
     }
@@ -58,6 +59,7 @@ class WorkDetailPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AsyncValue<List<WorkEntity>> worksAsync = ref.watch(worksStreamProvider);
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Work Details')),
@@ -79,7 +81,7 @@ class WorkDetailPage extends ConsumerWidget {
             children: <Widget>[
               ListTile(
                 title: const Text('Title'),
-                subtitle: Text(work.title, style: Theme.of(context).textTheme.headlineSmall),
+                subtitle: Text(work.title, style: theme.textTheme.headlineSmall),
                 trailing: IconButton(
                   icon: const Icon(Icons.edit, size: 20),
                   onPressed: () => _editTitle(context, ref, work!),

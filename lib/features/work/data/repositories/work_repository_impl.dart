@@ -10,6 +10,9 @@ class WorkRepositoryImpl implements WorkRepository {
   final RelationshipSyncService relationshipSyncService;
 
   @override
+  String generateId() => remoteDataSource.generateId();
+
+  @override
   Future<List<WorkEntity>> getWorks(String userId) => remoteDataSource.getWorks(userId);
 
   @override
@@ -24,7 +27,7 @@ class WorkRepositoryImpl implements WorkRepository {
         title: work.title,
         language: work.language,
         genre: work.genre,
-        workType: work.workType,
+        contentCategory: work.contentCategory,
         noOfPages: work.noOfPages,
         isTranslation: work.isTranslation,
         originalTitle: work.originalTitle,
@@ -37,7 +40,7 @@ class WorkRepositoryImpl implements WorkRepository {
         lastUpdated: work.lastUpdated,
         authorIds: work.authorIds,
         translatorIds: work.translatorIds,
-        sequenceVolumeId: work.sequenceVolumeId,
+        sequenceVolumeIds: work.sequenceVolumeIds,
         bookId: work.bookId,
       ),
     );
@@ -60,7 +63,7 @@ class WorkRepositoryImpl implements WorkRepository {
         title: work.title,
         language: work.language,
         genre: work.genre,
-        workType: work.workType,
+        contentCategory: work.contentCategory,
         noOfPages: work.noOfPages,
         isTranslation: work.isTranslation,
         originalTitle: work.originalTitle,
@@ -73,7 +76,7 @@ class WorkRepositoryImpl implements WorkRepository {
         lastUpdated: work.lastUpdated,
         authorIds: work.authorIds,
         translatorIds: work.translatorIds,
-        sequenceVolumeId: work.sequenceVolumeId,
+        sequenceVolumeIds: work.sequenceVolumeIds,
         bookId: work.bookId,
       ),
     );

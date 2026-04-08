@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
-import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
+import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/book_entity.dart';
 import '../providers/book_provider.dart';
 
@@ -47,15 +48,15 @@ class BookDetailPage extends ConsumerWidget {
         final BookEntity updated = book.copyWith(title: newTitle);
         await ref.read(bookRepositoryProvider).updateBook(updated);
         if (context.mounted) {
-          SnackBarUtils.showSuccess(context, 'Title updated');
+          SnackBars.showSuccess(context, 'Title updated');
         }
       } on NoConnectionException catch (e) {
         if (context.mounted) {
-          SnackBarUtils.showError(context, e.message);
+          SnackBars.showError(context, e.message);
         }
       } catch (e) {
         if (context.mounted) {
-          SnackBarUtils.showError(context, 'Update failed: $e');
+          SnackBars.showError(context, 'Update failed: $e');
         }
       }
     }
@@ -64,6 +65,7 @@ class BookDetailPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AsyncValue<List<BookEntity>> booksAsync = ref.watch(booksStreamProvider);
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Book Details')),
@@ -85,7 +87,7 @@ class BookDetailPage extends ConsumerWidget {
             children: <Widget>[
               ListTile(
                 title: const Text('Title'),
-                subtitle: Text(book.title, style: Theme.of(context).textTheme.headlineSmall),
+                subtitle: Text(book.title, style: theme.textTheme.headlineSmall),
                 trailing: IconButton(
                   icon: const Icon(Icons.edit, size: 20),
                   onPressed: () => _editTitle(context, ref, book!),

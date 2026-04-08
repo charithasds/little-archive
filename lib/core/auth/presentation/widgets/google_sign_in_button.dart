@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/shared/domain/error/exceptions.dart';
-import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-import '../../../shared/presentation/widgets/snackbar_utils.dart';
+import '../../../shared/presentation/utils/snack_bars.dart';
 import '../providers/auth_provider.dart';
 
+/// A premium, animated button for Google Sign-In.
+///
+/// It coordinates with [AuthController] to handle the authentication flow
+/// and provides visual feedback during loading states.
 class GoogleSignInButton extends ConsumerStatefulWidget {
+  /// Creates a [GoogleSignInButton].
   const GoogleSignInButton({super.key});
 
   @override
@@ -15,14 +19,16 @@ class GoogleSignInButton extends ConsumerStatefulWidget {
 }
 
 class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
-  bool _isLoading = false;
+  /// Local state to ensure immediate UI feedback before the provider updates.
+  bool _isLocalLoading = false;
 
   @override
   Widget build(BuildContext context) {
-    final ThemeMode themeMode = ref.watch(themeProvider);
-    final ThemeData theme = themeMode == ThemeMode.dark ? AppTheme.darkTheme : AppTheme.lightTheme;
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
-    final bool isDark = themeMode == ThemeMode.dark;
+    final AsyncValue<void> authControllerState = ref.watch(authControllerProvider);
+    final bool isDark = theme.brightness == Brightness.dark;
+    final bool isLoading = authControllerState.isLoading || _isLocalLoading;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -31,7 +37,7 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: _isLoading ? null : _handleSignIn,
+            onTap: isLoading ? null : _handleSignIn,
             borderRadius: BorderRadius.circular(16),
             child: Ink(
               decoration: BoxDecoration(
@@ -60,7 +66,7 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    if (_isLoading)
+                    if (isLoading)
                       SizedBox(
                         width: 24,
                         height: 24,
@@ -82,17 +88,16 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
                         ),
                         child: Image.network(
                           'https://developers.google.com/static/identity/images/g-logo.png',
-                          errorBuilder:
-                              (BuildContext context, Object error, StackTrace? stackTrace) => Icon(
-                                Icons.g_mobiledata_rounded,
-                                color: colorScheme.primary,
-                                size: 20,
-                              ),
+                          errorBuilder: (BuildContext context, Object error, StackTrace? s) => Icon(
+                            Icons.g_mobiledata_rounded,
+                            color: colorScheme.primary,
+                            size: 20,
+                          ),
                         ),
                       ),
                     const SizedBox(width: 16),
                     Text(
-                      _isLoading ? 'Signing in...' : 'Continue with Google',
+                      isLoading ? 'Signing in...' : 'Continue with Google',
                       style: theme.textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w600,
                         letterSpacing: 0.5,
@@ -110,20 +115,29 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
   }
 
   Future<void> _handleSignIn() async {
-    setState(() => _isLoading = true);
+    setState(() => _isLocalLoading = true);
+
     try {
       await ref.read(authControllerProvider.notifier).signInWithGoogle();
-    } on NoConnectionException catch (e) {
-      if (mounted) {
-        SnackBarUtils.showError(context, e.message);
+
+      // Check if sign-in resulted in an error from the controller
+      final AsyncValue<void> state = ref.read(authControllerProvider);
+
+      if (state.hasError && mounted) {
+        final Object error = state.error!;
+        if (error is NoConnectionException) {
+          SnackBars.showError(context, error.message);
+        } else {
+          SnackBars.showError(context, 'Sign in failed. Please try again.');
+        }
       }
     } catch (e) {
       if (mounted) {
-        SnackBarUtils.showError(context, 'Sign in failed. Please try again.');
+        SnackBars.showError(context, 'An unexpected error occurred.');
       }
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() => _isLocalLoading = false);
       }
     }
   }

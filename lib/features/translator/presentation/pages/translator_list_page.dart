@@ -2,22 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
-import '../../../../core/shared/presentation/widgets/connectivity_guard.dart';
-import '../../../../core/shared/presentation/widgets/snackbar_utils.dart';
+import '../../../../core/shared/presentation/utils/snack_bars.dart';
+import '../../../../core/theme/presentation/providers/theme_provider.dart';
 
 import '../../domain/entities/translator_entity.dart';
 import '../../domain/repositories/translator_repository.dart';
 import '../providers/translator_provider.dart';
 import '../widgets/translator_list_tile.dart';
 
+/// A page that displays a list of all translators.
 class TranslatorListPage extends ConsumerWidget {
+  /// Creates a [TranslatorListPage].
   const TranslatorListPage({super.key});
 
   Future<void> _handleDelete(BuildContext context, WidgetRef ref, String translatorId) async {
+    final ThemeData theme = ref.read(activeThemeDataProvider);
+
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
-        icon: Icon(Icons.warning_rounded, color: Theme.of(context).colorScheme.error, size: 48),
+        icon: Icon(Icons.warning_rounded, color: theme.colorScheme.error, size: 48),
         title: const Text('Delete Translator'),
         content: const Text(
           'Are you sure you want to delete this translator? This action cannot be undone.',
@@ -29,7 +33,7 @@ class TranslatorListPage extends ConsumerWidget {
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.error),
+            style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.error),
             child: const Text('Delete'),
           ),
         ],
@@ -45,15 +49,15 @@ class TranslatorListPage extends ConsumerWidget {
           .read<TranslatorRepository>(translatorRepositoryProvider)
           .deleteTranslator(translatorId);
       if (context.mounted) {
-        SnackBarUtils.showSuccess(context, 'Translator deleted successfully');
+        SnackBars.showSuccess(context, 'Translator deleted successfully');
       }
     } on NoConnectionException catch (e) {
       if (context.mounted) {
-        SnackBarUtils.showError(context, e.message);
+        SnackBars.showError(context, e.message);
       }
     } catch (e) {
       if (context.mounted) {
-        SnackBarUtils.showError(context, 'Delete failed: $e');
+        SnackBars.showError(context, 'Delete failed: $e');
       }
     }
   }
@@ -63,7 +67,9 @@ class TranslatorListPage extends ConsumerWidget {
     final AsyncValue<List<TranslatorEntity>> translatorsAsync = ref.watch(
       translatorsStreamProvider,
     );
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
+    final ColorScheme colorScheme = theme.colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Translators'), centerTitle: true),
@@ -82,16 +88,14 @@ class TranslatorListPage extends ConsumerWidget {
                   const SizedBox(height: 16),
                   Text(
                     'No Translators Yet',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface),
+                    style: theme.textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Tap the button below to add your first translator',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -107,22 +111,8 @@ class TranslatorListPage extends ConsumerWidget {
                     final TranslatorEntity translator = translators[index];
                     return TranslatorListTile(
                       translator: translator,
-                      onTap: () async {
-                        if (!await ref.requireConnectivity(context)) {
-                          return;
-                        }
-                        if (context.mounted) {
-                          context.go('/translators/${translator.id}');
-                        }
-                      },
-                      onEdit: () async {
-                        if (!await ref.requireConnectivity(context)) {
-                          return;
-                        }
-                        if (context.mounted) {
-                          context.push('/translators/add', extra: translator);
-                        }
-                      },
+                      onTap: () => context.go('/translators/${translator.id}'),
+                      onEdit: () => context.push('/translators/add', extra: translator),
                       onDelete: () => _handleDelete(context, ref, translator.id),
                     );
                   },
@@ -147,22 +137,8 @@ class TranslatorListPage extends ConsumerWidget {
                       ),
                       child: TranslatorListTile(
                         translator: translator,
-                        onTap: () async {
-                          if (!await ref.requireConnectivity(context)) {
-                            return;
-                          }
-                          if (context.mounted) {
-                            context.go('/translators/${translator.id}');
-                          }
-                        },
-                        onEdit: () async {
-                          if (!await ref.requireConnectivity(context)) {
-                            return;
-                          }
-                          if (context.mounted) {
-                            context.push('/translators/add', extra: translator);
-                          }
-                        },
+                        onTap: () => context.go('/translators/${translator.id}'),
+                        onEdit: () => context.push('/translators/add', extra: translator),
                         onDelete: () => _handleDelete(context, ref, translator.id),
                       ),
                     );
@@ -179,13 +155,11 @@ class TranslatorListPage extends ConsumerWidget {
             children: <Widget>[
               Icon(Icons.error_outline_rounded, size: 64, color: colorScheme.error),
               const SizedBox(height: 16),
-              Text('Something went wrong', style: Theme.of(context).textTheme.titleLarge),
+              Text('Something went wrong', style: theme.textTheme.titleLarge),
               const SizedBox(height: 8),
               Text(
                 '$err',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -193,14 +167,7 @@ class TranslatorListPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          if (!await ref.requireConnectivity(context)) {
-            return;
-          }
-          if (context.mounted) {
-            context.go('/translators/add');
-          }
-        },
+        onPressed: () => context.go('/translators/add'),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Translator'),
       ),

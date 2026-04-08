@@ -10,6 +10,9 @@ class ReaderRepositoryImpl implements ReaderRepository {
   final RelationshipSyncService relationshipSyncService;
 
   @override
+  String generateId() => remoteDataSource.generateId();
+
+  @override
   Future<List<ReaderEntity>> getReaders(String userId) => remoteDataSource.getReaders(userId);
 
   @override

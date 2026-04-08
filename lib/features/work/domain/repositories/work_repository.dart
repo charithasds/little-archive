@@ -1,6 +1,7 @@
 import '../entities/work_entity.dart';
 
 abstract class WorkRepository {
+  String generateId();
   Future<List<WorkEntity>> getWorks(String userId);
   Future<WorkEntity?> getWorkById(String id);
   Future<void> addWork(WorkEntity work);

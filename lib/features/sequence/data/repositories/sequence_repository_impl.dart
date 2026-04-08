@@ -10,6 +10,12 @@ class SequenceRepositoryImpl implements SequenceRepository {
   final SequenceRemoteDataSource remoteDataSource;
 
   @override
+  String generateId() => remoteDataSource.generateId();
+
+  @override
+  String generateVolumeId() => remoteDataSource.generateVolumeId();
+
+  @override
   Future<List<SequenceEntity>> getSequences(String userId) => remoteDataSource.getSequences(userId);
 
   @override
@@ -21,7 +27,6 @@ class SequenceRepositoryImpl implements SequenceRepository {
       id: sequence.id,
 
       name: sequence.name,
-      notes: sequence.notes,
       sequenceVolumeIds: sequence.sequenceVolumeIds,
     ),
   );
@@ -32,7 +37,6 @@ class SequenceRepositoryImpl implements SequenceRepository {
       id: sequence.id,
 
       name: sequence.name,
-      notes: sequence.notes,
       sequenceVolumeIds: sequence.sequenceVolumeIds,
     ),
   );
@@ -47,6 +51,18 @@ class SequenceRepositoryImpl implements SequenceRepository {
   @override
   Future<List<SequenceVolumeEntity>> getSequenceVolumes(String sequenceId, String userId) =>
       remoteDataSource.getSequenceVolumes(sequenceId, userId);
+
+  @override
+  Future<SequenceVolumeEntity?> getSequenceVolumeById(String id) =>
+      remoteDataSource.getSequenceVolumeById(id);
+
+  @override
+  Future<List<SequenceVolumeEntity>> getSequenceVolumesByBookId(String bookId, String userId) =>
+      remoteDataSource.getSequenceVolumesByBookId(bookId, userId);
+
+  @override
+  Future<List<SequenceVolumeEntity>> getSequenceVolumesByWorkId(String workId, String userId) =>
+      remoteDataSource.getSequenceVolumesByWorkId(workId, userId);
 
   @override
   Future<void> addSequenceVolume(SequenceVolumeEntity volume) => remoteDataSource.addSequenceVolume(
