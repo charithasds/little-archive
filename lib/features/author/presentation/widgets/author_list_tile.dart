@@ -5,9 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/author_entity.dart';
 
-/// A tile that displays summary information for an [AuthorEntity] in a list.
 class AuthorListTile extends ConsumerWidget {
-  /// Creates an [AuthorListTile].
   const AuthorListTile({
     super.key,
     required this.author,
@@ -16,16 +14,12 @@ class AuthorListTile extends ConsumerWidget {
     required this.onDelete,
   });
 
-  /// The author entity to display.
   final AuthorEntity author;
 
-  /// Callback when the tile is tapped.
   final VoidCallback onTap;
 
-  /// Callback when the edit button is tapped.
   final VoidCallback onEdit;
 
-  /// Callback when the delete button is tapped.
   final VoidCallback onDelete;
 
   @override

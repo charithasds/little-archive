@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
@@ -12,11 +13,13 @@ import '../../domain/entities/publisher_entity.dart';
 import '../../domain/repositories/publisher_repository.dart';
 import '../../domain/usecases/publisher_usecases.dart';
 
-final Provider<PublisherRemoteDataSource> publisherRemoteDataSourceProvider =
-    Provider<PublisherRemoteDataSource>((Ref ref) {
+part 'publisher_provider.g.dart';
+
+@riverpod
+PublisherRemoteDataSource publisherRemoteDataSource(Ref ref) {
       final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
       return PublisherRemoteDataSourceImpl(firestoreService: firestoreService);
-    });
+    }
 
 final Provider<PublisherRepository> publisherRepositoryProvider = Provider<PublisherRepository>((
   Ref ref,
@@ -31,35 +34,25 @@ final Provider<PublisherRepository> publisherRepositoryProvider = Provider<Publi
   );
 });
 
-final Provider<GetPublishersUseCase> getPublishersUseCaseProvider = Provider<GetPublishersUseCase>(
-  (Ref ref) => GetPublishersUseCase(ref.watch(publisherRepositoryProvider)),
-);
-final Provider<WatchPublishersUseCase> watchPublishersUseCaseProvider =
-    Provider<WatchPublishersUseCase>(
-      (Ref ref) => WatchPublishersUseCase(ref.watch(publisherRepositoryProvider)),
-    );
-final Provider<GetPublisherByIdUseCase> getPublisherByIdUseCaseProvider =
-    Provider<GetPublisherByIdUseCase>(
-      (Ref ref) => GetPublisherByIdUseCase(ref.watch(publisherRepositoryProvider)),
-    );
-final Provider<AddPublisherUseCase> addPublisherUseCaseProvider = Provider<AddPublisherUseCase>(
-  (Ref ref) => AddPublisherUseCase(ref.watch(publisherRepositoryProvider)),
-);
-final Provider<UpdatePublisherUseCase> updatePublisherUseCaseProvider =
-    Provider<UpdatePublisherUseCase>(
-      (Ref ref) => UpdatePublisherUseCase(ref.watch(publisherRepositoryProvider)),
-    );
-final Provider<DeletePublisherUseCase> deletePublisherUseCaseProvider =
-    Provider<DeletePublisherUseCase>(
-      (Ref ref) => DeletePublisherUseCase(ref.watch(publisherRepositoryProvider)),
-    );
+@riverpod
+GetPublishersUseCase getPublishersUseCase(Ref ref) => GetPublishersUseCase(ref.watch(publisherRepositoryProvider));
+@riverpod
+WatchPublishersUseCase watchPublishersUseCase(Ref ref) => WatchPublishersUseCase(ref.watch(publisherRepositoryProvider));
+@riverpod
+GetPublisherByIdUseCase getPublisherByIdUseCase(Ref ref) => GetPublisherByIdUseCase(ref.watch(publisherRepositoryProvider));
+@riverpod
+AddPublisherUseCase addPublisherUseCase(Ref ref) => AddPublisherUseCase(ref.watch(publisherRepositoryProvider));
+@riverpod
+UpdatePublisherUseCase updatePublisherUseCase(Ref ref) => UpdatePublisherUseCase(ref.watch(publisherRepositoryProvider));
+@riverpod
+DeletePublisherUseCase deletePublisherUseCase(Ref ref) => DeletePublisherUseCase(ref.watch(publisherRepositoryProvider));
 
-final StreamProvider<List<PublisherEntity>> publishersStreamProvider =
-    StreamProvider<List<PublisherEntity>>((Ref ref) {
+@riverpod
+Stream<List<PublisherEntity>> publishersStream(Ref ref) {
       final WatchPublishersUseCase watchPublishers = ref.watch(watchPublishersUseCaseProvider);
       final UserEntity? user = ref.watch(authStateProvider).value;
       if (user == null) {
         return Stream<List<PublisherEntity>>.value(<PublisherEntity>[]);
       }
       return watchPublishers(user.uid);
-    });
+    }

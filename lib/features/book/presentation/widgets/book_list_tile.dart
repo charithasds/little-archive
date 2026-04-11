@@ -5,9 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/book_entity.dart';
 
-/// A tile that displays summary information for a [BookEntity] in a list.
 class BookListTile extends ConsumerWidget {
-  /// Creates a [BookListTile].
   const BookListTile({
     super.key,
     required this.book,
@@ -17,19 +15,14 @@ class BookListTile extends ConsumerWidget {
     this.firstAuthorOrTranslatorName,
   });
 
-  /// The book entity to display.
   final BookEntity book;
 
-  /// Callback when the tile is tapped.
   final VoidCallback onTap;
 
-  /// Callback when the edit button is tapped.
   final VoidCallback onEdit;
 
-  /// Callback when the delete button is tapped.
   final VoidCallback onDelete;
 
-  /// Name of the first author or translator (if available).
   final String? firstAuthorOrTranslatorName;
 
   @override

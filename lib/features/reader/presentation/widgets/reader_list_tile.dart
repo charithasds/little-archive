@@ -5,9 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/reader_entity.dart';
 
-/// A tile that displays summary information for a [ReaderEntity] in a list.
 class ReaderListTile extends ConsumerWidget {
-  /// Creates a [ReaderListTile].
   const ReaderListTile({
     super.key,
     required this.reader,
@@ -16,16 +14,12 @@ class ReaderListTile extends ConsumerWidget {
     required this.onDelete,
   });
 
-  /// The reader entity to display.
   final ReaderEntity reader;
 
-  /// Callback when the tile is tapped.
   final VoidCallback onTap;
 
-  /// Callback when the edit button is tapped.
   final VoidCallback onEdit;
 
-  /// Callback when the delete button is tapped.
   final VoidCallback onDelete;
 
   @override

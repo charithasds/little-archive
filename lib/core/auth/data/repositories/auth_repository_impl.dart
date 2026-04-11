@@ -9,9 +9,7 @@ import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_data_source.dart';
 import '../models/user_model.dart';
 
-/// Implementation of [AuthRepository] using Firebase Auth and Google Sign-In.
 class AuthRepositoryImpl implements AuthRepository {
-  /// Creates an [AuthRepositoryImpl] with the given [AuthRemoteDataSource].
   AuthRepositoryImpl(this._dataSource);
 
   final AuthRemoteDataSource _dataSource;
@@ -48,12 +46,10 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 }
 
-/// Provider for [GoogleSignIn] configuration.
 final Provider<GoogleSignIn> googleSignInProvider = Provider<GoogleSignIn>(
   (Ref ref) => GoogleSignIn(scopes: <String>['email', 'profile']),
 );
 
-/// Provider for [AuthRemoteDataSource].
 final Provider<AuthRemoteDataSource> authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>(
   (Ref ref) => AuthRemoteDataSource(
     ref.watch(firebaseAuthProvider),
@@ -62,7 +58,6 @@ final Provider<AuthRemoteDataSource> authRemoteDataSourceProvider = Provider<Aut
   ),
 );
 
-/// Provider for the authentication repository implementation.
 final Provider<AuthRepository> authRepositoryProvider = Provider<AuthRepository>(
   (Ref ref) => AuthRepositoryImpl(ref.watch(authRemoteDataSourceProvider)),
 );

@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
@@ -11,80 +11,64 @@ import '../../domain/entities/sequence_volume_entity.dart';
 import '../../domain/repositories/sequence_repository.dart';
 import '../../domain/usecases/sequence_usecases.dart';
 
-final Provider<SequenceRemoteDataSource> sequenceRemoteDataSourceProvider =
-    Provider<SequenceRemoteDataSource>((Ref ref) {
-      final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
-      return SequenceRemoteDataSourceImpl(firestoreService: firestoreService);
-    });
+part 'sequence_provider.g.dart';
 
-final Provider<SequenceRepository> sequenceRepositoryProvider = Provider<SequenceRepository>((
-  Ref ref,
-) {
+@riverpod
+SequenceRemoteDataSource sequenceRemoteDataSource(Ref ref) {
+  final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
+  return SequenceRemoteDataSourceImpl(firestoreService: firestoreService);
+}
+
+@riverpod
+SequenceRepository sequenceRepository(Ref ref) {
   final SequenceRemoteDataSource remoteDataSource = ref.watch(sequenceRemoteDataSourceProvider);
   return SequenceRepositoryImpl(remoteDataSource: remoteDataSource);
-});
+}
 
-final Provider<GetSequencesUseCase> getSequencesUseCaseProvider = Provider<GetSequencesUseCase>(
-  (Ref ref) => GetSequencesUseCase(ref.watch(sequenceRepositoryProvider)),
-);
+@riverpod
+GetSequencesUseCase getSequencesUseCase(Ref ref) => GetSequencesUseCase(ref.watch(sequenceRepositoryProvider));
 
-final Provider<WatchSequencesUseCase> watchSequencesUseCaseProvider =
-    Provider<WatchSequencesUseCase>(
-      (Ref ref) => WatchSequencesUseCase(ref.watch(sequenceRepositoryProvider)),
-    );
+@riverpod
+WatchSequencesUseCase watchSequencesUseCase(Ref ref) => WatchSequencesUseCase(ref.watch(sequenceRepositoryProvider));
 
-final Provider<AddSequenceUseCase> addSequenceUseCaseProvider = Provider<AddSequenceUseCase>(
-  (Ref ref) => AddSequenceUseCase(ref.watch(sequenceRepositoryProvider)),
-);
+@riverpod
+AddSequenceUseCase addSequenceUseCase(Ref ref) => AddSequenceUseCase(ref.watch(sequenceRepositoryProvider));
 
-final Provider<UpdateSequenceUseCase> updateSequenceUseCaseProvider =
-    Provider<UpdateSequenceUseCase>(
-      (Ref ref) => UpdateSequenceUseCase(ref.watch(sequenceRepositoryProvider)),
-    );
+@riverpod
+UpdateSequenceUseCase updateSequenceUseCase(Ref ref) => UpdateSequenceUseCase(ref.watch(sequenceRepositoryProvider));
 
-final Provider<DeleteSequenceUseCase> deleteSequenceUseCaseProvider =
-    Provider<DeleteSequenceUseCase>(
-      (Ref ref) => DeleteSequenceUseCase(ref.watch(sequenceRepositoryProvider)),
-    );
+@riverpod
+DeleteSequenceUseCase deleteSequenceUseCase(Ref ref) => DeleteSequenceUseCase(ref.watch(sequenceRepositoryProvider));
 
-final Provider<GetSequenceVolumeByIdUseCase> getSequenceVolumeByIdUseCaseProvider =
-    Provider<GetSequenceVolumeByIdUseCase>(
-      (Ref ref) => GetSequenceVolumeByIdUseCase(ref.watch(sequenceRepositoryProvider)),
-    );
+@riverpod
+GetSequenceVolumeByIdUseCase getSequenceVolumeByIdUseCase(Ref ref) => GetSequenceVolumeByIdUseCase(ref.watch(sequenceRepositoryProvider));
 
-final Provider<GetSequenceVolumesByBookIdUseCase> getSequenceVolumesByBookIdUseCaseProvider =
-    Provider<GetSequenceVolumesByBookIdUseCase>(
-      (Ref ref) => GetSequenceVolumesByBookIdUseCase(ref.watch(sequenceRepositoryProvider)),
-    );
+@riverpod
+GetSequenceVolumesByBookIdUseCase getSequenceVolumesByBookIdUseCase(Ref ref) => GetSequenceVolumesByBookIdUseCase(ref.watch(sequenceRepositoryProvider));
 
-final Provider<GetSequenceVolumesByWorkIdUseCase> getSequenceVolumesByWorkIdUseCaseProvider =
-    Provider<GetSequenceVolumesByWorkIdUseCase>(
-      (Ref ref) => GetSequenceVolumesByWorkIdUseCase(ref.watch(sequenceRepositoryProvider)),
-    );
+@riverpod
+GetSequenceVolumesByWorkIdUseCase getSequenceVolumesByWorkIdUseCase(Ref ref) => GetSequenceVolumesByWorkIdUseCase(ref.watch(sequenceRepositoryProvider));
 
-final StreamProvider<List<SequenceEntity>> sequencesStreamProvider =
-    StreamProvider<List<SequenceEntity>>((Ref ref) async* {
-      final UserEntity? user = ref.watch(authStateProvider).value;
-      if (user == null) {
-        yield <SequenceEntity>[];
-      } else {
-        final WatchSequencesUseCase watchSequences = ref.watch(watchSequencesUseCaseProvider);
-        yield* await watchSequences(user.uid);
-      }
-    });
+@riverpod
+Stream<List<SequenceEntity>> sequencesStream(Ref ref) async* {
+  final UserEntity? user = ref.watch(authStateProvider).value;
+  if (user == null) {
+    yield <SequenceEntity>[];
+  } else {
+    final WatchSequencesUseCase watchSequences = ref.watch(watchSequencesUseCaseProvider);
+    yield* await watchSequences(user.uid);
+  }
+}
 
-// ignore: always_specify_types
-final sequenceVolumesStreamProvider = StreamProvider.family<List<SequenceVolumeEntity>, String>((
-  Ref ref,
-  String sequenceId,
-) {
+@riverpod
+Stream<List<SequenceVolumeEntity>> sequenceVolumesStream(Ref ref, String sequenceId) {
   final SequenceRepository repository = ref.watch(sequenceRepositoryProvider);
   final UserEntity? user = ref.watch(authStateProvider).value;
   if (user == null) {
     return Stream<List<SequenceVolumeEntity>>.value(<SequenceVolumeEntity>[]);
   }
   return repository.watchSequenceVolumes(sequenceId, user.uid);
-});
+}
 
 class SequenceStats {
   const SequenceStats({this.bookCount = 0, this.workCount = 0});
@@ -92,8 +76,8 @@ class SequenceStats {
   final int workCount;
 }
 
-// ignore: always_specify_types
-final sequenceStatsProvider = Provider.family<SequenceStats, String>((Ref ref, String sequenceId) {
+@riverpod
+SequenceStats sequenceStats(Ref ref, String sequenceId) {
   final AsyncValue<List<SequenceVolumeEntity>> volumesAsync = ref.watch(
     sequenceVolumesStreamProvider(sequenceId),
   );
@@ -114,4 +98,4 @@ final sequenceStatsProvider = Provider.family<SequenceStats, String>((Ref ref, S
     loading: () => const SequenceStats(),
     error: (_, _) => const SequenceStats(),
   );
-});
+}

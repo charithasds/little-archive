@@ -96,14 +96,13 @@ class UpsertBookController extends Notifier<UpsertBookState> {
       final String bookId = existingBook?.id ?? ref.read(bookRepositoryProvider).generateId();
       final List<String> sequenceVolumeIds = <String>[];
 
-      // Delete old sequence volumes for this book
       if (existingBook != null) {
         final List<SequenceVolumeEntity> oldVolumes = await ref
             .read(sequenceRepositoryProvider)
             .getSequenceVolumesByBookId(bookId, user.uid);
         for (final SequenceVolumeEntity vol in oldVolumes) {
           await ref.read(sequenceRepositoryProvider).deleteSequenceVolume(vol.id);
-          // Remove from sequence list
+
           final SequenceEntity? seq = await ref
               .read(sequenceRepositoryProvider)
               .getSequenceById(vol.sequenceId);
@@ -132,7 +131,6 @@ class UpsertBookController extends Notifier<UpsertBookState> {
 
         await ref.read(sequenceRepositoryProvider).addSequenceVolume(volume);
 
-        // Fetch the LATEST sequence state because it might have been updated in the loop above or by another deletion
         final SequenceEntity? currentSequence = await ref
             .read(sequenceRepositoryProvider)
             .getSequenceById(sequence.id);

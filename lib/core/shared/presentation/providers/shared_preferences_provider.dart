@@ -1,6 +1,7 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// A provider that exposes the [SharedPreferences] instance for persistent local storage.
-final FutureProvider<SharedPreferences> sharedPreferencesProvider =
-    FutureProvider<SharedPreferences>((Ref ref) async => SharedPreferences.getInstance());
+part 'shared_preferences_provider.g.dart';
+
+@Riverpod(keepAlive: true)
+Future<SharedPreferences> sharedPreferences(Ref ref) async => SharedPreferences.getInstance();

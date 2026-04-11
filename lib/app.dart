@@ -9,12 +9,7 @@ import 'core/shared/presentation/utils/snack_bars.dart';
 import 'core/theme/presentation/providers/theme_provider.dart';
 import 'core/theme/presentation/theme/theme_service.dart';
 
-/// The root widget of the Little Archive application.
-///
-/// It initializes the application's theme, routing, and monitors global states
-/// like network connectivity and Firebase synchronization.
 class LittleArchiveApp extends ConsumerStatefulWidget {
-  /// Creates the [LittleArchiveApp].
   const LittleArchiveApp({super.key});
 
   @override
@@ -22,19 +17,17 @@ class LittleArchiveApp extends ConsumerStatefulWidget {
 }
 
 class _LittleArchiveAppState extends ConsumerState<LittleArchiveApp> with WidgetsBindingObserver {
-  /// Stores the previous value of connectivity to detect changes.
   bool? _previousConnectivity;
 
   @override
   void initState() {
     super.initState();
-    // Register this class as an observer to track app lifecycle changes.
+
     WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
-    // Unregister the lifecycle observer.
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -45,9 +38,8 @@ class _LittleArchiveAppState extends ConsumerState<LittleArchiveApp> with Widget
       return;
     }
 
-    final FirestoreNetworkNotifier notifier = ref.read(firestoreNetworkProvider.notifier);
+    final FirestoreNetwork notifier = ref.read(firestoreNetworkProvider.notifier);
 
-    // Coordinate Firestore synchronization states based on app lifecycle.
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
       notifier.handleLifecyclePaused();
     } else if (state == AppLifecycleState.resumed) {
@@ -57,15 +49,12 @@ class _LittleArchiveAppState extends ConsumerState<LittleArchiveApp> with Widget
 
   @override
   Widget build(BuildContext context) {
-    // Watch relevant providers for theme and navigation.
     final GoRouter goRouter = ref.watch(goRouterProvider);
     final ThemeMode themeMode = ref.watch(themeModeProvider);
     final ThemeService themeService = ref.watch(themeServiceProvider);
 
-    // Activate firestore network monitoring.
     ref.watch(firestoreNetworkProvider);
 
-    // Monitor connectivity changes to provide user feedback through Snackbars.
     ref.listen<AsyncValue<bool>>(connectivityStreamProvider, (
       AsyncValue<bool>? previous,
       AsyncValue<bool> next,

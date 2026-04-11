@@ -1,16 +1,6 @@
-/// A utility class containing static methods for validating form inputs.
-///
-/// These validators return a [String] error message if validation fails,
-/// or `null` if the input is valid.
 class Validators {
   Validators._();
 
-  /// Validates that a string is a valid Facebook or FB URL.
-  ///
-  /// Supports:
-  /// - https://www.facebook.com/username
-  /// - http://facebook.com/username
-  /// - fb.com/username
   static String? validateFacebookUrl(String? value) {
     if (value == null || value.trim().isEmpty) {
       return null;
@@ -29,7 +19,6 @@ class Validators {
     return null;
   }
 
-  /// Validates that a string follows a standard email format.
   static String? validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) {
       return null;
@@ -44,7 +33,6 @@ class Validators {
     return null;
   }
 
-  /// Validates that a string is a properly formatted website URL.
   static String? validateWebsiteUrl(String? value) {
     if (value == null || value.trim().isEmpty) {
       return null;
@@ -61,11 +49,6 @@ class Validators {
     return null;
   }
 
-  /// Validates that a string is a valid Sri Lankan phone number.
-  ///
-  /// Supports:
-  /// - Local format: 071 234 5678
-  /// - International format: +94 71 234 5678
   static String? validateSriLankanPhoneNumber(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Phone number is required';

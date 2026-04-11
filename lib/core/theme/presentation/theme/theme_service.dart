@@ -1,34 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// TODO(charithasds): double-check this
-/// [ThemeService] handles the application's visual definitions and [ThemeData] configurations.
-///
-/// It centralizes color schemes, typography, and component-specific themes for
-/// both light and dark modes.
 class ThemeService {
-  /// Hex colors for the light theme palette.
   static const Color _primaryLight = Color(0xFFF5F1E3);
 
-  /// Hex colors for the dark theme palette.
   static const Color _primaryDark = Color(0xFF8C7355);
 
-  /// Secondary brand color.
   static const Color _secondary = Color(0xFF4A7C59);
 
-  /// Lighter shade of the secondary color.
   static const Color _secondaryLight = Color(0xFF5C8A5B);
 
-  /// Tertiary/Accent brand color.
   static const Color _tertiary = Color(0xFFD4A855);
 
-  /// Lighter shade of the tertiary color.
   static const Color _tertiaryLight = Color(0xFFE8C77B);
 
-  /// Text theme for the application, using 'Cabin' from Google Fonts.
   TextTheme get _textTheme => GoogleFonts.cabinTextTheme();
 
-  /// Standard configuration for Light [ThemeData].
   ThemeData get lightTheme => ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
@@ -99,7 +86,6 @@ class ThemeService {
     ),
   );
 
-  /// Standard configuration for Dark [ThemeData].
   ThemeData get darkTheme => ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,

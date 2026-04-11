@@ -14,9 +14,7 @@ import '../../domain/repositories/book_repository.dart';
 import '../providers/book_provider.dart';
 import '../widgets/book_list_tile.dart';
 
-/// A page that displays a list of all books.
 class BookListPage extends ConsumerWidget {
-  /// Creates a [BookListPage].
   const BookListPage({super.key});
 
   Future<void> _handleDelete(BuildContext context, WidgetRef ref, String bookId) async {

@@ -3,11 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/theme_provider.dart';
 
-/// A premium [IconButton] that toggles between light and dark modes.
-///
-/// Features a smooth rotation and scale transition when switching.
 class ThemeToggle extends ConsumerWidget {
-  /// Create a [ThemeToggle] widget.
   const ThemeToggle({super.key});
 
   @override

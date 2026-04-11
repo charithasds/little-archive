@@ -515,7 +515,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                                 !_selectedSequences.keys.any((SequenceEntity e) => e.id == s.id),
                           )
                           .toList(),
-                      value: null, // Always null because we are adding to a list
+                      value: null,
                       itemLabel: (SequenceEntity s) => s.name,
                       itemKey: (SequenceEntity s) => s.id,
                       onChanged: _handleSequenceSelection,

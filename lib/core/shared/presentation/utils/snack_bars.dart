@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
 
-/// A utility class for displaying standardized [SnackBar] notifications.
-///
-/// Use this class to provide quick, non-intrusive feedback to the user
-/// about the result of an operation.
 class SnackBars {
   SnackBars._();
 
   static final GlobalKey<ScaffoldMessengerState> messengerKey = GlobalKey<ScaffoldMessengerState>();
 
-  /// Displays a success notification with a check icon.
-  /// Typically used for successful saves, updates, or deletes.
   static void showSuccess(BuildContext context, String message) {
     final ColorScheme colorScheme = _colorScheme(context);
     _showSnackBar(
@@ -22,8 +16,6 @@ class SnackBars {
     );
   }
 
-  /// Displays an error notification with an error icon.
-  /// Typically used for unexpected failures or validation errors.
   static void showError(BuildContext context, String message) {
     final ColorScheme colorScheme = _colorScheme(context);
     _showSnackBar(
@@ -35,8 +27,6 @@ class SnackBars {
     );
   }
 
-  /// Displays a warning notification with a warning icon.
-  /// Typically used for actions that might have side effects or require caution.
   static void showWarning(BuildContext context, String message) {
     final ColorScheme colorScheme = _colorScheme(context);
     _showSnackBar(
@@ -48,8 +38,6 @@ class SnackBars {
     );
   }
 
-  /// Displays an informational notification with an info icon.
-  /// Typically used for neutral status updates.
   static void showInfo(BuildContext context, String message) {
     final ColorScheme colorScheme = _colorScheme(context);
     _showSnackBar(

@@ -59,14 +59,13 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
       final String workId = existingWork?.id ?? ref.read(workRepositoryProvider).generateId();
       final List<String> sequenceVolumeIds = <String>[];
 
-      // Delete old sequence volumes for this work
       if (existingWork != null) {
         final List<SequenceVolumeEntity> oldVolumes = await ref
             .read(sequenceRepositoryProvider)
             .getSequenceVolumesByWorkId(workId, user.uid);
         for (final SequenceVolumeEntity vol in oldVolumes) {
           await ref.read(sequenceRepositoryProvider).deleteSequenceVolume(vol.id);
-          // Remove from sequence list
+
           final SequenceEntity? seq = await ref
               .read(sequenceRepositoryProvider)
               .getSequenceById(vol.sequenceId);
@@ -95,7 +94,6 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
 
         await ref.read(sequenceRepositoryProvider).addSequenceVolume(volume);
 
-        // Fetch LATEST sequence state
         final SequenceEntity? currentSequence = await ref
             .read(sequenceRepositoryProvider)
             .getSequenceById(sequence.id);

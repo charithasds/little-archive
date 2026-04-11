@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 
 import '../../../theme/presentation/providers/theme_provider.dart';
 
-// TODO(charithasds): double-check this
 class FormDateField extends ConsumerWidget {
   const FormDateField({
     super.key,

@@ -23,9 +23,6 @@ class DashboardPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ThemeData theme = ref.watch(activeThemeDataProvider);
-    final ColorScheme colorScheme = theme.colorScheme;
-
     final AsyncValue<List<BookEntity>> booksAsync = ref.watch(booksStreamProvider);
     final AsyncValue<List<WorkEntity>> worksAsync = ref.watch(worksStreamProvider);
     final AsyncValue<List<AuthorEntity>> authorsAsync = ref.watch(authorsStreamProvider);
@@ -52,7 +49,7 @@ class DashboardPage extends ConsumerWidget {
         return CustomScrollView(
           slivers: <Widget>[
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+              padding: const EdgeInsets.all(24),
               sliver: SliverGrid(
                 gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
                   maxCrossAxisExtent: isLargeScreen ? 220 : 200,
@@ -64,85 +61,56 @@ class DashboardPage extends ConsumerWidget {
                   _DashboardCard(
                     title: _getTitle(bookCount, 'Book'),
                     icon: Icons.book_rounded,
-                    gradient: <Color>[colorScheme.primaryContainer, colorScheme.primary],
-                    iconColor: colorScheme.onPrimary,
                     count: bookCount,
-                    theme: theme,
-                    colorScheme: colorScheme,
                     onTap: () => context.go('/books'),
                   ),
                   _DashboardCard(
                     title: _getTitle(workCount, 'Work'),
                     icon: Icons.article_rounded,
-                    gradient: <Color>[colorScheme.secondaryContainer, colorScheme.secondary],
-                    iconColor: colorScheme.onSecondary,
                     count: workCount,
-                    theme: theme,
-                    colorScheme: colorScheme,
                     onTap: () => context.go('/works'),
                   ),
                   _DashboardCard(
                     title: _getTitle(authorCount, 'Author'),
                     icon: Icons.person_rounded,
-                    gradient: <Color>[colorScheme.tertiaryContainer, colorScheme.tertiary],
-                    iconColor: colorScheme.onTertiary,
                     count: authorCount,
-                    theme: theme,
-                    colorScheme: colorScheme,
                     onTap: () => context.go('/authors'),
                   ),
                   _DashboardCard(
                     title: _getTitle(translatorCount, 'Translator'),
                     icon: Icons.translate_rounded,
-                    gradient: <Color>[colorScheme.primaryContainer, colorScheme.primary],
-                    iconColor: colorScheme.onPrimary,
                     count: translatorCount,
-                    theme: theme,
-                    colorScheme: colorScheme,
                     onTap: () => context.go('/translators'),
                   ),
                   _DashboardCard(
                     title: _getTitle(publisherCount, 'Publisher'),
                     icon: Icons.business_rounded,
-                    gradient: <Color>[colorScheme.secondaryContainer, colorScheme.secondary],
-                    iconColor: colorScheme.onSecondary,
                     count: publisherCount,
-                    theme: theme,
-                    colorScheme: colorScheme,
                     onTap: () => context.go('/publishers'),
                   ),
                   _DashboardCard(
                     title: _getTitle(sequenceCount, 'Sequence'),
                     icon: Icons.layers_rounded,
-                    gradient: <Color>[colorScheme.tertiaryContainer, colorScheme.tertiary],
-                    iconColor: colorScheme.onTertiary,
                     count: sequenceCount,
-                    theme: theme,
-                    colorScheme: colorScheme,
                     onTap: () => context.go('/sequences'),
                   ),
                   _DashboardCard(
                     title: _getTitle(readerCount, 'Reader'),
                     icon: Icons.face_rounded,
-                    gradient: <Color>[colorScheme.primaryContainer, colorScheme.primary],
-                    iconColor: colorScheme.onPrimary,
                     count: readerCount,
-                    theme: theme,
-                    colorScheme: colorScheme,
                     onTap: () => context.go('/readers'),
                   ),
                 ]),
               ),
             ),
-            const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
           ],
         );
       },
     );
   }
 
-  static int? _getCount(AsyncValue<List<dynamic>> asyncValue) => asyncValue.when(
-    data: (List<dynamic> d) => d.length,
+  static int? _getCount(AsyncValue<List<Object?>> asyncValue) => asyncValue.when(
+    data: (List<Object?> d) => d.length,
     loading: () => null,
     error: (Object err, StackTrace stack) => 0,
   );
@@ -155,99 +123,76 @@ class DashboardPage extends ConsumerWidget {
   }
 }
 
-class _DashboardCard extends StatelessWidget {
+class _DashboardCard extends ConsumerWidget {
   const _DashboardCard({
     required this.title,
     required this.icon,
-    required this.gradient,
-    required this.iconColor,
     required this.count,
-    required this.theme,
-    required this.colorScheme,
     required this.onTap,
   });
 
   final String title;
   final IconData icon;
-  final List<Color> gradient;
-  final Color iconColor;
   final int? count;
-  final ThemeData theme;
-  final ColorScheme colorScheme;
   final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) => Card(
-    elevation: 0,
-    clipBehavior: Clip.hardEdge,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(20),
-      side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
-    ),
-    child: InkWell(
-      onTap: onTap != null ? () => onTap!() : null,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: <Color>[gradient[0].withValues(alpha: 0.3), gradient[1].withValues(alpha: 0.1)],
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
+    final ColorScheme colorScheme = theme.colorScheme;
+    final bool isDark = theme.brightness == Brightness.dark;
+    final Color iconColor = isDark ? Colors.white : colorScheme.onPrimary;
+
+    return Card(
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.hardEdge,
+      color: isDark ? colorScheme.surfaceContainerHighest : Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(icon, color: iconColor, size: 28),
+              ),
+              const Spacer(),
+              if (count != null)
+                Text(
+                  count.toString(),
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
+                )
+              else
+                const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 3),
+                ),
+              const SizedBox(height: 4),
+              Text(
+                title,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
         ),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: gradient,
-                ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: <BoxShadow>[
-                  BoxShadow(
-                    color: gradient[1].withValues(alpha: 0.3),
-                    blurRadius: 6,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Icon(icon, color: iconColor, size: 24),
-            ),
-            const Spacer(),
-            if (count != null)
-              Text(
-                count.toString(),
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              )
-            else
-              SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2, color: gradient[1]),
-              ),
-            Text(
-              title,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
       ),
-    ),
-  );
+    );
+  }
 }

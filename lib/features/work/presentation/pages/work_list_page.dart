@@ -14,9 +14,7 @@ import '../../domain/repositories/work_repository.dart';
 import '../providers/work_provider.dart';
 import '../widgets/work_list_tile.dart';
 
-/// A page that displays a list of all works in the library.
 class WorkListPage extends ConsumerWidget {
-  /// Creates a [WorkListPage].
   const WorkListPage({super.key});
 
   Future<void> _handleDelete(BuildContext context, WidgetRef ref, String workId) async {

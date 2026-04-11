@@ -10,9 +10,7 @@ import '../../domain/repositories/publisher_repository.dart';
 import '../providers/publisher_provider.dart';
 import '../widgets/publisher_list_tile.dart';
 
-/// A page that displays a list of all publishers.
 class PublisherListPage extends ConsumerWidget {
-  /// Creates a [PublisherListPage].
   const PublisherListPage({super.key});
 
   Future<void> _handleDelete(BuildContext context, WidgetRef ref, String publisherId) async {

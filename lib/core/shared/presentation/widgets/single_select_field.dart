@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../theme/presentation/providers/theme_provider.dart';
 import 'form_decoration.dart';
 
-// TODO(charithasds): double-check this
 class SingleSelectField<T> extends ConsumerWidget {
   const SingleSelectField({
     super.key,

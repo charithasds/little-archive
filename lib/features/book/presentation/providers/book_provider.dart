@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
@@ -12,6 +13,8 @@ import '../../domain/entities/book_entity.dart';
 import '../../domain/repositories/book_repository.dart';
 import '../../domain/usecases/book_usecases.dart';
 
+part 'book_provider.g.dart';
+
 final Provider<BookRemoteDataSource> bookRemoteDataSourceProvider = Provider<BookRemoteDataSource>((
   Ref ref,
 ) {
@@ -19,7 +22,8 @@ final Provider<BookRemoteDataSource> bookRemoteDataSourceProvider = Provider<Boo
   return BookRemoteDataSourceImpl(firestoreService: firestoreService);
 });
 
-final Provider<BookRepository> bookRepositoryProvider = Provider<BookRepository>((Ref ref) {
+@riverpod
+BookRepository bookRepository(Ref ref) {
   final BookRemoteDataSource remoteDataSource = ref.watch(bookRemoteDataSourceProvider);
   final RelationshipSyncService relationshipSyncService = ref.watch(
     relationshipSyncServiceProvider,
@@ -28,31 +32,25 @@ final Provider<BookRepository> bookRepositoryProvider = Provider<BookRepository>
     remoteDataSource: remoteDataSource,
     relationshipSyncService: relationshipSyncService,
   );
-});
+}
 
-final Provider<GetBooksUseCase> getBooksUseCaseProvider = Provider<GetBooksUseCase>(
-  (Ref ref) => GetBooksUseCase(ref.watch(bookRepositoryProvider)),
-);
+@riverpod
+GetBooksUseCase getBooksUseCase(Ref ref) => GetBooksUseCase(ref.watch(bookRepositoryProvider));
 
-final Provider<WatchBooksUseCase> watchBooksUseCaseProvider = Provider<WatchBooksUseCase>(
-  (Ref ref) => WatchBooksUseCase(ref.watch(bookRepositoryProvider)),
-);
+@riverpod
+WatchBooksUseCase watchBooksUseCase(Ref ref) => WatchBooksUseCase(ref.watch(bookRepositoryProvider));
 
-final Provider<GetBookByIdUseCase> getBookByIdUseCaseProvider = Provider<GetBookByIdUseCase>(
-  (Ref ref) => GetBookByIdUseCase(ref.watch(bookRepositoryProvider)),
-);
+@riverpod
+GetBookByIdUseCase getBookByIdUseCase(Ref ref) => GetBookByIdUseCase(ref.watch(bookRepositoryProvider));
 
-final Provider<AddBookUseCase> addBookUseCaseProvider = Provider<AddBookUseCase>(
-  (Ref ref) => AddBookUseCase(ref.watch(bookRepositoryProvider)),
-);
+@riverpod
+AddBookUseCase addBookUseCase(Ref ref) => AddBookUseCase(ref.watch(bookRepositoryProvider));
 
-final Provider<UpdateBookUseCase> updateBookUseCaseProvider = Provider<UpdateBookUseCase>(
-  (Ref ref) => UpdateBookUseCase(ref.watch(bookRepositoryProvider)),
-);
+@riverpod
+UpdateBookUseCase updateBookUseCase(Ref ref) => UpdateBookUseCase(ref.watch(bookRepositoryProvider));
 
-final Provider<DeleteBookUseCase> deleteBookUseCaseProvider = Provider<DeleteBookUseCase>(
-  (Ref ref) => DeleteBookUseCase(ref.watch(bookRepositoryProvider)),
-);
+@riverpod
+DeleteBookUseCase deleteBookUseCase(Ref ref) => DeleteBookUseCase(ref.watch(bookRepositoryProvider));
 
 final StreamProvider<List<BookEntity>> booksStreamProvider = StreamProvider<List<BookEntity>>((
   Ref ref,

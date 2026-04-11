@@ -36,7 +36,6 @@ class _UpsertAuthorPageState extends ConsumerState<UpsertAuthorPage> {
       _facebookController.text = author.facebook ?? '';
     }
 
-    // Schedule state initialization for after build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(upsertAuthorControllerProvider.notifier).initializeWith(widget.existingAuthor);
     });

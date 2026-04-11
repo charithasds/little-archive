@@ -10,9 +10,7 @@ import '../../domain/repositories/author_repository.dart';
 import '../providers/author_provider.dart';
 import '../widgets/author_list_tile.dart';
 
-/// A page that displays a list of all authors.
 class AuthorListPage extends ConsumerWidget {
-  /// Creates an [AuthorListPage].
   const AuthorListPage({super.key});
 
   Future<void> _handleDelete(BuildContext context, WidgetRef ref, String authorId) async {

@@ -5,9 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/translator_entity.dart';
 
-/// A tile that displays summary information for a [TranslatorEntity] in a list.
 class TranslatorListTile extends ConsumerWidget {
-  /// Creates a [TranslatorListTile].
   const TranslatorListTile({
     super.key,
     required this.translator,
@@ -16,16 +14,12 @@ class TranslatorListTile extends ConsumerWidget {
     required this.onDelete,
   });
 
-  /// The translator entity to display.
   final TranslatorEntity translator;
 
-  /// Callback when the tile is tapped.
   final VoidCallback onTap;
 
-  /// Callback when the edit button is tapped.
   final VoidCallback onEdit;
 
-  /// Callback when the delete button is tapped.
   final VoidCallback onDelete;
 
   @override

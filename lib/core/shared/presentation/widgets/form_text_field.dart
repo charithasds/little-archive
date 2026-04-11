@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../theme/presentation/providers/theme_provider.dart';
 
-// TODO(charithasds): double-check this
 class FormTextField extends ConsumerWidget {
   const FormTextField({
     super.key,
@@ -37,12 +36,6 @@ class FormTextField extends ConsumerWidget {
   final bool alignLabelWithHint;
   final bool autofocus;
 
-  /// Determines the appropriate [TextCapitalization] for this field.
-  ///
-  /// If explicitly set via [textCapitalization], uses that value.
-  /// Otherwise, multi-line fields (notes) use [TextCapitalization.sentences],
-  /// URL/email/phone fields use [TextCapitalization.none],
-  /// and all other fields capitalize each word.
   TextCapitalization get _effectiveCapitalization {
     if (textCapitalization != null) {
       return textCapitalization!;

@@ -6,22 +6,17 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '../../../shared/data/services/connectivity_service.dart';
 import '../../../shared/domain/error/exceptions.dart';
 
-/// Data source for remote authentication operations using Firebase and Google.
 class AuthRemoteDataSource {
-  /// Creates an [AuthRemoteDataSource] with required services.
   AuthRemoteDataSource(this._firebaseAuth, this._googleSignIn, this._connectivityService);
 
   final FirebaseAuth _firebaseAuth;
   final GoogleSignIn _googleSignIn;
   final ConnectivityService _connectivityService;
 
-  /// Stream of [User] from FirebaseAuth.
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
-  /// Current [User] from FirebaseAuth.
   User? get currentUser => _firebaseAuth.currentUser;
 
-  /// Performs Google Sign-In and creates/updates the user document in Firestore.
   Future<void> signInWithGoogle() async {
     final bool isConnected = await _connectivityService.isConnected();
 
@@ -57,13 +52,11 @@ class AuthRemoteDataSource {
     }
   }
 
-  /// Signs out from both Google and Firebase.
   Future<void> signOut() async {
     await _googleSignIn.signOut();
     await _firebaseAuth.signOut();
   }
 
-  /// Helper to create or update the user profile in Firestore.
   Future<void> _createUserDoc(User? user) async {
     if (user == null) {
       return;

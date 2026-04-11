@@ -4,9 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/work_entity.dart';
 
-/// A tile that displays summary information for a [WorkEntity] in a list.
 class WorkListTile extends ConsumerWidget {
-  /// Creates a [WorkListTile].
   const WorkListTile({
     super.key,
     required this.work,
@@ -16,19 +14,14 @@ class WorkListTile extends ConsumerWidget {
     this.firstAuthorOrTranslatorName,
   });
 
-  /// The work entity to display.
   final WorkEntity work;
 
-  /// Callback when the tile is tapped.
   final VoidCallback onTap;
 
-  /// Callback when the edit button is tapped.
   final VoidCallback onEdit;
 
-  /// Callback when the delete button is tapped.
   final VoidCallback onDelete;
 
-  /// The name of the first author or translator (if already fetched).
   final String? firstAuthorOrTranslatorName;
 
   @override

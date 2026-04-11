@@ -11,8 +11,7 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final ThemeData theme = ref.watch(activeThemeDataProvider);
-    final ColorScheme colorScheme = theme.colorScheme;
+    final ColorScheme colorScheme = ref.watch(activeThemeDataProvider).colorScheme;
 
     return Scaffold(
       appBar: AppBar(

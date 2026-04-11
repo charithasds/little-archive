@@ -36,16 +36,13 @@ import '../../../auth/presentation/pages/login_page.dart';
 import '../pages/error_page.dart';
 import '../pages/loading_page.dart';
 
-/// [RouterService] handles the application's navigation logic and route definitions.
 class RouterService {
-  /// Creates a [GoRouter] instance configured with current initialization and auth states.
   GoRouter createRouter(AsyncValue<void> init, AsyncValue<UserEntity?> auth) => GoRouter(
     initialLocation: '/loading',
     routes: _routes,
     redirect: (_, GoRouterState state) => _redirect(init, auth, state),
   );
 
-  // TODO(charithasds): double-check this
   List<RouteBase> get _routes => <RouteBase>[
     GoRoute(
       path: '/loading',

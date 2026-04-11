@@ -4,9 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/sequence_entity.dart';
 
-/// A tile that displays summary information for a [SequenceEntity] in a list.
 class SequenceListTile extends ConsumerWidget {
-  /// Creates a [SequenceListTile].
   const SequenceListTile({
     super.key,
     required this.sequence,
@@ -17,22 +15,16 @@ class SequenceListTile extends ConsumerWidget {
     this.workCount = 0,
   });
 
-  /// The sequence entity to display.
   final SequenceEntity sequence;
 
-  /// Callback when the tile is tapped.
   final VoidCallback onTap;
 
-  /// Callback when the edit button is tapped.
   final VoidCallback onEdit;
 
-  /// Callback when the delete button is tapped.
   final VoidCallback onDelete;
 
-  /// Number of books in this sequence.
   final int bookCount;
 
-  /// Number of works in this sequence.
   final int workCount;
 
   @override

@@ -10,9 +10,7 @@ import '../../domain/repositories/translator_repository.dart';
 import '../providers/translator_provider.dart';
 import '../widgets/translator_list_tile.dart';
 
-/// A page that displays a list of all translators.
 class TranslatorListPage extends ConsumerWidget {
-  /// Creates a [TranslatorListPage].
   const TranslatorListPage({super.key});
 
   Future<void> _handleDelete(BuildContext context, WidgetRef ref, String translatorId) async {

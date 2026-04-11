@@ -5,9 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/publisher_entity.dart';
 
-/// A tile that displays summary information for a [PublisherEntity] in a list.
 class PublisherListTile extends ConsumerWidget {
-  /// Creates a [PublisherListTile].
   const PublisherListTile({
     super.key,
     required this.publisher,
@@ -16,16 +14,12 @@ class PublisherListTile extends ConsumerWidget {
     required this.onDelete,
   });
 
-  /// The publisher entity to display.
   final PublisherEntity publisher;
 
-  /// Callback when the tile is tapped.
   final VoidCallback onTap;
 
-  /// Callback when the edit button is tapped.
   final VoidCallback onEdit;
 
-  /// Callback when the delete button is tapped.
   final VoidCallback onDelete;
 
   @override

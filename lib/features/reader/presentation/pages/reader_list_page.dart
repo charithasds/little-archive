@@ -10,9 +10,7 @@ import '../../domain/repositories/reader_repository.dart';
 import '../providers/reader_provider.dart';
 import '../widgets/reader_list_tile.dart';
 
-/// A page that displays a list of all readers.
 class ReaderListPage extends ConsumerWidget {
-  /// Creates a [ReaderListPage].
   const ReaderListPage({super.key});
 
   Future<void> _handleDelete(BuildContext context, WidgetRef ref, String readerId) async {

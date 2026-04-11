@@ -3,10 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/error/exceptions.dart';
 import 'connectivity_service.dart';
 
-/// A utility service that wraps [FirebaseFirestore] to provide safer data fetching,
-/// connectivity checks, and ID generation.
 class FirestoreService {
-  /// Creates a [FirestoreService].
   FirestoreService({
     required ConnectivityService connectivityService,
     required FirebaseFirestore firebaseFirestore,
@@ -16,18 +13,13 @@ class FirestoreService {
   final ConnectivityService _connectivityService;
   final FirebaseFirestore _firebaseFirestore;
 
-  /// Returns the underlying [FirebaseFirestore] instance.
   FirebaseFirestore get firebaseFirestore => _firebaseFirestore;
 
-  /// Returns a [CollectionReference] for the given [path].
   CollectionReference<Map<String, dynamic>> collection(String path) =>
       firebaseFirestore.collection(path);
 
-  /// Generates a unique ID for a document in the specified [collectionPath].
   String generateId(String collectionPath) => collection(collectionPath).doc().id;
 
-  /// Throws a [NoConnectionException] if the device is not currently connected to the internet.
-  /// Useful for guarding write operations.
   Future<void> requireConnectivity() async {
     if (!await _connectivityService.isConnected()) {
       throw const NoConnectionException(
@@ -36,8 +28,6 @@ class FirestoreService {
     }
   }
 
-  /// Safely fetches documents for a given [query].
-  /// If the initial network fetch fails, it attempts to retrieve results from the local cache.
   Future<List<QueryDocumentSnapshot<T>>> safeGetDocs<T>(Query<T> query) async {
     try {
       return (await query.get()).docs;
@@ -50,8 +40,6 @@ class FirestoreService {
     }
   }
 
-  /// Safely fetches a single document from a [doc] reference.
-  /// If the initial network fetch fails, it attempts to retrieve the document from the local cache.
   Future<DocumentSnapshot<T>?> safeGetDoc<T>(DocumentReference<T> doc) async {
     try {
       return await doc.get();

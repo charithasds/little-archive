@@ -33,12 +33,9 @@ import '../../../translator/presentation/widgets/upsert_translator_dialog.dart';
 import '../../domain/entities/work_entity.dart';
 import '../providers/upsert_work_controller.dart';
 
-/// A page that allows users to add or edit a [WorkEntity].
 class UpsertWorkPage extends ConsumerStatefulWidget {
-  /// Creates an [UpsertWorkPage].
   const UpsertWorkPage({super.key, this.existingWork});
 
-  /// The existing work entity to edit (optional).
   final WorkEntity? existingWork;
 
   @override

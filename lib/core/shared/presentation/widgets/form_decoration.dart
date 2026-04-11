@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// TODO(charithasds): double-check this
 InputDecoration buildFormDecoration(
   ColorScheme colorScheme, {
   String? labelText,

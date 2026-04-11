@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
@@ -12,6 +13,8 @@ import '../../domain/entities/work_entity.dart';
 import '../../domain/repositories/work_repository.dart';
 import '../../domain/usecases/work_usecases.dart';
 
+part 'work_provider.g.dart';
+
 final Provider<WorkRemoteDataSource> workRemoteDataSourceProvider = Provider<WorkRemoteDataSource>((
   Ref ref,
 ) {
@@ -19,7 +22,8 @@ final Provider<WorkRemoteDataSource> workRemoteDataSourceProvider = Provider<Wor
   return WorkRemoteDataSourceImpl(firestoreService: firestoreService);
 });
 
-final Provider<WorkRepository> workRepositoryProvider = Provider<WorkRepository>((Ref ref) {
+@riverpod
+WorkRepository workRepository(Ref ref) {
   final WorkRemoteDataSource remoteDataSource = ref.watch(workRemoteDataSourceProvider);
   final RelationshipSyncService relationshipSyncService = ref.watch(
     relationshipSyncServiceProvider,
@@ -28,31 +32,25 @@ final Provider<WorkRepository> workRepositoryProvider = Provider<WorkRepository>
     remoteDataSource: remoteDataSource,
     relationshipSyncService: relationshipSyncService,
   );
-});
+}
 
-final Provider<GetWorksUseCase> getWorksUseCaseProvider = Provider<GetWorksUseCase>(
-  (Ref ref) => GetWorksUseCase(ref.watch(workRepositoryProvider)),
-);
+@riverpod
+GetWorksUseCase getWorksUseCase(Ref ref) => GetWorksUseCase(ref.watch(workRepositoryProvider));
 
-final Provider<WatchWorksUseCase> watchWorksUseCaseProvider = Provider<WatchWorksUseCase>(
-  (Ref ref) => WatchWorksUseCase(ref.watch(workRepositoryProvider)),
-);
+@riverpod
+WatchWorksUseCase watchWorksUseCase(Ref ref) => WatchWorksUseCase(ref.watch(workRepositoryProvider));
 
-final Provider<GetWorkByIdUseCase> getWorkByIdUseCaseProvider = Provider<GetWorkByIdUseCase>(
-  (Ref ref) => GetWorkByIdUseCase(ref.watch(workRepositoryProvider)),
-);
+@riverpod
+GetWorkByIdUseCase getWorkByIdUseCase(Ref ref) => GetWorkByIdUseCase(ref.watch(workRepositoryProvider));
 
-final Provider<AddWorkUseCase> addWorkUseCaseProvider = Provider<AddWorkUseCase>(
-  (Ref ref) => AddWorkUseCase(ref.watch(workRepositoryProvider)),
-);
+@riverpod
+AddWorkUseCase addWorkUseCase(Ref ref) => AddWorkUseCase(ref.watch(workRepositoryProvider));
 
-final Provider<UpdateWorkUseCase> updateWorkUseCaseProvider = Provider<UpdateWorkUseCase>(
-  (Ref ref) => UpdateWorkUseCase(ref.watch(workRepositoryProvider)),
-);
+@riverpod
+UpdateWorkUseCase updateWorkUseCase(Ref ref) => UpdateWorkUseCase(ref.watch(workRepositoryProvider));
 
-final Provider<DeleteWorkUseCase> deleteWorkUseCaseProvider = Provider<DeleteWorkUseCase>(
-  (Ref ref) => DeleteWorkUseCase(ref.watch(workRepositoryProvider)),
-);
+@riverpod
+DeleteWorkUseCase deleteWorkUseCase(Ref ref) => DeleteWorkUseCase(ref.watch(workRepositoryProvider));
 
 final StreamProvider<List<WorkEntity>> worksStreamProvider = StreamProvider<List<WorkEntity>>((
   Ref ref,
