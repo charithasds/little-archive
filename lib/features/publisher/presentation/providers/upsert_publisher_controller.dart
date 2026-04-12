@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../domain/entities/publisher_entity.dart';
 import 'publisher_provider.dart';
 
@@ -21,11 +22,11 @@ class UpsertPublisherState {
     bool? isLoading,
     String? error,
     String? pickedBase64Logo,
-    bool clearImage = false,
+    bool clearLogo = false,
   }) => UpsertPublisherState(
     isLoading: isLoading ?? this.isLoading,
     error: error,
-    pickedBase64Logo: clearImage ? null : (pickedBase64Logo ?? this.pickedBase64Logo),
+    pickedBase64Logo: clearLogo ? null : (pickedBase64Logo ?? this.pickedBase64Logo),
   );
 }
 
@@ -47,6 +48,10 @@ class UpsertPublisherController extends Notifier<UpsertPublisherState> {
       final Uint8List bytes = await pickedFile.readAsBytes();
       state = state.copyWith(pickedBase64Logo: base64Encode(bytes));
     }
+  }
+
+  void clearLogo() {
+    state = state.copyWith(clearLogo: true);
   }
 
   Future<PublisherEntity?> savePublisher({
@@ -72,12 +77,12 @@ class UpsertPublisherController extends Notifier<UpsertPublisherState> {
     final PublisherEntity publisherToSave = existingPublisher != null
         ? existingPublisher.copyWith(
             name: name,
-            otherName: otherName.isEmpty ? null : otherName,
-            website: website.isEmpty ? null : website,
-            email: email.isEmpty ? null : email,
-            facebook: facebook.isEmpty ? null : facebook,
-            phoneNumber: phone.isEmpty ? null : phone,
-            logo: state.pickedBase64Logo,
+            otherName: Nullable<String?>(otherName.isEmpty ? null : otherName),
+            website: Nullable<String?>(website.isEmpty ? null : website),
+            email: Nullable<String?>(email.isEmpty ? null : email),
+            facebook: Nullable<String?>(facebook.isEmpty ? null : facebook),
+            phoneNumber: Nullable<String?>(phone.isEmpty ? null : phone),
+            logo: Nullable<String?>(state.pickedBase64Logo),
             lastUpdated: DateTime.now(),
           )
         : PublisherEntity(

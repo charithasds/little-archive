@@ -5,6 +5,7 @@ import '../../../../core/shared/domain/enums/genre.dart';
 import '../../../../core/shared/domain/enums/language.dart';
 import '../../../../core/shared/domain/enums/original_language.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
+import '../../../../core/shared/domain/utils/nullable.dart';
 
 class WorkEntity extends Equatable {
   const WorkEntity({
@@ -55,42 +56,42 @@ class WorkEntity extends Equatable {
   WorkEntity copyWith({
     String? id,
     String? title,
-    Language? language,
-    Genre? genre,
+    Nullable<Language?>? language,
+    Nullable<Genre?>? genre,
     ContentCategory? contentCategory,
-    int? noOfPages,
+    Nullable<int?>? noOfPages,
     bool? isTranslation,
-    String? originalTitle,
-    OriginalLanguage? originalLanguage,
+    Nullable<String?>? originalTitle,
+    Nullable<OriginalLanguage?>? originalLanguage,
     ReadingStatus? readingStatus,
-    int? pausedPage,
-    DateTime? completedDate,
-    String? notes,
+    Nullable<int?>? pausedPage,
+    Nullable<DateTime?>? completedDate,
+    Nullable<String?>? notes,
     DateTime? createdDate,
     DateTime? lastUpdated,
     List<String>? authorIds,
     List<String>? translatorIds,
     List<String>? sequenceVolumeIds,
-    String? bookId,
+    Nullable<String?>? bookId,
   }) => WorkEntity(
     id: id ?? this.id,
     title: title ?? this.title,
-    language: language ?? this.language,
-    genre: genre ?? this.genre,
+    language: language != null ? language.value : this.language,
+    genre: genre != null ? genre.value : this.genre,
     contentCategory: contentCategory ?? this.contentCategory,
-    noOfPages: noOfPages ?? this.noOfPages,
+    noOfPages: noOfPages != null ? noOfPages.value : this.noOfPages,
     isTranslation: isTranslation ?? this.isTranslation,
-    originalTitle: originalTitle ?? this.originalTitle,
-    originalLanguage: originalLanguage ?? this.originalLanguage,
+    originalTitle: originalTitle != null ? originalTitle.value : this.originalTitle,
+    originalLanguage: originalLanguage != null ? originalLanguage.value : this.originalLanguage,
     readingStatus: readingStatus ?? this.readingStatus,
-    pausedPage: pausedPage ?? this.pausedPage,
-    completedDate: completedDate ?? this.completedDate,
-    notes: notes ?? this.notes,
+    pausedPage: pausedPage != null ? pausedPage.value : this.pausedPage,
+    completedDate: completedDate != null ? completedDate.value : this.completedDate,
+    notes: notes != null ? notes.value : this.notes,
     createdDate: createdDate ?? this.createdDate,
     lastUpdated: lastUpdated ?? this.lastUpdated,
     authorIds: authorIds ?? this.authorIds,
     translatorIds: translatorIds ?? this.translatorIds,
     sequenceVolumeIds: sequenceVolumeIds ?? this.sequenceVolumeIds,
-    bookId: bookId ?? this.bookId,
+    bookId: bookId != null ? bookId.value : this.bookId,
   );
 }

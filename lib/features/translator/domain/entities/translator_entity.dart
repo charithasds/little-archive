@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../../../core/shared/domain/utils/nullable.dart';
 
 class TranslatorEntity extends Equatable {
   const TranslatorEntity({
@@ -31,10 +32,10 @@ class TranslatorEntity extends Equatable {
   TranslatorEntity copyWith({
     String? id,
     String? name,
-    String? image,
-    String? otherName,
-    String? website,
-    String? facebook,
+    Nullable<String?>? image,
+    Nullable<String?>? otherName,
+    Nullable<String?>? website,
+    Nullable<String?>? facebook,
     List<String>? bookIds,
     List<String>? workIds,
     DateTime? createdDate,
@@ -42,10 +43,10 @@ class TranslatorEntity extends Equatable {
   }) => TranslatorEntity(
     id: id ?? this.id,
     name: name ?? this.name,
-    image: image ?? this.image,
-    otherName: otherName ?? this.otherName,
-    website: website ?? this.website,
-    facebook: facebook ?? this.facebook,
+    image: image != null ? image.value : this.image,
+    otherName: otherName != null ? otherName.value : this.otherName,
+    website: website != null ? website.value : this.website,
+    facebook: facebook != null ? facebook.value : this.facebook,
     bookIds: bookIds ?? this.bookIds,
     workIds: workIds ?? this.workIds,
     createdDate: createdDate ?? this.createdDate,

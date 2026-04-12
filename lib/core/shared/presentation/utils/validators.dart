@@ -24,7 +24,7 @@ class Validators {
       return null;
     }
 
-    final RegExp regExp = RegExp(r'^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[a-zA-Z]+');
+    final RegExp regExp = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
 
     if (!regExp.hasMatch(value.trim())) {
       return 'Invalid email address';
@@ -39,11 +39,11 @@ class Validators {
     }
 
     const String pattern =
-        r'^(https?:\/\/)?([a-zA-Z0-9]([a-zA-Z0-9\-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}(\/[^\s]*)?$';
-    final RegExp regExp = RegExp(pattern);
+        r'^(https?:\/\/)?([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5})(:[0-9]{1,5})?(\/.*)?$';
+    final RegExp regExp = RegExp(pattern, caseSensitive: false);
 
     if (!regExp.hasMatch(value.trim())) {
-      return 'Invalid URL format';
+      return 'Invalid Website URL';
     }
 
     return null;
@@ -51,7 +51,7 @@ class Validators {
 
   static String? validateSriLankanPhoneNumber(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Phone number is required';
+      return null;
     }
 
     final String cleaned = value.trim().replaceAll(RegExp(r'[\s\-\(\)]'), '');

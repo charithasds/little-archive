@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/auth/domain/entities/user_entity.dart';
-import '../../../../core/auth/presentation/providers/auth_provider.dart';
-import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/presentation/utils/button_styles.dart';
+import '../../../../core/shared/presentation/utils/image_styles.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/sequence_entity.dart';
-import '../providers/sequence_provider.dart';
+import '../providers/upsert_sequence_controller.dart';
 
 class UpsertSequencePage extends ConsumerStatefulWidget {
   const UpsertSequencePage({super.key, this.existingSequence});
@@ -23,7 +21,8 @@ class UpsertSequencePage extends ConsumerStatefulWidget {
 class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
-  bool _isLoading = false;
+  final TextEditingController _otherNameController = TextEditingController();
+  final TextEditingController _notesController = TextEditingController();
 
   @override
   void initState() {
@@ -31,59 +30,30 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
     if (widget.existingSequence != null) {
       final SequenceEntity sequence = widget.existingSequence!;
       _nameController.text = sequence.name;
+      _otherNameController.text = sequence.otherName ?? '';
+      _notesController.text = sequence.notes ?? '';
     }
   }
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-
-      final UserEntity? user = ref.read(authStateProvider).value;
-      if (user == null) {
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      final SequenceEntity newSequence = widget.existingSequence != null
-          ? widget.existingSequence!.copyWith(name: _nameController.text.trim())
-          : SequenceEntity(
-              id: ref.read(sequenceRepositoryProvider).generateId(),
-              name: _nameController.text.trim(),
-              sequenceVolumeIds: const <String>[],
-            );
-
-      try {
-        if (widget.existingSequence != null) {
-          await ref.read(sequenceRepositoryProvider).updateSequence(newSequence);
-        } else {
-          await ref.read(sequenceRepositoryProvider).addSequence(newSequence);
-        }
-        if (mounted) {
-          SnackBars.showSuccess(
-            context,
-            widget.existingSequence != null
-                ? 'Sequence updated successfully'
-                : 'Sequence added successfully',
+      final SequenceEntity? result = await ref
+          .read(upsertSequenceControllerProvider.notifier)
+          .saveSequence(
+            existingSequence: widget.existingSequence,
+            name: _nameController.text.trim(),
+            otherName: _otherNameController.text.trim(),
+            notes: _notesController.text.trim(),
           );
-          Navigator.of(context).pop();
-        }
-      } on NoConnectionException catch (e) {
-        if (mounted) {
-          SnackBars.showError(context, e.message);
-        }
-      } catch (e) {
-        if (mounted) {
-          SnackBars.showError(
-            context,
-            widget.existingSequence != null
-                ? 'Error updating sequence: $e'
-                : 'Error adding sequence: $e',
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
+
+      if (result != null && mounted) {
+        SnackBars.showSuccess(
+          context,
+          widget.existingSequence != null
+              ? 'Sequence updated successfully'
+              : 'Sequence added successfully',
+        );
+        Navigator.of(context).pop();
       }
     }
   }
@@ -91,6 +61,8 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _otherNameController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
@@ -98,6 +70,17 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
   Widget build(BuildContext context) {
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
+    final UpsertSequenceState state = ref.watch(upsertSequenceControllerProvider);
+
+    // Listen for errors
+    ref.listen<UpsertSequenceState>(upsertSequenceControllerProvider, (
+      UpsertSequenceState? previous,
+      UpsertSequenceState next,
+    ) {
+      if (next.error != null && next.error != previous?.error) {
+        SnackBars.showError(context, next.error!);
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -113,16 +96,15 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
               child: Container(
                 width: 120,
                 height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: colorScheme.primaryContainer,
-                  border: Border.all(color: colorScheme.primary, width: 3),
+                decoration: ImageStyles.getPickerDecoration(theme),
+                child: Icon(
+                  Icons.layers_rounded,
+                  size: 56,
+                  color: ImageStyles.getPickerIconColor(theme),
                 ),
-                child: Icon(Icons.layers_rounded, size: 48, color: colorScheme.onPrimaryContainer),
               ),
             ),
             const SizedBox(height: 32),
-
             FormTextField(
               controller: _nameController,
               label: 'Name',
@@ -132,12 +114,27 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
               isRequired: true,
             ),
             const SizedBox(height: 16),
-
+            FormTextField(
+              controller: _otherNameController,
+              label: 'Other Name',
+              hint: 'Alternative Name',
+              prefixIcon: Icons.badge_outlined,
+              maxLength: 200,
+            ),
             const SizedBox(height: 16),
-
+            FormTextField(
+              controller: _notesController,
+              label: 'Notes',
+              hint: 'Notes about the Sequence',
+              prefixIcon: Icons.notes_rounded,
+              maxLength: 500,
+              maxLines: 3,
+            ),
+            const SizedBox(height: 16),
+            const SizedBox(height: 16),
             FilledButton.icon(
-              onPressed: _isLoading ? null : _save,
-              icon: _isLoading
+              onPressed: state.isLoading ? null : _save,
+              icon: state.isLoading
                   ? SizedBox(
                       width: 20,
                       height: 20,
@@ -148,7 +145,7 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
                     )
                   : const Icon(Icons.save_rounded),
               label: Text(
-                _isLoading
+                state.isLoading
                     ? 'Saving...'
                     : (widget.existingSequence != null ? 'Update Sequence' : 'Save Sequence'),
               ),

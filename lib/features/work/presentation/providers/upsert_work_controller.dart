@@ -8,6 +8,7 @@ import '../../../../core/shared/domain/enums/language.dart';
 import '../../../../core/shared/domain/enums/original_language.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/domain/entities/sequence_volume_entity.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
@@ -114,22 +115,22 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
       final WorkEntity workToSave = existingWork != null
           ? existingWork.copyWith(
               title: title,
-              language: language,
-              genre: genre,
+              language: Nullable<Language?>(language),
+              genre: Nullable<Genre?>(genre),
               contentCategory: contentCategory,
-              noOfPages: noOfPages,
+              noOfPages: Nullable<int?>(noOfPages),
               isTranslation: isTranslation,
-              originalTitle: isTranslation ? originalTitle : null,
-              originalLanguage: isTranslation ? originalLanguage : null,
+              originalTitle: Nullable<String?>(originalTitle?.isEmpty ?? true ? null : originalTitle),
+              originalLanguage: Nullable<OriginalLanguage?>(originalLanguage),
               readingStatus: readingStatus,
-              pausedPage: pausedPage,
-              completedDate: completedDate,
-              notes: notes,
-              lastUpdated: DateTime.now(),
+              pausedPage: Nullable<int?>(pausedPage),
+              completedDate: Nullable<DateTime?>(completedDate),
+              notes: Nullable<String?>(notes?.isEmpty ?? true ? null : notes),
               authorIds: authorIds,
               translatorIds: translatorIds,
               sequenceVolumeIds: sequenceVolumeIds,
-              bookId: bookId,
+              bookId: Nullable<String?>(bookId),
+              lastUpdated: DateTime.now(),
             )
           : WorkEntity(
               id: workId,

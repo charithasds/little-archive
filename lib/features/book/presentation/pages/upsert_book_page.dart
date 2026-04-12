@@ -334,10 +334,23 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
               ),
               const SizedBox(height: 8),
               Center(
-                child: TextButton.icon(
-                  onPressed: () => ref.read(upsertBookControllerProvider.notifier).pickImage(),
-                  icon: const Icon(Icons.camera_alt_rounded),
-                  label: Text(state.pickedBase64Image == null ? 'Add Cover' : 'Change Cover'),
+                child: Wrap(
+                  spacing: 12,
+                  children: <Widget>[
+                    TextButton.icon(
+                      onPressed: () => ref.read(upsertBookControllerProvider.notifier).pickImage(),
+                      icon: const Icon(Icons.camera_alt_rounded),
+                      label: Text(state.pickedBase64Image == null ? 'Add Cover' : 'Change Cover'),
+                    ),
+                    if (state.pickedBase64Image != null)
+                      TextButton.icon(
+                        onPressed: () =>
+                            ref.read(upsertBookControllerProvider.notifier).clearCover(),
+                        icon: const Icon(Icons.delete_outline_rounded),
+                        label: const Text('Remove Cover'),
+                        style: TextButton.styleFrom(foregroundColor: colorScheme.error),
+                      ),
+                  ],
                 ),
               ),
               const SizedBox(height: 24),

@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../domain/entities/reader_entity.dart';
 import 'reader_provider.dart';
 
@@ -49,11 +50,17 @@ class UpsertReaderController extends Notifier<UpsertReaderState> {
     }
   }
 
+  void clearImage() {
+    state = state.copyWith(clearImage: true);
+  }
+
   Future<ReaderEntity?> saveReader({
     required ReaderEntity? existingReader,
     required String name,
+    String? otherName,
     required String email,
     required String facebook,
+    required String phoneNumber,
   }) async {
     state = state.copyWith(isLoading: true);
 
@@ -69,16 +76,20 @@ class UpsertReaderController extends Notifier<UpsertReaderState> {
     final ReaderEntity readerToSave = existingReader != null
         ? existingReader.copyWith(
             name: name,
-            email: email.isEmpty ? null : email,
-            facebook: facebook.isEmpty ? null : facebook,
-            image: state.pickedBase64Image,
+            otherName: Nullable<String?>(otherName?.isEmpty ?? true ? null : otherName),
+            email: Nullable<String?>(email.isEmpty ? null : email),
+            facebook: Nullable<String?>(facebook.isEmpty ? null : facebook),
+            phoneNumber: Nullable<String?>(phoneNumber.isEmpty ? null : phoneNumber),
+            image: Nullable<String?>(state.pickedBase64Image),
             lastUpdated: DateTime.now(),
           )
         : ReaderEntity(
             id: generatedId,
             name: name,
+            otherName: otherName,
             email: email.isEmpty ? null : email,
             facebook: facebook.isEmpty ? null : facebook,
+            phoneNumber: phoneNumber.isEmpty ? null : phoneNumber,
             image: state.pickedBase64Image,
             bookIds: const <String>[],
             createdDate: DateTime.now(),

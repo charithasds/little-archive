@@ -129,10 +129,24 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
             ),
             const SizedBox(height: 8),
             Center(
-              child: TextButton.icon(
-                onPressed: () => ref.read(upsertTranslatorControllerProvider.notifier).pickImage(),
-                icon: const Icon(Icons.camera_alt_rounded),
-                label: Text(state.pickedBase64Image == null ? 'Add Image' : 'Change Photo'),
+              child: Wrap(
+                spacing: 12,
+                children: <Widget>[
+                  TextButton.icon(
+                    onPressed: () =>
+                        ref.read(upsertTranslatorControllerProvider.notifier).pickImage(),
+                    icon: const Icon(Icons.camera_alt_rounded),
+                    label: Text(state.pickedBase64Image == null ? 'Add Image' : 'Change Image'),
+                  ),
+                  if (state.pickedBase64Image != null)
+                    TextButton.icon(
+                      onPressed: () =>
+                          ref.read(upsertTranslatorControllerProvider.notifier).clearImage(),
+                      icon: const Icon(Icons.delete_outline_rounded),
+                      label: const Text('Remove Image'),
+                      style: TextButton.styleFrom(foregroundColor: colorScheme.error),
+                    ),
+                ],
               ),
             ),
             const SizedBox(height: 24),

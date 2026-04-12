@@ -34,6 +34,7 @@ class _AddReaderDialogState extends ConsumerState<AddReaderDialog> {
             name: _nameController.text.trim(),
             email: '',
             facebook: '',
+            phoneNumber: '',
           );
 
       if (mounted) {

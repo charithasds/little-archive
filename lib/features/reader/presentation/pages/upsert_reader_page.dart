@@ -1,13 +1,8 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 
-import '../../../../core/auth/domain/entities/user_entity.dart';
-import '../../../../core/auth/presentation/providers/auth_provider.dart';
-import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/presentation/utils/button_styles.dart';
 import '../../../../core/shared/presentation/utils/image_styles.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
@@ -15,7 +10,7 @@ import '../../../../core/shared/presentation/utils/validators.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/reader_entity.dart';
-import '../providers/reader_provider.dart';
+import '../providers/upsert_reader_controller.dart';
 
 class UpsertReaderPage extends ConsumerStatefulWidget {
   const UpsertReaderPage({super.key, this.existingReader});
@@ -29,97 +24,54 @@ class UpsertReaderPage extends ConsumerStatefulWidget {
 class _UpsertReaderPageState extends ConsumerState<UpsertReaderPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _otherNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _facebookController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
 
-  String? _pickedBase64Image;
-  bool _isLoading = false;
-
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(upsertReaderControllerProvider.notifier).initializeWith(widget.existingReader);
+    });
     if (widget.existingReader != null) {
       final ReaderEntity reader = widget.existingReader!;
       _nameController.text = reader.name;
+      _otherNameController.text = reader.otherName ?? '';
       _emailController.text = reader.email ?? '';
       _facebookController.text = reader.facebook ?? '';
       _phoneController.text = reader.phoneNumber ?? '';
-      _pickedBase64Image = reader.image;
-    }
-  }
-
-  Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      final Uint8List bytes = await pickedFile.readAsBytes();
-      setState(() {
-        _pickedBase64Image = base64Encode(bytes);
-      });
     }
   }
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-
-      final UserEntity? user = ref.read(authStateProvider).value;
-      if (user == null) {
-        setState(() => _isLoading = false);
-        return;
-      }
-
-      final ReaderEntity newReader = widget.existingReader != null
-          ? widget.existingReader!.copyWith(
-              name: _nameController.text.trim(),
-              image: _pickedBase64Image,
-              email: _emailController.text.isEmpty ? null : _emailController.text.trim(),
-              facebook: _facebookController.text.isEmpty ? null : _facebookController.text.trim(),
-              phoneNumber: _phoneController.text.trim(),
-              lastUpdated: DateTime.now(),
-            )
-          : ReaderEntity(
-              id: ref.read(readerRepositoryProvider).generateId(),
-              name: _nameController.text.trim(),
-              image: _pickedBase64Image,
-              email: _emailController.text.isEmpty ? null : _emailController.text.trim(),
-              facebook: _facebookController.text.isEmpty ? null : _facebookController.text.trim(),
-              phoneNumber: _phoneController.text.trim(),
-              bookIds: const <String>[],
-              createdDate: DateTime.now(),
-              lastUpdated: DateTime.now(),
-            );
-
-      try {
-        if (widget.existingReader != null) {
-          await ref.read(readerRepositoryProvider).updateReader(newReader);
-        } else {
-          await ref.read(readerRepositoryProvider).addReader(newReader);
-        }
-        if (mounted) {
-          SnackBars.showSuccess(
-            context,
-            widget.existingReader != null
-                ? 'Reader updated successfully'
-                : 'Reader added successfully',
+      final ReaderEntity? savedReader = await ref
+          .read(upsertReaderControllerProvider.notifier)
+          .saveReader(
+            existingReader: widget.existingReader,
+            name: _nameController.text.trim(),
+            otherName: _otherNameController.text.trim().isEmpty
+                ? null
+                : _otherNameController.text.trim(),
+            email: _emailController.text.trim(),
+            facebook: _facebookController.text.trim(),
+            phoneNumber: _phoneController.text.trim(),
           );
-          Navigator.of(context).pop();
-        }
-      } on NoConnectionException catch (e) {
-        if (mounted) {
-          SnackBars.showError(context, e.message);
-        }
-      } catch (e) {
-        if (mounted) {
-          SnackBars.showError(
-            context,
-            widget.existingReader != null ? 'Error updating reader: $e' : 'Error adding reader: $e',
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() => _isLoading = false);
+
+      if (savedReader != null && mounted) {
+        SnackBars.showSuccess(
+          context,
+          widget.existingReader != null
+              ? 'Reader updated successfully'
+              : 'Reader added successfully',
+        );
+        Navigator.of(context).pop();
+      } else if (savedReader == null && mounted) {
+        final UpsertReaderState state = ref.read(upsertReaderControllerProvider);
+        if (state.error != null) {
+          SnackBars.showError(context, state.error!);
         }
       }
     }
@@ -128,6 +80,7 @@ class _UpsertReaderPageState extends ConsumerState<UpsertReaderPage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _otherNameController.dispose();
     _emailController.dispose();
     _facebookController.dispose();
     _phoneController.dispose();
@@ -138,6 +91,7 @@ class _UpsertReaderPageState extends ConsumerState<UpsertReaderPage> {
   Widget build(BuildContext context) {
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
+    final UpsertReaderState state = ref.watch(upsertReaderControllerProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -151,23 +105,23 @@ class _UpsertReaderPageState extends ConsumerState<UpsertReaderPage> {
           children: <Widget>[
             Center(
               child: GestureDetector(
-                onTap: _pickImage,
+                onTap: () => ref.read(upsertReaderControllerProvider.notifier).pickImage(),
                 child: Container(
                   width: 120,
                   height: 120,
                   decoration: ImageStyles.getPickerDecoration(
                     theme,
-                    image: _pickedBase64Image != null
+                    image: state.pickedBase64Image != null
                         ? DecorationImage(
-                            image: MemoryImage(base64Decode(_pickedBase64Image!)),
+                            image: MemoryImage(base64Decode(state.pickedBase64Image!)),
                             fit: BoxFit.cover,
                           )
                         : null,
                   ),
-                  child: _pickedBase64Image == null
+                  child: state.pickedBase64Image == null
                       ? Icon(
                           Icons.face_rounded,
-                          size: 48,
+                          size: 56,
                           color: ImageStyles.getPickerIconColor(theme),
                         )
                       : null,
@@ -176,10 +130,23 @@ class _UpsertReaderPageState extends ConsumerState<UpsertReaderPage> {
             ),
             const SizedBox(height: 8),
             Center(
-              child: TextButton.icon(
-                onPressed: _pickImage,
-                icon: const Icon(Icons.camera_alt_rounded),
-                label: Text(_pickedBase64Image == null ? 'Add Image' : 'Change Photo'),
+              child: Wrap(
+                spacing: 12,
+                children: <Widget>[
+                  TextButton.icon(
+                    onPressed: () => ref.read(upsertReaderControllerProvider.notifier).pickImage(),
+                    icon: const Icon(Icons.camera_alt_rounded),
+                    label: Text(state.pickedBase64Image == null ? 'Add Image' : 'Change Image'),
+                  ),
+                  if (state.pickedBase64Image != null)
+                    TextButton.icon(
+                      onPressed: () =>
+                          ref.read(upsertReaderControllerProvider.notifier).clearImage(),
+                      icon: const Icon(Icons.delete_outline_rounded),
+                      label: const Text('Remove Image'),
+                      style: TextButton.styleFrom(foregroundColor: colorScheme.error),
+                    ),
+                ],
               ),
             ),
             const SizedBox(height: 24),
@@ -195,12 +162,22 @@ class _UpsertReaderPageState extends ConsumerState<UpsertReaderPage> {
             const SizedBox(height: 16),
 
             FormTextField(
+              controller: _otherNameController,
+              label: 'Other Name',
+              hint: 'Alternative Name',
+              prefixIcon: Icons.badge_outlined,
+              maxLength: 200,
+            ),
+            const SizedBox(height: 16),
+
+            FormTextField(
               controller: _emailController,
               label: 'Email',
               hint: 'reader@example.com',
               prefixIcon: Icons.email_outlined,
               maxLength: 200,
               keyboardType: TextInputType.emailAddress,
+              validator: Validators.validateEmail,
             ),
             const SizedBox(height: 16),
 
@@ -227,8 +204,8 @@ class _UpsertReaderPageState extends ConsumerState<UpsertReaderPage> {
             const SizedBox(height: 32),
 
             FilledButton.icon(
-              onPressed: _isLoading ? null : _save,
-              icon: _isLoading
+              onPressed: state.isLoading ? null : _save,
+              icon: state.isLoading
                   ? SizedBox(
                       width: 20,
                       height: 20,
@@ -239,7 +216,7 @@ class _UpsertReaderPageState extends ConsumerState<UpsertReaderPage> {
                     )
                   : const Icon(Icons.save_rounded),
               label: Text(
-                _isLoading
+                state.isLoading
                     ? 'Saving...'
                     : (widget.existingReader != null ? 'Update Reader' : 'Save Reader'),
               ),

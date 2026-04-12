@@ -13,6 +13,7 @@ import '../../../../core/shared/domain/enums/language.dart';
 import '../../../../core/shared/domain/enums/original_language.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/domain/entities/sequence_volume_entity.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
@@ -30,11 +31,11 @@ class UpsertBookState {
     bool? isLoading,
     String? error,
     String? pickedBase64Image,
-    bool clearImage = false,
+    bool clearCover = false,
   }) => UpsertBookState(
     isLoading: isLoading ?? this.isLoading,
     error: error,
-    pickedBase64Image: clearImage ? null : (pickedBase64Image ?? this.pickedBase64Image),
+    pickedBase64Image: clearCover ? null : (pickedBase64Image ?? this.pickedBase64Image),
   );
 }
 
@@ -56,6 +57,10 @@ class UpsertBookController extends Notifier<UpsertBookState> {
       final Uint8List bytes = await pickedFile.readAsBytes();
       state = state.copyWith(pickedBase64Image: base64Encode(bytes));
     }
+  }
+
+  void clearCover() {
+    state = state.copyWith(clearCover: true);
   }
 
   Future<BookEntity?> saveBook({
@@ -152,31 +157,31 @@ class UpsertBookController extends Notifier<UpsertBookState> {
       final BookEntity bookToSave = existingBook != null
           ? existingBook.copyWith(
               title: title,
-              cover: state.pickedBase64Image,
+              cover: Nullable<String?>(state.pickedBase64Image),
               compilationType: compilationType,
-              language: language,
-              genre: genre,
-              isbn: isbn,
-              publishedDate: publishedDate,
-              noOfPages: noOfPages,
+              language: Nullable<Language?>(language),
+              genre: Nullable<Genre?>(genre),
+              isbn: Nullable<String?>((isbn?.isEmpty ?? true) ? null : isbn),
+              publishedDate: Nullable<DateTime?>(publishedDate),
+              noOfPages: Nullable<int?>(noOfPages),
               isTranslation: isTranslation,
-              originalTitle: isTranslation ? originalTitle : null,
-              originalLanguage: isTranslation ? originalLanguage : null,
+              originalTitle: Nullable<String?>((originalTitle?.isEmpty ?? true) ? null : originalTitle),
+              originalLanguage: Nullable<OriginalLanguage?>(originalLanguage),
               collectionStatus: collectionStatus,
-              collectedDate: collectedDate,
-              lendedDate: lendedDate,
-              dueDate: dueDate,
+              collectedDate: Nullable<DateTime?>(collectedDate),
+              lendedDate: Nullable<DateTime?>(lendedDate),
+              dueDate: Nullable<DateTime?>(dueDate),
               readingStatus: readingStatus,
-              pausedPage: pausedPage,
-              completedDate: completedDate,
-              notes: notes,
+              pausedPage: Nullable<int?>(pausedPage),
+              completedDate: Nullable<DateTime?>(completedDate),
+              notes: Nullable<String?>((notes?.isEmpty ?? true) ? null : notes),
               lastUpdated: DateTime.now(),
               authorIds: authorIds,
               translatorIds: translatorIds,
               workIds: workIds,
               sequenceVolumeIds: sequenceVolumeIds,
-              publisherId: publisherId,
-              readerId: readerId,
+              publisherId: Nullable<String?>(publisherId),
+              readerId: Nullable<String?>(readerId),
             )
           : BookEntity(
               id: bookId,

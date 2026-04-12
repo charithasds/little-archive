@@ -21,7 +21,22 @@ InputDecoration buildFormDecoration(
   ),
   errorBorder: OutlineInputBorder(
     borderRadius: BorderRadius.circular(16),
-    borderSide: BorderSide(color: colorScheme.error),
+    borderSide: BorderSide(color: colorScheme.error, width: 2),
   ),
+  focusedErrorBorder: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(16),
+    borderSide: BorderSide(color: colorScheme.error, width: 2),
+  ),
+  labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+  floatingLabelStyle: WidgetStateTextStyle.resolveWith((Set<WidgetState> states) {
+    if (states.contains(WidgetState.error)) {
+      return TextStyle(color: colorScheme.error);
+    }
+    if (states.contains(WidgetState.focused)) {
+      return TextStyle(color: colorScheme.primary);
+    }
+    return TextStyle(color: colorScheme.onSurfaceVariant);
+  }),
+  errorStyle: TextStyle(color: colorScheme.error),
   contentPadding: contentPadding,
 );

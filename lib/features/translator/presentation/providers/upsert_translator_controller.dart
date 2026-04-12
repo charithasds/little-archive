@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../domain/entities/translator_entity.dart';
 import 'translator_provider.dart';
 
@@ -49,6 +50,10 @@ class UpsertTranslatorController extends Notifier<UpsertTranslatorState> {
     }
   }
 
+  void clearImage() {
+    state = state.copyWith(clearImage: true);
+  }
+
   Future<TranslatorEntity?> saveTranslator({
     required TranslatorEntity? existingTranslator,
     required String name,
@@ -70,10 +75,10 @@ class UpsertTranslatorController extends Notifier<UpsertTranslatorState> {
     final TranslatorEntity translatorToSave = existingTranslator != null
         ? existingTranslator.copyWith(
             name: name,
-            otherName: otherName.isEmpty ? null : otherName,
-            website: website.isEmpty ? null : website,
-            facebook: facebook.isEmpty ? null : facebook,
-            image: state.pickedBase64Image,
+            otherName: Nullable<String?>(otherName.isEmpty ? null : otherName),
+            website: Nullable<String?>(website.isEmpty ? null : website),
+            facebook: Nullable<String?>(facebook.isEmpty ? null : facebook),
+            image: Nullable<String?>(state.pickedBase64Image),
             lastUpdated: DateTime.now(),
           )
         : TranslatorEntity(

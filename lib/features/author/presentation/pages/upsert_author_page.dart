@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/shared/presentation/utils/button_styles.dart';
 import '../../../../core/shared/presentation/utils/image_styles.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
+import '../../../../core/shared/presentation/utils/validators.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/author_entity.dart';
@@ -126,10 +127,23 @@ class _UpsertAuthorPageState extends ConsumerState<UpsertAuthorPage> {
             ),
             const SizedBox(height: 8),
             Center(
-              child: TextButton.icon(
-                onPressed: () => ref.read(upsertAuthorControllerProvider.notifier).pickImage(),
-                icon: const Icon(Icons.camera_alt_rounded),
-                label: Text(state.pickedBase64Image == null ? 'Add Image' : 'Change Photo'),
+              child: Wrap(
+                spacing: 12,
+                children: <Widget>[
+                  TextButton.icon(
+                    onPressed: () => ref.read(upsertAuthorControllerProvider.notifier).pickImage(),
+                    icon: const Icon(Icons.camera_alt_rounded),
+                    label: Text(state.pickedBase64Image == null ? 'Add Image' : 'Change Image'),
+                  ),
+                  if (state.pickedBase64Image != null)
+                    TextButton.icon(
+                      onPressed: () =>
+                          ref.read(upsertAuthorControllerProvider.notifier).clearImage(),
+                      icon: const Icon(Icons.delete_outline_rounded),
+                      label: const Text('Remove Image'),
+                      style: TextButton.styleFrom(foregroundColor: colorScheme.error),
+                    ),
+                ],
               ),
             ),
             const SizedBox(height: 24),
@@ -160,6 +174,7 @@ class _UpsertAuthorPageState extends ConsumerState<UpsertAuthorPage> {
               prefixIcon: Icons.language_rounded,
               maxLength: 200,
               keyboardType: TextInputType.url,
+              validator: Validators.validateWebsiteUrl,
             ),
             const SizedBox(height: 16),
 
@@ -170,6 +185,7 @@ class _UpsertAuthorPageState extends ConsumerState<UpsertAuthorPage> {
               prefixIcon: Icons.facebook_rounded,
               maxLength: 200,
               keyboardType: TextInputType.url,
+              validator: Validators.validateFacebookUrl,
             ),
             const SizedBox(height: 32),
 

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../domain/entities/sequence_entity.dart';
 import 'sequence_provider.dart';
 
@@ -23,6 +24,8 @@ class UpsertSequenceController extends Notifier<UpsertSequenceState> {
   Future<SequenceEntity?> saveSequence({
     required SequenceEntity? existingSequence,
     required String name,
+    String? otherName,
+    String? notes,
   }) async {
     state = state.copyWith(isLoading: true);
 
@@ -36,8 +39,18 @@ class UpsertSequenceController extends Notifier<UpsertSequenceState> {
     final String generatedId = ref.read(sequenceRepositoryProvider).generateId();
 
     final SequenceEntity sequenceToSave = existingSequence != null
-        ? existingSequence.copyWith(name: name)
-        : SequenceEntity(id: generatedId, name: name, sequenceVolumeIds: const <String>[]);
+        ? existingSequence.copyWith(
+            name: name,
+            otherName: Nullable<String?>(otherName?.isEmpty ?? true ? null : otherName),
+            notes: Nullable<String?>(notes?.isEmpty ?? true ? null : notes),
+          )
+        : SequenceEntity(
+            id: generatedId,
+            name: name,
+            otherName: otherName,
+            notes: notes,
+            sequenceVolumeIds: const <String>[],
+          );
 
     try {
       if (existingSequence != null) {

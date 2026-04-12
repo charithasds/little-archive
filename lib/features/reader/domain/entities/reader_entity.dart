@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../../../core/shared/domain/utils/nullable.dart';
 
 class ReaderEntity extends Equatable {
   const ReaderEntity({
@@ -31,22 +32,22 @@ class ReaderEntity extends Equatable {
   ReaderEntity copyWith({
     String? id,
     String? name,
-    String? image,
-    String? otherName,
-    String? email,
-    String? facebook,
-    String? phoneNumber,
+    Nullable<String?>? image,
+    Nullable<String?>? otherName,
+    Nullable<String?>? email,
+    Nullable<String?>? facebook,
+    Nullable<String?>? phoneNumber,
     List<String>? bookIds,
     DateTime? createdDate,
     DateTime? lastUpdated,
   }) => ReaderEntity(
     id: id ?? this.id,
     name: name ?? this.name,
-    image: image ?? this.image,
-    otherName: otherName ?? this.otherName,
-    email: email ?? this.email,
-    facebook: facebook ?? this.facebook,
-    phoneNumber: phoneNumber ?? this.phoneNumber,
+    image: image != null ? image.value : this.image,
+    otherName: otherName != null ? otherName.value : this.otherName,
+    email: email != null ? email.value : this.email,
+    facebook: facebook != null ? facebook.value : this.facebook,
+    phoneNumber: phoneNumber != null ? phoneNumber.value : this.phoneNumber,
     bookIds: bookIds ?? this.bookIds,
     createdDate: createdDate ?? this.createdDate,
     lastUpdated: lastUpdated ?? this.lastUpdated,

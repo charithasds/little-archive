@@ -135,10 +135,22 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
             ),
             const SizedBox(height: 8),
             Center(
-              child: TextButton.icon(
-                onPressed: () => ref.read(upsertPublisherControllerProvider.notifier).pickImage(),
-                icon: const Icon(Icons.camera_alt_rounded),
-                label: Text(state.pickedBase64Logo == null ? 'Add Logo' : 'Change Logo'),
+              child: Wrap(
+                spacing: 12,
+                children: <Widget>[
+                  TextButton.icon(
+                    onPressed: () => ref.read(upsertPublisherControllerProvider.notifier).pickImage(),
+                    icon: const Icon(Icons.camera_alt_rounded),
+                    label: Text(state.pickedBase64Logo == null ? 'Add Logo' : 'Change Logo'),
+                  ),
+                  if (state.pickedBase64Logo != null)
+                    TextButton.icon(
+                      onPressed: () => ref.read(upsertPublisherControllerProvider.notifier).clearLogo(),
+                      icon: const Icon(Icons.delete_outline_rounded),
+                      label: const Text('Remove Logo'),
+                      style: TextButton.styleFrom(foregroundColor: colorScheme.error),
+                    ),
+                ],
               ),
             ),
             const SizedBox(height: 24),
@@ -200,8 +212,9 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
               label: 'Phone Number',
               hint: '+94 77 123 4567 or 077 123 4567',
               prefixIcon: Icons.phone_outlined,
-              maxLength: 50,
+              maxLength: 20,
               keyboardType: TextInputType.phone,
+              validator: Validators.validateSriLankanPhoneNumber,
             ),
             const SizedBox(height: 32),
 
