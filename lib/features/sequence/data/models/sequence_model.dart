@@ -5,7 +5,6 @@ class SequenceModel extends SequenceEntity {
 
   factory SequenceModel.fromMap(Map<String, dynamic> map, String documentId) => SequenceModel(
     id: documentId,
-
     name: (map['name'] as String?) ?? '',
     sequenceVolumeIds: List<String>.from(
       map['sequenceVolumeIds'] as Iterable<dynamic>? ?? <String>[],
@@ -14,7 +13,6 @@ class SequenceModel extends SequenceEntity {
 
   Map<String, dynamic> toMap() => <String, dynamic>{
     'id': id,
-
     'name': name,
     'sequenceVolumeIds': sequenceVolumeIds,
   };

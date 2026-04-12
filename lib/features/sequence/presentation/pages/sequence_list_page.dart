@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/utils/button_styles.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-
 import '../../domain/entities/sequence_entity.dart';
 import '../../domain/repositories/sequence_repository.dart';
 import '../providers/sequence_provider.dart';
@@ -117,29 +118,22 @@ class SequenceListPage extends ConsumerWidget {
                 return GridView.builder(
                   padding: const EdgeInsets.all(24),
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 320,
-                    mainAxisExtent: 120,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
+                    maxCrossAxisExtent: 600,
+                    mainAxisExtent: 140,
+                    crossAxisSpacing: 24,
+                    mainAxisSpacing: 24,
                   ),
                   itemCount: sequences.length,
                   itemBuilder: (BuildContext context, int index) {
                     final SequenceEntity sequence = sequences[index];
                     final SequenceStats stats = ref.watch(sequenceStatsProvider(sequence.id));
-                    return Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(color: colorScheme.outlineVariant),
-                      ),
-                      child: SequenceListTile(
-                        sequence: sequence,
-                        onTap: () => context.go('/sequences/${sequence.id}'),
-                        onEdit: () => context.push('/sequences/add', extra: sequence),
-                        onDelete: () => _handleDelete(context, ref, sequence.id),
-                        bookCount: stats.bookCount,
-                        workCount: stats.workCount,
-                      ),
+                    return SequenceListTile(
+                      sequence: sequence,
+                      onTap: () => context.go('/sequences/${sequence.id}'),
+                      onEdit: () => context.push('/sequences/add', extra: sequence),
+                      onDelete: () => _handleDelete(context, ref, sequence.id),
+                      bookCount: stats.bookCount,
+                      workCount: stats.workCount,
                     );
                   },
                 );
@@ -166,6 +160,8 @@ class SequenceListPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: ButtonStyles.getPrimaryActionBackgroundColor(theme),
+        foregroundColor: ButtonStyles.getPrimaryActionForegroundColor(theme),
         onPressed: () => context.go('/sequences/add'),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Sequence'),

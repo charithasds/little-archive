@@ -27,6 +27,7 @@ class UpsertSequenceController extends Notifier<UpsertSequenceState> {
     state = state.copyWith(isLoading: true);
 
     final UserEntity? user = ref.read(authStateProvider).value;
+
     if (user == null) {
       state = state.copyWith(isLoading: false, error: 'User not authenticated');
       return null;
@@ -44,7 +45,9 @@ class UpsertSequenceController extends Notifier<UpsertSequenceState> {
       } else {
         await ref.read(addSequenceUseCaseProvider)(sequenceToSave);
       }
+
       state = state.copyWith(isLoading: false);
+
       return sequenceToSave;
     } on NoConnectionException catch (e) {
       state = state.copyWith(isLoading: false, error: e.message);

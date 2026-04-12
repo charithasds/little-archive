@@ -1,51 +1,44 @@
-import '../../../../core/shared/domain/usecases/usecase.dart';
-import '../../domain/entities/book_entity.dart';
-import '../../domain/repositories/book_repository.dart';
+import '../entities/book_entity.dart';
+import '../repositories/book_repository.dart';
 
-class GetBooksUseCase implements UseCase<List<BookEntity>, String> {
-  GetBooksUseCase(this.repository);
+class GetBooksUseCase {
+  const GetBooksUseCase(this.repository);
   final BookRepository repository;
 
-  @override
-  Future<List<BookEntity>> call(String params) => repository.getBooks(params);
+  Future<List<BookEntity>> call(String userId) => repository.getBooks(userId);
 }
 
-class WatchBooksUseCase implements UseCase<Stream<List<BookEntity>>, String> {
-  WatchBooksUseCase(this.repository);
+class WatchBooksUseCase {
+  const WatchBooksUseCase(this.repository);
   final BookRepository repository;
 
-  @override
-  Future<Stream<List<BookEntity>>> call(String params) async => repository.watchBooks(params);
+  Stream<List<BookEntity>> call(String userId) => repository.watchBooks(userId);
 }
 
-class GetBookByIdUseCase implements UseCase<BookEntity?, String> {
-  GetBookByIdUseCase(this.repository);
+class GetBookByIdUseCase {
+  const GetBookByIdUseCase(this.repository);
   final BookRepository repository;
 
-  @override
-  Future<BookEntity?> call(String params) => repository.getBookById(params);
+  Future<BookEntity?> call(String id) => repository.getBookById(id);
 }
 
-class AddBookUseCase implements UseCase<void, BookEntity> {
-  AddBookUseCase(this.repository);
+class AddBookUseCase {
+  const AddBookUseCase(this.repository);
   final BookRepository repository;
 
-  @override
-  Future<void> call(BookEntity params) => repository.addBook(params);
+  Future<void> call(BookEntity book) => repository.addBook(book);
 }
 
-class UpdateBookUseCase implements UseCase<void, BookEntity> {
-  UpdateBookUseCase(this.repository);
+class UpdateBookUseCase {
+  const UpdateBookUseCase(this.repository);
   final BookRepository repository;
 
-  @override
-  Future<void> call(BookEntity params) => repository.updateBook(params);
+  Future<void> call(BookEntity book) => repository.updateBook(book);
 }
 
-class DeleteBookUseCase implements UseCase<void, String> {
-  DeleteBookUseCase(this.repository);
+class DeleteBookUseCase {
+  const DeleteBookUseCase(this.repository);
   final BookRepository repository;
 
-  @override
-  Future<void> call(String params) => repository.deleteBook(params);
+  Future<void> call(String id) => repository.deleteBook(id);
 }

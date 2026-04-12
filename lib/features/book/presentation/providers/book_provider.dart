@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/auth/domain/entities/user_entity.dart';
@@ -15,12 +14,12 @@ import '../../domain/usecases/book_usecases.dart';
 
 part 'book_provider.g.dart';
 
-final Provider<BookRemoteDataSource> bookRemoteDataSourceProvider = Provider<BookRemoteDataSource>((
-  Ref ref,
-) {
+@riverpod
+BookRemoteDataSource bookRemoteDataSource(Ref ref) {
   final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
+
   return BookRemoteDataSourceImpl(firestoreService: firestoreService);
-});
+}
 
 @riverpod
 BookRepository bookRepository(Ref ref) {
@@ -28,6 +27,7 @@ BookRepository bookRepository(Ref ref) {
   final RelationshipSyncService relationshipSyncService = ref.watch(
     relationshipSyncServiceProvider,
   );
+
   return BookRepositoryImpl(
     remoteDataSource: remoteDataSource,
     relationshipSyncService: relationshipSyncService,
@@ -38,28 +38,32 @@ BookRepository bookRepository(Ref ref) {
 GetBooksUseCase getBooksUseCase(Ref ref) => GetBooksUseCase(ref.watch(bookRepositoryProvider));
 
 @riverpod
-WatchBooksUseCase watchBooksUseCase(Ref ref) => WatchBooksUseCase(ref.watch(bookRepositoryProvider));
+WatchBooksUseCase watchBooksUseCase(Ref ref) =>
+    WatchBooksUseCase(ref.watch(bookRepositoryProvider));
 
 @riverpod
-GetBookByIdUseCase getBookByIdUseCase(Ref ref) => GetBookByIdUseCase(ref.watch(bookRepositoryProvider));
+GetBookByIdUseCase getBookByIdUseCase(Ref ref) =>
+    GetBookByIdUseCase(ref.watch(bookRepositoryProvider));
 
 @riverpod
 AddBookUseCase addBookUseCase(Ref ref) => AddBookUseCase(ref.watch(bookRepositoryProvider));
 
 @riverpod
-UpdateBookUseCase updateBookUseCase(Ref ref) => UpdateBookUseCase(ref.watch(bookRepositoryProvider));
+UpdateBookUseCase updateBookUseCase(Ref ref) =>
+    UpdateBookUseCase(ref.watch(bookRepositoryProvider));
 
 @riverpod
-DeleteBookUseCase deleteBookUseCase(Ref ref) => DeleteBookUseCase(ref.watch(bookRepositoryProvider));
+DeleteBookUseCase deleteBookUseCase(Ref ref) =>
+    DeleteBookUseCase(ref.watch(bookRepositoryProvider));
 
-final StreamProvider<List<BookEntity>> booksStreamProvider = StreamProvider<List<BookEntity>>((
-  Ref ref,
-) async* {
+@riverpod
+Stream<List<BookEntity>> booksStream(Ref ref) {
+  final WatchBooksUseCase watchBooks = ref.watch(watchBooksUseCaseProvider);
   final UserEntity? user = ref.watch(authStateProvider).value;
+
   if (user == null) {
-    yield <BookEntity>[];
-  } else {
-    final WatchBooksUseCase watchBooks = ref.watch(watchBooksUseCaseProvider);
-    yield* await watchBooks(user.uid);
+    return Stream<List<BookEntity>>.value(<BookEntity>[]);
   }
-});
+
+  return watchBooks(user.uid);
+}

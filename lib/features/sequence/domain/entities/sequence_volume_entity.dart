@@ -3,7 +3,6 @@ import 'package:equatable/equatable.dart';
 class SequenceVolumeEntity extends Equatable {
   const SequenceVolumeEntity({
     required this.id,
-
     required this.volume,
     required this.sequenceId,
     this.bookId,
@@ -11,8 +10,8 @@ class SequenceVolumeEntity extends Equatable {
     required this.createdDate,
     required this.lastUpdated,
   });
-  final String id;
 
+  final String id;
   final String volume;
   final String sequenceId;
   final String? bookId;

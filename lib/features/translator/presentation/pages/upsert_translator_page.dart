@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/shared/presentation/utils/button_styles.dart';
+import '../../../../core/shared/presentation/utils/image_styles.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/utils/validators.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
@@ -106,10 +108,8 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
                 child: Container(
                   width: 120,
                   height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: colorScheme.primaryContainer,
-                    border: Border.all(color: colorScheme.primary, width: 3),
+                  decoration: ImageStyles.getPickerDecoration(
+                    theme,
                     image: state.pickedBase64Image != null
                         ? DecorationImage(
                             image: MemoryImage(base64Decode(state.pickedBase64Image!)),
@@ -121,7 +121,7 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
                       ? Icon(
                           Icons.translate_rounded,
                           size: 56,
-                          color: colorScheme.onPrimaryContainer,
+                          color: ImageStyles.getPickerIconColor(theme),
                         )
                       : null,
                 ),
@@ -140,9 +140,9 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
             FormTextField(
               controller: _nameController,
               label: 'Name',
-              hint: 'Translator name',
+              hint: 'Translator Name',
               prefixIcon: Icons.person_outline_rounded,
-              maxLength: 500,
+              maxLength: 200,
               isRequired: true,
             ),
             const SizedBox(height: 16),
@@ -152,7 +152,7 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
               label: 'Other Name',
               hint: 'Alternative Name',
               prefixIcon: Icons.badge_outlined,
-              maxLength: 500,
+              maxLength: 200,
             ),
             const SizedBox(height: 16),
 
@@ -195,10 +195,7 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
                     ? 'Saving...'
                     : (widget.existingTranslator != null ? 'Update Translator' : 'Save Translator'),
               ),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(56),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              ),
+              style: ButtonStyles.getPrimaryFilledButtonStyle(theme),
             ),
           ],
         ),

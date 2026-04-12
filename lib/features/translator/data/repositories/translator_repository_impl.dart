@@ -23,7 +23,6 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
   Future<void> addTranslator(TranslatorEntity translator) => remoteDataSource.addTranslator(
     TranslatorModel(
       id: translator.id,
-
       name: translator.name,
       image: translator.image,
       otherName: translator.otherName,
@@ -40,7 +39,6 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
   Future<void> updateTranslator(TranslatorEntity translator) => remoteDataSource.updateTranslator(
     TranslatorModel(
       id: translator.id,
-
       name: translator.name,
       image: translator.image,
       otherName: translator.otherName,
@@ -56,6 +54,7 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
   @override
   Future<void> deleteTranslator(String id) async {
     final TranslatorModel? existingTranslator = await remoteDataSource.getTranslatorById(id);
+
     if (existingTranslator != null) {
       await relationshipSyncService.removeTranslatorRelationships(
         translatorId: id,
@@ -63,6 +62,7 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
         workIds: existingTranslator.workIds,
       );
     }
+
     await remoteDataSource.deleteTranslator(id);
   }
 

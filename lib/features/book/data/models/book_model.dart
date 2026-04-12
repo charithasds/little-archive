@@ -11,12 +11,11 @@ import '../../domain/entities/book_entity.dart';
 class BookModel extends BookEntity {
   const BookModel({
     required super.id,
-
     required super.title,
     super.cover,
     required super.compilationType,
-    required super.language,
-    required super.genre,
+    super.language,
+    super.genre,
     super.isbn,
     super.publishedDate,
     super.noOfPages,
@@ -43,12 +42,11 @@ class BookModel extends BookEntity {
 
   factory BookModel.fromMap(Map<String, dynamic> map, String documentId) => BookModel(
     id: documentId,
-
     title: (map['title'] as String?) ?? '',
     cover: map['cover'] as String?,
     compilationType: CompilationType.values.byName((map['compilationType'] as String?) ?? 'single'),
-    language: Language.values.byName((map['language'] as String?) ?? 'english'),
-    genre: Genre.values.byName((map['genre'] as String?) ?? 'other'),
+    language: map['language'] != null ? Language.values.byName(map['language'] as String) : null,
+    genre: map['genre'] != null ? Genre.values.byName(map['genre'] as String) : null,
     isbn: map['isbn'] as String?,
     publishedDate: (map['publishedDate'] as Timestamp?)?.toDate(),
     noOfPages: map['noOfPages'] as int?,
@@ -81,12 +79,11 @@ class BookModel extends BookEntity {
 
   Map<String, dynamic> toMap() => <String, dynamic>{
     'id': id,
-
     'title': title,
     'cover': cover,
     'compilationType': compilationType.name,
-    'language': language.name,
-    'genre': genre.name,
+    'language': language?.name,
+    'genre': genre?.name,
     'isbn': isbn,
     'publishedDate': publishedDate != null ? Timestamp.fromDate(publishedDate!) : null,
     'noOfPages': noOfPages,

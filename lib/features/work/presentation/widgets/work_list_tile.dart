@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/shared/presentation/utils/image_styles.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/work_entity.dart';
 
@@ -15,13 +16,9 @@ class WorkListTile extends ConsumerWidget {
   });
 
   final WorkEntity work;
-
   final VoidCallback onTap;
-
   final VoidCallback onEdit;
-
   final VoidCallback onDelete;
-
   final String? firstAuthorOrTranslatorName;
 
   @override
@@ -46,64 +43,90 @@ class WorkListTile extends ConsumerWidget {
       creatorText = 'No ${creatorLabel}s';
     }
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: <Widget>[
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(8),
+    return Card(
+      elevation: 0,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+      ),
+      color: colorScheme.primaryContainer.withValues(alpha: 0.2),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: <Widget>[
+              Hero(
+                tag: 'work_${work.id}',
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: ImageStyles.getAvatarBackgroundColor(theme),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(
+                    Icons.article_rounded,
+                    color: ImageStyles.getAvatarIconColor(theme),
+                    size: 32,
+                  ),
+                ),
               ),
-              child: Icon(Icons.article_rounded, color: colorScheme.onPrimaryContainer, size: 24),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      work.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      creatorText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${work.contentCategory.clientValue} • ${work.readingStatus.clientValue}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
                 children: <Widget>[
-                  Text(
-                    work.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                  IconButton(
+                    icon: Icon(Icons.edit_note_rounded, color: colorScheme.primary),
+                    onPressed: onEdit,
+                    tooltip: 'Edit',
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    creatorText,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                  ),
-                  Text(
-                    '${work.contentCategory.clientValue} • ${work.readingStatus.clientValue}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                  IconButton(
+                    icon: Icon(Icons.delete_sweep_rounded, color: colorScheme.error),
+                    onPressed: onDelete,
+                    tooltip: 'Delete',
                   ),
                 ],
               ),
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                IconButton(
-                  icon: Icon(Icons.edit_outlined, color: colorScheme.primary),
-                  onPressed: onEdit,
-                ),
-                IconButton(
-                  icon: Icon(Icons.delete_outline_rounded, color: colorScheme.error),
-                  onPressed: onDelete,
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

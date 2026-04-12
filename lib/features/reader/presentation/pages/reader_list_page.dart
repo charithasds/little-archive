@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/utils/button_styles.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-
 import '../../domain/entities/reader_entity.dart';
 import '../../domain/repositories/reader_repository.dart';
 import '../providers/reader_provider.dart';
@@ -115,26 +116,19 @@ class ReaderListPage extends ConsumerWidget {
                 return GridView.builder(
                   padding: const EdgeInsets.all(24),
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 320,
-                    mainAxisExtent: 120,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
+                    maxCrossAxisExtent: 600,
+                    mainAxisExtent: 140,
+                    crossAxisSpacing: 24,
+                    mainAxisSpacing: 24,
                   ),
                   itemCount: readers.length,
                   itemBuilder: (BuildContext context, int index) {
                     final ReaderEntity reader = readers[index];
-                    return Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(color: colorScheme.outlineVariant),
-                      ),
-                      child: ReaderListTile(
-                        reader: reader,
-                        onTap: () => context.go('/readers/${reader.id}'),
-                        onEdit: () => context.push('/readers/add', extra: reader),
-                        onDelete: () => _handleDelete(context, ref, reader.id),
-                      ),
+                    return ReaderListTile(
+                      reader: reader,
+                      onTap: () => context.go('/readers/${reader.id}'),
+                      onEdit: () => context.push('/readers/add', extra: reader),
+                      onDelete: () => _handleDelete(context, ref, reader.id),
                     );
                   },
                 );
@@ -161,6 +155,8 @@ class ReaderListPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: ButtonStyles.getPrimaryActionBackgroundColor(theme),
+        foregroundColor: ButtonStyles.getPrimaryActionForegroundColor(theme),
         onPressed: () => context.go('/readers/add'),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Reader'),

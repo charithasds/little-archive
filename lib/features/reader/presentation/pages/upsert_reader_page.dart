@@ -8,6 +8,8 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/utils/button_styles.dart';
+import '../../../../core/shared/presentation/utils/image_styles.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/utils/validators.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
@@ -153,10 +155,8 @@ class _UpsertReaderPageState extends ConsumerState<UpsertReaderPage> {
                 child: Container(
                   width: 120,
                   height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: colorScheme.primaryContainer,
-                    border: Border.all(color: colorScheme.primary, width: 3),
+                  decoration: ImageStyles.getPickerDecoration(
+                    theme,
                     image: _pickedBase64Image != null
                         ? DecorationImage(
                             image: MemoryImage(base64Decode(_pickedBase64Image!)),
@@ -165,7 +165,11 @@ class _UpsertReaderPageState extends ConsumerState<UpsertReaderPage> {
                         : null,
                   ),
                   child: _pickedBase64Image == null
-                      ? Icon(Icons.face_rounded, size: 48, color: colorScheme.onPrimaryContainer)
+                      ? Icon(
+                          Icons.face_rounded,
+                          size: 48,
+                          color: ImageStyles.getPickerIconColor(theme),
+                        )
                       : null,
                 ),
               ),
@@ -183,9 +187,9 @@ class _UpsertReaderPageState extends ConsumerState<UpsertReaderPage> {
             FormTextField(
               controller: _nameController,
               label: 'Name',
-              hint: 'Reader name',
+              hint: 'Reader Name',
               prefixIcon: Icons.person_outline_rounded,
-              maxLength: 500,
+              maxLength: 200,
               isRequired: true,
             ),
             const SizedBox(height: 16),
@@ -239,10 +243,7 @@ class _UpsertReaderPageState extends ConsumerState<UpsertReaderPage> {
                     ? 'Saving...'
                     : (widget.existingReader != null ? 'Update Reader' : 'Save Reader'),
               ),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(56),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              ),
+              style: ButtonStyles.getPrimaryFilledButtonStyle(theme),
             ),
           ],
         ),

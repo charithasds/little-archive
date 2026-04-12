@@ -23,7 +23,6 @@ class PublisherRepositoryImpl implements PublisherRepository {
   Future<void> addPublisher(PublisherEntity publisher) => remoteDataSource.addPublisher(
     PublisherModel(
       id: publisher.id,
-
       name: publisher.name,
       logo: publisher.logo,
       otherName: publisher.otherName,
@@ -41,7 +40,6 @@ class PublisherRepositoryImpl implements PublisherRepository {
   Future<void> updatePublisher(PublisherEntity publisher) => remoteDataSource.updatePublisher(
     PublisherModel(
       id: publisher.id,
-
       name: publisher.name,
       logo: publisher.logo,
       otherName: publisher.otherName,
@@ -58,12 +56,14 @@ class PublisherRepositoryImpl implements PublisherRepository {
   @override
   Future<void> deletePublisher(String id) async {
     final PublisherModel? existingPublisher = await remoteDataSource.getPublisherById(id);
+
     if (existingPublisher != null) {
       await relationshipSyncService.removePublisherRelationships(
         publisherId: id,
         bookIds: existingPublisher.bookIds,
       );
     }
+
     await remoteDataSource.deletePublisher(id);
   }
 

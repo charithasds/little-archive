@@ -10,9 +10,9 @@ class SnackBars {
     _showSnackBar(
       context,
       message: message,
-      icon: Icons.check_circle_outline_rounded,
-      backgroundColor: colorScheme.secondary,
-      foregroundColor: colorScheme.onSecondary,
+      icon: Icons.check_circle_rounded,
+      backgroundColor: colorScheme.secondaryContainer,
+      foregroundColor: colorScheme.onSecondaryContainer,
     );
   }
 
@@ -21,9 +21,9 @@ class SnackBars {
     _showSnackBar(
       context,
       message: message,
-      icon: Icons.error_outline_rounded,
-      backgroundColor: colorScheme.error,
-      foregroundColor: colorScheme.onError,
+      icon: Icons.error_rounded,
+      backgroundColor: colorScheme.errorContainer,
+      foregroundColor: colorScheme.onErrorContainer,
     );
   }
 
@@ -32,9 +32,9 @@ class SnackBars {
     _showSnackBar(
       context,
       message: message,
-      icon: Icons.warning_amber_rounded,
-      backgroundColor: colorScheme.tertiary,
-      foregroundColor: colorScheme.onTertiary,
+      icon: Icons.warning_rounded,
+      backgroundColor: colorScheme.tertiaryContainer,
+      foregroundColor: colorScheme.onTertiaryContainer,
     );
   }
 
@@ -43,9 +43,9 @@ class SnackBars {
     _showSnackBar(
       context,
       message: message,
-      icon: Icons.info_outline_rounded,
-      backgroundColor: colorScheme.primary,
-      foregroundColor: colorScheme.onPrimary,
+      icon: Icons.info_rounded,
+      backgroundColor: colorScheme.primaryContainer,
+      foregroundColor: colorScheme.onPrimaryContainer,
     );
   }
 
@@ -62,22 +62,37 @@ class SnackBars {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+
+    messenger.showSnackBar(
       SnackBar(
         content: Row(
           children: <Widget>[
-            Icon(icon, color: foregroundColor),
-            const SizedBox(width: 12),
+            Icon(icon, color: foregroundColor, size: 24),
+            const SizedBox(width: 14),
             Expanded(
-              child: Text(message, style: TextStyle(color: foregroundColor)),
+              child: Text(
+                message,
+                style: TextStyle(
+                  color: foregroundColor,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  letterSpacing: 0.2,
+                ),
+              ),
             ),
           ],
         ),
         backgroundColor: backgroundColor,
-        duration: const Duration(seconds: 1),
+        duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        margin: const EdgeInsets.all(16),
+        elevation: 8,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(color: foregroundColor.withOpacity(0.1)),
+        ),
+        margin: const EdgeInsets.fromLTRB(24, 0, 24, 32),
       ),
     );
   }

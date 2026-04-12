@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/shared/presentation/utils/image_styles.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/book_entity.dart';
 
@@ -16,13 +17,9 @@ class BookListTile extends ConsumerWidget {
   });
 
   final BookEntity book;
-
   final VoidCallback onTap;
-
   final VoidCallback onEdit;
-
   final VoidCallback onDelete;
-
   final String? firstAuthorOrTranslatorName;
 
   @override
@@ -47,92 +44,114 @@ class BookListTile extends ConsumerWidget {
       creatorText = 'No ${creatorLabel}s';
     }
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          children: <Widget>[
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: SizedBox(
-                width: 48,
-                height: 64,
-                child: book.cover != null && book.cover!.isNotEmpty
-                    ? _buildCoverImage(book.cover!, colorScheme)
-                    : _buildPlaceholder(colorScheme),
+    return Card(
+      elevation: 0,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+        side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+      ),
+      color: colorScheme.primaryContainer.withValues(alpha: 0.2),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: <Widget>[
+              Hero(
+                tag: 'book_${book.id}',
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: SizedBox(
+                    width: 60,
+                    height: 80,
+                    child: book.cover != null && book.cover!.isNotEmpty
+                        ? _buildCoverImage(book.cover!, colorScheme, theme)
+                        : _buildPlaceholder(theme),
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      book.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      creatorText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${book.collectionStatus.clientValue} • ${book.readingStatus.clientValue}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
                 children: <Widget>[
-                  Text(
-                    book.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                  IconButton(
+                    icon: Icon(Icons.edit_note_rounded, color: colorScheme.primary),
+                    onPressed: onEdit,
+                    tooltip: 'Edit',
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    creatorText,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                  ),
-                  Text(
-                    '${book.collectionStatus.clientValue} • ${book.readingStatus.clientValue}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                  IconButton(
+                    icon: Icon(Icons.delete_sweep_rounded, color: colorScheme.error),
+                    onPressed: onDelete,
+                    tooltip: 'Delete',
                   ),
                 ],
               ),
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                IconButton(
-                  icon: Icon(Icons.edit_outlined, color: colorScheme.primary),
-                  onPressed: onEdit,
-                ),
-                IconButton(
-                  icon: Icon(Icons.delete_outline_rounded, color: colorScheme.error),
-                  onPressed: onDelete,
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildCoverImage(String cover, ColorScheme colorScheme) {
+  Widget _buildCoverImage(String cover, ColorScheme colorScheme, ThemeData theme) {
     if (cover.startsWith('http')) {
       return Image.network(
         cover,
         fit: BoxFit.cover,
         errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) =>
-            _buildPlaceholder(colorScheme),
+            _buildPlaceholder(theme),
       );
     } else {
       try {
         return Image.memory(base64Decode(cover), fit: BoxFit.cover);
       } catch (e) {
-        return _buildPlaceholder(colorScheme);
+        return _buildPlaceholder(theme);
       }
     }
   }
 
-  Widget _buildPlaceholder(ColorScheme colorScheme) => Container(
+  Widget _buildPlaceholder(ThemeData theme) => Container(
     decoration: BoxDecoration(
-      color: colorScheme.primaryContainer,
-      borderRadius: BorderRadius.circular(8),
+      color: ImageStyles.getAvatarBackgroundColor(theme),
+      borderRadius: BorderRadius.circular(12),
     ),
-    child: Icon(Icons.book_rounded, color: colorScheme.onPrimaryContainer, size: 24),
+    child: Icon(Icons.book_rounded, color: ImageStyles.getAvatarIconColor(theme), size: 28),
   );
 }

@@ -17,6 +17,7 @@ abstract class TranslatorRemoteDataSource {
 
 class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
   TranslatorRemoteDataSourceImpl({required this.firestoreService});
+
   final FirestoreService firestoreService;
 
   FirebaseFirestore get firestore => firestoreService.firebaseFirestore;
@@ -26,9 +27,11 @@ class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
 
   String get _currentUserId {
     final User? user = FirebaseAuth.instance.currentUser;
+
     if (user == null) {
       throw const UnauthorizedException();
     }
+
     return user.uid;
   }
 
@@ -38,6 +41,7 @@ class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
   Future<List<TranslatorModel>> getTranslators(String userId) async {
     final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
         .safeGetDocs(firestore.collection(collectionPath(userId)));
+
     return docs
         .map(
           (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
@@ -51,9 +55,11 @@ class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
     final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
       firestore.collection(collectionPath(_currentUserId)).doc(id),
     );
+
     if (doc == null || !doc.exists) {
       return null;
     }
+
     return TranslatorModel.fromMap(doc.data()!, doc.id);
   }
 

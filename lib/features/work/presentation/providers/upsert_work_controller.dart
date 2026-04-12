@@ -31,8 +31,8 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
   Future<WorkEntity?> saveWork({
     required WorkEntity? existingWork,
     required String title,
-    required Language language,
-    required Genre genre,
+    required Language? language,
+    required Genre? genre,
     required ContentCategory contentCategory,
     required int? noOfPages,
     required bool isTranslation,
@@ -50,6 +50,7 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
     state = state.copyWith(isLoading: true);
 
     final UserEntity? user = ref.read(authStateProvider).value;
+
     if (user == null) {
       state = state.copyWith(isLoading: false, error: 'User not authenticated');
       return null;
@@ -63,12 +64,14 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
         final List<SequenceVolumeEntity> oldVolumes = await ref
             .read(sequenceRepositoryProvider)
             .getSequenceVolumesByWorkId(workId, user.uid);
+
         for (final SequenceVolumeEntity vol in oldVolumes) {
           await ref.read(sequenceRepositoryProvider).deleteSequenceVolume(vol.id);
 
           final SequenceEntity? seq = await ref
               .read(sequenceRepositoryProvider)
               .getSequenceById(vol.sequenceId);
+
           if (seq != null) {
             final List<String> newIds = List<String>.from(seq.sequenceVolumeIds)..remove(vol.id);
             await ref
@@ -97,6 +100,7 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
         final SequenceEntity? currentSequence = await ref
             .read(sequenceRepositoryProvider)
             .getSequenceById(sequence.id);
+
         if (currentSequence != null) {
           final SequenceEntity updatedSequence = currentSequence.copyWith(
             sequenceVolumeIds: <String>[...currentSequence.sequenceVolumeIds, volumeId],
@@ -156,6 +160,7 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
       }
 
       state = state.copyWith(isLoading: false);
+
       return workToSave;
     } on NoConnectionException catch (e) {
       state = state.copyWith(isLoading: false, error: e.message);

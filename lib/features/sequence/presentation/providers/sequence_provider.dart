@@ -16,62 +16,100 @@ part 'sequence_provider.g.dart';
 @riverpod
 SequenceRemoteDataSource sequenceRemoteDataSource(Ref ref) {
   final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
+
   return SequenceRemoteDataSourceImpl(firestoreService: firestoreService);
 }
 
 @riverpod
 SequenceRepository sequenceRepository(Ref ref) {
   final SequenceRemoteDataSource remoteDataSource = ref.watch(sequenceRemoteDataSourceProvider);
+
   return SequenceRepositoryImpl(remoteDataSource: remoteDataSource);
 }
 
 @riverpod
-GetSequencesUseCase getSequencesUseCase(Ref ref) => GetSequencesUseCase(ref.watch(sequenceRepositoryProvider));
+GetSequencesUseCase getSequencesUseCase(Ref ref) =>
+    GetSequencesUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
-WatchSequencesUseCase watchSequencesUseCase(Ref ref) => WatchSequencesUseCase(ref.watch(sequenceRepositoryProvider));
+WatchSequencesUseCase watchSequencesUseCase(Ref ref) =>
+    WatchSequencesUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
-AddSequenceUseCase addSequenceUseCase(Ref ref) => AddSequenceUseCase(ref.watch(sequenceRepositoryProvider));
+GetSequenceByIdUseCase getSequenceByIdUseCase(Ref ref) =>
+    GetSequenceByIdUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
-UpdateSequenceUseCase updateSequenceUseCase(Ref ref) => UpdateSequenceUseCase(ref.watch(sequenceRepositoryProvider));
+AddSequenceUseCase addSequenceUseCase(Ref ref) =>
+    AddSequenceUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
-DeleteSequenceUseCase deleteSequenceUseCase(Ref ref) => DeleteSequenceUseCase(ref.watch(sequenceRepositoryProvider));
+UpdateSequenceUseCase updateSequenceUseCase(Ref ref) =>
+    UpdateSequenceUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
-GetSequenceVolumeByIdUseCase getSequenceVolumeByIdUseCase(Ref ref) => GetSequenceVolumeByIdUseCase(ref.watch(sequenceRepositoryProvider));
+DeleteSequenceUseCase deleteSequenceUseCase(Ref ref) =>
+    DeleteSequenceUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
-GetSequenceVolumesByBookIdUseCase getSequenceVolumesByBookIdUseCase(Ref ref) => GetSequenceVolumesByBookIdUseCase(ref.watch(sequenceRepositoryProvider));
+GetSequenceVolumeByIdUseCase getSequenceVolumeByIdUseCase(Ref ref) =>
+    GetSequenceVolumeByIdUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
-GetSequenceVolumesByWorkIdUseCase getSequenceVolumesByWorkIdUseCase(Ref ref) => GetSequenceVolumesByWorkIdUseCase(ref.watch(sequenceRepositoryProvider));
+GetSequenceVolumesByBookIdUseCase getSequenceVolumesByBookIdUseCase(Ref ref) =>
+    GetSequenceVolumesByBookIdUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
-Stream<List<SequenceEntity>> sequencesStream(Ref ref) async* {
+GetSequenceVolumesByWorkIdUseCase getSequenceVolumesByWorkIdUseCase(Ref ref) =>
+    GetSequenceVolumesByWorkIdUseCase(ref.watch(sequenceRepositoryProvider));
+
+@riverpod
+GetSequenceVolumesUseCase getSequenceVolumesUseCase(Ref ref) =>
+    GetSequenceVolumesUseCase(ref.watch(sequenceRepositoryProvider));
+
+@riverpod
+AddSequenceVolumeUseCase addSequenceVolumeUseCase(Ref ref) =>
+    AddSequenceVolumeUseCase(ref.watch(sequenceRepositoryProvider));
+
+@riverpod
+UpdateSequenceVolumeUseCase updateSequenceVolumeUseCase(Ref ref) =>
+    UpdateSequenceVolumeUseCase(ref.watch(sequenceRepositoryProvider));
+
+@riverpod
+DeleteSequenceVolumeUseCase deleteSequenceVolumeUseCase(Ref ref) =>
+    DeleteSequenceVolumeUseCase(ref.watch(sequenceRepositoryProvider));
+
+@riverpod
+WatchSequenceVolumesUseCase watchSequenceVolumesUseCase(Ref ref) =>
+    WatchSequenceVolumesUseCase(ref.watch(sequenceRepositoryProvider));
+
+@riverpod
+Stream<List<SequenceEntity>> sequencesStream(Ref ref) {
+  final WatchSequencesUseCase watchSequences = ref.watch(watchSequencesUseCaseProvider);
   final UserEntity? user = ref.watch(authStateProvider).value;
+
   if (user == null) {
-    yield <SequenceEntity>[];
-  } else {
-    final WatchSequencesUseCase watchSequences = ref.watch(watchSequencesUseCaseProvider);
-    yield* await watchSequences(user.uid);
+    return Stream<List<SequenceEntity>>.value(<SequenceEntity>[]);
   }
+
+  return watchSequences(user.uid);
 }
 
 @riverpod
 Stream<List<SequenceVolumeEntity>> sequenceVolumesStream(Ref ref, String sequenceId) {
-  final SequenceRepository repository = ref.watch(sequenceRepositoryProvider);
+  final WatchSequenceVolumesUseCase watchVolumes = ref.watch(watchSequenceVolumesUseCaseProvider);
   final UserEntity? user = ref.watch(authStateProvider).value;
+
   if (user == null) {
     return Stream<List<SequenceVolumeEntity>>.value(<SequenceVolumeEntity>[]);
   }
-  return repository.watchSequenceVolumes(sequenceId, user.uid);
+
+  return watchVolumes(sequenceId, user.uid);
 }
 
 class SequenceStats {
   const SequenceStats({this.bookCount = 0, this.workCount = 0});
+
   final int bookCount;
   final int workCount;
 }
@@ -81,10 +119,12 @@ SequenceStats sequenceStats(Ref ref, String sequenceId) {
   final AsyncValue<List<SequenceVolumeEntity>> volumesAsync = ref.watch(
     sequenceVolumesStreamProvider(sequenceId),
   );
+
   return volumesAsync.when(
     data: (List<SequenceVolumeEntity> volumes) {
       int bookCount = 0;
       int workCount = 0;
+
       for (final SequenceVolumeEntity volume in volumes) {
         if (volume.bookId != null && volume.bookId!.isNotEmpty) {
           bookCount++;
@@ -93,6 +133,7 @@ SequenceStats sequenceStats(Ref ref, String sequenceId) {
           workCount++;
         }
       }
+
       return SequenceStats(bookCount: bookCount, workCount: workCount);
     },
     loading: () => const SequenceStats(),

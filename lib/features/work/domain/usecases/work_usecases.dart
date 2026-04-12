@@ -1,51 +1,44 @@
-import '../../../../core/shared/domain/usecases/usecase.dart';
-import '../../domain/entities/work_entity.dart';
-import '../../domain/repositories/work_repository.dart';
+import '../entities/work_entity.dart';
+import '../repositories/work_repository.dart';
 
-class GetWorksUseCase implements UseCase<List<WorkEntity>, String> {
-  GetWorksUseCase(this.repository);
+class GetWorksUseCase {
+  const GetWorksUseCase(this.repository);
   final WorkRepository repository;
 
-  @override
-  Future<List<WorkEntity>> call(String params) => repository.getWorks(params);
+  Future<List<WorkEntity>> call(String userId) => repository.getWorks(userId);
 }
 
-class WatchWorksUseCase implements UseCase<Stream<List<WorkEntity>>, String> {
-  WatchWorksUseCase(this.repository);
+class WatchWorksUseCase {
+  const WatchWorksUseCase(this.repository);
   final WorkRepository repository;
 
-  @override
-  Future<Stream<List<WorkEntity>>> call(String params) async => repository.watchWorks(params);
+  Stream<List<WorkEntity>> call(String userId) => repository.watchWorks(userId);
 }
 
-class GetWorkByIdUseCase implements UseCase<WorkEntity?, String> {
-  GetWorkByIdUseCase(this.repository);
+class GetWorkByIdUseCase {
+  const GetWorkByIdUseCase(this.repository);
   final WorkRepository repository;
 
-  @override
-  Future<WorkEntity?> call(String params) => repository.getWorkById(params);
+  Future<WorkEntity?> call(String id) => repository.getWorkById(id);
 }
 
-class AddWorkUseCase implements UseCase<void, WorkEntity> {
-  AddWorkUseCase(this.repository);
+class AddWorkUseCase {
+  const AddWorkUseCase(this.repository);
   final WorkRepository repository;
 
-  @override
-  Future<void> call(WorkEntity params) => repository.addWork(params);
+  Future<void> call(WorkEntity work) => repository.addWork(work);
 }
 
-class UpdateWorkUseCase implements UseCase<void, WorkEntity> {
-  UpdateWorkUseCase(this.repository);
+class UpdateWorkUseCase {
+  const UpdateWorkUseCase(this.repository);
   final WorkRepository repository;
 
-  @override
-  Future<void> call(WorkEntity params) => repository.updateWork(params);
+  Future<void> call(WorkEntity work) => repository.updateWork(work);
 }
 
-class DeleteWorkUseCase implements UseCase<void, String> {
-  DeleteWorkUseCase(this.repository);
+class DeleteWorkUseCase {
+  const DeleteWorkUseCase(this.repository);
   final WorkRepository repository;
 
-  @override
-  Future<void> call(String params) => repository.deleteWork(params);
+  Future<void> call(String id) => repository.deleteWork(id);
 }

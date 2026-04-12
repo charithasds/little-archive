@@ -3,7 +3,6 @@ import 'package:equatable/equatable.dart';
 class TranslatorEntity extends Equatable {
   const TranslatorEntity({
     required this.id,
-
     required this.name,
     this.image,
     this.otherName,
@@ -14,8 +13,8 @@ class TranslatorEntity extends Equatable {
     required this.createdDate,
     required this.lastUpdated,
   });
-  final String id;
 
+  final String id;
   final String name;
   final String? image;
   final String? otherName;

@@ -4,7 +4,6 @@ import '../../domain/entities/reader_entity.dart';
 class ReaderModel extends ReaderEntity {
   const ReaderModel({
     required super.id,
-
     required super.name,
     super.image,
     super.otherName,
@@ -18,7 +17,6 @@ class ReaderModel extends ReaderEntity {
 
   factory ReaderModel.fromMap(Map<String, dynamic> map, String documentId) => ReaderModel(
     id: documentId,
-
     name: (map['name'] as String?) ?? '',
     image: map['image'] as String?,
     otherName: map['otherName'] as String?,
@@ -32,7 +30,6 @@ class ReaderModel extends ReaderEntity {
 
   Map<String, dynamic> toMap() => <String, dynamic>{
     'id': id,
-
     'name': name,
     'image': image,
     'otherName': otherName,

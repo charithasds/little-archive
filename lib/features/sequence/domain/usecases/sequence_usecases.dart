@@ -1,85 +1,105 @@
-import '../../../../core/shared/domain/usecases/usecase.dart';
-import '../../domain/entities/sequence_entity.dart';
-import '../../domain/entities/sequence_volume_entity.dart';
-import '../../domain/repositories/sequence_repository.dart';
+import '../entities/sequence_entity.dart';
+import '../entities/sequence_volume_entity.dart';
+import '../repositories/sequence_repository.dart';
 
-class GetSequencesUseCase implements UseCase<List<SequenceEntity>, String> {
-  GetSequencesUseCase(this.repository);
+class GetSequencesUseCase {
+  const GetSequencesUseCase(this.repository);
   final SequenceRepository repository;
 
-  @override
-  Future<List<SequenceEntity>> call(String params) => repository.getSequences(params);
+  Future<List<SequenceEntity>> call(String userId) => repository.getSequences(userId);
 }
 
-class WatchSequencesUseCase implements UseCase<Stream<List<SequenceEntity>>, String> {
-  WatchSequencesUseCase(this.repository);
+class WatchSequencesUseCase {
+  const WatchSequencesUseCase(this.repository);
   final SequenceRepository repository;
 
-  @override
-  Future<Stream<List<SequenceEntity>>> call(String params) async =>
-      repository.watchSequences(params);
+  Stream<List<SequenceEntity>> call(String userId) => repository.watchSequences(userId);
 }
 
-class AddSequenceUseCase implements UseCase<void, SequenceEntity> {
-  AddSequenceUseCase(this.repository);
+class GetSequenceByIdUseCase {
+  const GetSequenceByIdUseCase(this.repository);
   final SequenceRepository repository;
 
-  @override
-  Future<void> call(SequenceEntity params) => repository.addSequence(params);
+  Future<SequenceEntity?> call(String id) => repository.getSequenceById(id);
 }
 
-class UpdateSequenceUseCase implements UseCase<void, SequenceEntity> {
-  UpdateSequenceUseCase(this.repository);
+class AddSequenceUseCase {
+  const AddSequenceUseCase(this.repository);
   final SequenceRepository repository;
 
-  @override
-  Future<void> call(SequenceEntity params) => repository.updateSequence(params);
+  Future<void> call(SequenceEntity sequence) => repository.addSequence(sequence);
 }
 
-class DeleteSequenceUseCase implements UseCase<void, String> {
-  DeleteSequenceUseCase(this.repository);
+class UpdateSequenceUseCase {
+  const UpdateSequenceUseCase(this.repository);
   final SequenceRepository repository;
 
-  @override
-  Future<void> call(String params) => repository.deleteSequence(params);
+  Future<void> call(SequenceEntity sequence) => repository.updateSequence(sequence);
 }
 
-class GetSequenceVolumeByIdUseCase implements UseCase<SequenceVolumeEntity?, String> {
-  GetSequenceVolumeByIdUseCase(this.repository);
+class DeleteSequenceUseCase {
+  const DeleteSequenceUseCase(this.repository);
   final SequenceRepository repository;
 
-  @override
-  Future<SequenceVolumeEntity?> call(String params) => repository.getSequenceVolumeById(params);
+  Future<void> call(String id) => repository.deleteSequence(id);
 }
 
-class GetSequenceVolumesByBookIdParams {
-  GetSequenceVolumesByBookIdParams({required this.bookId, required this.userId});
-  final String bookId;
-  final String userId;
-}
-
-class GetSequenceVolumesByBookIdUseCase
-    implements UseCase<List<SequenceVolumeEntity>, GetSequenceVolumesByBookIdParams> {
-  GetSequenceVolumesByBookIdUseCase(this.repository);
+class GetSequenceVolumesUseCase {
+  const GetSequenceVolumesUseCase(this.repository);
   final SequenceRepository repository;
 
-  @override
-  Future<List<SequenceVolumeEntity>> call(GetSequenceVolumesByBookIdParams params) =>
-      repository.getSequenceVolumesByBookId(params.bookId, params.userId);
+  Future<List<SequenceVolumeEntity>> call(String sequenceId, String userId) =>
+      repository.getSequenceVolumes(sequenceId, userId);
 }
 
-class GetSequenceVolumesByWorkIdParams {
-  GetSequenceVolumesByWorkIdParams({required this.workId, required this.userId});
-  final String workId;
-  final String userId;
-}
-
-class GetSequenceVolumesByWorkIdUseCase
-    implements UseCase<List<SequenceVolumeEntity>, GetSequenceVolumesByWorkIdParams> {
-  GetSequenceVolumesByWorkIdUseCase(this.repository);
+class GetSequenceVolumeByIdUseCase {
+  const GetSequenceVolumeByIdUseCase(this.repository);
   final SequenceRepository repository;
 
-  @override
-  Future<List<SequenceVolumeEntity>> call(GetSequenceVolumesByWorkIdParams params) =>
-      repository.getSequenceVolumesByWorkId(params.workId, params.userId);
+  Future<SequenceVolumeEntity?> call(String id) => repository.getSequenceVolumeById(id);
+}
+
+class GetSequenceVolumesByBookIdUseCase {
+  const GetSequenceVolumesByBookIdUseCase(this.repository);
+  final SequenceRepository repository;
+
+  Future<List<SequenceVolumeEntity>> call(String bookId, String userId) =>
+      repository.getSequenceVolumesByBookId(bookId, userId);
+}
+
+class GetSequenceVolumesByWorkIdUseCase {
+  const GetSequenceVolumesByWorkIdUseCase(this.repository);
+  final SequenceRepository repository;
+
+  Future<List<SequenceVolumeEntity>> call(String workId, String userId) =>
+      repository.getSequenceVolumesByWorkId(workId, userId);
+}
+
+class AddSequenceVolumeUseCase {
+  const AddSequenceVolumeUseCase(this.repository);
+  final SequenceRepository repository;
+
+  Future<void> call(SequenceVolumeEntity volume) => repository.addSequenceVolume(volume);
+}
+
+class UpdateSequenceVolumeUseCase {
+  const UpdateSequenceVolumeUseCase(this.repository);
+  final SequenceRepository repository;
+
+  Future<void> call(SequenceVolumeEntity volume) => repository.updateSequenceVolume(volume);
+}
+
+class DeleteSequenceVolumeUseCase {
+  const DeleteSequenceVolumeUseCase(this.repository);
+  final SequenceRepository repository;
+
+  Future<void> call(String id) => repository.deleteSequenceVolume(id);
+}
+
+class WatchSequenceVolumesUseCase {
+  const WatchSequenceVolumesUseCase(this.repository);
+  final SequenceRepository repository;
+
+  Stream<List<SequenceVolumeEntity>> call(String sequenceId, String userId) =>
+      repository.watchSequenceVolumes(sequenceId, userId);
 }

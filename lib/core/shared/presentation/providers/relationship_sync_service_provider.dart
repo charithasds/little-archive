@@ -8,7 +8,7 @@ part 'relationship_sync_service_provider.g.dart';
 
 @riverpod
 RelationshipSyncService relationshipSyncService(Ref ref) {
-      final FirebaseFirestore firebaseFirestore = ref.watch(firebaseFirestoreProvider);
+  final FirebaseFirestore firebaseFirestore = ref.watch(firebaseFirestoreProvider);
 
-      return RelationshipSyncService(firestore: firebaseFirestore);
-    }
+  return RelationshipSyncService(firestore: firebaseFirestore);
+}

@@ -2,8 +2,8 @@ import 'package:equatable/equatable.dart';
 
 class SequenceEntity extends Equatable {
   const SequenceEntity({required this.id, required this.name, required this.sequenceVolumeIds});
-  final String id;
 
+  final String id;
   final String name;
   final List<String> sequenceVolumeIds;
 

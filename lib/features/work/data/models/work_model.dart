@@ -10,10 +10,9 @@ import '../../domain/entities/work_entity.dart';
 class WorkModel extends WorkEntity {
   const WorkModel({
     required super.id,
-
     required super.title,
-    required super.language,
-    required super.genre,
+    super.language,
+    super.genre,
     required super.contentCategory,
     super.noOfPages,
     required super.isTranslation,
@@ -33,10 +32,9 @@ class WorkModel extends WorkEntity {
 
   factory WorkModel.fromMap(Map<String, dynamic> map, String documentId) => WorkModel(
     id: documentId,
-
     title: (map['title'] as String?) ?? '',
-    language: Language.values.byName((map['language'] as String?) ?? 'english'),
-    genre: Genre.values.byName((map['genre'] as String?) ?? 'other'),
+    language: map['language'] != null ? Language.values.byName(map['language'] as String) : null,
+    genre: map['genre'] != null ? Genre.values.byName(map['genre'] as String) : null,
     contentCategory: ContentCategory.values.byName(
       (map['contentCategory'] as String?) ?? 'shortStory',
     ),
@@ -62,10 +60,9 @@ class WorkModel extends WorkEntity {
 
   Map<String, dynamic> toMap() => <String, dynamic>{
     'id': id,
-
     'title': title,
-    'language': language.name,
-    'genre': genre.name,
+    'language': language?.name,
+    'genre': genre?.name,
     'contentCategory': contentCategory.name,
     'noOfPages': noOfPages,
     'isTranslation': isTranslation,

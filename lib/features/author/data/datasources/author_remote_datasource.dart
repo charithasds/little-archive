@@ -17,6 +17,7 @@ abstract class AuthorRemoteDataSource {
 
 class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
   AuthorRemoteDataSourceImpl({required this.firestoreService});
+
   final FirestoreService firestoreService;
 
   FirebaseFirestore get firestore => firestoreService.firebaseFirestore;
@@ -26,9 +27,11 @@ class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
 
   String get _currentUserId {
     final User? user = FirebaseAuth.instance.currentUser;
+
     if (user == null) {
       throw const UnauthorizedException();
     }
+
     return user.uid;
   }
 
@@ -38,6 +41,7 @@ class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
   Future<List<AuthorModel>> getAuthors(String userId) async {
     final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
         .safeGetDocs(firestore.collection(collectionPath(userId)));
+
     return docs
         .map(
           (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
@@ -51,9 +55,11 @@ class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
     final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
       firestore.collection(collectionPath(_currentUserId)).doc(id),
     );
+
     if (doc == null || !doc.exists) {
       return null;
     }
+
     return AuthorModel.fromMap(doc.data()!, doc.id);
   }
 

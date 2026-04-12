@@ -22,7 +22,6 @@ class ReaderRepositoryImpl implements ReaderRepository {
   Future<void> addReader(ReaderEntity reader) => remoteDataSource.addReader(
     ReaderModel(
       id: reader.id,
-
       name: reader.name,
       image: reader.image,
       otherName: reader.otherName,
@@ -39,7 +38,6 @@ class ReaderRepositoryImpl implements ReaderRepository {
   Future<void> updateReader(ReaderEntity reader) => remoteDataSource.updateReader(
     ReaderModel(
       id: reader.id,
-
       name: reader.name,
       image: reader.image,
       otherName: reader.otherName,
@@ -55,12 +53,14 @@ class ReaderRepositoryImpl implements ReaderRepository {
   @override
   Future<void> deleteReader(String id) async {
     final ReaderModel? existingReader = await remoteDataSource.getReaderById(id);
+
     if (existingReader != null) {
       await relationshipSyncService.removeReaderRelationships(
         readerId: id,
         bookIds: existingReader.bookIds,
       );
     }
+
     await remoteDataSource.deleteReader(id);
   }
 

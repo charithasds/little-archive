@@ -23,7 +23,6 @@ class WorkRepositoryImpl implements WorkRepository {
     await remoteDataSource.addWork(
       WorkModel(
         id: work.id,
-
         title: work.title,
         language: work.language,
         genre: work.genre,
@@ -59,7 +58,6 @@ class WorkRepositoryImpl implements WorkRepository {
     await remoteDataSource.updateWork(
       WorkModel(
         id: work.id,
-
         title: work.title,
         language: work.language,
         genre: work.genre,

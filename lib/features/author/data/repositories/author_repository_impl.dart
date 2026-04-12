@@ -22,7 +22,6 @@ class AuthorRepositoryImpl implements AuthorRepository {
   Future<void> addAuthor(AuthorEntity author) => remoteDataSource.addAuthor(
     AuthorModel(
       id: author.id,
-
       name: author.name,
       image: author.image,
       otherName: author.otherName,
@@ -39,7 +38,6 @@ class AuthorRepositoryImpl implements AuthorRepository {
   Future<void> updateAuthor(AuthorEntity author) => remoteDataSource.updateAuthor(
     AuthorModel(
       id: author.id,
-
       name: author.name,
       image: author.image,
       otherName: author.otherName,
@@ -55,6 +53,7 @@ class AuthorRepositoryImpl implements AuthorRepository {
   @override
   Future<void> deleteAuthor(String id) async {
     final AuthorModel? existingAuthor = await remoteDataSource.getAuthorById(id);
+
     if (existingAuthor != null) {
       await relationshipSyncService.removeAuthorRelationships(
         authorId: id,
@@ -62,6 +61,7 @@ class AuthorRepositoryImpl implements AuthorRepository {
         workIds: existingAuthor.workIds,
       );
     }
+
     await remoteDataSource.deleteAuthor(id);
   }
 

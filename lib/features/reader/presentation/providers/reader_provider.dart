@@ -16,9 +16,10 @@ part 'reader_provider.g.dart';
 
 @riverpod
 ReaderRemoteDataSource readerRemoteDataSource(Ref ref) {
-      final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
-      return ReaderRemoteDataSourceImpl(firestoreService: firestoreService);
-    }
+  final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
+
+  return ReaderRemoteDataSourceImpl(firestoreService: firestoreService);
+}
 
 @riverpod
 ReaderRepository readerRepository(Ref ref) {
@@ -26,6 +27,7 @@ ReaderRepository readerRepository(Ref ref) {
   final RelationshipSyncService relationshipSyncService = ref.watch(
     relationshipSyncServiceProvider,
   );
+
   return ReaderRepositoryImpl(
     remoteDataSource: remoteDataSource,
     relationshipSyncService: relationshipSyncService,
@@ -33,24 +35,36 @@ ReaderRepository readerRepository(Ref ref) {
 }
 
 @riverpod
-GetReadersUseCase getReadersUseCase(Ref ref) => GetReadersUseCase(ref.watch(readerRepositoryProvider));
+GetReadersUseCase getReadersUseCase(Ref ref) =>
+    GetReadersUseCase(ref.watch(readerRepositoryProvider));
+
 @riverpod
-WatchReadersUseCase watchReadersUseCase(Ref ref) => WatchReadersUseCase(ref.watch(readerRepositoryProvider));
+WatchReadersUseCase watchReadersUseCase(Ref ref) =>
+    WatchReadersUseCase(ref.watch(readerRepositoryProvider));
+
 @riverpod
-GetReaderByIdUseCase getReaderByIdUseCase(Ref ref) => GetReaderByIdUseCase(ref.watch(readerRepositoryProvider));
+GetReaderByIdUseCase getReaderByIdUseCase(Ref ref) =>
+    GetReaderByIdUseCase(ref.watch(readerRepositoryProvider));
+
 @riverpod
 AddReaderUseCase addReaderUseCase(Ref ref) => AddReaderUseCase(ref.watch(readerRepositoryProvider));
+
 @riverpod
-UpdateReaderUseCase updateReaderUseCase(Ref ref) => UpdateReaderUseCase(ref.watch(readerRepositoryProvider));
+UpdateReaderUseCase updateReaderUseCase(Ref ref) =>
+    UpdateReaderUseCase(ref.watch(readerRepositoryProvider));
+
 @riverpod
-DeleteReaderUseCase deleteReaderUseCase(Ref ref) => DeleteReaderUseCase(ref.watch(readerRepositoryProvider));
+DeleteReaderUseCase deleteReaderUseCase(Ref ref) =>
+    DeleteReaderUseCase(ref.watch(readerRepositoryProvider));
 
 @riverpod
 Stream<List<ReaderEntity>> readersStream(Ref ref) {
-    final WatchReadersUseCase watchReaders = ref.watch(watchReadersUseCaseProvider);
-    final UserEntity? user = ref.watch(authStateProvider).value;
-    if (user == null) {
-      return Stream<List<ReaderEntity>>.value(<ReaderEntity>[]);
-    }
-    return watchReaders(user.uid);
+  final WatchReadersUseCase watchReaders = ref.watch(watchReadersUseCaseProvider);
+  final UserEntity? user = ref.watch(authStateProvider).value;
+
+  if (user == null) {
+    return Stream<List<ReaderEntity>>.value(<ReaderEntity>[]);
   }
+
+  return watchReaders(user.uid);
+}

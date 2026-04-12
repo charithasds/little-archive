@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/utils/button_styles.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../../features/author/domain/entities/author_entity.dart';
@@ -139,10 +140,10 @@ class BookListPage extends ConsumerWidget {
                 return GridView.builder(
                   padding: const EdgeInsets.all(24),
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 320,
-                    mainAxisExtent: 120,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
+                    maxCrossAxisExtent: 600,
+                    mainAxisExtent: 160,
+                    crossAxisSpacing: 24,
+                    mainAxisSpacing: 24,
                   ),
                   itemCount: books.length,
                   itemBuilder: (BuildContext context, int index) {
@@ -163,19 +164,12 @@ class BookListPage extends ConsumerWidget {
                             ?.name;
                       }
                     }
-                    return Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(color: colorScheme.outlineVariant),
-                      ),
-                      child: BookListTile(
-                        book: book,
-                        firstAuthorOrTranslatorName: creatorName,
-                        onTap: () => context.go('/books/${book.id}'),
-                        onEdit: () => context.push('/books/add', extra: book),
-                        onDelete: () => _handleDelete(context, ref, book.id),
-                      ),
+                    return BookListTile(
+                      book: book,
+                      firstAuthorOrTranslatorName: creatorName,
+                      onTap: () => context.go('/books/${book.id}'),
+                      onEdit: () => context.push('/books/add', extra: book),
+                      onDelete: () => _handleDelete(context, ref, book.id),
                     );
                   },
                 );
@@ -202,6 +196,8 @@ class BookListPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: ButtonStyles.getPrimaryActionBackgroundColor(theme),
+        foregroundColor: ButtonStyles.getPrimaryActionForegroundColor(theme),
         onPressed: () => context.go('/books/add'),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Book'),

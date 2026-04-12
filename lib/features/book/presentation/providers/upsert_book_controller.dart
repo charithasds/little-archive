@@ -51,6 +51,7 @@ class UpsertBookController extends Notifier<UpsertBookState> {
   Future<void> pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
     if (pickedFile != null) {
       final Uint8List bytes = await pickedFile.readAsBytes();
       state = state.copyWith(pickedBase64Image: base64Encode(bytes));
@@ -61,8 +62,8 @@ class UpsertBookController extends Notifier<UpsertBookState> {
     required BookEntity? existingBook,
     required String title,
     required CompilationType compilationType,
-    required Language language,
-    required Genre genre,
+    required Language? language,
+    required Genre? genre,
     required String? isbn,
     required DateTime? publishedDate,
     required int? noOfPages,
@@ -87,6 +88,7 @@ class UpsertBookController extends Notifier<UpsertBookState> {
     state = state.copyWith(isLoading: true);
 
     final UserEntity? user = ref.read(authStateProvider).value;
+
     if (user == null) {
       state = state.copyWith(isLoading: false, error: 'User not authenticated');
       return null;
@@ -100,12 +102,14 @@ class UpsertBookController extends Notifier<UpsertBookState> {
         final List<SequenceVolumeEntity> oldVolumes = await ref
             .read(sequenceRepositoryProvider)
             .getSequenceVolumesByBookId(bookId, user.uid);
+
         for (final SequenceVolumeEntity vol in oldVolumes) {
           await ref.read(sequenceRepositoryProvider).deleteSequenceVolume(vol.id);
 
           final SequenceEntity? seq = await ref
               .read(sequenceRepositoryProvider)
               .getSequenceById(vol.sequenceId);
+
           if (seq != null) {
             final List<String> newIds = List<String>.from(seq.sequenceVolumeIds)..remove(vol.id);
             await ref
@@ -134,6 +138,7 @@ class UpsertBookController extends Notifier<UpsertBookState> {
         final SequenceEntity? currentSequence = await ref
             .read(sequenceRepositoryProvider)
             .getSequenceById(sequence.id);
+
         if (currentSequence != null) {
           final SequenceEntity updatedSequence = currentSequence.copyWith(
             sequenceVolumeIds: <String>[...currentSequence.sequenceVolumeIds, volumeId],
@@ -211,6 +216,7 @@ class UpsertBookController extends Notifier<UpsertBookState> {
       }
 
       state = state.copyWith(isLoading: false);
+
       return bookToSave;
     } on NoConnectionException catch (e) {
       state = state.copyWith(isLoading: false, error: e.message);

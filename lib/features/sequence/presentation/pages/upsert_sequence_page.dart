@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/utils/button_styles.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
@@ -125,9 +126,9 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
             FormTextField(
               controller: _nameController,
               label: 'Name',
-              hint: 'Sequence name',
+              hint: 'Sequence Name',
               prefixIcon: Icons.layers_outlined,
-              maxLength: 500,
+              maxLength: 200,
               isRequired: true,
             ),
             const SizedBox(height: 16),
@@ -151,10 +152,7 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
                     ? 'Saving...'
                     : (widget.existingSequence != null ? 'Update Sequence' : 'Save Sequence'),
               ),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(56),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              ),
+              style: ButtonStyles.getPrimaryFilledButtonStyle(theme),
             ),
           ],
         ),

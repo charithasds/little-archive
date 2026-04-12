@@ -42,6 +42,7 @@ class UpsertPublisherController extends Notifier<UpsertPublisherState> {
   Future<void> pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
     if (pickedFile != null) {
       final Uint8List bytes = await pickedFile.readAsBytes();
       state = state.copyWith(pickedBase64Logo: base64Encode(bytes));
@@ -60,6 +61,7 @@ class UpsertPublisherController extends Notifier<UpsertPublisherState> {
     state = state.copyWith(isLoading: true);
 
     final UserEntity? user = ref.read(authStateProvider).value;
+
     if (user == null) {
       state = state.copyWith(isLoading: false, error: 'User not authenticated');
       return null;
@@ -98,7 +100,9 @@ class UpsertPublisherController extends Notifier<UpsertPublisherState> {
       } else {
         await ref.read(addPublisherUseCaseProvider)(publisherToSave);
       }
+
       state = state.copyWith(isLoading: false);
+
       return publisherToSave;
     } on NoConnectionException catch (e) {
       state = state.copyWith(isLoading: false, error: e.message);

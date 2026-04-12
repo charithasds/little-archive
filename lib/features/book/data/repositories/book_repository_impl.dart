@@ -23,7 +23,6 @@ class BookRepositoryImpl implements BookRepository {
     await remoteDataSource.addBook(
       BookModel(
         id: book.id,
-
         title: book.title,
         cover: book.cover,
         compilationType: book.compilationType,
@@ -70,7 +69,6 @@ class BookRepositoryImpl implements BookRepository {
     await remoteDataSource.updateBook(
       BookModel(
         id: book.id,
-
         title: book.title,
         cover: book.cover,
         compilationType: book.compilationType,

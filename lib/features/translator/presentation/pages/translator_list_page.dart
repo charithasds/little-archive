@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/utils/button_styles.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-
 import '../../domain/entities/translator_entity.dart';
 import '../../domain/repositories/translator_repository.dart';
 import '../providers/translator_provider.dart';
@@ -119,26 +120,19 @@ class TranslatorListPage extends ConsumerWidget {
                 return GridView.builder(
                   padding: const EdgeInsets.all(24),
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 320,
-                    mainAxisExtent: 120,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
+                    maxCrossAxisExtent: 600,
+                    mainAxisExtent: 140,
+                    crossAxisSpacing: 24,
+                    mainAxisSpacing: 24,
                   ),
                   itemCount: translators.length,
                   itemBuilder: (BuildContext context, int index) {
                     final TranslatorEntity translator = translators[index];
-                    return Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(color: colorScheme.outlineVariant),
-                      ),
-                      child: TranslatorListTile(
-                        translator: translator,
-                        onTap: () => context.go('/translators/${translator.id}'),
-                        onEdit: () => context.push('/translators/add', extra: translator),
-                        onDelete: () => _handleDelete(context, ref, translator.id),
-                      ),
+                    return TranslatorListTile(
+                      translator: translator,
+                      onTap: () => context.go('/translators/${translator.id}'),
+                      onEdit: () => context.push('/translators/add', extra: translator),
+                      onDelete: () => _handleDelete(context, ref, translator.id),
                     );
                   },
                 );
@@ -165,6 +159,8 @@ class TranslatorListPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: ButtonStyles.getPrimaryActionBackgroundColor(theme),
+        foregroundColor: ButtonStyles.getPrimaryActionForegroundColor(theme),
         onPressed: () => context.go('/translators/add'),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Translator'),

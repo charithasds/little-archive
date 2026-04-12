@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/shared/presentation/utils/button_styles.dart';
+import '../../../../core/shared/presentation/utils/image_styles.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
@@ -103,10 +105,8 @@ class _UpsertAuthorPageState extends ConsumerState<UpsertAuthorPage> {
                 child: Container(
                   width: 120,
                   height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: colorScheme.primaryContainer,
-                    border: Border.all(color: colorScheme.primary, width: 3),
+                  decoration: ImageStyles.getPickerDecoration(
+                    theme,
                     image: state.pickedBase64Image != null
                         ? DecorationImage(
                             image: MemoryImage(base64Decode(state.pickedBase64Image!)),
@@ -115,7 +115,11 @@ class _UpsertAuthorPageState extends ConsumerState<UpsertAuthorPage> {
                         : null,
                   ),
                   child: state.pickedBase64Image == null
-                      ? Icon(Icons.person_rounded, size: 56, color: colorScheme.onPrimaryContainer)
+                      ? Icon(
+                          Icons.person_rounded,
+                          size: 56,
+                          color: ImageStyles.getPickerIconColor(theme),
+                        )
                       : null,
                 ),
               ),
@@ -133,9 +137,9 @@ class _UpsertAuthorPageState extends ConsumerState<UpsertAuthorPage> {
             FormTextField(
               controller: _nameController,
               label: 'Name',
-              hint: 'Author name',
+              hint: 'Author Name',
               prefixIcon: Icons.person_outline_rounded,
-              maxLength: 500,
+              maxLength: 200,
               isRequired: true,
             ),
             const SizedBox(height: 16),
@@ -145,7 +149,7 @@ class _UpsertAuthorPageState extends ConsumerState<UpsertAuthorPage> {
               label: 'Other Name',
               hint: 'Alternative Name',
               prefixIcon: Icons.badge_outlined,
-              maxLength: 500,
+              maxLength: 200,
             ),
             const SizedBox(height: 16),
 
@@ -186,10 +190,7 @@ class _UpsertAuthorPageState extends ConsumerState<UpsertAuthorPage> {
                     ? 'Saving...'
                     : (widget.existingAuthor != null ? 'Update Author' : 'Save Author'),
               ),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(56),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              ),
+              style: ButtonStyles.getPrimaryFilledButtonStyle(theme),
             ),
           ],
         ),

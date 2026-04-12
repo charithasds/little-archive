@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/shared/presentation/utils/button_styles.dart';
+import '../../../../core/shared/presentation/utils/image_styles.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/utils/validators.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
@@ -112,10 +114,8 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
                 child: Container(
                   width: 120,
                   height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: colorScheme.primaryContainer,
-                    border: Border.all(color: colorScheme.primary, width: 3),
+                  decoration: ImageStyles.getPickerDecoration(
+                    theme,
                     image: state.pickedBase64Logo != null
                         ? DecorationImage(
                             image: MemoryImage(base64Decode(state.pickedBase64Logo!)),
@@ -127,7 +127,7 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
                       ? Icon(
                           Icons.business_rounded,
                           size: 48,
-                          color: colorScheme.onPrimaryContainer,
+                          color: ImageStyles.getPickerIconColor(theme),
                         )
                       : null,
                 ),
@@ -146,9 +146,9 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
             FormTextField(
               controller: _nameController,
               label: 'Name',
-              hint: 'Publisher name',
+              hint: 'Publisher Name',
               prefixIcon: Icons.business_outlined,
-              maxLength: 500,
+              maxLength: 200,
               isRequired: true,
             ),
             const SizedBox(height: 16),
@@ -156,9 +156,9 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
             FormTextField(
               controller: _otherNameController,
               label: 'Other Name',
-              hint: 'Alternative name',
+              hint: 'Alternative Name',
               prefixIcon: Icons.badge_outlined,
-              maxLength: 500,
+              maxLength: 200,
             ),
             const SizedBox(height: 16),
 
@@ -222,10 +222,7 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
                     ? 'Saving...'
                     : (widget.existingPublisher != null ? 'Update Publisher' : 'Save Publisher'),
               ),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(56),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              ),
+              style: ButtonStyles.getPrimaryFilledButtonStyle(theme),
             ),
           ],
         ),

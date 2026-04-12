@@ -28,6 +28,7 @@ abstract class SequenceRemoteDataSource {
 
 class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   SequenceRemoteDataSourceImpl({required this.firestoreService});
+
   final FirestoreService firestoreService;
 
   FirebaseFirestore get firestore => firestoreService.firebaseFirestore;
@@ -40,9 +41,11 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
 
   String get _currentUserId {
     final User? user = FirebaseAuth.instance.currentUser;
+
     if (user == null) {
       throw const UnauthorizedException();
     }
+
     return user.uid;
   }
 
@@ -53,6 +56,7 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   Future<List<SequenceModel>> getSequences(String userId) async {
     final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
         .safeGetDocs(firestore.collection(collectionPath(userId)));
+
     return docs
         .map(
           (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
@@ -66,9 +70,11 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
     final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
       firestore.collection(collectionPath(_currentUserId)).doc(id),
     );
+
     if (doc == null || !doc.exists) {
       return null;
     }
+
     return SequenceModel.fromMap(doc.data()!, doc.id);
   }
 
@@ -117,6 +123,7 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
               .collection(volumesCollectionPath(userId))
               .where('sequenceId', isEqualTo: sequenceId),
         );
+
     return docs
         .map(
           (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
@@ -130,9 +137,11 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
     final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
       firestore.collection(volumesCollectionPath(_currentUserId)).doc(id),
     );
+
     if (doc == null || !doc.exists) {
       return null;
     }
+
     return SequenceVolumeModel.fromMap(doc.data()!, doc.id);
   }
 
@@ -142,6 +151,7 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
         .safeGetDocs(
           firestore.collection(volumesCollectionPath(userId)).where('bookId', isEqualTo: bookId),
         );
+
     return docs
         .map(
           (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
@@ -156,6 +166,7 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
         .safeGetDocs(
           firestore.collection(volumesCollectionPath(userId)).where('workId', isEqualTo: workId),
         );
+
     return docs
         .map(
           (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>

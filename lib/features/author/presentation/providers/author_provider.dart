@@ -16,9 +16,10 @@ part 'author_provider.g.dart';
 
 @riverpod
 AuthorRemoteDataSource authorRemoteDataSource(Ref ref) {
-      final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
-      return AuthorRemoteDataSourceImpl(firestoreService: firestoreService);
-    }
+  final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
+
+  return AuthorRemoteDataSourceImpl(firestoreService: firestoreService);
+}
 
 @riverpod
 AuthorRepository authorRepository(Ref ref) {
@@ -26,6 +27,7 @@ AuthorRepository authorRepository(Ref ref) {
   final RelationshipSyncService relationshipSyncService = ref.watch(
     relationshipSyncServiceProvider,
   );
+
   return AuthorRepositoryImpl(
     remoteDataSource: remoteDataSource,
     relationshipSyncService: relationshipSyncService,
@@ -33,29 +35,36 @@ AuthorRepository authorRepository(Ref ref) {
 }
 
 @riverpod
-GetAuthorsUseCase getAuthorsUseCase(Ref ref) => GetAuthorsUseCase(ref.watch(authorRepositoryProvider));
+GetAuthorsUseCase getAuthorsUseCase(Ref ref) =>
+    GetAuthorsUseCase(ref.watch(authorRepositoryProvider));
 
 @riverpod
-WatchAuthorsUseCase watchAuthorsUseCase(Ref ref) => WatchAuthorsUseCase(ref.watch(authorRepositoryProvider));
+WatchAuthorsUseCase watchAuthorsUseCase(Ref ref) =>
+    WatchAuthorsUseCase(ref.watch(authorRepositoryProvider));
 
 @riverpod
-GetAuthorByIdUseCase getAuthorByIdUseCase(Ref ref) => GetAuthorByIdUseCase(ref.watch(authorRepositoryProvider));
+GetAuthorByIdUseCase getAuthorByIdUseCase(Ref ref) =>
+    GetAuthorByIdUseCase(ref.watch(authorRepositoryProvider));
 
 @riverpod
 AddAuthorUseCase addAuthorUseCase(Ref ref) => AddAuthorUseCase(ref.watch(authorRepositoryProvider));
 
 @riverpod
-UpdateAuthorUseCase updateAuthorUseCase(Ref ref) => UpdateAuthorUseCase(ref.watch(authorRepositoryProvider));
+UpdateAuthorUseCase updateAuthorUseCase(Ref ref) =>
+    UpdateAuthorUseCase(ref.watch(authorRepositoryProvider));
 
 @riverpod
-DeleteAuthorUseCase deleteAuthorUseCase(Ref ref) => DeleteAuthorUseCase(ref.watch(authorRepositoryProvider));
+DeleteAuthorUseCase deleteAuthorUseCase(Ref ref) =>
+    DeleteAuthorUseCase(ref.watch(authorRepositoryProvider));
 
 @riverpod
 Stream<List<AuthorEntity>> authorsStream(Ref ref) {
-    final WatchAuthorsUseCase watchAuthors = ref.watch(watchAuthorsUseCaseProvider);
-    final UserEntity? user = ref.watch(authStateProvider).value;
-    if (user == null) {
-      return Stream<List<AuthorEntity>>.value(<AuthorEntity>[]);
-    }
-    return watchAuthors(user.uid);
+  final WatchAuthorsUseCase watchAuthors = ref.watch(watchAuthorsUseCaseProvider);
+  final UserEntity? user = ref.watch(authStateProvider).value;
+
+  if (user == null) {
+    return Stream<List<AuthorEntity>>.value(<AuthorEntity>[]);
   }
+
+  return watchAuthors(user.uid);
+}

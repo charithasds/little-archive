@@ -25,7 +25,6 @@ class SequenceRepositoryImpl implements SequenceRepository {
   Future<void> addSequence(SequenceEntity sequence) => remoteDataSource.addSequence(
     SequenceModel(
       id: sequence.id,
-
       name: sequence.name,
       sequenceVolumeIds: sequence.sequenceVolumeIds,
     ),
@@ -35,7 +34,6 @@ class SequenceRepositoryImpl implements SequenceRepository {
   Future<void> updateSequence(SequenceEntity sequence) => remoteDataSource.updateSequence(
     SequenceModel(
       id: sequence.id,
-
       name: sequence.name,
       sequenceVolumeIds: sequence.sequenceVolumeIds,
     ),
@@ -68,7 +66,6 @@ class SequenceRepositoryImpl implements SequenceRepository {
   Future<void> addSequenceVolume(SequenceVolumeEntity volume) => remoteDataSource.addSequenceVolume(
     SequenceVolumeModel(
       id: volume.id,
-
       volume: volume.volume,
       sequenceId: volume.sequenceId,
       bookId: volume.bookId,
@@ -83,7 +80,6 @@ class SequenceRepositoryImpl implements SequenceRepository {
       remoteDataSource.updateSequenceVolume(
         SequenceVolumeModel(
           id: volume.id,
-
           volume: volume.volume,
           sequenceId: volume.sequenceId,
           bookId: volume.bookId,

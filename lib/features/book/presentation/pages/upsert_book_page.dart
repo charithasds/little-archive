@@ -10,6 +10,8 @@ import '../../../../core/shared/domain/enums/genre.dart';
 import '../../../../core/shared/domain/enums/language.dart';
 import '../../../../core/shared/domain/enums/original_language.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
+import '../../../../core/shared/presentation/utils/button_styles.dart';
+import '../../../../core/shared/presentation/utils/image_styles.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/form_date_field.dart';
 import '../../../../core/shared/presentation/widgets/form_decoration.dart';
@@ -19,24 +21,24 @@ import '../../../../core/shared/presentation/widgets/single_select_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../author/domain/entities/author_entity.dart';
 import '../../../author/presentation/providers/author_provider.dart';
-import '../../../author/presentation/widgets/upsert_author_dialog.dart';
+import '../../../author/presentation/widgets/add_author_dialog.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
-import '../../../publisher/presentation/widgets/upsert_publisher_dialog.dart';
+import '../../../publisher/presentation/widgets/add_publisher_dialog.dart';
 import '../../../reader/domain/entities/reader_entity.dart';
 import '../../../reader/presentation/providers/reader_provider.dart';
-import '../../../reader/presentation/widgets/upsert_reader_dialog.dart';
+import '../../../reader/presentation/widgets/add_reader_dialog.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/domain/entities/sequence_volume_entity.dart';
-import '../../../sequence/domain/usecases/sequence_usecases.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
+import '../../../sequence/presentation/widgets/add_sequence_dialog.dart';
 import '../../../sequence/presentation/widgets/sequence_number_dialog.dart';
-import '../../../sequence/presentation/widgets/upsert_sequence_dialog.dart';
 import '../../../translator/domain/entities/translator_entity.dart';
 import '../../../translator/presentation/providers/translator_provider.dart';
-import '../../../translator/presentation/widgets/upsert_translator_dialog.dart';
+import '../../../translator/presentation/widgets/add_translator_dialog.dart';
 import '../../../work/domain/entities/work_entity.dart';
 import '../../../work/presentation/providers/work_provider.dart';
+import '../../../work/presentation/widgets/add_work_dialog.dart';
 import '../../domain/entities/book_entity.dart';
 import '../providers/upsert_book_controller.dart';
 
@@ -61,8 +63,8 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
   final TextEditingController _sequenceVolumeController = TextEditingController();
 
   CompilationType _compilationType = CompilationType.single;
-  Language _language = Language.english;
-  Genre _genre = Genre.fantasy;
+  Language? _language = Language.english;
+  Genre? _genre = Genre.fantasy;
   CollectionStatus _collectionStatus = CollectionStatus.collected;
   ReadingStatus _readingStatus = ReadingStatus.notStarted;
   OriginalLanguage? _originalLanguage;
@@ -256,7 +258,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
 
           final List<SequenceVolumeEntity> volumes = await ref.read(
             getSequenceVolumesByBookIdUseCaseProvider,
-          )(GetSequenceVolumesByBookIdParams(bookId: book.id, userId: userId));
+          )(book.id, userId);
 
           final Map<SequenceEntity, String> sequencesMap = <SequenceEntity, String>{};
           if (sequencesAsync.value != null) {
@@ -311,10 +313,8 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                   child: Container(
                     width: 120,
                     height: 120,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: colorScheme.primaryContainer,
-                      border: Border.all(color: colorScheme.primary, width: 3),
+                    decoration: ImageStyles.getPickerDecoration(
+                      theme,
                       image: state.pickedBase64Image != null
                           ? DecorationImage(
                               image: MemoryImage(base64Decode(state.pickedBase64Image!)),
@@ -323,7 +323,11 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                           : null,
                     ),
                     child: state.pickedBase64Image == null
-                        ? Icon(Icons.book_rounded, size: 48, color: colorScheme.onPrimaryContainer)
+                        ? Icon(
+                            Icons.book_rounded,
+                            size: 48,
+                            color: ImageStyles.getPickerIconColor(theme),
+                          )
                         : null,
                   ),
                 ),
@@ -344,7 +348,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                 hint: 'Book title',
                 prefixIcon: Icons.title_rounded,
                 isRequired: true,
-                maxLength: 500,
+                maxLength: 200,
               ),
               const SizedBox(height: 16),
 
@@ -365,34 +369,38 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
               ),
               const SizedBox(height: 16),
 
-              DropdownButtonFormField<Language>(
+              DropdownButtonFormField<Language?>(
                 value: _language,
                 decoration: buildFormDecoration(
                   colorScheme,
                   labelText: 'Language',
                   prefixIcon: Icons.language_rounded,
                 ),
-                items: Language.values
-                    .map(
-                      (Language e) =>
-                          DropdownMenuItem<Language>(value: e, child: Text(e.clientValue)),
-                    )
-                    .toList(),
-                onChanged: (Language? v) => setState(() => _language = v!),
+                items: <DropdownMenuItem<Language?>>[
+                  const DropdownMenuItem<Language?>(child: Text('None')),
+                  ...Language.values.map(
+                    (Language e) =>
+                        DropdownMenuItem<Language?>(value: e, child: Text(e.clientValue)),
+                  ),
+                ],
+                onChanged: (Language? v) => setState(() => _language = v),
               ),
               const SizedBox(height: 16),
 
-              DropdownButtonFormField<Genre>(
+              DropdownButtonFormField<Genre?>(
                 value: _genre,
                 decoration: buildFormDecoration(
                   colorScheme,
                   labelText: 'Genre',
                   prefixIcon: Icons.theater_comedy_rounded,
                 ),
-                items: Genre.values
-                    .map((Genre e) => DropdownMenuItem<Genre>(value: e, child: Text(e.clientValue)))
-                    .toList(),
-                onChanged: (Genre? v) => setState(() => _genre = v!),
+                items: <DropdownMenuItem<Genre?>>[
+                  const DropdownMenuItem<Genre?>(child: Text('None')),
+                  ...Genre.values.map(
+                    (Genre e) => DropdownMenuItem<Genre?>(value: e, child: Text(e.clientValue)),
+                  ),
+                ],
+                onChanged: (Genre? v) => setState(() => _genre = v),
               ),
 
               _buildSectionHeader('Relationships', Icons.people_rounded, theme),
@@ -408,7 +416,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                   onAdd: () async {
                     final AuthorEntity? newAuthor = await showDialog<AuthorEntity>(
                       context: context,
-                      builder: (_) => const UpsertAuthorDialog(),
+                      builder: (_) => const AddAuthorDialog(),
                     );
                     if (newAuthor != null) {
                       setState(
@@ -433,7 +441,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                   onAdd: () async {
                     final PublisherEntity? newPublisher = await showDialog<PublisherEntity>(
                       context: context,
-                      builder: (_) => const UpsertPublisherDialog(),
+                      builder: (_) => const AddPublisherDialog(),
                     );
                     if (newPublisher != null) {
                       setState(() => _selectedPublisher = newPublisher);
@@ -456,7 +464,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                   onAdd: () async {
                     final ReaderEntity? newReader = await showDialog<ReaderEntity>(
                       context: context,
-                      builder: (_) => const UpsertReaderDialog(),
+                      builder: (_) => const AddReaderDialog(),
                     );
                     if (newReader != null) {
                       setState(() => _selectedReader = newReader);
@@ -522,7 +530,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       onAdd: () async {
                         final SequenceEntity? newSequence = await showDialog<SequenceEntity>(
                           context: context,
-                          builder: (_) => const UpsertSequenceDialog(),
+                          builder: (_) => const AddSequenceDialog(),
                         );
                         if (newSequence != null) {
                           await _handleSequenceSelection(newSequence);
@@ -544,6 +552,15 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                   itemLabel: (WorkEntity s) => s.title,
                   itemKey: (WorkEntity w) => w.id,
                   onChanged: (List<WorkEntity> l) => setState(() => _selectedWorks = l),
+                  onAdd: () async {
+                    final WorkEntity? newWork = await showDialog<WorkEntity>(
+                      context: context,
+                      builder: (_) => const AddWorkDialog(),
+                    );
+                    if (newWork != null) {
+                      setState(() => _selectedWorks = <WorkEntity>[..._selectedWorks, newWork]);
+                    }
+                  },
                 ),
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (Object e, StackTrace s) => Text('Error: $e'),
@@ -574,6 +591,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                   controller: _originalTitleController,
                   label: 'Original Title',
                   prefixIcon: Icons.translate_rounded,
+                  maxLength: 200,
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<OriginalLanguage>(
@@ -606,7 +624,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                     onAdd: () async {
                       final TranslatorEntity? newTranslator = await showDialog<TranslatorEntity>(
                         context: context,
-                        builder: (_) => const UpsertTranslatorDialog(),
+                        builder: (_) => const AddTranslatorDialog(),
                       );
                       if (newTranslator != null) {
                         setState(
@@ -756,10 +774,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       ? 'Saving...'
                       : (widget.existingBook != null ? 'Update Book' : 'Save Book'),
                 ),
-                style: FilledButton.styleFrom(
-                  minimumSize: const Size.fromHeight(56),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
+                style: ButtonStyles.getPrimaryFilledButtonStyle(theme),
               ),
 
               const SizedBox(height: 24),

@@ -8,13 +8,15 @@ import '../../domain/usecases/auth_usecases.dart';
 part 'auth_provider.g.dart';
 
 @riverpod
-SignInWithGoogleUseCase signInWithGoogleUseCase(Ref ref) => SignInWithGoogleUseCase(ref.watch(authRepositoryProvider));
+SignInWithGoogleUseCase signInWithGoogleUseCase(Ref ref) =>
+    SignInWithGoogleUseCase(ref.watch(authRepositoryProvider));
 
 @riverpod
 SignOutUseCase signOutUseCase(Ref ref) => SignOutUseCase(ref.watch(authRepositoryProvider));
 
 @riverpod
-GetAuthStateChangesUseCase getAuthStateChangesUseCase(Ref ref) => GetAuthStateChangesUseCase(ref.watch(authRepositoryProvider));
+GetAuthStateChangesUseCase getAuthStateChangesUseCase(Ref ref) =>
+    GetAuthStateChangesUseCase(ref.watch(authRepositoryProvider));
 
 final StreamProvider<UserEntity?> authStateProvider = StreamProvider<UserEntity?>(
   (Ref ref) => ref.watch(getAuthStateChangesUseCaseProvider).call(),

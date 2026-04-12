@@ -9,10 +9,9 @@ import '../../../../core/shared/domain/enums/reading_status.dart';
 class WorkEntity extends Equatable {
   const WorkEntity({
     required this.id,
-
     required this.title,
-    required this.language,
-    required this.genre,
+    this.language,
+    this.genre,
     required this.contentCategory,
     this.noOfPages,
     required this.isTranslation,
@@ -29,11 +28,11 @@ class WorkEntity extends Equatable {
     required this.sequenceVolumeIds,
     this.bookId,
   });
-  final String id;
 
+  final String id;
   final String title;
-  final Language language;
-  final Genre genre;
+  final Language? language;
+  final Genre? genre;
   final ContentCategory contentCategory;
   final int? noOfPages;
   final bool isTranslation;
@@ -55,7 +54,6 @@ class WorkEntity extends Equatable {
 
   WorkEntity copyWith({
     String? id,
-
     String? title,
     Language? language,
     Genre? genre,
@@ -76,7 +74,6 @@ class WorkEntity extends Equatable {
     String? bookId,
   }) => WorkEntity(
     id: id ?? this.id,
-
     title: title ?? this.title,
     language: language ?? this.language,
     genre: genre ?? this.genre,

@@ -4,7 +4,6 @@ import '../../domain/entities/translator_entity.dart';
 class TranslatorModel extends TranslatorEntity {
   const TranslatorModel({
     required super.id,
-
     required super.name,
     super.image,
     super.otherName,
@@ -18,7 +17,6 @@ class TranslatorModel extends TranslatorEntity {
 
   factory TranslatorModel.fromMap(Map<String, dynamic> map, String documentId) => TranslatorModel(
     id: documentId,
-
     name: (map['name'] as String?) ?? '',
     image: map['image'] as String?,
     otherName: map['otherName'] as String?,
@@ -32,7 +30,6 @@ class TranslatorModel extends TranslatorEntity {
 
   Map<String, dynamic> toMap() => <String, dynamic>{
     'id': id,
-
     'name': name,
     'image': image,
     'otherName': otherName,
