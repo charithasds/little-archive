@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../../core/theme/presentation/widgets/theme_toggle.dart';
-import 'dashboard_page.dart';
+import '../widgets/dashboard.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -32,7 +32,7 @@ class HomePage extends ConsumerWidget {
           ),
         ],
       ),
-      body: const DashboardPage(),
+      body: const Dashboard(),
     );
   }
 }

@@ -88,7 +88,8 @@ class ExpressivePageLayout extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: _kVerticalPadding),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight - _kVerticalPadding * 2,
+                    minHeight: (constraints.maxHeight - _kVerticalPadding * 2)
+                        .clamp(0.0, double.infinity),
                   ),
                   child: IntrinsicHeight(
                     child: Column(

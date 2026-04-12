@@ -47,7 +47,10 @@ class AuthRepositoryImpl implements AuthRepository {
 }
 
 final Provider<GoogleSignIn> googleSignInProvider = Provider<GoogleSignIn>(
-  (Ref ref) => GoogleSignIn(scopes: <String>['email', 'profile']),
+  (Ref ref) => GoogleSignIn(
+    clientId: '959815093644-mdq9akkmrevrafqb863cup4go3ss5jud.apps.googleusercontent.com',
+    scopes: <String>['email', 'profile'],
+  ),
 );
 
 final Provider<AuthRemoteDataSource> authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>(

@@ -18,8 +18,8 @@ import '../../../translator/presentation/providers/translator_provider.dart';
 import '../../../work/domain/entities/work_entity.dart';
 import '../../../work/presentation/providers/work_provider.dart';
 
-class DashboardPage extends ConsumerWidget {
-  const DashboardPage({super.key});
+class Dashboard extends ConsumerWidget {
+  const Dashboard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
