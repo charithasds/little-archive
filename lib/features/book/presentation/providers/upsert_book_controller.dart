@@ -67,28 +67,28 @@ class UpsertBookController extends Notifier<UpsertBookState> {
     required BookEntity? existingBook,
     required String title,
     required CompilationType compilationType,
-    required Language? language,
-    required Genre? genre,
-    required String? isbn,
-    required DateTime? publishedDate,
-    required int? noOfPages,
-    required bool isTranslation,
-    required String? originalTitle,
-    required OriginalLanguage? originalLanguage,
-    required CollectionStatus collectionStatus,
-    required DateTime? collectedDate,
-    required DateTime? lendedDate,
-    required DateTime? dueDate,
-    required ReadingStatus readingStatus,
-    required int? pausedPage,
-    required DateTime? completedDate,
-    required String? notes,
-    required List<String> authorIds,
-    required List<String> translatorIds,
-    required List<String> workIds,
-    required Map<SequenceEntity, String> selectedSequences,
-    required String? publisherId,
-    required String? readerId,
+    Language? language,
+    Genre? genre,
+    String? isbn,
+    DateTime? publishedDate,
+    int? noOfPages,
+    bool isTranslation = false,
+    String? originalTitle,
+    OriginalLanguage? originalLanguage,
+    CollectionStatus collectionStatus = CollectionStatus.collected,
+    DateTime? collectedDate,
+    DateTime? lendedDate,
+    DateTime? dueDate,
+    ReadingStatus readingStatus = ReadingStatus.notStarted,
+    int? pausedPage,
+    DateTime? completedDate,
+    String? notes,
+    List<String> authorIds = const <String>[],
+    List<String> translatorIds = const <String>[],
+    List<String> workIds = const <String>[],
+    Map<SequenceEntity, String> sequenceEntries = const <SequenceEntity, String>{},
+    String? publisherId,
+    String? readerId,
   }) async {
     state = state.copyWith(isLoading: true);
 
@@ -124,7 +124,7 @@ class UpsertBookController extends Notifier<UpsertBookState> {
         }
       }
 
-      for (final MapEntry<SequenceEntity, String> entry in selectedSequences.entries) {
+      for (final MapEntry<SequenceEntity, String> entry in sequenceEntries.entries) {
         final SequenceEntity sequence = entry.key;
         final String volumeNumber = entry.value;
 
@@ -165,7 +165,9 @@ class UpsertBookController extends Notifier<UpsertBookState> {
               publishedDate: Nullable<DateTime?>(publishedDate),
               noOfPages: Nullable<int?>(noOfPages),
               isTranslation: isTranslation,
-              originalTitle: Nullable<String?>((originalTitle?.isEmpty ?? true) ? null : originalTitle),
+              originalTitle: Nullable<String?>(
+                (originalTitle?.isEmpty ?? true) ? null : originalTitle,
+              ),
               originalLanguage: Nullable<OriginalLanguage?>(originalLanguage),
               collectionStatus: collectionStatus,
               collectedDate: Nullable<DateTime?>(collectedDate),

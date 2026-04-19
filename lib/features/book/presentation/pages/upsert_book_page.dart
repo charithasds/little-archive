@@ -1,7 +1,6 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/domain/enums/collection_status.dart';
@@ -10,14 +9,14 @@ import '../../../../core/shared/domain/enums/genre.dart';
 import '../../../../core/shared/domain/enums/language.dart';
 import '../../../../core/shared/domain/enums/original_language.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
-import '../../../../core/shared/presentation/utils/button_styles.dart';
-import '../../../../core/shared/presentation/utils/image_styles.dart';
+import '../../../../core/shared/presentation/utils/buttons.dart';
+import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/form_date_field.dart';
-import '../../../../core/shared/presentation/widgets/form_decoration.dart';
+import '../../../../core/shared/presentation/widgets/form_dropdown_field.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
-import '../../../../core/shared/presentation/widgets/multi_select_field.dart';
-import '../../../../core/shared/presentation/widgets/single_select_field.dart';
+import '../../../../core/shared/presentation/widgets/search_multi_picker_field.dart';
+import '../../../../core/shared/presentation/widgets/search_picker_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../author/domain/entities/author_entity.dart';
 import '../../../author/presentation/providers/author_provider.dart';
@@ -60,14 +59,13 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
   final TextEditingController _originalTitleController = TextEditingController();
   final TextEditingController _pausedPageController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
-  final TextEditingController _sequenceVolumeController = TextEditingController();
 
   CompilationType _compilationType = CompilationType.single;
-  Language? _language = Language.english;
-  Genre? _genre = Genre.fantasy;
+  Language? _language = Language.sinhala;
+  Genre? _genre;
   CollectionStatus _collectionStatus = CollectionStatus.collected;
   ReadingStatus _readingStatus = ReadingStatus.notStarted;
-  OriginalLanguage? _originalLanguage;
+  OriginalLanguage? _originalLanguage = OriginalLanguage.english;
 
   bool _isTranslation = false;
 
@@ -116,27 +114,6 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
     });
   }
 
-  Future<void> _handleSequenceSelection(SequenceEntity? s) async {
-    if (s == null) {
-      return;
-    }
-
-    if (!mounted) {
-      return;
-    }
-
-    final String? number = await showDialog<String>(
-      context: context,
-      builder: (BuildContext context) => const SequenceNumberDialog(),
-    );
-
-    if (number != null) {
-      setState(() {
-        _selectedSequences[s] = number;
-      });
-    }
-  }
-
   @override
   void dispose() {
     _titleController.dispose();
@@ -145,7 +122,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
     _originalTitleController.dispose();
     _pausedPageController.dispose();
     _notesController.dispose();
-    _sequenceVolumeController.dispose();
+
     super.dispose();
   }
 
@@ -176,7 +153,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
             authorIds: _selectedAuthors.map((AuthorEntity e) => e.id).toList(),
             translatorIds: _selectedTranslators.map((TranslatorEntity e) => e.id).toList(),
             workIds: _selectedWorks.map((WorkEntity e) => e.id).toList(),
-            selectedSequences: _selectedSequences,
+            sequenceEntries: _selectedSequences,
             publisherId: _selectedPublisher?.id,
             readerId: _selectedReader?.id,
           );
@@ -185,44 +162,16 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
 
       if (isSuccess && mounted) {
         SnackBars.showSuccess(
-          context,
           widget.existingBook != null ? 'Book updated successfully' : 'Book added successfully',
         );
-        Navigator.of(context).pop();
+        context.pop();
       } else if (!isSuccess && mounted) {
         final UpsertBookState state = ref.read(upsertBookControllerProvider);
         if (state.error != null) {
-          SnackBars.showError(context, state.error!);
+          SnackBars.showError(state.error!);
         }
       }
     }
-  }
-
-  Widget _buildSectionHeader(String title, IconData icon, ThemeData theme) {
-    final ColorScheme colorScheme = theme.colorScheme;
-    return Padding(
-      padding: const EdgeInsets.only(top: 24, bottom: 16),
-      child: Row(
-        children: <Widget>[
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, size: 20, color: colorScheme.onPrimaryContainer),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -235,10 +184,10 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
     final AsyncValue<List<TranslatorEntity>> translatorsAsync = ref.watch(
       translatorsStreamProvider,
     );
+    final AsyncValue<List<WorkEntity>> worksAsync = ref.watch(worksStreamProvider);
     final AsyncValue<List<PublisherEntity>> publishersAsync = ref.watch(publishersStreamProvider);
     final AsyncValue<List<ReaderEntity>> readersAsync = ref.watch(readersStreamProvider);
     final AsyncValue<List<SequenceEntity>> sequencesAsync = ref.watch(sequencesStreamProvider);
-    final AsyncValue<List<WorkEntity>> worksAsync = ref.watch(worksStreamProvider);
 
     if (widget.existingBook != null && !_isEditingInitialized) {
       final BookEntity book = widget.existingBook!;
@@ -299,6 +248,24 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
       appBar: AppBar(
         title: Text(widget.existingBook != null ? 'Edit Book' : 'Add Book'),
         centerTitle: true,
+        actions: <Widget>[
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Row(
+              children: <Widget>[
+                Icon(Icons.g_translate_rounded, size: 20, color: colorScheme.onSurfaceVariant),
+                const SizedBox(width: 8),
+                Switch(
+                  value: _isTranslation,
+                  onChanged: (bool v) => setState(() => _isTranslation = v),
+                  inactiveThumbColor: colorScheme.onSurfaceVariant,
+                  inactiveTrackColor: colorScheme.surfaceContainerHighest,
+                  trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
       body: Form(
         key: _formKey,
@@ -313,11 +280,11 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                   child: Container(
                     width: 120,
                     height: 120,
-                    decoration: ImageStyles.getPickerDecoration(
+                    decoration: Images.getPickerDecoration(
                       theme,
                       image: state.pickedBase64Image != null
                           ? DecorationImage(
-                              image: MemoryImage(base64Decode(state.pickedBase64Image!)),
+                              image: Images.getImageProvider(state.pickedBase64Image),
                               fit: BoxFit.cover,
                             )
                           : null,
@@ -326,7 +293,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                         ? Icon(
                             Icons.book_rounded,
                             size: 48,
-                            color: ImageStyles.getPickerIconColor(theme),
+                            color: Images.getPickerIconColor(theme),
                           )
                         : null,
                   ),
@@ -339,14 +306,14 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                   children: <Widget>[
                     TextButton.icon(
                       onPressed: () => ref.read(upsertBookControllerProvider.notifier).pickImage(),
-                      icon: const Icon(Icons.camera_alt_rounded),
+                      icon: const Icon(Icons.camera_rounded),
                       label: Text(state.pickedBase64Image == null ? 'Add Cover' : 'Change Cover'),
                     ),
                     if (state.pickedBase64Image != null)
                       TextButton.icon(
                         onPressed: () =>
                             ref.read(upsertBookControllerProvider.notifier).clearCover(),
-                        icon: const Icon(Icons.delete_outline_rounded),
+                        icon: const Icon(Icons.delete_rounded),
                         label: const Text('Remove Cover'),
                         style: TextButton.styleFrom(foregroundColor: colorScheme.error),
                       ),
@@ -358,244 +325,164 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
               FormTextField(
                 controller: _titleController,
                 label: 'Title',
-                hint: 'Book title',
-                prefixIcon: Icons.title_rounded,
+                hint: 'Book Title',
+                prefixIcon: Icons.book_rounded,
                 isRequired: true,
                 maxLength: 200,
               ),
               const SizedBox(height: 16),
 
-              DropdownButtonFormField<CompilationType>(
+              FormDropdownField<CompilationType>(
                 value: _compilationType,
-                decoration: buildFormDecoration(
-                  colorScheme,
-                  labelText: 'Compilation Type',
-                  prefixIcon: Icons.category_rounded,
-                ),
-                items: CompilationType.values
-                    .map(
-                      (CompilationType e) =>
-                          DropdownMenuItem<CompilationType>(value: e, child: Text(e.clientValue)),
-                    )
-                    .toList(),
-                onChanged: (CompilationType? v) => setState(() => _compilationType = v!),
+                label: 'Compilation Type',
+                prefixIcon: Icons.collections_bookmark_rounded,
+                items: CompilationType.values,
+                itemLabel: (CompilationType e) => e.clientValue,
+                onChanged: (CompilationType? v) {
+                  if (v != null) {
+                    setState(() => _compilationType = v);
+                  }
+                },
+                isNullable: false,
               ),
               const SizedBox(height: 16),
 
-              DropdownButtonFormField<Language?>(
+              FormDropdownField<Language>(
                 value: _language,
-                decoration: buildFormDecoration(
-                  colorScheme,
-                  labelText: 'Language',
-                  prefixIcon: Icons.language_rounded,
-                ),
-                items: <DropdownMenuItem<Language?>>[
-                  const DropdownMenuItem<Language?>(child: Text('None')),
-                  ...Language.values.map(
-                    (Language e) =>
-                        DropdownMenuItem<Language?>(value: e, child: Text(e.clientValue)),
-                  ),
-                ],
+                label: 'Language',
+                prefixIcon: Icons.language_rounded,
+                items: Language.values,
+                itemLabel: (Language e) => e.clientValue,
                 onChanged: (Language? v) => setState(() => _language = v),
               ),
               const SizedBox(height: 16),
 
-              DropdownButtonFormField<Genre?>(
+              FormDropdownField<Genre>(
                 value: _genre,
-                decoration: buildFormDecoration(
-                  colorScheme,
-                  labelText: 'Genre',
-                  prefixIcon: Icons.theater_comedy_rounded,
-                ),
-                items: <DropdownMenuItem<Genre?>>[
-                  const DropdownMenuItem<Genre?>(child: Text('None')),
-                  ...Genre.values.map(
-                    (Genre e) => DropdownMenuItem<Genre?>(value: e, child: Text(e.clientValue)),
-                  ),
-                ],
+                label: 'Genre',
+                prefixIcon: Icons.theater_comedy_rounded,
+                items: Genre.values,
+                itemLabel: (Genre e) => e.clientValue,
                 onChanged: (Genre? v) => setState(() => _genre = v),
               ),
 
-              _buildSectionHeader('Relationships', Icons.people_rounded, theme),
+              const SizedBox(height: 16),
 
-              authorsAsync.when(
-                data: (List<AuthorEntity> authors) => MultiSelectField<AuthorEntity>(
-                  label: 'Authors',
-                  allItems: authors,
-                  selectedItems: _selectedAuthors,
-                  itemLabel: (AuthorEntity a) => a.name,
-                  itemKey: (AuthorEntity a) => a.id,
-                  onChanged: (List<AuthorEntity> l) => setState(() => _selectedAuthors = l),
-                  onAdd: () async {
-                    final AuthorEntity? newAuthor = await showDialog<AuthorEntity>(
-                      context: context,
-                      builder: (_) => const AddAuthorDialog(),
-                    );
-                    if (newAuthor != null) {
-                      setState(
-                        () => _selectedAuthors = <AuthorEntity>[..._selectedAuthors, newAuthor],
-                      );
-                    }
-                  },
+              SearchMultiPickerField<AuthorEntity>(
+                label: 'Authors',
+                prefixIcon: Icons.person_rounded,
+                selectedItems: _selectedAuthors,
+                itemsProvider: authorsStreamProvider,
+                itemLabel: (AuthorEntity a) => a.name,
+                itemKey: (AuthorEntity a) => a.id,
+                onChanged: (List<AuthorEntity> l) => setState(() => _selectedAuthors = l),
+                onAdd: () async => showDialog<AuthorEntity>(
+                  context: context,
+                  builder: (_) => const AddAuthorDialog(),
                 ),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (Object e, StackTrace s) => Text('Error: $e'),
               ),
               const SizedBox(height: 16),
 
-              publishersAsync.when(
-                data: (List<PublisherEntity> publishers) => SingleSelectField<PublisherEntity>(
-                  label: 'Publisher',
-                  items: publishers,
-                  value: _selectedPublisher,
-                  itemLabel: (PublisherEntity p) => p.name,
-                  itemKey: (PublisherEntity p) => p.id,
-                  onChanged: (PublisherEntity? p) => setState(() => _selectedPublisher = p),
-                  onAdd: () async {
-                    final PublisherEntity? newPublisher = await showDialog<PublisherEntity>(
-                      context: context,
-                      builder: (_) => const AddPublisherDialog(),
-                    );
-                    if (newPublisher != null) {
-                      setState(() => _selectedPublisher = newPublisher);
-                    }
-                  },
+              SearchPickerField<PublisherEntity>(
+                label: 'Publisher',
+                prefixIcon: Icons.business_rounded,
+                selectedItem: _selectedPublisher,
+                itemsProvider: publishersStreamProvider,
+                itemLabel: (PublisherEntity p) => p.name,
+                onChanged: (PublisherEntity? p) => setState(() => _selectedPublisher = p),
+                onAdd: () async => showDialog<PublisherEntity>(
+                  context: context,
+                  builder: (_) => const AddPublisherDialog(),
                 ),
-                loading: () => const SizedBox(),
-                error: (Object e, StackTrace s) => const SizedBox(),
               ),
               const SizedBox(height: 16),
 
-              readersAsync.when(
-                data: (List<ReaderEntity> readers) => SingleSelectField<ReaderEntity>(
-                  label: 'Reader',
-                  items: readers,
-                  value: _selectedReader,
-                  itemLabel: (ReaderEntity r) => r.name,
-                  itemKey: (ReaderEntity r) => r.id,
-                  onChanged: (ReaderEntity? r) => setState(() => _selectedReader = r),
-                  onAdd: () async {
-                    final ReaderEntity? newReader = await showDialog<ReaderEntity>(
-                      context: context,
-                      builder: (_) => const AddReaderDialog(),
-                    );
-                    if (newReader != null) {
-                      setState(() => _selectedReader = newReader);
-                    }
-                  },
+              SearchPickerField<ReaderEntity>(
+                label: 'Reader',
+                prefixIcon: Icons.face_rounded,
+                selectedItem: _selectedReader,
+                itemsProvider: readersStreamProvider,
+                itemLabel: (ReaderEntity r) => r.name,
+                onChanged: (ReaderEntity? r) => setState(() => _selectedReader = r),
+                onAdd: () async => showDialog<ReaderEntity>(
+                  context: context,
+                  builder: (_) => const AddReaderDialog(),
                 ),
-                loading: () => const SizedBox(),
-                error: (Object e, StackTrace s) => const SizedBox(),
               ),
               const SizedBox(height: 16),
 
-              sequencesAsync.when(
-                data: (List<SequenceEntity> sequences) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    if (_selectedSequences.isNotEmpty) ...<Widget>[
-                      Text('Sequences', style: theme.textTheme.titleSmall),
-                      const SizedBox(height: 8),
-                      InputDecorator(
-                        decoration: buildFormDecoration(
-                          colorScheme,
-                          contentPadding: const EdgeInsets.all(8),
-                        ),
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: _selectedSequences.entries
-                              .map(
-                                (MapEntry<SequenceEntity, String> entry) => InputChip(
-                                  label: Text('${entry.key.name} #${entry.value}'),
-                                  onDeleted: () => setState(() {
-                                    _selectedSequences.remove(entry.key);
-                                  }),
-                                  onPressed: () async {
-                                    final String? number = await showDialog<String>(
-                                      context: context,
-                                      builder: (BuildContext context) =>
-                                          SequenceNumberDialog(initialValue: entry.value),
-                                    );
-                                    if (number != null) {
-                                      setState(() => _selectedSequences[entry.key] = number);
-                                    }
-                                  },
-                                ),
-                              )
-                              .toList(),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                    ],
-                    SingleSelectField<SequenceEntity>(
-                      label: 'Add Sequence',
-                      items: sequences
-                          .where(
-                            (SequenceEntity s) =>
-                                !_selectedSequences.keys.any((SequenceEntity e) => e.id == s.id),
-                          )
-                          .toList(),
-                      value: null,
-                      itemLabel: (SequenceEntity s) => s.name,
-                      itemKey: (SequenceEntity s) => s.id,
-                      onChanged: _handleSequenceSelection,
-                      onAdd: () async {
-                        final SequenceEntity? newSequence = await showDialog<SequenceEntity>(
-                          context: context,
-                          builder: (_) => const AddSequenceDialog(),
-                        );
-                        if (newSequence != null) {
-                          await _handleSequenceSelection(newSequence);
-                        }
-                      },
+              SearchMultiPickerField<SequenceEntity>(
+                label: 'Sequences',
+                prefixIcon: Icons.layers_rounded,
+                selectedItems: _selectedSequences.keys.toList(),
+                itemsProvider: sequencesStreamProvider,
+                itemLabel: (SequenceEntity s) => s.name,
+                chipLabel: (SequenceEntity s) => '${s.name} #${_selectedSequences[s]}',
+                itemKey: (SequenceEntity s) => s.id,
+                onChanged: (List<SequenceEntity> list) async {
+                  await Future<void>.delayed(const Duration(milliseconds: 300));
+                  if (!mounted) {
+                    return;
+                  }
+
+                  final Set<String> existingIds = _selectedSequences.keys
+                      .map((SequenceEntity s) => s.id)
+                      .toSet();
+                  final List<SequenceEntity> newSequences = list
+                      .where((SequenceEntity s) => !existingIds.contains(s.id))
+                      .toList();
+
+                  setState(() {
+                    _selectedSequences.removeWhere((SequenceEntity k, _) => !list.contains(k));
+                  });
+
+                  for (final SequenceEntity s in newSequences) {
+                    if (!context.mounted) {
+                      break;
+                    }
+                    final String? number = await showDialog<String>(
+                      context: context,
+                      builder: (_) => SequenceNumberDialog(sequenceName: s.name),
+                    );
+                    if (number != null) {
+                      setState(() => _selectedSequences[s] = number);
+                    } else {
+                      setState(() => _selectedSequences.remove(s));
+                    }
+                  }
+                },
+                onChipPressed: (SequenceEntity s) async {
+                  if (!context.mounted) {
+                    return;
+                  }
+                  final String? number = await showDialog<String>(
+                    context: context,
+                    builder: (_) => SequenceNumberDialog(
+                      initialValue: _selectedSequences[s],
+                      sequenceName: s.name,
                     ),
-                  ],
+                  );
+                  if (number != null && context.mounted) {
+                    setState(() => _selectedSequences[s] = number);
+                  }
+                },
+                onAdd: () async => showDialog<SequenceEntity>(
+                  context: context,
+                  builder: (_) => const AddSequenceDialog(),
                 ),
-                loading: () => const SizedBox(),
-                error: (Object e, StackTrace s) => const SizedBox(),
               ),
               const SizedBox(height: 16),
 
-              worksAsync.when(
-                data: (List<WorkEntity> works) => MultiSelectField<WorkEntity>(
-                  label: 'Works',
-                  allItems: works,
-                  selectedItems: _selectedWorks,
-                  itemLabel: (WorkEntity s) => s.title,
-                  itemKey: (WorkEntity w) => w.id,
-                  onChanged: (List<WorkEntity> l) => setState(() => _selectedWorks = l),
-                  onAdd: () async {
-                    final WorkEntity? newWork = await showDialog<WorkEntity>(
-                      context: context,
-                      builder: (_) => const AddWorkDialog(),
-                    );
-                    if (newWork != null) {
-                      setState(() => _selectedWorks = <WorkEntity>[..._selectedWorks, newWork]);
-                    }
-                  },
-                ),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (Object e, StackTrace s) => Text('Error: $e'),
-              ),
-
-              _buildSectionHeader('Details', Icons.info_outline_rounded, theme),
-
-              Container(
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: SwitchListTile(
-                  title: const Text('Is Translation?'),
-                  subtitle: const Text('Enable if this book is translated'),
-                  value: _isTranslation,
-                  onChanged: (bool v) => setState(() => _isTranslation = v),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  inactiveThumbColor: colorScheme.onSurfaceVariant,
-                  inactiveTrackColor: colorScheme.surfaceContainerHighest,
-                  trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
-                ),
+              SearchMultiPickerField<WorkEntity>(
+                label: 'Works',
+                prefixIcon: Icons.article_rounded,
+                selectedItems: _selectedWorks,
+                itemsProvider: worksStreamProvider,
+                itemLabel: (WorkEntity s) => s.title,
+                itemKey: (WorkEntity w) => w.id,
+                onChanged: (List<WorkEntity> l) => setState(() => _selectedWorks = l),
+                onAdd: () async =>
+                    showDialog<WorkEntity>(context: context, builder: (_) => const AddWorkDialog()),
               ),
 
               if (_isTranslation) ...<Widget>[
@@ -603,54 +490,43 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                 FormTextField(
                   controller: _originalTitleController,
                   label: 'Original Title',
+                  hint: 'Book Original Title',
                   prefixIcon: Icons.translate_rounded,
                   maxLength: 200,
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<OriginalLanguage>(
+                FormDropdownField<OriginalLanguage>(
                   value: _originalLanguage,
-                  decoration: buildFormDecoration(
-                    colorScheme,
-                    labelText: 'Original Language',
-                    prefixIcon: Icons.language_rounded,
-                  ),
-                  items: OriginalLanguage.values
-                      .map(
-                        (OriginalLanguage e) => DropdownMenuItem<OriginalLanguage>(
-                          value: e,
-                          child: Text(e.clientValue),
-                        ),
-                      )
-                      .toList(),
+                  label: 'Original Language',
+                  prefixIcon: Icons.language_rounded,
+                  items: OriginalLanguage.values,
+                  itemLabel: (OriginalLanguage e) => e.clientValue,
                   onChanged: (OriginalLanguage? v) => setState(() => _originalLanguage = v),
                 ),
                 const SizedBox(height: 16),
-                translatorsAsync.when(
-                  data: (List<TranslatorEntity> translators) => MultiSelectField<TranslatorEntity>(
-                    label: 'Translators',
-                    allItems: translators,
-                    selectedItems: _selectedTranslators,
-                    itemLabel: (TranslatorEntity t) => t.name,
-                    itemKey: (TranslatorEntity t) => t.id,
-                    onChanged: (List<TranslatorEntity> l) =>
-                        setState(() => _selectedTranslators = l),
-                    onAdd: () async {
-                      final TranslatorEntity? newTranslator = await showDialog<TranslatorEntity>(
-                        context: context,
-                        builder: (_) => const AddTranslatorDialog(),
+                SearchMultiPickerField<TranslatorEntity>(
+                  label: 'Translators',
+                  prefixIcon: Icons.translate_rounded,
+                  selectedItems: _selectedTranslators,
+                  itemsProvider: translatorsStreamProvider,
+                  itemLabel: (TranslatorEntity t) => t.name,
+                  itemKey: (TranslatorEntity t) => t.id,
+                  onChanged: (List<TranslatorEntity> l) => setState(() => _selectedTranslators = l),
+                  onAdd: () async {
+                    final TranslatorEntity? newTranslator = await showDialog<TranslatorEntity>(
+                      context: context,
+                      builder: (_) => const AddTranslatorDialog(),
+                    );
+                    if (newTranslator != null && context.mounted) {
+                      setState(
+                        () => _selectedTranslators = <TranslatorEntity>[
+                          ..._selectedTranslators,
+                          newTranslator,
+                        ],
                       );
-                      if (newTranslator != null) {
-                        setState(
-                          () => _selectedTranslators = <TranslatorEntity>[
-                            ..._selectedTranslators,
-                            newTranslator,
-                          ],
-                        );
-                      }
-                    },
-                  ),
-                  loading: () => const SizedBox(),
-                  error: (Object e, StackTrace s) => const SizedBox(),
+                    }
+                    return null;
+                  },
                 ),
               ],
 
@@ -658,6 +534,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
               FormTextField(
                 controller: _noOfPagesController,
                 label: 'Number of Pages',
+                hint: 'e.g. 153',
                 prefixIcon: Icons.numbers_rounded,
                 keyboardType: TextInputType.number,
               ),
@@ -665,7 +542,28 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
               FormTextField(
                 controller: _isbnController,
                 label: 'ISBN',
+                hint: 'e.g. ISBN10 or ISBN13',
                 prefixIcon: Icons.qr_code_rounded,
+                maxLength: 13,
+                validator: (String? value) {
+                  if (value == null || value.isEmpty) {
+                    return null;
+                  }
+                  final String clean = value.replaceAll(RegExp(r'[-\s]'), '').toUpperCase();
+                  if (clean.length != 10 && clean.length != 13) {
+                    return 'Enter 10 or 13 digits';
+                  }
+                  if (clean.length == 10) {
+                    if (!RegExp(r'^\d{9}[\dX]$').hasMatch(clean)) {
+                      return 'Invalid ISBN-10 format';
+                    }
+                  } else {
+                    if (!RegExp(r'^\d{13}$').hasMatch(clean)) {
+                      return 'Invalid ISBN-13 format';
+                    }
+                  }
+                  return null;
+                },
               ),
 
               const SizedBox(height: 16),
@@ -673,24 +571,23 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                 label: 'Published Date',
                 value: _publishedDate,
                 onDateSelected: (DateTime d) => setState(() => _publishedDate = d),
+                icon: Icons.public_rounded,
               ),
 
-              _buildSectionHeader('Status', Icons.bookmark_rounded, theme),
+              const SizedBox(height: 16),
 
-              DropdownButtonFormField<CollectionStatus>(
+              FormDropdownField<CollectionStatus>(
                 value: _collectionStatus,
-                decoration: buildFormDecoration(
-                  colorScheme,
-                  labelText: 'Collection Status',
-                  prefixIcon: Icons.inventory_rounded,
-                ),
-                items: CollectionStatus.values
-                    .map(
-                      (CollectionStatus e) =>
-                          DropdownMenuItem<CollectionStatus>(value: e, child: Text(e.clientValue)),
-                    )
-                    .toList(),
-                onChanged: (CollectionStatus? v) => setState(() => _collectionStatus = v!),
+                label: 'Collection Status',
+                prefixIcon: Icons.inventory_rounded,
+                items: CollectionStatus.values,
+                itemLabel: (CollectionStatus e) => e.clientValue,
+                onChanged: (CollectionStatus? v) {
+                  if (v != null) {
+                    setState(() => _collectionStatus = v);
+                  }
+                },
+                isNullable: false,
               ),
               const SizedBox(height: 16),
 
@@ -698,6 +595,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                 label: 'Collected Date',
                 value: _collectedDate,
                 onDateSelected: (DateTime d) => setState(() => _collectedDate = d),
+                icon: Icons.inventory_2_rounded,
               ),
               const SizedBox(height: 16),
 
@@ -707,7 +605,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                 onDateSelected: (DateTime d) => setState(() => _lendedDate = d),
                 onCleared: () => setState(() => _lendedDate = null),
                 isClearable: true,
-                icon: Icons.share_rounded,
+                icon: Icons.handshake_rounded,
               ),
               const SizedBox(height: 16),
 
@@ -721,20 +619,18 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
               ),
               const SizedBox(height: 16),
 
-              DropdownButtonFormField<ReadingStatus>(
+              FormDropdownField<ReadingStatus>(
                 value: _readingStatus,
-                decoration: buildFormDecoration(
-                  colorScheme,
-                  labelText: 'Reading Status',
-                  prefixIcon: Icons.menu_book_rounded,
-                ),
-                items: ReadingStatus.values
-                    .map(
-                      (ReadingStatus e) =>
-                          DropdownMenuItem<ReadingStatus>(value: e, child: Text(e.clientValue)),
-                    )
-                    .toList(),
-                onChanged: (ReadingStatus? v) => setState(() => _readingStatus = v!),
+                label: 'Reading Status',
+                prefixIcon: Icons.menu_book_rounded,
+                items: ReadingStatus.values,
+                itemLabel: (ReadingStatus e) => e.clientValue,
+                onChanged: (ReadingStatus? v) {
+                  if (v != null) {
+                    setState(() => _readingStatus = v);
+                  }
+                },
+                isNullable: false,
               ),
 
               if (_readingStatus == ReadingStatus.paused) ...<Widget>[
@@ -749,7 +645,6 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
 
               if (_readingStatus == ReadingStatus.completed) ...<Widget>[
                 const SizedBox(height: 16),
-                const SizedBox(height: 16),
                 FormDateField(
                   label: 'Completed Date',
                   value: _completedDate,
@@ -762,7 +657,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
               FormTextField(
                 controller: _notesController,
                 label: 'Notes',
-                hint: 'Notes about this book',
+                hint: 'Notes about this Book',
                 prefixIcon: Icons.notes_rounded,
                 maxLines: 3,
                 alignLabelWithHint: true,
@@ -787,7 +682,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       ? 'Saving...'
                       : (widget.existingBook != null ? 'Update Book' : 'Save Book'),
                 ),
-                style: ButtonStyles.getPrimaryFilledButtonStyle(theme),
+                style: Buttons.getPrimaryFilledButtonStyle(theme),
               ),
 
               const SizedBox(height: 24),

@@ -5,10 +5,9 @@ class SnackBars {
 
   static final GlobalKey<ScaffoldMessengerState> messengerKey = GlobalKey<ScaffoldMessengerState>();
 
-  static void showSuccess(BuildContext context, String message) {
+  static void showSuccess(String message, {BuildContext? context}) {
     final ColorScheme colorScheme = _colorScheme(context);
     _showSnackBar(
-      context,
       message: message,
       icon: Icons.check_circle_rounded,
       backgroundColor: colorScheme.secondaryContainer,
@@ -16,10 +15,9 @@ class SnackBars {
     );
   }
 
-  static void showError(BuildContext context, String message) {
+  static void showError(String message, {BuildContext? context}) {
     final ColorScheme colorScheme = _colorScheme(context);
     _showSnackBar(
-      context,
       message: message,
       icon: Icons.error_rounded,
       backgroundColor: colorScheme.errorContainer,
@@ -27,10 +25,9 @@ class SnackBars {
     );
   }
 
-  static void showWarning(BuildContext context, String message) {
+  static void showWarning(String message, {BuildContext? context}) {
     final ColorScheme colorScheme = _colorScheme(context);
     _showSnackBar(
-      context,
       message: message,
       icon: Icons.warning_rounded,
       backgroundColor: colorScheme.tertiaryContainer,
@@ -38,10 +35,9 @@ class SnackBars {
     );
   }
 
-  static void showInfo(BuildContext context, String message) {
+  static void showInfo(String message, {BuildContext? context}) {
     final ColorScheme colorScheme = _colorScheme(context);
     _showSnackBar(
-      context,
       message: message,
       icon: Icons.info_rounded,
       backgroundColor: colorScheme.primaryContainer,
@@ -49,20 +45,27 @@ class SnackBars {
     );
   }
 
-  static ColorScheme _colorScheme(BuildContext context) => Theme.of(context).colorScheme;
+  static ColorScheme _colorScheme(BuildContext? context) {
+    final BuildContext? effectiveContext = messengerKey.currentContext ??
+        (context != null && context.mounted ? context : null);
 
-  static void _showSnackBar(
-    BuildContext context, {
+    if (effectiveContext == null) {
+      return const ColorScheme.light();
+    }
+    return Theme.of(effectiveContext).colorScheme;
+  }
+
+  static void _showSnackBar({
     required String message,
     required IconData icon,
     required Color backgroundColor,
     required Color foregroundColor,
   }) {
-    if (!context.mounted) {
+    final ScaffoldMessengerState? messenger = messengerKey.currentState;
+    if (messenger == null) {
       return;
     }
 
-    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
     messenger.clearSnackBars();
 
     messenger.showSnackBar(

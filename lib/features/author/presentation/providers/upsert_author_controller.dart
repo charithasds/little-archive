@@ -57,9 +57,9 @@ class UpsertAuthorController extends Notifier<UpsertAuthorState> {
   Future<AuthorEntity?> saveAuthor({
     required AuthorEntity? existingAuthor,
     required String name,
-    required String otherName,
-    required String website,
-    required String facebook,
+    String? otherName,
+    String? website,
+    String? facebook,
   }) async {
     state = state.copyWith(isLoading: true);
 
@@ -75,18 +75,18 @@ class UpsertAuthorController extends Notifier<UpsertAuthorState> {
     final AuthorEntity authorToSave = existingAuthor != null
         ? existingAuthor.copyWith(
             name: name,
-            otherName: Nullable<String?>(otherName.isEmpty ? null : otherName),
-            website: Nullable<String?>(website.isEmpty ? null : website),
-            facebook: Nullable<String?>(facebook.isEmpty ? null : facebook),
+            otherName: Nullable<String?>(otherName?.isEmpty ?? true ? null : otherName),
+            website: Nullable<String?>(website?.isEmpty ?? true ? null : website),
+            facebook: Nullable<String?>(facebook?.isEmpty ?? true ? null : facebook),
             image: Nullable<String?>(state.pickedBase64Image),
             lastUpdated: DateTime.now(),
           )
         : AuthorEntity(
             id: generatedId,
             name: name,
-            otherName: otherName.isEmpty ? null : otherName,
-            website: website.isEmpty ? null : website,
-            facebook: facebook.isEmpty ? null : facebook,
+            otherName: otherName?.isEmpty ?? true ? null : otherName,
+            website: website?.isEmpty ?? true ? null : website,
+            facebook: facebook?.isEmpty ?? true ? null : facebook,
             image: state.pickedBase64Image,
             bookIds: const <String>[],
             workIds: const <String>[],

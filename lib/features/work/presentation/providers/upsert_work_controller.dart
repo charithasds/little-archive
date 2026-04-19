@@ -32,21 +32,21 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
   Future<WorkEntity?> saveWork({
     required WorkEntity? existingWork,
     required String title,
-    required Language? language,
-    required Genre? genre,
     required ContentCategory contentCategory,
-    required int? noOfPages,
-    required bool isTranslation,
-    required String? originalTitle,
-    required OriginalLanguage? originalLanguage,
-    required ReadingStatus readingStatus,
-    required int? pausedPage,
-    required DateTime? completedDate,
-    required String? notes,
-    required List<String> authorIds,
-    required List<String> translatorIds,
-    required Map<SequenceEntity, String> selectedSequences,
-    required String? bookId,
+    Language? language,
+    Genre? genre,
+    int? noOfPages,
+    bool isTranslation = false,
+    String? originalTitle,
+    OriginalLanguage? originalLanguage,
+    ReadingStatus readingStatus = ReadingStatus.notStarted,
+    int? pausedPage,
+    DateTime? completedDate,
+    String? notes,
+    List<String> authorIds = const <String>[],
+    List<String> translatorIds = const <String>[],
+    Map<SequenceEntity, String> sequenceEntries = const <SequenceEntity, String>{},
+    String? bookId,
   }) async {
     state = state.copyWith(isLoading: true);
 
@@ -82,7 +82,7 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
         }
       }
 
-      for (final MapEntry<SequenceEntity, String> entry in selectedSequences.entries) {
+      for (final MapEntry<SequenceEntity, String> entry in sequenceEntries.entries) {
         final SequenceEntity sequence = entry.key;
         final String volumeNumber = entry.value;
 
@@ -120,7 +120,9 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
               contentCategory: contentCategory,
               noOfPages: Nullable<int?>(noOfPages),
               isTranslation: isTranslation,
-              originalTitle: Nullable<String?>(originalTitle?.isEmpty ?? true ? null : originalTitle),
+              originalTitle: Nullable<String?>(
+                originalTitle?.isEmpty ?? true ? null : originalTitle,
+              ),
               originalLanguage: Nullable<OriginalLanguage?>(originalLanguage),
               readingStatus: readingStatus,
               pausedPage: Nullable<int?>(pausedPage),

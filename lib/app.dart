@@ -62,9 +62,9 @@ class _LittleArchiveAppState extends ConsumerState<LittleArchiveApp> with Widget
       next.whenData((bool isConnected) {
         if (_previousConnectivity != null && _previousConnectivity != isConnected) {
           if (isConnected) {
-            SnackBars.showSuccess(context, 'You are back online.');
+            SnackBars.showSuccess('You are back online.');
           } else {
-            SnackBars.showWarning(context, 'You are offline. Some features may be unavailable.');
+            SnackBars.showWarning('You are offline. Some features may be unavailable.');
           }
         }
 

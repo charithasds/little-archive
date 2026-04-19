@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../../core/shared/presentation/utils/button_styles.dart';
+import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
@@ -29,23 +30,17 @@ class _AddReaderDialogState extends ConsumerState<AddReaderDialog> {
     if (_formKey.currentState!.validate()) {
       final ReaderEntity? savedReader = await ref
           .read(upsertReaderControllerProvider.notifier)
-          .saveReader(
-            existingReader: null,
-            name: _nameController.text.trim(),
-            email: '',
-            facebook: '',
-            phoneNumber: '',
-          );
+          .saveReader(existingReader: null, name: _nameController.text.trim());
 
       if (mounted) {
         if (savedReader != null) {
-          SnackBars.showSuccess(context, 'Reader added successfully');
-          Navigator.of(context).pop(savedReader);
+          SnackBars.showSuccess('Reader added successfully');
+          context.pop(savedReader);
         } else {
           final UpsertReaderState state = ref.read(upsertReaderControllerProvider);
 
           if (state.error != null) {
-            SnackBars.showError(context, state.error!);
+            SnackBars.showError(state.error!);
           }
         }
       }
@@ -65,16 +60,17 @@ class _AddReaderDialogState extends ConsumerState<AddReaderDialog> {
           controller: _nameController,
           label: 'Name',
           hint: 'Reader Name',
+          prefixIcon: Icons.face_rounded,
           isRequired: true,
           maxLength: 200,
           autofocus: true,
         ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+        TextButton(onPressed: () => context.pop(), child: const Text('Cancel')),
         FilledButton(
           onPressed: state.isLoading ? null : _save,
-          style: ButtonStyles.getPrimaryFilledButtonStyle(
+          style: Buttons.getPrimaryFilledButtonStyle(
             theme,
           ).copyWith(minimumSize: WidgetStateProperty.all(const Size(100, 44))),
           child: state.isLoading

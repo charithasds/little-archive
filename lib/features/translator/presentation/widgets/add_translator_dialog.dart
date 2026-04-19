@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../../core/shared/presentation/utils/button_styles.dart';
+import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
@@ -29,23 +30,17 @@ class _AddTranslatorDialogState extends ConsumerState<AddTranslatorDialog> {
     if (_formKey.currentState!.validate()) {
       final TranslatorEntity? savedTranslator = await ref
           .read(upsertTranslatorControllerProvider.notifier)
-          .saveTranslator(
-            existingTranslator: null,
-            name: _nameController.text.trim(),
-            otherName: '',
-            website: '',
-            facebook: '',
-          );
+          .saveTranslator(existingTranslator: null, name: _nameController.text.trim());
 
       if (mounted) {
         if (savedTranslator != null) {
-          SnackBars.showSuccess(context, 'Translator added successfully');
-          Navigator.of(context).pop(savedTranslator);
+          SnackBars.showSuccess('Translator added successfully');
+          context.pop(savedTranslator);
         } else {
           final UpsertTranslatorState state = ref.read(upsertTranslatorControllerProvider);
 
           if (state.error != null) {
-            SnackBars.showError(context, state.error!);
+            SnackBars.showError(state.error!);
           }
         }
       }
@@ -65,16 +60,17 @@ class _AddTranslatorDialogState extends ConsumerState<AddTranslatorDialog> {
           controller: _nameController,
           label: 'Name',
           hint: 'Translator Name',
+          prefixIcon: Icons.translate_rounded,
           isRequired: true,
           maxLength: 200,
           autofocus: true,
         ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+        TextButton(onPressed: () => context.pop(), child: const Text('Cancel')),
         FilledButton(
           onPressed: state.isLoading ? null : _save,
-          style: ButtonStyles.getPrimaryFilledButtonStyle(
+          style: Buttons.getPrimaryFilledButtonStyle(
             theme,
           ).copyWith(minimumSize: WidgetStateProperty.all(const Size(100, 44))),
           child: state.isLoading

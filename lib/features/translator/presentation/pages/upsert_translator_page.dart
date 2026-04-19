@@ -1,10 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../../core/shared/presentation/utils/button_styles.dart';
-import '../../../../core/shared/presentation/utils/image_styles.dart';
+import '../../../../core/shared/presentation/utils/buttons.dart';
+import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/utils/validators.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
@@ -62,16 +61,15 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
 
       if (isSuccess && mounted) {
         SnackBars.showSuccess(
-          context,
           widget.existingTranslator != null
               ? 'Translator updated successfully'
               : 'Translator added successfully',
         );
-        Navigator.of(context).pop();
+        context.pop();
       } else if (!isSuccess && mounted) {
         final UpsertTranslatorState state = ref.read(upsertTranslatorControllerProvider);
         if (state.error != null) {
-          SnackBars.showError(context, state.error!);
+          SnackBars.showError(state.error!);
         }
       }
     }
@@ -108,11 +106,11 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
                 child: Container(
                   width: 120,
                   height: 120,
-                  decoration: ImageStyles.getPickerDecoration(
+                  decoration: Images.getPickerDecoration(
                     theme,
                     image: state.pickedBase64Image != null
                         ? DecorationImage(
-                            image: MemoryImage(base64Decode(state.pickedBase64Image!)),
+                            image: Images.getImageProvider(state.pickedBase64Image),
                             fit: BoxFit.cover,
                           )
                         : null,
@@ -121,7 +119,7 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
                       ? Icon(
                           Icons.translate_rounded,
                           size: 56,
-                          color: ImageStyles.getPickerIconColor(theme),
+                          color: Images.getPickerIconColor(theme),
                         )
                       : null,
                 ),
@@ -135,14 +133,14 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
                   TextButton.icon(
                     onPressed: () =>
                         ref.read(upsertTranslatorControllerProvider.notifier).pickImage(),
-                    icon: const Icon(Icons.camera_alt_rounded),
+                    icon: const Icon(Icons.camera_rounded),
                     label: Text(state.pickedBase64Image == null ? 'Add Image' : 'Change Image'),
                   ),
                   if (state.pickedBase64Image != null)
                     TextButton.icon(
                       onPressed: () =>
                           ref.read(upsertTranslatorControllerProvider.notifier).clearImage(),
-                      icon: const Icon(Icons.delete_outline_rounded),
+                      icon: const Icon(Icons.delete_rounded),
                       label: const Text('Remove Image'),
                       style: TextButton.styleFrom(foregroundColor: colorScheme.error),
                     ),
@@ -155,7 +153,7 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
               controller: _nameController,
               label: 'Name',
               hint: 'Translator Name',
-              prefixIcon: Icons.person_outline_rounded,
+              prefixIcon: Icons.translate_rounded,
               maxLength: 200,
               isRequired: true,
             ),
@@ -165,7 +163,7 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
               controller: _otherNameController,
               label: 'Other Name',
               hint: 'Alternative Name',
-              prefixIcon: Icons.badge_outlined,
+              prefixIcon: Icons.badge_rounded,
               maxLength: 200,
             ),
             const SizedBox(height: 16),
@@ -209,7 +207,7 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
                     ? 'Saving...'
                     : (widget.existingTranslator != null ? 'Update Translator' : 'Save Translator'),
               ),
-              style: ButtonStyles.getPrimaryFilledButtonStyle(theme),
+              style: Buttons.getPrimaryFilledButtonStyle(theme),
             ),
           ],
         ),

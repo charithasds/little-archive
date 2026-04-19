@@ -12,8 +12,8 @@ class BookModel extends BookEntity {
   const BookModel({
     required super.id,
     required super.title,
-    super.cover,
     required super.compilationType,
+    super.cover,
     super.language,
     super.genre,
     super.isbn,
@@ -43,8 +43,8 @@ class BookModel extends BookEntity {
   factory BookModel.fromMap(Map<String, dynamic> map, String documentId) => BookModel(
     id: documentId,
     title: (map['title'] as String?) ?? '',
-    cover: map['cover'] as String?,
     compilationType: CompilationType.values.byName((map['compilationType'] as String?) ?? 'single'),
+    cover: map['cover'] as String?,
     language: map['language'] != null ? Language.values.byName(map['language'] as String) : null,
     genre: map['genre'] != null ? Genre.values.byName(map['genre'] as String) : null,
     isbn: map['isbn'] as String?,
@@ -80,8 +80,8 @@ class BookModel extends BookEntity {
   Map<String, dynamic> toMap() => <String, dynamic>{
     'id': id,
     'title': title,
-    'cover': cover,
     'compilationType': compilationType.name,
+    'cover': cover,
     'language': language?.name,
     'genre': genre?.name,
     'isbn': isbn,

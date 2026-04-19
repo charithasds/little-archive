@@ -1,7 +1,6 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/domain/enums/content_category.dart';
@@ -9,14 +8,14 @@ import '../../../../core/shared/domain/enums/genre.dart';
 import '../../../../core/shared/domain/enums/language.dart';
 import '../../../../core/shared/domain/enums/original_language.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
-import '../../../../core/shared/presentation/utils/button_styles.dart';
-import '../../../../core/shared/presentation/utils/image_styles.dart';
+import '../../../../core/shared/presentation/utils/buttons.dart';
+import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/form_date_field.dart';
-import '../../../../core/shared/presentation/widgets/form_decoration.dart';
+import '../../../../core/shared/presentation/widgets/form_dropdown_field.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
-import '../../../../core/shared/presentation/widgets/multi_select_field.dart';
-import '../../../../core/shared/presentation/widgets/single_select_field.dart';
+import '../../../../core/shared/presentation/widgets/search_multi_picker_field.dart';
+import '../../../../core/shared/presentation/widgets/search_picker_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../author/domain/entities/author_entity.dart';
 import '../../../author/presentation/providers/author_provider.dart';
@@ -52,13 +51,12 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
   final TextEditingController _originalTitleController = TextEditingController();
   final TextEditingController _pausedPageController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
-  final TextEditingController _sequenceVolumeController = TextEditingController();
 
-  Language? _language = Language.english;
-  Genre? _genre = Genre.fantasy;
+  Language? _language = Language.sinhala;
+  Genre? _genre;
   ContentCategory _contentCategory = ContentCategory.shortStory;
   ReadingStatus _readingStatus = ReadingStatus.notStarted;
-  OriginalLanguage? _originalLanguage;
+  OriginalLanguage? _originalLanguage = OriginalLanguage.english;
 
   bool _isTranslation = false;
   DateTime? _completedDate;
@@ -90,27 +88,6 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
     }
   }
 
-  Future<void> _handleSequenceSelection(SequenceEntity? s) async {
-    if (s == null) {
-      return;
-    }
-
-    if (!mounted) {
-      return;
-    }
-
-    final String? number = await showDialog<String>(
-      context: context,
-      builder: (BuildContext context) => const SequenceNumberDialog(),
-    );
-
-    if (number != null) {
-      setState(() {
-        _selectedSequences[s] = number;
-      });
-    }
-  }
-
   @override
   void dispose() {
     _titleController.dispose();
@@ -118,7 +95,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
     _originalTitleController.dispose();
     _pausedPageController.dispose();
     _notesController.dispose();
-    _sequenceVolumeController.dispose();
+
     super.dispose();
   }
 
@@ -142,7 +119,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
             notes: _notesController.text,
             authorIds: _selectedAuthors.map((AuthorEntity e) => e.id).toList(),
             translatorIds: _selectedTranslators.map((TranslatorEntity e) => e.id).toList(),
-            selectedSequences: _selectedSequences,
+            sequenceEntries: _selectedSequences,
             bookId: _selectedBook?.id,
           );
 
@@ -150,44 +127,16 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
 
       if (isSuccess && mounted) {
         SnackBars.showSuccess(
-          context,
           widget.existingWork != null ? 'Work updated successfully' : 'Work added successfully',
         );
-        Navigator.of(context).pop();
+        context.pop();
       } else if (!isSuccess && mounted) {
         final UpsertWorkState state = ref.read(upsertWorkControllerProvider);
         if (state.error != null) {
-          SnackBars.showError(context, state.error!);
+          SnackBars.showError(state.error!);
         }
       }
     }
-  }
-
-  Widget _buildSectionHeader(String title, IconData icon, ThemeData theme) {
-    final ColorScheme colorScheme = theme.colorScheme;
-    return Padding(
-      padding: const EdgeInsets.only(top: 24, bottom: 16),
-      child: Row(
-        children: <Widget>[
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, size: 20, color: colorScheme.onPrimaryContainer),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -196,12 +145,12 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
     final ColorScheme colorScheme = theme.colorScheme;
     final UpsertWorkState state = ref.watch(upsertWorkControllerProvider);
 
+    final AsyncValue<List<BookEntity>> booksAsync = ref.watch(booksStreamProvider);
+    final AsyncValue<List<SequenceEntity>> sequencesAsync = ref.watch(sequencesStreamProvider);
     final AsyncValue<List<AuthorEntity>> authorsAsync = ref.watch(authorsStreamProvider);
     final AsyncValue<List<TranslatorEntity>> translatorsAsync = ref.watch(
       translatorsStreamProvider,
     );
-    final AsyncValue<List<BookEntity>> booksAsync = ref.watch(booksStreamProvider);
-    final AsyncValue<List<SequenceEntity>> sequencesAsync = ref.watch(sequencesStreamProvider);
 
     if (widget.existingWork != null && !_isEditingInitialized) {
       final String? userId = ref.watch(authStateProvider).value?.uid;
@@ -253,6 +202,24 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
       appBar: AppBar(
         title: Text(widget.existingWork != null ? 'Edit Work' : 'Add Work'),
         centerTitle: true,
+        actions: <Widget>[
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: Row(
+              children: <Widget>[
+                Icon(Icons.g_translate_rounded, size: 20, color: colorScheme.onSurfaceVariant),
+                const SizedBox(width: 8),
+                Switch(
+                  value: _isTranslation,
+                  onChanged: (bool v) => setState(() => _isTranslation = v),
+                  inactiveThumbColor: colorScheme.onSurfaceVariant,
+                  inactiveTrackColor: colorScheme.surfaceContainerHighest,
+                  trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
       body: Form(
         key: _formKey,
@@ -267,11 +234,11 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                       child: Container(
                         width: 100,
                         height: 100,
-                        decoration: ImageStyles.getPickerDecoration(
+                        decoration: Images.getPickerDecoration(
                           theme,
                           image: _selectedBook?.cover != null
                               ? DecorationImage(
-                                  image: MemoryImage(base64Decode(_selectedBook!.cover!)),
+                                  image: Images.getImageProvider(_selectedBook!.cover),
                                   fit: BoxFit.cover,
                                 )
                               : null,
@@ -280,7 +247,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                             ? Icon(
                                 Icons.article_rounded,
                                 size: 48,
-                                color: ImageStyles.getPickerIconColor(theme),
+                                color: Images.getPickerIconColor(theme),
                               )
                             : null,
                       ),
@@ -290,197 +257,136 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                     FormTextField(
                       controller: _titleController,
                       label: 'Title',
-                      hint: 'Work title',
-                      prefixIcon: Icons.title_rounded,
+                      hint: 'Work Title',
+                      prefixIcon: Icons.article_rounded,
                       isRequired: true,
                       maxLength: 200,
                     ),
                     const SizedBox(height: 16),
 
-                    DropdownButtonFormField<Language?>(
+                    FormDropdownField<Language>(
                       value: _language,
-                      decoration: buildFormDecoration(
-                        colorScheme,
-                        labelText: 'Language',
-                        prefixIcon: Icons.language_rounded,
-                      ),
-                      items: <DropdownMenuItem<Language?>>[
-                        const DropdownMenuItem<Language?>(child: Text('None')),
-                        ...Language.values.map(
-                          (Language e) =>
-                              DropdownMenuItem<Language?>(value: e, child: Text(e.clientValue)),
-                        ),
-                      ],
+                      label: 'Language',
+                      prefixIcon: Icons.language_rounded,
+                      items: Language.values,
+                      itemLabel: (Language e) => e.clientValue,
                       onChanged: (Language? v) => setState(() => _language = v),
                     ),
                     const SizedBox(height: 16),
-
-                    DropdownButtonFormField<Genre?>(
+                    FormDropdownField<Genre>(
                       value: _genre,
-                      decoration: buildFormDecoration(
-                        colorScheme,
-                        labelText: 'Genre',
-                        prefixIcon: Icons.theater_comedy_rounded,
-                      ),
-                      items: <DropdownMenuItem<Genre?>>[
-                        const DropdownMenuItem<Genre?>(child: Text('None')),
-                        ...Genre.values.map(
-                          (Genre e) =>
-                              DropdownMenuItem<Genre?>(value: e, child: Text(e.clientValue)),
-                        ),
-                      ],
+                      label: 'Genre',
+                      prefixIcon: Icons.theater_comedy_rounded,
+                      items: Genre.values,
+                      itemLabel: (Genre e) => e.clientValue,
                       onChanged: (Genre? v) => setState(() => _genre = v),
                     ),
                     const SizedBox(height: 16),
 
-                    DropdownButtonFormField<ContentCategory>(
+                    FormDropdownField<ContentCategory>(
                       value: _contentCategory,
-                      decoration: buildFormDecoration(
-                        colorScheme,
-                        labelText: 'Content Category',
-                        prefixIcon: Icons.category_rounded,
-                      ),
-                      items: ContentCategory.values
-                          .map(
-                            (ContentCategory e) => DropdownMenuItem<ContentCategory>(
-                              value: e,
-                              child: Text(e.clientValue),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (ContentCategory? v) => setState(() => _contentCategory = v!),
+                      label: 'Content Category',
+                      prefixIcon: Icons.topic_rounded,
+                      items: ContentCategory.values,
+                      itemLabel: (ContentCategory e) => e.clientValue,
+                      onChanged: (ContentCategory? v) {
+                        if (v != null) {
+                          setState(() => _contentCategory = v);
+                        }
+                      },
+                      isNullable: false,
                     ),
 
-                    _buildSectionHeader('Relationships', Icons.people_rounded, theme),
+                    const SizedBox(height: 16),
 
-                    authorsAsync.when(
-                      data: (List<AuthorEntity> authors) => MultiSelectField<AuthorEntity>(
-                        label: 'Authors',
-                        allItems: authors,
-                        selectedItems: _selectedAuthors,
-                        itemLabel: (AuthorEntity a) => a.name,
-                        itemKey: (AuthorEntity a) => a.id,
-                        onChanged: (List<AuthorEntity> l) => setState(() => _selectedAuthors = l),
-                        onAdd: () async {
-                          final AuthorEntity? newAuthor = await showDialog<AuthorEntity>(
-                            context: context,
-                            builder: (_) => const AddAuthorDialog(),
-                          );
-                          if (newAuthor != null) {
-                            setState(
-                              () =>
-                                  _selectedAuthors = <AuthorEntity>[..._selectedAuthors, newAuthor],
-                            );
-                          }
-                        },
+                    SearchMultiPickerField<AuthorEntity>(
+                      label: 'Authors',
+                      prefixIcon: Icons.person_rounded,
+                      selectedItems: _selectedAuthors,
+                      itemsProvider: authorsStreamProvider,
+                      itemLabel: (AuthorEntity a) => a.name,
+                      itemKey: (AuthorEntity a) => a.id,
+                      onChanged: (List<AuthorEntity> l) => setState(() => _selectedAuthors = l),
+                      onAdd: () async => showDialog<AuthorEntity>(
+                        context: context,
+                        builder: (_) => const AddAuthorDialog(),
                       ),
-                      loading: () => const Center(child: CircularProgressIndicator()),
-                      error: (Object e, StackTrace s) => Text('Error: $e'),
                     ),
                     const SizedBox(height: 16),
 
-                    booksAsync.when(
-                      data: (List<BookEntity> books) => SingleSelectField<BookEntity>(
-                        label: 'Book (Anthology/Collection)',
-                        items: books,
-                        value: _selectedBook,
-                        itemLabel: (BookEntity b) => b.title,
-                        itemKey: (BookEntity b) => b.id,
-                        onChanged: (BookEntity? b) => setState(() => _selectedBook = b),
-                        onAdd: () async {
-                          final BookEntity? newBook = await showDialog<BookEntity>(
-                            context: context,
-                            builder: (_) => const AddBookDialog(),
-                          );
-                          if (newBook != null) {
-                            setState(() => _selectedBook = newBook);
-                          }
-                        },
+                    SearchPickerField<BookEntity>(
+                      label: 'Book (Anthology/Collection)',
+                      prefixIcon: Icons.collections_bookmark_rounded,
+                      selectedItem: _selectedBook,
+                      itemsProvider: booksStreamProvider,
+                      itemLabel: (BookEntity b) => b.title,
+                      onChanged: (BookEntity? b) => setState(() => _selectedBook = b),
+                      onAdd: () async => showDialog<BookEntity>(
+                        context: context,
+                        builder: (_) => const AddBookDialog(),
                       ),
-                      loading: () => const SizedBox(),
-                      error: (Object e, StackTrace s) => const SizedBox(),
                     ),
                     const SizedBox(height: 16),
 
-                    sequencesAsync.when(
-                      data: (List<SequenceEntity> sequences) => Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          if (_selectedSequences.isNotEmpty) ...<Widget>[
-                            Text('Sequences', style: theme.textTheme.titleSmall),
-                            const SizedBox(height: 8),
-                            InputDecorator(
-                              decoration: buildFormDecoration(
-                                colorScheme,
-                                contentPadding: const EdgeInsets.all(8),
-                              ),
-                              child: Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: _selectedSequences.entries
-                                    .map(
-                                      (MapEntry<SequenceEntity, String> entry) => InputChip(
-                                        label: Text('${entry.key.name} #${entry.value}'),
-                                        onDeleted: () =>
-                                            setState(() => _selectedSequences.remove(entry.key)),
-                                        onPressed: () async {
-                                          final String? number = await showDialog<String>(
-                                            context: context,
-                                            builder: (BuildContext context) =>
-                                                SequenceNumberDialog(initialValue: entry.value),
-                                          );
-                                          if (number != null) {
-                                            setState(() => _selectedSequences[entry.key] = number);
-                                          }
-                                        },
-                                      ),
-                                    )
-                                    .toList(),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-                          SingleSelectField<SequenceEntity>(
-                            label: 'Add to Sequence',
-                            items: sequences
-                                .where((SequenceEntity s) => !_selectedSequences.containsKey(s))
-                                .toList(),
-                            value: null,
-                            itemLabel: (SequenceEntity s) => s.name,
-                            itemKey: (SequenceEntity s) => s.id,
-                            onChanged: _handleSequenceSelection,
-                            onAdd: () async {
-                              final SequenceEntity? newSequence = await showDialog<SequenceEntity>(
-                                context: context,
-                                builder: (_) => const AddSequenceDialog(),
-                              );
-                              if (newSequence != null) {
-                                await _handleSequenceSelection(newSequence);
-                              }
-                            },
+                    SearchMultiPickerField<SequenceEntity>(
+                      label: 'Sequences',
+                      prefixIcon: Icons.layers_rounded,
+                      selectedItems: _selectedSequences.keys.toList(),
+                      itemsProvider: sequencesStreamProvider,
+                      itemLabel: (SequenceEntity s) => s.name,
+                      chipLabel: (SequenceEntity s) => '${s.name} #${_selectedSequences[s]}',
+                      itemKey: (SequenceEntity s) => s.id,
+                      onChanged: (List<SequenceEntity> list) async {
+                        // Wait for the bottom sheet to fully dismiss
+                        await Future<void>.delayed(const Duration(milliseconds: 300));
+                        if (!mounted) {
+                          return;
+                        }
+
+                        final Set<String> existingIds =
+                            _selectedSequences.keys.map((SequenceEntity s) => s.id).toSet();
+                        final List<SequenceEntity> newSequences =
+                            list.where((SequenceEntity s) => !existingIds.contains(s.id)).toList();
+
+                        setState(() {
+                          _selectedSequences.removeWhere(
+                            (SequenceEntity k, _) => !list.contains(k),
+                          );
+                        });
+
+                        for (final SequenceEntity s in newSequences) {
+                          if (!context.mounted) {
+                            break;
+                          }
+                          final String? number = await showDialog<String>(
+                            context: context,
+                            builder: (_) => SequenceNumberDialog(sequenceName: s.name),
+                          );
+                          if (number != null) {
+                            setState(() => _selectedSequences[s] = number);
+                          } else {
+                            setState(() => _selectedSequences.remove(s));
+                          }
+                        }
+                      },
+                      onChipPressed: (SequenceEntity s) async {
+                        if (!context.mounted) {
+                          return;
+                        }
+                        final String? number = await showDialog<String>(
+                          context: context,
+                          builder: (_) => SequenceNumberDialog(
+                            initialValue: _selectedSequences[s],
+                            sequenceName: s.name,
                           ),
-                        ],
-                      ),
-                      loading: () => const SizedBox(),
-                      error: (Object e, StackTrace s) => const SizedBox(),
-                    ),
-
-                    _buildSectionHeader('Details', Icons.info_outline_rounded, theme),
-
-                    Container(
-                      decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: SwitchListTile(
-                        title: const Text('Is Translation?'),
-                        subtitle: const Text('Enable if this work is translated'),
-                        value: _isTranslation,
-                        onChanged: (bool v) => setState(() => _isTranslation = v),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        inactiveThumbColor: colorScheme.onSurfaceVariant,
-                        inactiveTrackColor: colorScheme.surfaceContainerHighest,
-                        trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
+                        );
+                        if (number != null && context.mounted) {
+                          setState(() => _selectedSequences[s] = number);
+                        }
+                      },
+                      onAdd: () async => showDialog<SequenceEntity>(
+                        context: context,
+                        builder: (_) => const AddSequenceDialog(),
                       ),
                     ),
 
@@ -493,52 +399,28 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                         maxLength: 200,
                       ),
                       const SizedBox(height: 16),
-                      DropdownButtonFormField<OriginalLanguage>(
+                      FormDropdownField<OriginalLanguage>(
                         value: _originalLanguage,
-                        decoration: buildFormDecoration(
-                          colorScheme,
-                          labelText: 'Original Language',
-                          prefixIcon: Icons.language_rounded,
-                        ),
-                        items: OriginalLanguage.values
-                            .map(
-                              (OriginalLanguage e) => DropdownMenuItem<OriginalLanguage>(
-                                value: e,
-                                child: Text(e.clientValue),
-                              ),
-                            )
-                            .toList(),
+                        label: 'Original Language',
+                        prefixIcon: Icons.language_rounded,
+                        items: OriginalLanguage.values,
+                        itemLabel: (OriginalLanguage e) => e.clientValue,
                         onChanged: (OriginalLanguage? v) => setState(() => _originalLanguage = v),
                       ),
                       const SizedBox(height: 16),
-                      translatorsAsync.when(
-                        data: (List<TranslatorEntity> translators) =>
-                            MultiSelectField<TranslatorEntity>(
-                              label: 'Translators',
-                              allItems: translators,
-                              selectedItems: _selectedTranslators,
-                              itemLabel: (TranslatorEntity t) => t.name,
-                              itemKey: (TranslatorEntity t) => t.id,
-                              onChanged: (List<TranslatorEntity> l) =>
-                                  setState(() => _selectedTranslators = l),
-                              onAdd: () async {
-                                final TranslatorEntity? newTranslator =
-                                    await showDialog<TranslatorEntity>(
-                                      context: context,
-                                      builder: (_) => const AddTranslatorDialog(),
-                                    );
-                                if (newTranslator != null) {
-                                  setState(
-                                    () => _selectedTranslators = <TranslatorEntity>[
-                                      ..._selectedTranslators,
-                                      newTranslator,
-                                    ],
-                                  );
-                                }
-                              },
-                            ),
-                        loading: () => const SizedBox(),
-                        error: (Object e, StackTrace s) => const SizedBox(),
+                      SearchMultiPickerField<TranslatorEntity>(
+                        label: 'Translators',
+                        prefixIcon: Icons.translate_rounded,
+                        selectedItems: _selectedTranslators,
+                        itemsProvider: translatorsStreamProvider,
+                        itemLabel: (TranslatorEntity t) => t.name,
+                        itemKey: (TranslatorEntity t) => t.id,
+                        onChanged: (List<TranslatorEntity> l) =>
+                            setState(() => _selectedTranslators = l),
+                        onAdd: () async => showDialog<TranslatorEntity>(
+                          context: context,
+                          builder: (_) => const AddTranslatorDialog(),
+                        ),
                       ),
                     ],
 
@@ -546,28 +428,25 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                     FormTextField(
                       controller: _noOfPagesController,
                       label: 'Number of Pages',
+                      hint: 'e.g. 99',
                       prefixIcon: Icons.numbers_rounded,
                       keyboardType: TextInputType.number,
                     ),
 
-                    _buildSectionHeader('Status', Icons.bookmark_rounded, theme),
+                    const SizedBox(height: 16),
 
-                    DropdownButtonFormField<ReadingStatus>(
+                    FormDropdownField<ReadingStatus>(
                       value: _readingStatus,
-                      decoration: buildFormDecoration(
-                        colorScheme,
-                        labelText: 'Reading Status',
-                        prefixIcon: Icons.menu_book_rounded,
-                      ),
-                      items: ReadingStatus.values
-                          .map(
-                            (ReadingStatus e) => DropdownMenuItem<ReadingStatus>(
-                              value: e,
-                              child: Text(e.clientValue),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (ReadingStatus? v) => setState(() => _readingStatus = v!),
+                      label: 'Reading Status',
+                      prefixIcon: Icons.menu_book_rounded,
+                      items: ReadingStatus.values,
+                      itemLabel: (ReadingStatus e) => e.clientValue,
+                      onChanged: (ReadingStatus? v) {
+                        if (v != null) {
+                          setState(() => _readingStatus = v);
+                        }
+                      },
+                      isNullable: false,
                     ),
 
                     if (_readingStatus == ReadingStatus.paused) ...<Widget>[
@@ -594,7 +473,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                     FormTextField(
                       controller: _notesController,
                       label: 'Notes',
-                      hint: 'Notes about this work',
+                      hint: 'Notes about this Work',
                       prefixIcon: Icons.notes_rounded,
                       maxLines: 3,
                       alignLabelWithHint: true,
@@ -619,7 +498,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                             ? 'Saving...'
                             : (widget.existingWork != null ? 'Update Work' : 'Save Work'),
                       ),
-                      style: ButtonStyles.getPrimaryFilledButtonStyle(theme),
+                      style: Buttons.getPrimaryFilledButtonStyle(theme),
                     ),
 
                     const SizedBox(height: 24),

@@ -24,8 +24,8 @@ class BookRepositoryImpl implements BookRepository {
       BookModel(
         id: book.id,
         title: book.title,
-        cover: book.cover,
         compilationType: book.compilationType,
+        cover: book.cover,
         language: book.language,
         genre: book.genre,
         isbn: book.isbn,
@@ -70,8 +70,8 @@ class BookRepositoryImpl implements BookRepository {
       BookModel(
         id: book.id,
         title: book.title,
-        cover: book.cover,
         compilationType: book.compilationType,
+        cover: book.cover,
         language: book.language,
         genre: book.genre,
         isbn: book.isbn,

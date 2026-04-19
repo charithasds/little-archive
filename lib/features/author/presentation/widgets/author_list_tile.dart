@@ -1,8 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/shared/presentation/utils/image_styles.dart';
+import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/author_entity.dart';
 
@@ -22,11 +21,10 @@ class AuthorListTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final int bookCount = author.bookIds.length;
-    final int workCount = author.workIds.length;
-
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
+    final int bookCount = author.bookIds.length;
+    final int workCount = author.workIds.length;
 
     return Card(
       elevation: 0,
@@ -47,14 +45,14 @@ class AuthorListTile extends ConsumerWidget {
                 tag: 'author_${author.id}',
                 child: CircleAvatar(
                   radius: 32,
-                  backgroundColor: ImageStyles.getAvatarBackgroundColor(theme),
+                  backgroundColor: Images.getAvatarBackgroundColor(theme),
                   backgroundImage: author.image != null && author.image!.isNotEmpty
-                      ? _getImageProvider(author.image!)
+                      ? Images.getImageProvider(author.image)
                       : null,
                   child: author.image == null || author.image!.isEmpty
                       ? Icon(
                           Icons.person_rounded,
-                          color: ImageStyles.getAvatarIconColor(theme),
+                          color: Images.getAvatarIconColor(theme),
                           size: 32,
                         )
                       : null,
@@ -107,17 +105,5 @@ class AuthorListTile extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  ImageProvider _getImageProvider(String image) {
-    if (image.startsWith('http')) {
-      return NetworkImage(image);
-    } else {
-      try {
-        return MemoryImage(base64Decode(image));
-      } catch (e) {
-        return const AssetImage('assets/icon/app_icon.png');
-      }
-    }
   }
 }

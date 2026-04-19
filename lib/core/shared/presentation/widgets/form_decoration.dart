@@ -3,13 +3,27 @@ import 'package:flutter/material.dart';
 InputDecoration buildFormDecoration(
   ColorScheme colorScheme, {
   String? labelText,
-  EdgeInsetsGeometry? contentPadding,
+  String? hintText,
   IconData? prefixIcon,
+  EdgeInsetsGeometry? contentPadding,
+  bool alignLabelWithHint = false,
 }) => InputDecoration(
   labelText: labelText,
+  hintText: hintText,
   prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
+  prefixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+  alignLabelWithHint: alignLabelWithHint,
   filled: true,
   fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+  prefixIconColor: WidgetStateColor.resolveWith((Set<WidgetState> states) {
+    if (states.contains(WidgetState.error)) {
+      return colorScheme.error;
+    }
+    if (states.contains(WidgetState.focused)) {
+      return colorScheme.primary;
+    }
+    return colorScheme.onSurfaceVariant;
+  }),
   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
   enabledBorder: OutlineInputBorder(
     borderRadius: BorderRadius.circular(16),
@@ -37,6 +51,7 @@ InputDecoration buildFormDecoration(
     }
     return TextStyle(color: colorScheme.onSurfaceVariant);
   }),
+  floatingLabelBehavior: FloatingLabelBehavior.always,
   errorStyle: TextStyle(color: colorScheme.error),
   contentPadding: contentPadding,
 );

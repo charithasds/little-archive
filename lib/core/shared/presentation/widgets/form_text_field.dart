@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../theme/presentation/providers/theme_provider.dart';
+import 'form_decoration.dart';
 
 class FormTextField extends ConsumerWidget {
   const FormTextField({
@@ -62,44 +63,12 @@ class FormTextField extends ConsumerWidget {
     return TextFormField(
       controller: controller,
       autofocus: autofocus,
-      decoration: InputDecoration(
+      decoration: buildFormDecoration(
+        colorScheme,
         labelText: label,
         hintText: hint,
-        prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
+        prefixIcon: prefixIcon,
         alignLabelWithHint: alignLabelWithHint || maxLines > 1,
-        filled: true,
-        fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: colorScheme.primary, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: colorScheme.error, width: 2),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: colorScheme.error, width: 2),
-        ),
-        labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-        floatingLabelStyle: WidgetStateTextStyle.resolveWith((Set<WidgetState> states) {
-          if (states.contains(WidgetState.error)) {
-            return TextStyle(color: colorScheme.error);
-          }
-          if (states.contains(WidgetState.focused)) {
-            return TextStyle(color: colorScheme.primary);
-          }
-          return TextStyle(color: colorScheme.onSurfaceVariant);
-        }),
-        errorStyle: TextStyle(color: colorScheme.error),
       ),
       keyboardType: keyboardType,
       textCapitalization: _effectiveCapitalization,

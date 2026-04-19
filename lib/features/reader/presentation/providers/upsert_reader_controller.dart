@@ -58,9 +58,9 @@ class UpsertReaderController extends Notifier<UpsertReaderState> {
     required ReaderEntity? existingReader,
     required String name,
     String? otherName,
-    required String email,
-    required String facebook,
-    required String phoneNumber,
+    String? email,
+    String? facebook,
+    String? phoneNumber,
   }) async {
     state = state.copyWith(isLoading: true);
 
@@ -77,19 +77,19 @@ class UpsertReaderController extends Notifier<UpsertReaderState> {
         ? existingReader.copyWith(
             name: name,
             otherName: Nullable<String?>(otherName?.isEmpty ?? true ? null : otherName),
-            email: Nullable<String?>(email.isEmpty ? null : email),
-            facebook: Nullable<String?>(facebook.isEmpty ? null : facebook),
-            phoneNumber: Nullable<String?>(phoneNumber.isEmpty ? null : phoneNumber),
+            email: Nullable<String?>(email?.isEmpty ?? true ? null : email),
+            facebook: Nullable<String?>(facebook?.isEmpty ?? true ? null : facebook),
+            phoneNumber: Nullable<String?>(phoneNumber?.isEmpty ?? true ? null : phoneNumber),
             image: Nullable<String?>(state.pickedBase64Image),
             lastUpdated: DateTime.now(),
           )
         : ReaderEntity(
             id: generatedId,
             name: name,
-            otherName: otherName,
-            email: email.isEmpty ? null : email,
-            facebook: facebook.isEmpty ? null : facebook,
-            phoneNumber: phoneNumber.isEmpty ? null : phoneNumber,
+            otherName: otherName?.isEmpty ?? true ? null : otherName,
+            email: email?.isEmpty ?? true ? null : email,
+            facebook: facebook?.isEmpty ?? true ? null : facebook,
+            phoneNumber: phoneNumber?.isEmpty ?? true ? null : phoneNumber,
             image: state.pickedBase64Image,
             bookIds: const <String>[],
             createdDate: DateTime.now(),

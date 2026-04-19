@@ -1,10 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../../core/shared/presentation/utils/button_styles.dart';
-import '../../../../core/shared/presentation/utils/image_styles.dart';
+import '../../../../core/shared/presentation/utils/buttons.dart';
+import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/utils/validators.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
@@ -66,16 +65,15 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
 
       if (isSuccess && mounted) {
         SnackBars.showSuccess(
-          context,
           widget.existingPublisher != null
               ? 'Publisher updated successfully'
               : 'Publisher added successfully',
         );
-        Navigator.of(context).pop();
+        context.pop();
       } else if (!isSuccess && mounted) {
         final UpsertPublisherState state = ref.read(upsertPublisherControllerProvider);
         if (state.error != null) {
-          SnackBars.showError(context, state.error!);
+          SnackBars.showError(state.error!);
         }
       }
     }
@@ -114,11 +112,11 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
                 child: Container(
                   width: 120,
                   height: 120,
-                  decoration: ImageStyles.getPickerDecoration(
+                  decoration: Images.getPickerDecoration(
                     theme,
                     image: state.pickedBase64Logo != null
                         ? DecorationImage(
-                            image: MemoryImage(base64Decode(state.pickedBase64Logo!)),
+                            image: Images.getImageProvider(state.pickedBase64Logo),
                             fit: BoxFit.cover,
                           )
                         : null,
@@ -127,7 +125,7 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
                       ? Icon(
                           Icons.business_rounded,
                           size: 48,
-                          color: ImageStyles.getPickerIconColor(theme),
+                          color: Images.getPickerIconColor(theme),
                         )
                       : null,
                 ),
@@ -139,14 +137,16 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
                 spacing: 12,
                 children: <Widget>[
                   TextButton.icon(
-                    onPressed: () => ref.read(upsertPublisherControllerProvider.notifier).pickImage(),
-                    icon: const Icon(Icons.camera_alt_rounded),
+                    onPressed: () =>
+                        ref.read(upsertPublisherControllerProvider.notifier).pickImage(),
+                    icon: const Icon(Icons.camera_rounded),
                     label: Text(state.pickedBase64Logo == null ? 'Add Logo' : 'Change Logo'),
                   ),
                   if (state.pickedBase64Logo != null)
                     TextButton.icon(
-                      onPressed: () => ref.read(upsertPublisherControllerProvider.notifier).clearLogo(),
-                      icon: const Icon(Icons.delete_outline_rounded),
+                      onPressed: () =>
+                          ref.read(upsertPublisherControllerProvider.notifier).clearLogo(),
+                      icon: const Icon(Icons.delete_rounded),
                       label: const Text('Remove Logo'),
                       style: TextButton.styleFrom(foregroundColor: colorScheme.error),
                     ),
@@ -159,7 +159,7 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
               controller: _nameController,
               label: 'Name',
               hint: 'Publisher Name',
-              prefixIcon: Icons.business_outlined,
+              prefixIcon: Icons.business_rounded,
               maxLength: 200,
               isRequired: true,
             ),
@@ -169,7 +169,7 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
               controller: _otherNameController,
               label: 'Other Name',
               hint: 'Alternative Name',
-              prefixIcon: Icons.badge_outlined,
+              prefixIcon: Icons.badge_rounded,
               maxLength: 200,
             ),
             const SizedBox(height: 16),
@@ -189,7 +189,7 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
               controller: _emailController,
               label: 'Email',
               hint: 'publisher@example.com',
-              prefixIcon: Icons.email_outlined,
+              prefixIcon: Icons.email_rounded,
               maxLength: 200,
               keyboardType: TextInputType.emailAddress,
               validator: Validators.validateEmail,
@@ -211,7 +211,7 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
               controller: _phoneController,
               label: 'Phone Number',
               hint: '+94 77 123 4567 or 077 123 4567',
-              prefixIcon: Icons.phone_outlined,
+              prefixIcon: Icons.phone_rounded,
               maxLength: 20,
               keyboardType: TextInputType.phone,
               validator: Validators.validateSriLankanPhoneNumber,
@@ -235,7 +235,7 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
                     ? 'Saving...'
                     : (widget.existingPublisher != null ? 'Update Publisher' : 'Save Publisher'),
               ),
-              style: ButtonStyles.getPrimaryFilledButtonStyle(theme),
+              style: Buttons.getPrimaryFilledButtonStyle(theme),
             ),
           ],
         ),

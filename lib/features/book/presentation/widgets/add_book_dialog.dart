@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/enums/compilation_type.dart';
-import '../../../../core/shared/domain/enums/reading_status.dart';
-import '../../../../core/shared/presentation/utils/button_styles.dart';
+import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
+import '../../../../core/shared/presentation/widgets/form_dropdown_field.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
-import '../../../../core/shared/presentation/widgets/single_select_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../domain/entities/book_entity.dart';
 import '../providers/upsert_book_controller.dart';
 
@@ -39,39 +37,17 @@ class _AddBookDialogState extends ConsumerState<AddBookDialog> {
             existingBook: null,
             title: _titleController.text.trim(),
             compilationType: _compilationType,
-            language: null,
-            genre: null,
-            isbn: null,
-            publishedDate: null,
-            noOfPages: null,
-            isTranslation: false,
-            originalTitle: null,
-            originalLanguage: null,
-            collectionStatus: CollectionStatus.collected,
-            collectedDate: null,
-            lendedDate: null,
-            dueDate: null,
-            readingStatus: ReadingStatus.notStarted,
-            pausedPage: null,
-            completedDate: null,
-            notes: null,
-            authorIds: <String>[],
-            translatorIds: <String>[],
-            workIds: <String>[],
-            selectedSequences: <SequenceEntity, String>{},
-            publisherId: null,
-            readerId: null,
           );
 
       if (mounted) {
         if (savedBook != null) {
-          SnackBars.showSuccess(context, 'Book added successfully');
-          Navigator.of(context).pop(savedBook);
+          SnackBars.showSuccess('Book added successfully');
+          context.pop(savedBook);
         } else {
           final UpsertBookState state = ref.read(upsertBookControllerProvider);
 
           if (state.error != null) {
-            SnackBars.showError(context, state.error!);
+            SnackBars.showError(state.error!);
           }
         }
       }
@@ -94,13 +70,15 @@ class _AddBookDialogState extends ConsumerState<AddBookDialog> {
               controller: _titleController,
               label: 'Title',
               hint: 'Book Title',
+              prefixIcon: Icons.book_rounded,
               isRequired: true,
               maxLength: 200,
               autofocus: true,
             ),
             const SizedBox(height: 16),
-            SingleSelectField<CompilationType>(
+            FormDropdownField<CompilationType>(
               label: 'Compilation Type',
+              prefixIcon: Icons.collections_bookmark_rounded,
               items: CompilationType.values,
               value: _compilationType,
               itemLabel: (CompilationType c) => c.name.toUpperCase(),
@@ -115,10 +93,10 @@ class _AddBookDialogState extends ConsumerState<AddBookDialog> {
         ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+        TextButton(onPressed: () => context.pop(), child: const Text('Cancel')),
         FilledButton(
           onPressed: state.isLoading ? null : _save,
-          style: ButtonStyles.getPrimaryFilledButtonStyle(
+          style: Buttons.getPrimaryFilledButtonStyle(
             theme,
           ).copyWith(minimumSize: WidgetStateProperty.all(const Size(100, 44))),
           child: state.isLoading

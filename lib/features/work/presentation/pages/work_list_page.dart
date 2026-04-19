@@ -3,13 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/domain/error/exceptions.dart';
-import '../../../../core/shared/presentation/utils/button_styles.dart';
+import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../../features/author/domain/entities/author_entity.dart';
 import '../../../../features/author/presentation/providers/author_provider.dart';
 import '../../../../features/translator/domain/entities/translator_entity.dart';
 import '../../../../features/translator/presentation/providers/translator_provider.dart';
+import '../../../book/domain/entities/book_entity.dart';
+import '../../../book/presentation/providers/book_provider.dart';
 import '../../domain/entities/work_entity.dart';
 import '../../domain/repositories/work_repository.dart';
 import '../providers/work_provider.dart';
@@ -30,12 +32,9 @@ class WorkListPage extends ConsumerWidget {
           'Are you sure you want to delete this work? This action cannot be undone.',
         ),
         actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => context.pop(false), child: const Text('Cancel')),
           FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => context.pop(true),
             style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.error),
             child: const Text('Delete'),
           ),
@@ -49,17 +48,11 @@ class WorkListPage extends ConsumerWidget {
 
     try {
       await ref.read<WorkRepository>(workRepositoryProvider).deleteWork(workId);
-      if (context.mounted) {
-        SnackBars.showSuccess(context, 'Work deleted successfully');
-      }
+      SnackBars.showSuccess('Work deleted successfully');
     } on NoConnectionException catch (e) {
-      if (context.mounted) {
-        SnackBars.showError(context, e.message);
-      }
+      SnackBars.showError(e.message);
     } catch (e) {
-      if (context.mounted) {
-        SnackBars.showError(context, 'Delete failed: $e');
-      }
+      SnackBars.showError('Delete failed: $e');
     }
   }
 
@@ -69,6 +62,7 @@ class WorkListPage extends ConsumerWidget {
     final List<AuthorEntity> authors = ref.watch(authorsStreamProvider).value ?? <AuthorEntity>[];
     final List<TranslatorEntity> translators =
         ref.watch(translatorsStreamProvider).value ?? <TranslatorEntity>[];
+    final List<BookEntity> books = ref.watch(booksStreamProvider).value ?? <BookEntity>[];
 
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
@@ -83,7 +77,7 @@ class WorkListPage extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Icon(
-                    Icons.article_outlined,
+                    Icons.article_rounded,
                     size: 80,
                     color: colorScheme.primary.withValues(alpha: 0.5),
                   ),
@@ -127,9 +121,15 @@ class WorkListPage extends ConsumerWidget {
                             ?.name;
                       }
                     }
+
+                    final String? bookCover = work.bookId != null
+                        ? books.where((BookEntity b) => b.id == work.bookId).firstOrNull?.cover
+                        : null;
+
                     return WorkListTile(
                       work: work,
-                      firstAuthorOrTranslatorName: creatorName,
+                      firstCreatorName: creatorName,
+                      bookCover: bookCover,
                       onTap: () => context.go('/works/${work.id}'),
                       onEdit: () => context.push('/works/add', extra: work),
                       onDelete: () => _handleDelete(context, ref, work.id),
@@ -164,9 +164,15 @@ class WorkListPage extends ConsumerWidget {
                             ?.name;
                       }
                     }
+
+                    final String? bookCover = work.bookId != null
+                        ? books.where((BookEntity b) => b.id == work.bookId).firstOrNull?.cover
+                        : null;
+
                     return WorkListTile(
                       work: work,
-                      firstAuthorOrTranslatorName: creatorName,
+                      firstCreatorName: creatorName,
+                      bookCover: bookCover,
                       onTap: () => context.go('/works/${work.id}'),
                       onEdit: () => context.push('/works/add', extra: work),
                       onDelete: () => _handleDelete(context, ref, work.id),
@@ -182,7 +188,7 @@ class WorkListPage extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Icon(Icons.error_outline_rounded, size: 64, color: colorScheme.error),
+              Icon(Icons.error_rounded, size: 64, color: colorScheme.error),
               const SizedBox(height: 16),
               Text('Something went wrong', style: theme.textTheme.titleLarge),
               const SizedBox(height: 8),
@@ -196,8 +202,8 @@ class WorkListPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: ButtonStyles.getPrimaryActionBackgroundColor(theme),
-        foregroundColor: ButtonStyles.getPrimaryActionForegroundColor(theme),
+        backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
+        foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
         onPressed: () => context.go('/works/add'),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Work'),

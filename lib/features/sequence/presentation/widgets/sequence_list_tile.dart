@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/shared/presentation/utils/image_styles.dart';
+import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/sequence_entity.dart';
 
@@ -12,21 +12,18 @@ class SequenceListTile extends ConsumerWidget {
     required this.onTap,
     required this.onEdit,
     required this.onDelete,
-    this.bookCount = 0,
-    this.workCount = 0,
   });
 
   final SequenceEntity sequence;
   final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
-  final int bookCount;
-  final int workCount;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
+    final int volumeCount = sequence.sequenceVolumeIds.length;
 
     return Card(
       elevation: 0,
@@ -45,16 +42,12 @@ class SequenceListTile extends ConsumerWidget {
             children: <Widget>[
               Hero(
                 tag: 'sequence_${sequence.id}',
-                child: Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: ImageStyles.getAvatarBackgroundColor(theme),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                child: CircleAvatar(
+                  radius: 32,
+                  backgroundColor: Images.getAvatarBackgroundColor(theme),
                   child: Icon(
                     Icons.layers_rounded,
-                    color: ImageStyles.getAvatarIconColor(theme),
+                    color: Images.getAvatarIconColor(theme),
                     size: 32,
                   ),
                 ),
@@ -69,14 +62,14 @@ class SequenceListTile extends ConsumerWidget {
                       sequence.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleMedium?.copyWith(
+                      style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '$bookCount ${bookCount == 1 ? 'Book' : 'Books'} • $workCount ${workCount == 1 ? 'Work' : 'Works'}',
+                      '$volumeCount ${volumeCount == 1 ? 'Volume' : 'Volumes'}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodyMedium?.copyWith(

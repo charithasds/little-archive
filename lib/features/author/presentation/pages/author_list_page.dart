@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/domain/error/exceptions.dart';
-import '../../../../core/shared/presentation/utils/button_styles.dart';
+import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/author_entity.dart';
@@ -26,12 +26,9 @@ class AuthorListPage extends ConsumerWidget {
           'Are you sure you want to delete this author? This action cannot be undone.',
         ),
         actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => context.pop(false), child: const Text('Cancel')),
           FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => context.pop(true),
             style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.error),
             child: const Text('Delete'),
           ),
@@ -45,17 +42,11 @@ class AuthorListPage extends ConsumerWidget {
 
     try {
       await ref.read<AuthorRepository>(authorRepositoryProvider).deleteAuthor(authorId);
-      if (context.mounted) {
-        SnackBars.showSuccess(context, 'Author deleted successfully');
-      }
+      SnackBars.showSuccess('Author deleted successfully');
     } on NoConnectionException catch (e) {
-      if (context.mounted) {
-        SnackBars.showError(context, e.message);
-      }
+      SnackBars.showError(e.message);
     } catch (e) {
-      if (context.mounted) {
-        SnackBars.showError(context, 'Delete failed: $e');
-      }
+      SnackBars.showError('Delete failed: $e');
     }
   }
 
@@ -76,7 +67,7 @@ class AuthorListPage extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Icon(
-                    Icons.person_outline_rounded,
+                    Icons.person_rounded,
                     size: 80,
                     color: colorScheme.primary.withValues(alpha: 0.5),
                   ),
@@ -141,7 +132,7 @@ class AuthorListPage extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Icon(Icons.error_outline_rounded, size: 64, color: colorScheme.error),
+              Icon(Icons.error_rounded, size: 64, color: colorScheme.error),
               const SizedBox(height: 16),
               Text('Something went wrong', style: theme.textTheme.titleLarge),
               const SizedBox(height: 8),
@@ -155,8 +146,8 @@ class AuthorListPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: ButtonStyles.getPrimaryActionBackgroundColor(theme),
-        foregroundColor: ButtonStyles.getPrimaryActionForegroundColor(theme),
+        backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
+        foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
         onPressed: () => context.go('/authors/add'),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Author'),

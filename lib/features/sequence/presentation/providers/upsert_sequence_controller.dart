@@ -43,13 +43,16 @@ class UpsertSequenceController extends Notifier<UpsertSequenceState> {
             name: name,
             otherName: Nullable<String?>(otherName?.isEmpty ?? true ? null : otherName),
             notes: Nullable<String?>(notes?.isEmpty ?? true ? null : notes),
+            lastUpdated: DateTime.now(),
           )
         : SequenceEntity(
             id: generatedId,
             name: name,
-            otherName: otherName,
-            notes: notes,
+            otherName: otherName?.isEmpty ?? true ? null : otherName,
+            notes: notes?.isEmpty ?? true ? null : notes,
             sequenceVolumeIds: const <String>[],
+            createdDate: DateTime.now(),
+            lastUpdated: DateTime.now(),
           );
 
     try {

@@ -24,9 +24,9 @@ class WorkRepositoryImpl implements WorkRepository {
       WorkModel(
         id: work.id,
         title: work.title,
+        contentCategory: work.contentCategory,
         language: work.language,
         genre: work.genre,
-        contentCategory: work.contentCategory,
         noOfPages: work.noOfPages,
         isTranslation: work.isTranslation,
         originalTitle: work.originalTitle,
@@ -59,9 +59,9 @@ class WorkRepositoryImpl implements WorkRepository {
       WorkModel(
         id: work.id,
         title: work.title,
+        contentCategory: work.contentCategory,
         language: work.language,
         genre: work.genre,
-        contentCategory: work.contentCategory,
         noOfPages: work.noOfPages,
         isTranslation: work.isTranslation,
         originalTitle: work.originalTitle,

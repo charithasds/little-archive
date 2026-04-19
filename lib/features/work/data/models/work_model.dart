@@ -11,9 +11,9 @@ class WorkModel extends WorkEntity {
   const WorkModel({
     required super.id,
     required super.title,
+    required super.contentCategory,
     super.language,
     super.genre,
-    required super.contentCategory,
     super.noOfPages,
     required super.isTranslation,
     super.originalTitle,
@@ -33,11 +33,11 @@ class WorkModel extends WorkEntity {
   factory WorkModel.fromMap(Map<String, dynamic> map, String documentId) => WorkModel(
     id: documentId,
     title: (map['title'] as String?) ?? '',
-    language: map['language'] != null ? Language.values.byName(map['language'] as String) : null,
-    genre: map['genre'] != null ? Genre.values.byName(map['genre'] as String) : null,
     contentCategory: ContentCategory.values.byName(
       (map['contentCategory'] as String?) ?? 'shortStory',
     ),
+    language: map['language'] != null ? Language.values.byName(map['language'] as String) : null,
+    genre: map['genre'] != null ? Genre.values.byName(map['genre'] as String) : null,
     noOfPages: map['noOfPages'] as int?,
     isTranslation: (map['isTranslation'] as bool?) ?? false,
     originalTitle: map['originalTitle'] as String?,
@@ -61,9 +61,9 @@ class WorkModel extends WorkEntity {
   Map<String, dynamic> toMap() => <String, dynamic>{
     'id': id,
     'title': title,
+    'contentCategory': contentCategory.name,
     'language': language?.name,
     'genre': genre?.name,
-    'contentCategory': contentCategory.name,
     'noOfPages': noOfPages,
     'isTranslation': isTranslation,
     'originalTitle': originalTitle,

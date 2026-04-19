@@ -11,9 +11,9 @@ class WorkEntity extends Equatable {
   const WorkEntity({
     required this.id,
     required this.title,
+    required this.contentCategory,
     this.language,
     this.genre,
-    required this.contentCategory,
     this.noOfPages,
     required this.isTranslation,
     this.originalTitle,
@@ -32,9 +32,9 @@ class WorkEntity extends Equatable {
 
   final String id;
   final String title;
+  final ContentCategory contentCategory;
   final Language? language;
   final Genre? genre;
-  final ContentCategory contentCategory;
   final int? noOfPages;
   final bool isTranslation;
   final String? originalTitle;
@@ -56,9 +56,9 @@ class WorkEntity extends Equatable {
   WorkEntity copyWith({
     String? id,
     String? title,
+    ContentCategory? contentCategory,
     Nullable<Language?>? language,
     Nullable<Genre?>? genre,
-    ContentCategory? contentCategory,
     Nullable<int?>? noOfPages,
     bool? isTranslation,
     Nullable<String?>? originalTitle,
@@ -76,9 +76,9 @@ class WorkEntity extends Equatable {
   }) => WorkEntity(
     id: id ?? this.id,
     title: title ?? this.title,
+    contentCategory: contentCategory ?? this.contentCategory,
     language: language != null ? language.value : this.language,
     genre: genre != null ? genre.value : this.genre,
-    contentCategory: contentCategory ?? this.contentCategory,
     noOfPages: noOfPages != null ? noOfPages.value : this.noOfPages,
     isTranslation: isTranslation ?? this.isTranslation,
     originalTitle: originalTitle != null ? originalTitle.value : this.originalTitle,

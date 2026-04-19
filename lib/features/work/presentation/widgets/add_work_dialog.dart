@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/domain/enums/content_category.dart';
-import '../../../../core/shared/domain/enums/reading_status.dart';
-import '../../../../core/shared/presentation/utils/button_styles.dart';
+import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
+import '../../../../core/shared/presentation/widgets/form_dropdown_field.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
-import '../../../../core/shared/presentation/widgets/single_select_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../domain/entities/work_entity.dart';
 import '../providers/upsert_work_controller.dart';
 
@@ -37,32 +36,18 @@ class _AddWorkDialogState extends ConsumerState<AddWorkDialog> {
           .saveWork(
             existingWork: null,
             title: _titleController.text.trim(),
-            language: null,
-            genre: null,
             contentCategory: _contentCategory,
-            noOfPages: null,
-            isTranslation: false,
-            originalTitle: null,
-            originalLanguage: null,
-            readingStatus: ReadingStatus.notStarted,
-            pausedPage: null,
-            completedDate: null,
-            notes: null,
-            authorIds: <String>[],
-            translatorIds: <String>[],
-            selectedSequences: <SequenceEntity, String>{},
-            bookId: null,
           );
 
       if (mounted) {
         if (savedWork != null) {
-          SnackBars.showSuccess(context, 'Work added successfully');
-          Navigator.of(context).pop(savedWork);
+          SnackBars.showSuccess('Work added successfully');
+          context.pop(savedWork);
         } else {
           final UpsertWorkState state = ref.read(upsertWorkControllerProvider);
 
           if (state.error != null) {
-            SnackBars.showError(context, state.error!);
+            SnackBars.showError(state.error!);
           }
         }
       }
@@ -85,13 +70,15 @@ class _AddWorkDialogState extends ConsumerState<AddWorkDialog> {
               controller: _titleController,
               label: 'Title',
               hint: 'Work Title',
+              prefixIcon: Icons.article_rounded,
               isRequired: true,
               maxLength: 200,
               autofocus: true,
             ),
             const SizedBox(height: 16),
-            SingleSelectField<ContentCategory>(
+            FormDropdownField<ContentCategory>(
               label: 'Content Category',
+              prefixIcon: Icons.topic_rounded,
               items: ContentCategory.values,
               value: _contentCategory,
               itemLabel: (ContentCategory c) => c.name.toUpperCase(),
@@ -106,10 +93,10 @@ class _AddWorkDialogState extends ConsumerState<AddWorkDialog> {
         ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+        TextButton(onPressed: () => context.pop(), child: const Text('Cancel')),
         FilledButton(
           onPressed: state.isLoading ? null : _save,
-          style: ButtonStyles.getPrimaryFilledButtonStyle(
+          style: Buttons.getPrimaryFilledButtonStyle(
             theme,
           ).copyWith(minimumSize: WidgetStateProperty.all(const Size(100, 44))),
           child: state.isLoading

@@ -12,8 +12,8 @@ class BookEntity extends Equatable {
   const BookEntity({
     required this.id,
     required this.title,
-    this.cover,
     required this.compilationType,
+    this.cover,
     this.language,
     this.genre,
     this.isbn,
@@ -42,8 +42,8 @@ class BookEntity extends Equatable {
 
   final String id;
   final String title;
-  final String? cover;
   final CompilationType compilationType;
+  final String? cover;
   final Language? language;
   final Genre? genre;
   final String? isbn;
@@ -75,8 +75,8 @@ class BookEntity extends Equatable {
   BookEntity copyWith({
     String? id,
     String? title,
-    Nullable<String?>? cover,
     CompilationType? compilationType,
+    Nullable<String?>? cover,
     Nullable<Language?>? language,
     Nullable<Genre?>? genre,
     Nullable<String?>? isbn,
@@ -104,8 +104,8 @@ class BookEntity extends Equatable {
   }) => BookEntity(
     id: id ?? this.id,
     title: title ?? this.title,
-    cover: cover != null ? cover.value : this.cover,
     compilationType: compilationType ?? this.compilationType,
+    cover: cover != null ? cover.value : this.cover,
     language: language != null ? language.value : this.language,
     genre: genre != null ? genre.value : this.genre,
     isbn: isbn != null ? isbn.value : this.isbn,

@@ -46,11 +46,7 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: Image.network(
-                'https://developers.google.com/static/identity/images/g-logo.png',
-                errorBuilder: (BuildContext context, Object error, StackTrace? s) =>
-                    Icon(Icons.g_mobiledata_rounded, color: colorScheme.primary, size: 18),
-              ),
+              child: Icon(Icons.g_mobiledata_rounded, color: colorScheme.primary, size: 18),
             ),
           const SizedBox(width: 12),
           Text(
@@ -76,14 +72,14 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
       if (state.hasError && mounted) {
         final Object error = state.error!;
         if (error is NoConnectionException) {
-          SnackBars.showError(context, error.message);
+          SnackBars.showError(error.message);
         } else {
-          SnackBars.showError(context, 'Sign in failed. Please try again.');
+          SnackBars.showError('Sign in failed. Please try again.');
         }
       }
     } catch (e) {
       if (mounted) {
-        SnackBars.showError(context, 'An unexpected error occurred.');
+        SnackBars.showError('An unexpected error occurred.');
       }
     } finally {
       if (mounted) {

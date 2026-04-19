@@ -57,11 +57,11 @@ class UpsertPublisherController extends Notifier<UpsertPublisherState> {
   Future<PublisherEntity?> savePublisher({
     required PublisherEntity? existingPublisher,
     required String name,
-    required String otherName,
-    required String website,
-    required String email,
-    required String facebook,
-    required String phone,
+    String? otherName,
+    String? website,
+    String? email,
+    String? facebook,
+    String? phone,
   }) async {
     state = state.copyWith(isLoading: true);
 
@@ -77,22 +77,22 @@ class UpsertPublisherController extends Notifier<UpsertPublisherState> {
     final PublisherEntity publisherToSave = existingPublisher != null
         ? existingPublisher.copyWith(
             name: name,
-            otherName: Nullable<String?>(otherName.isEmpty ? null : otherName),
-            website: Nullable<String?>(website.isEmpty ? null : website),
-            email: Nullable<String?>(email.isEmpty ? null : email),
-            facebook: Nullable<String?>(facebook.isEmpty ? null : facebook),
-            phoneNumber: Nullable<String?>(phone.isEmpty ? null : phone),
+            otherName: Nullable<String?>(otherName?.isEmpty ?? true ? null : otherName),
+            website: Nullable<String?>(website?.isEmpty ?? true ? null : website),
+            email: Nullable<String?>(email?.isEmpty ?? true ? null : email),
+            facebook: Nullable<String?>(facebook?.isEmpty ?? true ? null : facebook),
+            phoneNumber: Nullable<String?>(phone?.isEmpty ?? true ? null : phone),
             logo: Nullable<String?>(state.pickedBase64Logo),
             lastUpdated: DateTime.now(),
           )
         : PublisherEntity(
             id: generatedId,
             name: name,
-            otherName: otherName.isEmpty ? null : otherName,
-            website: website.isEmpty ? null : website,
-            email: email.isEmpty ? null : email,
-            facebook: facebook.isEmpty ? null : facebook,
-            phoneNumber: phone.isEmpty ? null : phone,
+            otherName: otherName?.isEmpty ?? true ? null : otherName,
+            website: website?.isEmpty ?? true ? null : website,
+            email: email?.isEmpty ?? true ? null : email,
+            facebook: facebook?.isEmpty ?? true ? null : facebook,
+            phoneNumber: phone?.isEmpty ?? true ? null : phone,
             logo: state.pickedBase64Logo,
             bookIds: const <String>[],
             createdDate: DateTime.now(),

@@ -32,23 +32,34 @@ class AuthRemoteDataSource {
 
       await _createUserDoc(userCredential.user);
     } else {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      final GoogleSignInAuthentication googleAuth;
-      final AuthCredential credential;
-      final UserCredential userCredential;
-
-      if (googleUser == null) {
-        return;
-      }
-
-      googleAuth = await googleUser.authentication;
-      credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
+      await _googleSignIn.initialize(
+        clientId: '959815093644-mdq9akkmrevrafqb863cup4go3ss5jud.apps.googleusercontent.com',
       );
-      userCredential = await _firebaseAuth.signInWithCredential(credential);
 
-      await _createUserDoc(userCredential.user);
+      try {
+        final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
+        final GoogleSignInAuthentication googleAuth;
+        final AuthCredential credential;
+        final UserCredential userCredential;
+
+        googleAuth = googleUser.authentication;
+
+        final GoogleSignInClientAuthorization auth = await googleUser.authorizationClient
+            .authorizeScopes(const <String>['email', 'profile']);
+
+        credential = GoogleAuthProvider.credential(
+          accessToken: auth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+        userCredential = await _firebaseAuth.signInWithCredential(credential);
+
+        await _createUserDoc(userCredential.user);
+      } catch (e) {
+        if (e.toString().contains('cancel')) {
+          return;
+        }
+        rethrow;
+      }
     }
   }
 

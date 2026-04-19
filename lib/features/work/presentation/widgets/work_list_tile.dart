@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/shared/presentation/utils/image_styles.dart';
+import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/work_entity.dart';
 
@@ -12,33 +12,33 @@ class WorkListTile extends ConsumerWidget {
     required this.onTap,
     required this.onEdit,
     required this.onDelete,
-    this.firstAuthorOrTranslatorName,
+    this.firstCreatorName,
+    this.bookCover,
   });
 
   final WorkEntity work;
   final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
-  final String? firstAuthorOrTranslatorName;
+  final String? firstCreatorName;
+  final String? bookCover;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
 
-    final bool isTranslation = work.isTranslation;
-    final List<String> creatorIds = isTranslation ? work.translatorIds : work.authorIds;
-    final String creatorLabel = isTranslation ? 'Translator' : 'Author';
+    final List<String> creatorIds = work.isTranslation ? work.translatorIds : work.authorIds;
+    final String creatorLabel = work.isTranslation ? 'Translator' : 'Author';
     final int additionalCount = creatorIds.length > 1 ? creatorIds.length - 1 : 0;
-
     String creatorText;
-    if (firstAuthorOrTranslatorName != null && firstAuthorOrTranslatorName!.isNotEmpty) {
-      creatorText = firstAuthorOrTranslatorName!;
+
+    if (firstCreatorName != null && firstCreatorName!.isNotEmpty) {
+      creatorText = firstCreatorName!;
+
       if (additionalCount > 0) {
-        creatorText += ' +$additionalCount';
+        creatorText += ' + $additionalCount';
       }
-    } else if (creatorIds.isNotEmpty) {
-      creatorText = '$creatorLabel${additionalCount > 0 ? ' +$additionalCount' : ''}';
     } else {
       creatorText = 'No ${creatorLabel}s';
     }
@@ -60,18 +60,19 @@ class WorkListTile extends ConsumerWidget {
             children: <Widget>[
               Hero(
                 tag: 'work_${work.id}',
-                child: Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: ImageStyles.getAvatarBackgroundColor(theme),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(
-                    Icons.article_rounded,
-                    color: ImageStyles.getAvatarIconColor(theme),
-                    size: 32,
-                  ),
+                child: CircleAvatar(
+                  radius: 32,
+                  backgroundColor: Images.getAvatarBackgroundColor(theme),
+                  backgroundImage: bookCover != null && bookCover!.isNotEmpty
+                      ? Images.getImageProvider(bookCover)
+                      : null,
+                  child: bookCover == null || bookCover!.isEmpty
+                      ? Icon(
+                          Icons.article_rounded,
+                          color: Images.getAvatarIconColor(theme),
+                          size: 32,
+                        )
+                      : null,
                 ),
               ),
               const SizedBox(width: 20),
@@ -84,7 +85,7 @@ class WorkListTile extends ConsumerWidget {
                       work.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleMedium?.copyWith(
+                      style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onSurface,
                       ),

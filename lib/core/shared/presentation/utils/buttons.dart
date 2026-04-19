@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class ButtonStyles {
-  ButtonStyles._();
+class Buttons {
+  Buttons._();
 
   static Color getPrimaryActionBackgroundColor(ThemeData theme) => theme.colorScheme.primary;
 

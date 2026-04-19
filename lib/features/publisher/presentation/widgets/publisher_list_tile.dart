@@ -1,8 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/shared/presentation/utils/image_styles.dart';
+import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/publisher_entity.dart';
 
@@ -22,10 +21,9 @@ class PublisherListTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final int bookCount = publisher.bookIds.length;
-
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
+    final int bookCount = publisher.bookIds.length;
 
     return Card(
       elevation: 0,
@@ -44,22 +42,19 @@ class PublisherListTile extends ConsumerWidget {
             children: <Widget>[
               Hero(
                 tag: 'publisher_${publisher.id}',
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: ImageStyles.getAvatarBackgroundColor(theme),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: publisher.logo != null && publisher.logo!.isNotEmpty
-                          ? _buildLogoImage(publisher.logo!, colorScheme, theme)
-                          : _buildPlaceholder(theme),
-                    ),
-                  ),
+                child: CircleAvatar(
+                  radius: 32,
+                  backgroundColor: Images.getAvatarBackgroundColor(theme),
+                  backgroundImage: publisher.logo != null && publisher.logo!.isNotEmpty
+                      ? Images.getImageProvider(publisher.logo)
+                      : null,
+                  child: publisher.logo == null || publisher.logo!.isEmpty
+                      ? Icon(
+                          Icons.business_rounded,
+                          color: Images.getAvatarIconColor(theme),
+                          size: 32,
+                        )
+                      : null,
                 ),
               ),
               const SizedBox(width: 20),
@@ -72,7 +67,7 @@ class PublisherListTile extends ConsumerWidget {
                       publisher.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleMedium?.copyWith(
+                      style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onSurface,
                       ),
@@ -110,24 +105,4 @@ class PublisherListTile extends ConsumerWidget {
       ),
     );
   }
-
-  Widget _buildLogoImage(String logo, ColorScheme colorScheme, ThemeData theme) {
-    if (logo.startsWith('http')) {
-      return Image.network(
-        logo,
-        fit: BoxFit.contain,
-        errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) =>
-            _buildPlaceholder(theme),
-      );
-    } else {
-      try {
-        return Image.memory(base64Decode(logo), fit: BoxFit.contain);
-      } catch (e) {
-        return _buildPlaceholder(theme);
-      }
-    }
-  }
-
-  Widget _buildPlaceholder(ThemeData theme) =>
-      Icon(Icons.business_rounded, color: ImageStyles.getAvatarIconColor(theme), size: 32);
 }

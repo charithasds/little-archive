@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../theme/presentation/providers/theme_provider.dart';
+import 'form_decoration.dart';
 
 class FormDateField extends ConsumerWidget {
   const FormDateField({
@@ -43,20 +44,37 @@ class FormDateField extends ConsumerWidget {
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: colorScheme.primary),
-        title: Text(value == null ? label : '$label: ${DateFormat.yMMMd().format(value!)}'),
-        subtitle: value == null ? const Text('Tap to select') : null,
-        trailing: isClearable && value != null
-            ? IconButton(icon: const Icon(Icons.clear), onPressed: onCleared)
-            : null,
-        onTap: () => _selectDate(context),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return InkWell(
+      onTap: () => _selectDate(context),
+      borderRadius: BorderRadius.circular(16),
+      child: InputDecorator(
+        decoration: buildFormDecoration(
+          colorScheme,
+          labelText: label,
+          prefixIcon: icon,
+        ),
+        isEmpty: value == null,
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: Text(
+                value == null ? 'Select Date' : DateFormat.yMMMd().format(value!),
+                style: TextStyle(
+                  color: value == null ? colorScheme.onSurfaceVariant : colorScheme.onSurface,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            if (isClearable && value != null)
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.clear, size: 20),
+                onPressed: onCleared,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+          ],
+        ),
       ),
     );
   }

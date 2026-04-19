@@ -1,8 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/shared/presentation/utils/image_styles.dart';
+import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/translator_entity.dart';
 
@@ -22,11 +21,10 @@ class TranslatorListTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final int bookCount = translator.bookIds.length;
-    final int workCount = translator.workIds.length;
-
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
+    final int bookCount = translator.bookIds.length;
+    final int workCount = translator.workIds.length;
 
     return Card(
       elevation: 0,
@@ -47,14 +45,14 @@ class TranslatorListTile extends ConsumerWidget {
                 tag: 'translator_${translator.id}',
                 child: CircleAvatar(
                   radius: 32,
-                  backgroundColor: ImageStyles.getAvatarBackgroundColor(theme),
+                  backgroundColor: Images.getAvatarBackgroundColor(theme),
                   backgroundImage: translator.image != null && translator.image!.isNotEmpty
-                      ? _getImageProvider(translator.image!)
+                      ? Images.getImageProvider(translator.image)
                       : null,
                   child: translator.image == null || translator.image!.isEmpty
                       ? Icon(
                           Icons.translate_rounded,
-                          color: ImageStyles.getAvatarIconColor(theme),
+                          color: Images.getAvatarIconColor(theme),
                           size: 32,
                         )
                       : null,
@@ -70,7 +68,7 @@ class TranslatorListTile extends ConsumerWidget {
                       translator.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleMedium?.copyWith(
+                      style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onSurface,
                       ),
@@ -107,17 +105,5 @@ class TranslatorListTile extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  ImageProvider _getImageProvider(String image) {
-    if (image.startsWith('http')) {
-      return NetworkImage(image);
-    } else {
-      try {
-        return MemoryImage(base64Decode(image));
-      } catch (e) {
-        return const AssetImage('assets/icon/app_icon.png');
-      }
-    }
   }
 }

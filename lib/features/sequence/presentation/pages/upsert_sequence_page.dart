@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../../core/shared/presentation/utils/button_styles.dart';
-import '../../../../core/shared/presentation/utils/image_styles.dart';
+import '../../../../core/shared/presentation/utils/buttons.dart';
+import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
@@ -48,12 +49,11 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
 
       if (result != null && mounted) {
         SnackBars.showSuccess(
-          context,
           widget.existingSequence != null
               ? 'Sequence updated successfully'
               : 'Sequence added successfully',
         );
-        Navigator.of(context).pop();
+        context.pop();
       }
     }
   }
@@ -72,13 +72,12 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
     final ColorScheme colorScheme = theme.colorScheme;
     final UpsertSequenceState state = ref.watch(upsertSequenceControllerProvider);
 
-    // Listen for errors
     ref.listen<UpsertSequenceState>(upsertSequenceControllerProvider, (
       UpsertSequenceState? previous,
       UpsertSequenceState next,
     ) {
       if (next.error != null && next.error != previous?.error) {
-        SnackBars.showError(context, next.error!);
+        SnackBars.showError(next.error!);
       }
     });
 
@@ -96,20 +95,20 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
               child: Container(
                 width: 120,
                 height: 120,
-                decoration: ImageStyles.getPickerDecoration(theme),
+                decoration: Images.getPickerDecoration(theme),
                 child: Icon(
                   Icons.layers_rounded,
                   size: 56,
-                  color: ImageStyles.getPickerIconColor(theme),
+                  color: Images.getPickerIconColor(theme),
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
             FormTextField(
               controller: _nameController,
               label: 'Name',
               hint: 'Sequence Name',
-              prefixIcon: Icons.layers_outlined,
+              prefixIcon: Icons.layers_rounded,
               maxLength: 200,
               isRequired: true,
             ),
@@ -118,20 +117,19 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
               controller: _otherNameController,
               label: 'Other Name',
               hint: 'Alternative Name',
-              prefixIcon: Icons.badge_outlined,
+              prefixIcon: Icons.badge_rounded,
               maxLength: 200,
             ),
             const SizedBox(height: 16),
             FormTextField(
               controller: _notesController,
               label: 'Notes',
-              hint: 'Notes about the Sequence',
+              hint: 'Notes about this Sequence',
               prefixIcon: Icons.notes_rounded,
               maxLength: 500,
               maxLines: 3,
             ),
-            const SizedBox(height: 16),
-            const SizedBox(height: 16),
+            const SizedBox(height: 32),
             FilledButton.icon(
               onPressed: state.isLoading ? null : _save,
               icon: state.isLoading
@@ -149,7 +147,7 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
                     ? 'Saving...'
                     : (widget.existingSequence != null ? 'Update Sequence' : 'Save Sequence'),
               ),
-              style: ButtonStyles.getPrimaryFilledButtonStyle(theme),
+              style: Buttons.getPrimaryFilledButtonStyle(theme),
             ),
           ],
         ),

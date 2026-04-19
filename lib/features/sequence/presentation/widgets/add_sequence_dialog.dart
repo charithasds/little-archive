@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../../core/shared/presentation/utils/button_styles.dart';
+import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
@@ -33,13 +34,13 @@ class _AddSequenceDialogState extends ConsumerState<AddSequenceDialog> {
 
       if (mounted) {
         if (savedSequence != null) {
-          SnackBars.showSuccess(context, 'Sequence added successfully');
-          Navigator.of(context).pop(savedSequence);
+          SnackBars.showSuccess('Sequence added successfully');
+          context.pop(savedSequence);
         } else {
           final UpsertSequenceState state = ref.read(upsertSequenceControllerProvider);
 
           if (state.error != null) {
-            SnackBars.showError(context, state.error!);
+            SnackBars.showError(state.error!);
           }
         }
       }
@@ -59,16 +60,17 @@ class _AddSequenceDialogState extends ConsumerState<AddSequenceDialog> {
           controller: _nameController,
           label: 'Name',
           hint: 'Sequence Name',
+          prefixIcon: Icons.layers_rounded,
           isRequired: true,
           maxLength: 200,
           autofocus: true,
         ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+        TextButton(onPressed: () => context.pop(), child: const Text('Cancel')),
         FilledButton(
           onPressed: state.isLoading ? null : _save,
-          style: ButtonStyles.getPrimaryFilledButtonStyle(
+          style: Buttons.getPrimaryFilledButtonStyle(
             theme,
           ).copyWith(minimumSize: WidgetStateProperty.all(const Size(100, 44))),
           child: state.isLoading

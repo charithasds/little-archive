@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/domain/error/exceptions.dart';
-import '../../../../core/shared/presentation/utils/button_styles.dart';
+import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/sequence_entity.dart';
@@ -26,12 +26,9 @@ class SequenceListPage extends ConsumerWidget {
           'Are you sure you want to delete this sequence? This action cannot be undone.',
         ),
         actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => context.pop(false), child: const Text('Cancel')),
           FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => context.pop(true),
             style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.error),
             child: const Text('Delete'),
           ),
@@ -45,17 +42,11 @@ class SequenceListPage extends ConsumerWidget {
 
     try {
       await ref.read<SequenceRepository>(sequenceRepositoryProvider).deleteSequence(sequenceId);
-      if (context.mounted) {
-        SnackBars.showSuccess(context, 'Sequence deleted successfully');
-      }
+      SnackBars.showSuccess('Sequence deleted successfully');
     } on NoConnectionException catch (e) {
-      if (context.mounted) {
-        SnackBars.showError(context, e.message);
-      }
+      SnackBars.showError(e.message);
     } catch (e) {
-      if (context.mounted) {
-        SnackBars.showError(context, 'Delete failed: $e');
-      }
+      SnackBars.showError('Delete failed: $e');
     }
   }
 
@@ -75,7 +66,7 @@ class SequenceListPage extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Icon(
-                    Icons.layers_outlined,
+                    Icons.layers_rounded,
                     size: 80,
                     color: colorScheme.primary.withValues(alpha: 0.5),
                   ),
@@ -103,14 +94,11 @@ class SequenceListPage extends ConsumerWidget {
                   itemCount: sequences.length,
                   itemBuilder: (BuildContext context, int index) {
                     final SequenceEntity sequence = sequences[index];
-                    final SequenceStats stats = ref.watch(sequenceStatsProvider(sequence.id));
                     return SequenceListTile(
                       sequence: sequence,
                       onTap: () => context.go('/sequences/${sequence.id}'),
                       onEdit: () => context.push('/sequences/add', extra: sequence),
                       onDelete: () => _handleDelete(context, ref, sequence.id),
-                      bookCount: stats.bookCount,
-                      workCount: stats.workCount,
                     );
                   },
                 );
@@ -126,14 +114,11 @@ class SequenceListPage extends ConsumerWidget {
                   itemCount: sequences.length,
                   itemBuilder: (BuildContext context, int index) {
                     final SequenceEntity sequence = sequences[index];
-                    final SequenceStats stats = ref.watch(sequenceStatsProvider(sequence.id));
                     return SequenceListTile(
                       sequence: sequence,
                       onTap: () => context.go('/sequences/${sequence.id}'),
                       onEdit: () => context.push('/sequences/add', extra: sequence),
                       onDelete: () => _handleDelete(context, ref, sequence.id),
-                      bookCount: stats.bookCount,
-                      workCount: stats.workCount,
                     );
                   },
                 );
@@ -146,7 +131,7 @@ class SequenceListPage extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Icon(Icons.error_outline_rounded, size: 64, color: colorScheme.error),
+              Icon(Icons.error_rounded, size: 64, color: colorScheme.error),
               const SizedBox(height: 16),
               Text('Something went wrong', style: theme.textTheme.titleLarge),
               const SizedBox(height: 8),
@@ -160,8 +145,8 @@ class SequenceListPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: ButtonStyles.getPrimaryActionBackgroundColor(theme),
-        foregroundColor: ButtonStyles.getPrimaryActionForegroundColor(theme),
+        backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
+        foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
         onPressed: () => context.go('/sequences/add'),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Sequence'),

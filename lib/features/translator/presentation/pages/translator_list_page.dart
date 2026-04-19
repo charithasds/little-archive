@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/domain/error/exceptions.dart';
-import '../../../../core/shared/presentation/utils/button_styles.dart';
+import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/translator_entity.dart';
@@ -26,12 +26,9 @@ class TranslatorListPage extends ConsumerWidget {
           'Are you sure you want to delete this translator? This action cannot be undone.',
         ),
         actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => context.pop(false), child: const Text('Cancel')),
           FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => context.pop(true),
             style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.error),
             child: const Text('Delete'),
           ),
@@ -47,17 +44,11 @@ class TranslatorListPage extends ConsumerWidget {
       await ref
           .read<TranslatorRepository>(translatorRepositoryProvider)
           .deleteTranslator(translatorId);
-      if (context.mounted) {
-        SnackBars.showSuccess(context, 'Translator deleted successfully');
-      }
+      SnackBars.showSuccess('Translator deleted successfully');
     } on NoConnectionException catch (e) {
-      if (context.mounted) {
-        SnackBars.showError(context, e.message);
-      }
+      SnackBars.showError(e.message);
     } catch (e) {
-      if (context.mounted) {
-        SnackBars.showError(context, 'Delete failed: $e');
-      }
+      SnackBars.showError('Delete failed: $e');
     }
   }
 
@@ -145,7 +136,7 @@ class TranslatorListPage extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Icon(Icons.error_outline_rounded, size: 64, color: colorScheme.error),
+              Icon(Icons.error_rounded, size: 64, color: colorScheme.error),
               const SizedBox(height: 16),
               Text('Something went wrong', style: theme.textTheme.titleLarge),
               const SizedBox(height: 8),
@@ -159,8 +150,8 @@ class TranslatorListPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: ButtonStyles.getPrimaryActionBackgroundColor(theme),
-        foregroundColor: ButtonStyles.getPrimaryActionForegroundColor(theme),
+        backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
+        foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
         onPressed: () => context.go('/translators/add'),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Translator'),

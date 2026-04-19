@@ -1,8 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/shared/presentation/utils/image_styles.dart';
+import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/reader_entity.dart';
 
@@ -22,10 +21,9 @@ class ReaderListTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final int bookCount = reader.bookIds.length;
-
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
+    final int bookCount = reader.bookIds.length;
 
     return Card(
       elevation: 0,
@@ -46,16 +44,12 @@ class ReaderListTile extends ConsumerWidget {
                 tag: 'reader_${reader.id}',
                 child: CircleAvatar(
                   radius: 32,
-                  backgroundColor: ImageStyles.getAvatarBackgroundColor(theme),
+                  backgroundColor: Images.getAvatarBackgroundColor(theme),
                   backgroundImage: reader.image != null && reader.image!.isNotEmpty
-                      ? _getImageProvider(reader.image!)
+                      ? Images.getImageProvider(reader.image)
                       : null,
                   child: reader.image == null || reader.image!.isEmpty
-                      ? Icon(
-                          Icons.face_rounded,
-                          color: ImageStyles.getAvatarIconColor(theme),
-                          size: 32,
-                        )
+                      ? Icon(Icons.face_rounded, color: Images.getAvatarIconColor(theme), size: 32)
                       : null,
                 ),
               ),
@@ -69,7 +63,7 @@ class ReaderListTile extends ConsumerWidget {
                       reader.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleMedium?.copyWith(
+                      style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onSurface,
                       ),
@@ -106,17 +100,5 @@ class ReaderListTile extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  ImageProvider _getImageProvider(String image) {
-    if (image.startsWith('http')) {
-      return NetworkImage(image);
-    } else {
-      try {
-        return MemoryImage(base64Decode(image));
-      } catch (e) {
-        return const AssetImage('assets/icon/app_icon.png');
-      }
-    }
   }
 }

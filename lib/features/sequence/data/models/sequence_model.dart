@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/sequence_entity.dart';
 
 class SequenceModel extends SequenceEntity {
@@ -7,6 +8,8 @@ class SequenceModel extends SequenceEntity {
     super.otherName,
     super.notes,
     required super.sequenceVolumeIds,
+    required super.createdDate,
+    required super.lastUpdated,
   });
 
   factory SequenceModel.fromMap(Map<String, dynamic> map, String documentId) => SequenceModel(
@@ -17,6 +20,8 @@ class SequenceModel extends SequenceEntity {
     sequenceVolumeIds: List<String>.from(
       map['sequenceVolumeIds'] as Iterable<dynamic>? ?? <String>[],
     ),
+    createdDate: (map['createdDate'] as Timestamp).toDate(),
+    lastUpdated: (map['lastUpdated'] as Timestamp).toDate(),
   );
 
   Map<String, dynamic> toMap() => <String, dynamic>{
@@ -25,5 +30,7 @@ class SequenceModel extends SequenceEntity {
     'otherName': otherName,
     'notes': notes,
     'sequenceVolumeIds': sequenceVolumeIds,
+    'createdDate': Timestamp.fromDate(createdDate),
+    'lastUpdated': Timestamp.fromDate(lastUpdated),
   };
 }
