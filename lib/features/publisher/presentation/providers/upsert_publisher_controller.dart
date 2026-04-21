@@ -35,9 +35,7 @@ class UpsertPublisherController extends Notifier<UpsertPublisherState> {
   UpsertPublisherState build() => const UpsertPublisherState();
 
   void initializeWith(PublisherEntity? publisher) {
-    if (publisher != null && publisher.logo != null) {
-      state = state.copyWith(pickedBase64Logo: publisher.logo);
-    }
+    state = UpsertPublisherState(pickedBase64Logo: publisher?.logo);
   }
 
   Future<void> pickImage() async {

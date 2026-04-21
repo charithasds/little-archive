@@ -17,7 +17,7 @@ class FormDropdownField<T> extends StatelessWidget {
   final String label;
   final List<T> items;
   final String Function(T) itemLabel;
-  final ValueChanged<T?> onChanged;
+  final ValueChanged<T?>? onChanged;
   final T? value;
   final IconData? prefixIcon;
   final bool isNullable;

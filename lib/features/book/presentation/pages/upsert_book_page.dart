@@ -14,6 +14,7 @@ import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/form_date_field.dart';
 import '../../../../core/shared/presentation/widgets/form_dropdown_field.dart';
+import '../../../../core/shared/presentation/widgets/form_section.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
 import '../../../../core/shared/presentation/widgets/search_multi_picker_field.dart';
 import '../../../../core/shared/presentation/widgets/search_picker_field.dart';
@@ -84,6 +85,137 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
 
   bool _isEditingInitialized = false;
 
+  // Whether this book is connected to works (locks compilationType).
+  bool get _hasConnectedWorks =>
+      widget.existingBook != null && widget.existingBook!.workIds.isNotEmpty;
+
+  // ── Compilation-type field visibility helpers ─────────────────────────────
+
+  bool get _showAuthorIds =>
+      _compilationType == CompilationType.single || _compilationType == CompilationType.collection;
+
+  bool get _showGenre => _compilationType == CompilationType.single;
+
+  bool get _showLanguage => _compilationType == CompilationType.single;
+
+  bool get _showOriginalTitle =>
+      _isTranslation &&
+      (_compilationType == CompilationType.single ||
+          _compilationType == CompilationType.collection);
+
+  bool get _showOriginalLanguage => _showOriginalTitle;
+
+  bool get _showTranslatorIds =>
+      _isTranslation &&
+      (_compilationType == CompilationType.single ||
+          _compilationType == CompilationType.collection);
+
+  bool get _showWorkIds =>
+      _compilationType == CompilationType.anthology ||
+      _compilationType == CompilationType.collection;
+
+  bool get _showSequenceVolumeIds =>
+      _compilationType == CompilationType.single || _compilationType == CompilationType.collection;
+
+  // ── Collection-status field visibility helpers ────────────────────────────
+
+  bool get _showCollectedDate =>
+      _collectionStatus == CollectionStatus.collected ||
+      _collectionStatus == CollectionStatus.lended;
+
+  bool get _showLendedDate => _collectionStatus == CollectionStatus.lended;
+
+  bool get _showDueDate => _collectionStatus == CollectionStatus.lended;
+
+  bool get _showReaderId => _collectionStatus == CollectionStatus.lended;
+
+  // ── Reading-status field visibility helpers ───────────────────────────────
+
+  bool get _showPausedPage => _readingStatus == ReadingStatus.paused;
+
+  bool get _showCompletedDate => _readingStatus == ReadingStatus.completed;
+
+  // ── State-clearing on toggle ──────────────────────────────────────────────
+
+  void _onCompilationTypeChanged(CompilationType v) {
+    setState(() {
+      _compilationType = v;
+
+      if (!_showAuthorIds) {
+        _selectedAuthors = <AuthorEntity>[];
+      }
+      if (!_showGenre) {
+        _genre = null;
+      }
+      if (!_showLanguage) {
+        _language = null;
+      }
+      if (!_showOriginalTitle) {
+        _originalTitleController.clear();
+      }
+      if (!_showOriginalLanguage) {
+        _originalLanguage = null;
+      }
+      if (!_showTranslatorIds) {
+        _selectedTranslators = <TranslatorEntity>[];
+      }
+      if (!_showWorkIds) {
+        _selectedWorks = <WorkEntity>[];
+      }
+      if (!_showSequenceVolumeIds) {
+        _selectedSequences = <SequenceEntity, String>{};
+      }
+    });
+  }
+
+  void _onIsTranslationChanged(bool v) {
+    setState(() {
+      _isTranslation = v;
+
+      if (!_showOriginalTitle) {
+        _originalTitleController.clear();
+      }
+      if (!_showOriginalLanguage) {
+        _originalLanguage = null;
+      }
+      if (!_showTranslatorIds) {
+        _selectedTranslators = <TranslatorEntity>[];
+      }
+    });
+  }
+
+  void _onCollectionStatusChanged(CollectionStatus v) {
+    setState(() {
+      _collectionStatus = v;
+
+      if (!_showCollectedDate) {
+        _collectedDate = null;
+      }
+      if (!_showLendedDate) {
+        _lendedDate = null;
+      }
+      if (!_showDueDate) {
+        _dueDate = null;
+      }
+      if (!_showReaderId) {
+        _selectedReader = null;
+      }
+    });
+  }
+
+  void _onReadingStatusChanged(ReadingStatus v) {
+    setState(() {
+      _readingStatus = v;
+
+      if (!_showPausedPage) {
+        _pausedPageController.clear();
+      }
+      if (!_showCompletedDate) {
+        _completedDate = null;
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -134,28 +266,36 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
             existingBook: widget.existingBook,
             title: _titleController.text.trim(),
             compilationType: _compilationType,
-            language: _language,
-            genre: _genre,
+            language: _showLanguage ? _language : null,
+            genre: _showGenre ? _genre : null,
             isbn: _isbnController.text.isNotEmpty ? _isbnController.text : null,
             publishedDate: _publishedDate,
             noOfPages: int.tryParse(_noOfPagesController.text),
             isTranslation: _isTranslation,
-            originalTitle: _isTranslation ? _originalTitleController.text : null,
-            originalLanguage: _isTranslation ? _originalLanguage : null,
+            originalTitle: _showOriginalTitle ? _originalTitleController.text : null,
+            originalLanguage: _showOriginalLanguage ? _originalLanguage : null,
             collectionStatus: _collectionStatus,
-            collectedDate: _collectedDate,
-            lendedDate: _lendedDate,
-            dueDate: _dueDate,
+            collectedDate: _showCollectedDate ? _collectedDate : null,
+            lendedDate: _showLendedDate ? _lendedDate : null,
+            dueDate: _showDueDate ? _dueDate : null,
             readingStatus: _readingStatus,
-            pausedPage: int.tryParse(_pausedPageController.text),
-            completedDate: _completedDate,
+            pausedPage: _showPausedPage ? int.tryParse(_pausedPageController.text) : null,
+            completedDate: _showCompletedDate ? _completedDate : null,
             notes: _notesController.text,
-            authorIds: _selectedAuthors.map((AuthorEntity e) => e.id).toList(),
-            translatorIds: _selectedTranslators.map((TranslatorEntity e) => e.id).toList(),
-            workIds: _selectedWorks.map((WorkEntity e) => e.id).toList(),
-            sequenceEntries: _selectedSequences,
+            authorIds: _showAuthorIds
+                ? _selectedAuthors.map((AuthorEntity e) => e.id).toList()
+                : <String>[],
+            translatorIds: _showTranslatorIds
+                ? _selectedTranslators.map((TranslatorEntity e) => e.id).toList()
+                : <String>[],
+            workIds: _showWorkIds
+                ? _selectedWorks.map((WorkEntity e) => e.id).toList()
+                : <String>[],
+            sequenceEntries: _showSequenceVolumeIds
+                ? _selectedSequences
+                : <SequenceEntity, String>{},
             publisherId: _selectedPublisher?.id,
-            readerId: _selectedReader?.id,
+            readerId: _showReaderId ? _selectedReader?.id : null,
           );
 
       final bool isSuccess = savedBook != null;
@@ -257,7 +397,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                 const SizedBox(width: 8),
                 Switch(
                   value: _isTranslation,
-                  onChanged: (bool v) => setState(() => _isTranslation = v),
+                  onChanged: _onIsTranslationChanged,
                   inactiveThumbColor: colorScheme.onSurfaceVariant,
                   inactiveTrackColor: colorScheme.surfaceContainerHighest,
                   trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
@@ -274,6 +414,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
+              // ── Cover header ─────────────────────────────────────────────
               Center(
                 child: GestureDetector(
                   onTap: () => ref.read(upsertBookControllerProvider.notifier).pickImage(),
@@ -322,348 +463,436 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
               ),
               const SizedBox(height: 24),
 
-              FormTextField(
-                controller: _titleController,
-                label: 'Title',
-                hint: 'Book Title',
-                prefixIcon: Icons.book_rounded,
-                isRequired: true,
-                maxLength: 200,
-              ),
-              const SizedBox(height: 16),
 
-              FormDropdownField<CompilationType>(
-                value: _compilationType,
-                label: 'Compilation Type',
-                prefixIcon: Icons.collections_bookmark_rounded,
-                items: CompilationType.values,
-                itemLabel: (CompilationType e) => e.clientValue,
-                onChanged: (CompilationType? v) {
-                  if (v != null) {
-                    setState(() => _compilationType = v);
-                  }
-                },
-                isNullable: false,
-              ),
-              const SizedBox(height: 16),
-
-              FormDropdownField<Language>(
-                value: _language,
-                label: 'Language',
-                prefixIcon: Icons.language_rounded,
-                items: Language.values,
-                itemLabel: (Language e) => e.clientValue,
-                onChanged: (Language? v) => setState(() => _language = v),
-              ),
-              const SizedBox(height: 16),
-
-              FormDropdownField<Genre>(
-                value: _genre,
-                label: 'Genre',
-                prefixIcon: Icons.theater_comedy_rounded,
-                items: Genre.values,
-                itemLabel: (Genre e) => e.clientValue,
-                onChanged: (Genre? v) => setState(() => _genre = v),
+              // 1. Details
+              FormSection(
+                title: 'Details',
+                icon: Icons.info_outline_rounded,
+                children: <Widget>[
+                  FormTextField(
+                    controller: _titleController,
+                    label: 'Title',
+                    hint: 'Book Title',
+                    prefixIcon: Icons.book_rounded,
+                    isRequired: true,
+                    maxLength: 200,
+                  ),
+                  const SizedBox(height: 16),
+                  FormDropdownField<CompilationType>(
+                    value: _compilationType,
+                    label: 'Compilation Type',
+                    prefixIcon: Icons.collections_bookmark_rounded,
+                    items: CompilationType.values,
+                    itemLabel: (CompilationType e) => e.clientValue,
+                    onChanged: _hasConnectedWorks
+                        ? null
+                        : (CompilationType? v) {
+                            if (v != null) {
+                              _onCompilationTypeChanged(v);
+                            }
+                          },
+                    isNullable: false,
+                  ),
+                ],
               ),
 
-              const SizedBox(height: 16),
-
-              SearchMultiPickerField<AuthorEntity>(
-                label: 'Authors',
-                prefixIcon: Icons.person_rounded,
-                selectedItems: _selectedAuthors,
-                itemsProvider: authorsStreamProvider,
-                itemLabel: (AuthorEntity a) => a.name,
-                itemKey: (AuthorEntity a) => a.id,
-                onChanged: (List<AuthorEntity> l) => setState(() => _selectedAuthors = l),
-                onAdd: () async => showDialog<AuthorEntity>(
-                  context: context,
-                  builder: (_) => const AddAuthorDialog(),
+              // 2. Translation
+              if (_showTranslatorIds || _showOriginalTitle)
+                FormSection(
+                  title: 'Translation',
+                  icon: Icons.translate_rounded,
+                  children: <Widget>[
+                    if (_showTranslatorIds) ...<Widget>[
+                      SearchMultiPickerField<TranslatorEntity>(
+                        label: 'Translators',
+                        prefixIcon: Icons.translate_rounded,
+                        selectedItems: _selectedTranslators,
+                        itemsProvider: translatorsStreamProvider,
+                        itemLabel: (TranslatorEntity t) => t.name,
+                        itemKey: (TranslatorEntity t) => t.id,
+                        onChanged: (List<TranslatorEntity> l) =>
+                            setState(() => _selectedTranslators = l),
+                        onAdd: () async {
+                          final TranslatorEntity? newTranslator =
+                              await showDialog<TranslatorEntity>(
+                            context: context,
+                            builder: (_) => const AddTranslatorDialog(),
+                          );
+                          if (newTranslator != null && context.mounted) {
+                            setState(
+                              () => _selectedTranslators = <TranslatorEntity>[
+                                ..._selectedTranslators,
+                                newTranslator,
+                              ],
+                            );
+                          }
+                          return null;
+                        },
+                      ),
+                      if (_showOriginalTitle) const SizedBox(height: 16),
+                    ],
+                    if (_showOriginalTitle)
+                      FormTextField(
+                        controller: _originalTitleController,
+                        label: 'Original Title',
+                        hint: 'Book Original Title',
+                        prefixIcon: Icons.translate_rounded,
+                        maxLength: 200,
+                      ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 16),
 
-              SearchPickerField<PublisherEntity>(
-                label: 'Publisher',
-                prefixIcon: Icons.business_rounded,
-                selectedItem: _selectedPublisher,
-                itemsProvider: publishersStreamProvider,
-                itemLabel: (PublisherEntity p) => p.name,
-                onChanged: (PublisherEntity? p) => setState(() => _selectedPublisher = p),
-                onAdd: () async => showDialog<PublisherEntity>(
-                  context: context,
-                  builder: (_) => const AddPublisherDialog(),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              SearchPickerField<ReaderEntity>(
-                label: 'Reader',
-                prefixIcon: Icons.face_rounded,
-                selectedItem: _selectedReader,
-                itemsProvider: readersStreamProvider,
-                itemLabel: (ReaderEntity r) => r.name,
-                onChanged: (ReaderEntity? r) => setState(() => _selectedReader = r),
-                onAdd: () async => showDialog<ReaderEntity>(
-                  context: context,
-                  builder: (_) => const AddReaderDialog(),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              SearchMultiPickerField<SequenceEntity>(
-                label: 'Sequences',
-                prefixIcon: Icons.layers_rounded,
-                selectedItems: _selectedSequences.keys.toList(),
-                itemsProvider: sequencesStreamProvider,
-                itemLabel: (SequenceEntity s) => s.name,
-                chipLabel: (SequenceEntity s) => '${s.name} #${_selectedSequences[s]}',
-                itemKey: (SequenceEntity s) => s.id,
-                onChanged: (List<SequenceEntity> list) async {
-                  await Future<void>.delayed(const Duration(milliseconds: 300));
-                  if (!mounted) {
-                    return;
-                  }
-
-                  final Set<String> existingIds = _selectedSequences.keys
-                      .map((SequenceEntity s) => s.id)
-                      .toSet();
-                  final List<SequenceEntity> newSequences = list
-                      .where((SequenceEntity s) => !existingIds.contains(s.id))
-                      .toList();
-
-                  setState(() {
-                    _selectedSequences.removeWhere((SequenceEntity k, _) => !list.contains(k));
-                  });
-
-                  for (final SequenceEntity s in newSequences) {
-                    if (!context.mounted) {
-                      break;
-                    }
-                    final String? number = await showDialog<String>(
-                      context: context,
-                      builder: (_) => SequenceNumberDialog(sequenceName: s.name),
-                    );
-                    if (number != null) {
-                      setState(() => _selectedSequences[s] = number);
-                    } else {
-                      setState(() => _selectedSequences.remove(s));
-                    }
-                  }
-                },
-                onChipPressed: (SequenceEntity s) async {
-                  if (!context.mounted) {
-                    return;
-                  }
-                  final String? number = await showDialog<String>(
-                    context: context,
-                    builder: (_) => SequenceNumberDialog(
-                      initialValue: _selectedSequences[s],
-                      sequenceName: s.name,
+              // 3. Primary Info
+              FormSection(
+                title: 'Primary Info',
+                icon: Icons.person_outline_rounded,
+                children: <Widget>[
+                  if (_showAuthorIds) ...<Widget>[
+                    SearchMultiPickerField<AuthorEntity>(
+                      label: 'Authors',
+                      prefixIcon: Icons.person_rounded,
+                      selectedItems: _selectedAuthors,
+                      itemsProvider: authorsStreamProvider,
+                      itemLabel: (AuthorEntity a) => a.name,
+                      itemKey: (AuthorEntity a) => a.id,
+                      onChanged: (List<AuthorEntity> l) =>
+                          setState(() => _selectedAuthors = l),
+                      onAdd: () async => showDialog<AuthorEntity>(
+                        context: context,
+                        builder: (_) => const AddAuthorDialog(),
+                      ),
                     ),
-                  );
-                  if (number != null && context.mounted) {
-                    setState(() => _selectedSequences[s] = number);
-                  }
-                },
-                onAdd: () async => showDialog<SequenceEntity>(
-                  context: context,
-                  builder: (_) => const AddSequenceDialog(),
-                ),
+                    const SizedBox(height: 16),
+                  ],
+                  if (_showLanguage) ...<Widget>[
+                    FormDropdownField<Language>(
+                      value: _language,
+                      label: 'Language',
+                      prefixIcon: Icons.language_rounded,
+                      items: Language.values,
+                      itemLabel: (Language e) => e.clientValue,
+                      onChanged: (Language? v) => setState(() => _language = v),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  if (_showOriginalLanguage)
+                    FormDropdownField<OriginalLanguage>(
+                      value: _originalLanguage,
+                      label: 'Original Language',
+                      prefixIcon: Icons.language_rounded,
+                      items: OriginalLanguage.values,
+                      itemLabel: (OriginalLanguage e) => e.clientValue,
+                      onChanged: (OriginalLanguage? v) =>
+                          setState(() => _originalLanguage = v),
+                    ),
+                ],
               ),
-              const SizedBox(height: 16),
 
-              SearchMultiPickerField<WorkEntity>(
-                label: 'Works',
-                prefixIcon: Icons.article_rounded,
-                selectedItems: _selectedWorks,
-                itemsProvider: worksStreamProvider,
-                itemLabel: (WorkEntity s) => s.title,
-                itemKey: (WorkEntity w) => w.id,
-                onChanged: (List<WorkEntity> l) => setState(() => _selectedWorks = l),
-                onAdd: () async =>
-                    showDialog<WorkEntity>(context: context, builder: (_) => const AddWorkDialog()),
+              // 4. Series & References
+              if (_showSequenceVolumeIds || _showWorkIds)
+                FormSection(
+                  title: 'Series & References',
+                  icon: Icons.layers_outlined,
+                  children: <Widget>[
+                    if (_showSequenceVolumeIds) ...<Widget>[
+                      SearchMultiPickerField<SequenceEntity>(
+                        label: 'Sequences',
+                        prefixIcon: Icons.layers_rounded,
+                        selectedItems: _selectedSequences.keys.toList(),
+                        itemsProvider: sequencesStreamProvider,
+                        itemLabel: (SequenceEntity s) => s.name,
+                        chipLabel: (SequenceEntity s) =>
+                            '${s.name} #${_selectedSequences[s]}',
+                        itemKey: (SequenceEntity s) => s.id,
+                        onChanged: (List<SequenceEntity> list) async {
+                          await Future<void>.delayed(
+                              const Duration(milliseconds: 300));
+                          if (!mounted) {
+                            return;
+                          }
+
+                          final Set<String> existingIds = _selectedSequences
+                              .keys
+                              .map((SequenceEntity s) => s.id)
+                              .toSet();
+                          final List<SequenceEntity> newSequences = list
+                              .where((SequenceEntity s) =>
+                                  !existingIds.contains(s.id))
+                              .toList();
+
+                          setState(() {
+                            _selectedSequences.removeWhere(
+                                (SequenceEntity k, _) => !list.contains(k));
+                          });
+
+                          for (final SequenceEntity s in newSequences) {
+                            if (!context.mounted) {
+                              break;
+                            }
+                            final String? number = await showDialog<String>(
+                              context: context,
+                              builder: (_) =>
+                                  SequenceNumberDialog(sequenceName: s.name),
+                            );
+                            if (number != null) {
+                              setState(() => _selectedSequences[s] = number);
+                            } else {
+                              setState(() => _selectedSequences.remove(s));
+                            }
+                          }
+                        },
+                        onChipPressed: (SequenceEntity s) async {
+                          if (!context.mounted) {
+                            return;
+                          }
+                          final String? number = await showDialog<String>(
+                            context: context,
+                            builder: (_) => SequenceNumberDialog(
+                              initialValue: _selectedSequences[s],
+                              sequenceName: s.name,
+                            ),
+                          );
+                          if (number != null && context.mounted) {
+                            setState(() => _selectedSequences[s] = number);
+                          }
+                        },
+                        onAdd: () async => showDialog<SequenceEntity>(
+                          context: context,
+                          builder: (_) => const AddSequenceDialog(),
+                        ),
+                      ),
+                      if (_showWorkIds) const SizedBox(height: 16),
+                    ],
+                    if (_showWorkIds)
+                      SearchMultiPickerField<WorkEntity>(
+                        label: 'Works',
+                        prefixIcon: Icons.article_rounded,
+                        selectedItems: _selectedWorks,
+                        itemsProvider: worksStreamProvider,
+                        itemLabel: (WorkEntity s) => s.title,
+                        itemKey: (WorkEntity w) => w.id,
+                        onChanged: (List<WorkEntity> l) =>
+                            setState(() => _selectedWorks = l),
+                        onAdd: () async => showDialog<WorkEntity>(
+                          context: context,
+                          builder: (_) => const AddWorkDialog(),
+                        ),
+                      ),
+                  ],
+                ),
+
+              // 5. Collection
+              FormSection(
+                title: 'Collection',
+                icon: Icons.inventory_2_outlined,
+                children: <Widget>[
+                  FormDropdownField<CollectionStatus>(
+                    value: _collectionStatus,
+                    label: 'Collection Status',
+                    prefixIcon: Icons.inventory_rounded,
+                    items: CollectionStatus.values,
+                    itemLabel: (CollectionStatus e) => e.clientValue,
+                    onChanged: (CollectionStatus? v) {
+                      if (v != null) {
+                        _onCollectionStatusChanged(v);
+                      }
+                    },
+                    isNullable: false,
+                  ),
+                  if (_showCollectedDate) ...<Widget>[
+                    const SizedBox(height: 16),
+                    FormDateField(
+                      label: 'Collected Date',
+                      value: _collectedDate,
+                      onDateSelected: (DateTime d) =>
+                          setState(() => _collectedDate = d),
+                      icon: Icons.inventory_2_rounded,
+                    ),
+                  ],
+                ],
               ),
 
-              if (_isTranslation) ...<Widget>[
-                const SizedBox(height: 16),
-                FormTextField(
-                  controller: _originalTitleController,
-                  label: 'Original Title',
-                  hint: 'Book Original Title',
-                  prefixIcon: Icons.translate_rounded,
-                  maxLength: 200,
+              // 6. Lending
+              if (_showReaderId || _showLendedDate || _showDueDate)
+                FormSection(
+                  title: 'Lending',
+                  icon: Icons.handshake_outlined,
+                  children: <Widget>[
+                    if (_showReaderId) ...<Widget>[
+                      SearchPickerField<ReaderEntity>(
+                        label: 'Reader',
+                        prefixIcon: Icons.face_rounded,
+                        selectedItem: _selectedReader,
+                        itemsProvider: readersStreamProvider,
+                        itemLabel: (ReaderEntity r) => r.name,
+                        onChanged: (ReaderEntity? r) =>
+                            setState(() => _selectedReader = r),
+                        onAdd: () async => showDialog<ReaderEntity>(
+                          context: context,
+                          builder: (_) => const AddReaderDialog(),
+                        ),
+                      ),
+                      if (_showLendedDate || _showDueDate)
+                        const SizedBox(height: 16),
+                    ],
+                    if (_showLendedDate) ...<Widget>[
+                      FormDateField(
+                        label: 'Lended Date',
+                        value: _lendedDate,
+                        onDateSelected: (DateTime d) =>
+                            setState(() => _lendedDate = d),
+                        onCleared: () => setState(() => _lendedDate = null),
+                        isClearable: true,
+                        icon: Icons.handshake_rounded,
+                      ),
+                      if (_showDueDate) const SizedBox(height: 16),
+                    ],
+                    if (_showDueDate)
+                      FormDateField(
+                        label: 'Due Date',
+                        value: _dueDate,
+                        onDateSelected: (DateTime d) =>
+                            setState(() => _dueDate = d),
+                        onCleared: () => setState(() => _dueDate = null),
+                        isClearable: true,
+                        icon: Icons.event_rounded,
+                      ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                FormDropdownField<OriginalLanguage>(
-                  value: _originalLanguage,
-                  label: 'Original Language',
-                  prefixIcon: Icons.language_rounded,
-                  items: OriginalLanguage.values,
-                  itemLabel: (OriginalLanguage e) => e.clientValue,
-                  onChanged: (OriginalLanguage? v) => setState(() => _originalLanguage = v),
-                ),
-                const SizedBox(height: 16),
-                SearchMultiPickerField<TranslatorEntity>(
-                  label: 'Translators',
-                  prefixIcon: Icons.translate_rounded,
-                  selectedItems: _selectedTranslators,
-                  itemsProvider: translatorsStreamProvider,
-                  itemLabel: (TranslatorEntity t) => t.name,
-                  itemKey: (TranslatorEntity t) => t.id,
-                  onChanged: (List<TranslatorEntity> l) => setState(() => _selectedTranslators = l),
-                  onAdd: () async {
-                    final TranslatorEntity? newTranslator = await showDialog<TranslatorEntity>(
+
+              // 7. Reading Progress
+              FormSection(
+                title: 'Reading Progress',
+                icon: Icons.auto_stories_outlined,
+                children: <Widget>[
+                  FormDropdownField<ReadingStatus>(
+                    value: _readingStatus,
+                    label: 'Reading Status',
+                    prefixIcon: Icons.menu_book_rounded,
+                    items: ReadingStatus.values,
+                    itemLabel: (ReadingStatus e) => e.clientValue,
+                    onChanged: (ReadingStatus? v) {
+                      if (v != null) {
+                        _onReadingStatusChanged(v);
+                      }
+                    },
+                    isNullable: false,
+                  ),
+                  if (_showPausedPage) ...<Widget>[
+                    const SizedBox(height: 16),
+                    FormTextField(
+                      controller: _pausedPageController,
+                      label: 'Paused Page',
+                      prefixIcon: Icons.bookmark_border_rounded,
+                      keyboardType: TextInputType.number,
+                    ),
+                  ],
+                  if (_showCompletedDate) ...<Widget>[
+                    const SizedBox(height: 16),
+                    FormDateField(
+                      label: 'Completed Date',
+                      value: _completedDate,
+                      onDateSelected: (DateTime d) =>
+                          setState(() => _completedDate = d),
+                      icon: Icons.check_circle_outline_rounded,
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  FormTextField(
+                    controller: _noOfPagesController,
+                    label: 'Number of Pages',
+                    hint: 'e.g. 153',
+                    prefixIcon: Icons.numbers_rounded,
+                    keyboardType: TextInputType.number,
+                  ),
+                ],
+              ),
+
+              // 8. Publication Metadata
+              FormSection(
+                title: 'Publication Metadata',
+                icon: Icons.hub_outlined,
+                children: <Widget>[
+                  if (_showGenre) ...<Widget>[
+                    FormDropdownField<Genre>(
+                      value: _genre,
+                      label: 'Genre',
+                      prefixIcon: Icons.theater_comedy_rounded,
+                      items: Genre.values,
+                      itemLabel: (Genre e) => e.clientValue,
+                      onChanged: (Genre? v) => setState(() => _genre = v),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  FormTextField(
+                    controller: _isbnController,
+                    label: 'ISBN',
+                    hint: 'e.g. ISBN10 or ISBN13',
+                    prefixIcon: Icons.qr_code_rounded,
+                    maxLength: 13,
+                    validator: (String? value) {
+                      if (value == null || value.isEmpty) {
+                        return null;
+                      }
+                      final String clean =
+                          value.replaceAll(RegExp(r'[-\s]'), '').toUpperCase();
+                      if (clean.length != 10 && clean.length != 13) {
+                        return 'Enter 10 or 13 digits';
+                      }
+                      if (clean.length == 10) {
+                        if (!RegExp(r'^\d{9}[\dX]$').hasMatch(clean)) {
+                          return 'Invalid ISBN-10 format';
+                        }
+                      } else {
+                        if (!RegExp(r'^\d{13}$').hasMatch(clean)) {
+                          return 'Invalid ISBN-13 format';
+                        }
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  SearchPickerField<PublisherEntity>(
+                    label: 'Publisher',
+                    prefixIcon: Icons.business_rounded,
+                    selectedItem: _selectedPublisher,
+                    itemsProvider: publishersStreamProvider,
+                    itemLabel: (PublisherEntity p) => p.name,
+                    onChanged: (PublisherEntity? p) =>
+                        setState(() => _selectedPublisher = p),
+                    onAdd: () async => showDialog<PublisherEntity>(
                       context: context,
-                      builder: (_) => const AddTranslatorDialog(),
-                    );
-                    if (newTranslator != null && context.mounted) {
-                      setState(
-                        () => _selectedTranslators = <TranslatorEntity>[
-                          ..._selectedTranslators,
-                          newTranslator,
-                        ],
-                      );
-                    }
-                    return null;
-                  },
-                ),
-              ],
-
-              const SizedBox(height: 16),
-              FormTextField(
-                controller: _noOfPagesController,
-                label: 'Number of Pages',
-                hint: 'e.g. 153',
-                prefixIcon: Icons.numbers_rounded,
-                keyboardType: TextInputType.number,
+                      builder: (_) => const AddPublisherDialog(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  FormDateField(
+                    label: 'Published Date',
+                    value: _publishedDate,
+                    onDateSelected: (DateTime d) =>
+                        setState(() => _publishedDate = d),
+                    icon: Icons.public_rounded,
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              FormTextField(
-                controller: _isbnController,
-                label: 'ISBN',
-                hint: 'e.g. ISBN10 or ISBN13',
-                prefixIcon: Icons.qr_code_rounded,
-                maxLength: 13,
-                validator: (String? value) {
-                  if (value == null || value.isEmpty) {
-                    return null;
-                  }
-                  final String clean = value.replaceAll(RegExp(r'[-\s]'), '').toUpperCase();
-                  if (clean.length != 10 && clean.length != 13) {
-                    return 'Enter 10 or 13 digits';
-                  }
-                  if (clean.length == 10) {
-                    if (!RegExp(r'^\d{9}[\dX]$').hasMatch(clean)) {
-                      return 'Invalid ISBN-10 format';
-                    }
-                  } else {
-                    if (!RegExp(r'^\d{13}$').hasMatch(clean)) {
-                      return 'Invalid ISBN-13 format';
-                    }
-                  }
-                  return null;
-                },
+
+              // 9. Additional Information
+              FormSection(
+                title: 'Additional Information',
+                icon: Icons.notes_rounded,
+                children: <Widget>[
+                  FormTextField(
+                    controller: _notesController,
+                    label: 'Notes',
+                    hint: 'Notes about this Book',
+                    prefixIcon: Icons.notes_rounded,
+                    maxLines: 3,
+                    alignLabelWithHint: true,
+                  ),
+                ],
               ),
 
               const SizedBox(height: 16),
-              FormDateField(
-                label: 'Published Date',
-                value: _publishedDate,
-                onDateSelected: (DateTime d) => setState(() => _publishedDate = d),
-                icon: Icons.public_rounded,
-              ),
-
-              const SizedBox(height: 16),
-
-              FormDropdownField<CollectionStatus>(
-                value: _collectionStatus,
-                label: 'Collection Status',
-                prefixIcon: Icons.inventory_rounded,
-                items: CollectionStatus.values,
-                itemLabel: (CollectionStatus e) => e.clientValue,
-                onChanged: (CollectionStatus? v) {
-                  if (v != null) {
-                    setState(() => _collectionStatus = v);
-                  }
-                },
-                isNullable: false,
-              ),
-              const SizedBox(height: 16),
-
-              FormDateField(
-                label: 'Collected Date',
-                value: _collectedDate,
-                onDateSelected: (DateTime d) => setState(() => _collectedDate = d),
-                icon: Icons.inventory_2_rounded,
-              ),
-              const SizedBox(height: 16),
-
-              FormDateField(
-                label: 'Lended Date',
-                value: _lendedDate,
-                onDateSelected: (DateTime d) => setState(() => _lendedDate = d),
-                onCleared: () => setState(() => _lendedDate = null),
-                isClearable: true,
-                icon: Icons.handshake_rounded,
-              ),
-              const SizedBox(height: 16),
-
-              FormDateField(
-                label: 'Due Date',
-                value: _dueDate,
-                onDateSelected: (DateTime d) => setState(() => _dueDate = d),
-                onCleared: () => setState(() => _dueDate = null),
-                isClearable: true,
-                icon: Icons.event_rounded,
-              ),
-              const SizedBox(height: 16),
-
-              FormDropdownField<ReadingStatus>(
-                value: _readingStatus,
-                label: 'Reading Status',
-                prefixIcon: Icons.menu_book_rounded,
-                items: ReadingStatus.values,
-                itemLabel: (ReadingStatus e) => e.clientValue,
-                onChanged: (ReadingStatus? v) {
-                  if (v != null) {
-                    setState(() => _readingStatus = v);
-                  }
-                },
-                isNullable: false,
-              ),
-
-              if (_readingStatus == ReadingStatus.paused) ...<Widget>[
-                const SizedBox(height: 16),
-                FormTextField(
-                  controller: _pausedPageController,
-                  label: 'Paused Page',
-                  prefixIcon: Icons.bookmark_border_rounded,
-                  keyboardType: TextInputType.number,
-                ),
-              ],
-
-              if (_readingStatus == ReadingStatus.completed) ...<Widget>[
-                const SizedBox(height: 16),
-                FormDateField(
-                  label: 'Completed Date',
-                  value: _completedDate,
-                  onDateSelected: (DateTime d) => setState(() => _completedDate = d),
-                  icon: Icons.check_circle_outline_rounded,
-                ),
-              ],
-
-              const SizedBox(height: 16),
-              FormTextField(
-                controller: _notesController,
-                label: 'Notes',
-                hint: 'Notes about this Book',
-                prefixIcon: Icons.notes_rounded,
-                maxLines: 3,
-                alignLabelWithHint: true,
-              ),
-
-              const SizedBox(height: 32),
 
               FilledButton.icon(
                 onPressed: state.isLoading ? null : _save,

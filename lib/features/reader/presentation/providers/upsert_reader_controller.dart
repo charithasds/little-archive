@@ -35,9 +35,7 @@ class UpsertReaderController extends Notifier<UpsertReaderState> {
   UpsertReaderState build() => const UpsertReaderState();
 
   void initializeWith(ReaderEntity? reader) {
-    if (reader != null && reader.image != null) {
-      state = state.copyWith(pickedBase64Image: reader.image);
-    }
+    state = UpsertReaderState(pickedBase64Image: reader?.image);
   }
 
   Future<void> pickImage() async {

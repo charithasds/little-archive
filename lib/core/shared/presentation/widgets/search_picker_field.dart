@@ -16,6 +16,7 @@ class SearchPickerField<T> extends ConsumerStatefulWidget {
     this.onAdd,
     this.isNullable = true,
     this.itemKey,
+    this.filterItems,
   });
 
   final String label;
@@ -27,6 +28,8 @@ class SearchPickerField<T> extends ConsumerStatefulWidget {
   final Future<T?> Function()? onAdd;
   final bool isNullable;
   final Object Function(T)? itemKey;
+  /// Optional callback to pre-filter the full list before search is applied.
+  final List<T> Function(List<T>)? filterItems;
 
   @override
   ConsumerState<SearchPickerField<T>> createState() => _SearchPickerFieldState<T>();
@@ -84,6 +87,7 @@ class _SearchPickerFieldState<T> extends ConsumerState<SearchPickerField<T>> {
         },
         onAdd: widget.onAdd,
         isNullable: widget.isNullable,
+        filterItems: widget.filterItems,
       ),
     );
   }
@@ -97,6 +101,7 @@ class _PickerSheet<T> extends ConsumerStatefulWidget {
     required this.onSelected,
     this.onAdd,
     required this.isNullable,
+    this.filterItems,
   });
 
   final String label;
@@ -105,6 +110,7 @@ class _PickerSheet<T> extends ConsumerStatefulWidget {
   final ValueChanged<T?> onSelected;
   final Future<T?> Function()? onAdd;
   final bool isNullable;
+  final List<T> Function(List<T>)? filterItems;
 
   @override
   ConsumerState<_PickerSheet<T>> createState() => _PickerSheetState<T>();
@@ -185,7 +191,9 @@ class _PickerSheetState<T> extends ConsumerState<_PickerSheet<T>> {
           Expanded(
             child: itemsAsync.when(
               data: (List<T> items) {
-                final List<T> sortedItems = items.toList()
+                final List<T> preFiltered =
+                    widget.filterItems != null ? widget.filterItems!(items) : items;
+                final List<T> sortedItems = preFiltered.toList()
                   ..sort((T a, T b) => widget.itemLabel(a).compareTo(widget.itemLabel(b)));
 
                 final List<T> filtered = sortedItems

@@ -76,6 +76,17 @@ class FormTextField extends ConsumerWidget {
           validator ??
           (isRequired ? (String? v) => v!.trim().isEmpty ? '$label is required' : null : null),
       maxLength: maxLength,
+      buildCounter: maxLength == null
+          ? null
+          : (BuildContext context, {required int currentLength, required int? maxLength, required bool isFocused}) {
+              if (currentLength < (maxLength! * 0.95)) {
+                return null;
+              }
+              return Text(
+                '$currentLength / $maxLength',
+                style: theme.textTheme.bodySmall,
+              );
+            },
       maxLines: maxLines,
       inputFormatters: inputFormatters,
     );

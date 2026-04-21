@@ -35,9 +35,7 @@ class UpsertTranslatorController extends Notifier<UpsertTranslatorState> {
   UpsertTranslatorState build() => const UpsertTranslatorState();
 
   void initializeWith(TranslatorEntity? translator) {
-    if (translator != null && translator.image != null) {
-      state = state.copyWith(pickedBase64Image: translator.image);
-    }
+    state = UpsertTranslatorState(pickedBase64Image: translator?.image);
   }
 
   Future<void> pickImage() async {

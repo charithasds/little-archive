@@ -35,9 +35,7 @@ class UpsertAuthorController extends Notifier<UpsertAuthorState> {
   UpsertAuthorState build() => const UpsertAuthorState();
 
   void initializeWith(AuthorEntity? author) {
-    if (author != null && author.image != null) {
-      state = state.copyWith(pickedBase64Image: author.image);
-    }
+    state = UpsertAuthorState(pickedBase64Image: author?.image);
   }
 
   Future<void> pickImage() async {

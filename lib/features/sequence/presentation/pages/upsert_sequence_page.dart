@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
+import '../../../../core/shared/presentation/widgets/form_section.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/sequence_entity.dart';
@@ -103,33 +104,45 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
-            FormTextField(
-              controller: _nameController,
-              label: 'Name',
-              hint: 'Sequence Name',
-              prefixIcon: Icons.layers_rounded,
-              maxLength: 200,
-              isRequired: true,
+            FormSection(
+              title: 'Identity',
+              icon: Icons.person_outline_rounded,
+              children: <Widget>[
+                FormTextField(
+                  controller: _nameController,
+                  label: 'Name',
+                  hint: 'Sequence Name',
+                  prefixIcon: Icons.layers_rounded,
+                  maxLength: 200,
+                  isRequired: true,
+                ),
+                const SizedBox(height: 16),
+                FormTextField(
+                  controller: _otherNameController,
+                  label: 'Other Name',
+                  hint: 'Alternative Name',
+                  prefixIcon: Icons.badge_rounded,
+                  maxLength: 200,
+                ),
+              ],
             ),
+
+            FormSection(
+              title: 'Additional Information',
+              icon: Icons.notes_rounded,
+              children: <Widget>[
+                FormTextField(
+                  controller: _notesController,
+                  label: 'Notes',
+                  hint: 'Notes about this Sequence',
+                  prefixIcon: Icons.notes_rounded,
+                  maxLength: 500,
+                  maxLines: 3,
+                ),
+              ],
+            ),
+
             const SizedBox(height: 16),
-            FormTextField(
-              controller: _otherNameController,
-              label: 'Other Name',
-              hint: 'Alternative Name',
-              prefixIcon: Icons.badge_rounded,
-              maxLength: 200,
-            ),
-            const SizedBox(height: 16),
-            FormTextField(
-              controller: _notesController,
-              label: 'Notes',
-              hint: 'Notes about this Sequence',
-              prefixIcon: Icons.notes_rounded,
-              maxLength: 500,
-              maxLines: 3,
-            ),
-            const SizedBox(height: 32),
             FilledButton.icon(
               onPressed: state.isLoading ? null : _save,
               icon: state.isLoading

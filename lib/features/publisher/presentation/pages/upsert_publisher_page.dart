@@ -6,6 +6,7 @@ import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/utils/validators.dart';
+import '../../../../core/shared/presentation/widgets/form_section.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/publisher_entity.dart';
@@ -155,68 +156,77 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
             ),
             const SizedBox(height: 24),
 
-            FormTextField(
-              controller: _nameController,
-              label: 'Name',
-              hint: 'Publisher Name',
-              prefixIcon: Icons.business_rounded,
-              maxLength: 200,
-              isRequired: true,
-            ),
-            const SizedBox(height: 16),
 
-            FormTextField(
-              controller: _otherNameController,
-              label: 'Other Name',
-              hint: 'Alternative Name',
-              prefixIcon: Icons.badge_rounded,
-              maxLength: 200,
+            FormSection(
+              title: 'Identity',
+              icon: Icons.business_center_outlined,
+              children: <Widget>[
+                FormTextField(
+                  controller: _nameController,
+                  label: 'Name',
+                  hint: 'Publisher Name',
+                  prefixIcon: Icons.business_rounded,
+                  maxLength: 200,
+                  isRequired: true,
+                ),
+                const SizedBox(height: 16),
+                FormTextField(
+                  controller: _otherNameController,
+                  label: 'Other Name',
+                  hint: 'Alternative Name',
+                  prefixIcon: Icons.badge_rounded,
+                  maxLength: 200,
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
 
-            FormTextField(
-              controller: _websiteController,
-              label: 'Website',
-              hint: 'https://www.example.com',
-              prefixIcon: Icons.language_rounded,
-              maxLength: 200,
-              keyboardType: TextInputType.url,
-              validator: Validators.validateWebsiteUrl,
+            FormSection(
+              title: 'Contact',
+              icon: Icons.contact_support_outlined,
+              children: <Widget>[
+                FormTextField(
+                  controller: _websiteController,
+                  label: 'Website',
+                  hint: 'https://www.example.com',
+                  prefixIcon: Icons.language_rounded,
+                  maxLength: 200,
+                  keyboardType: TextInputType.url,
+                  validator: Validators.validateWebsiteUrl,
+                ),
+                const SizedBox(height: 16),
+                FormTextField(
+                  controller: _emailController,
+                  label: 'Email',
+                  hint: 'publisher@example.com',
+                  prefixIcon: Icons.email_rounded,
+                  maxLength: 200,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: Validators.validateEmail,
+                ),
+                const SizedBox(height: 16),
+                FormTextField(
+                  controller: _facebookController,
+                  label: 'Facebook',
+                  hint: 'https://www.facebook.com/username',
+                  prefixIcon: Icons.facebook_rounded,
+                  maxLength: 200,
+                  keyboardType: TextInputType.url,
+                  validator: Validators.validateFacebookUrl,
+                ),
+                const SizedBox(height: 16),
+                FormTextField(
+                  controller: _phoneController,
+                  label: 'Phone Number',
+                  hint: '+94 77 123 4567 or 077 123 4567',
+                  prefixIcon: Icons.phone_rounded,
+                  maxLength: 20,
+                  keyboardType: TextInputType.phone,
+                  validator: Validators.validateSriLankanPhoneNumber,
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
 
-            FormTextField(
-              controller: _emailController,
-              label: 'Email',
-              hint: 'publisher@example.com',
-              prefixIcon: Icons.email_rounded,
-              maxLength: 200,
-              keyboardType: TextInputType.emailAddress,
-              validator: Validators.validateEmail,
-            ),
             const SizedBox(height: 16),
-
-            FormTextField(
-              controller: _facebookController,
-              label: 'Facebook',
-              hint: 'https://www.facebook.com/username',
-              prefixIcon: Icons.facebook_rounded,
-              maxLength: 200,
-              keyboardType: TextInputType.url,
-              validator: Validators.validateFacebookUrl,
-            ),
-            const SizedBox(height: 16),
-
-            FormTextField(
-              controller: _phoneController,
-              label: 'Phone Number',
-              hint: '+94 77 123 4567 or 077 123 4567',
-              prefixIcon: Icons.phone_rounded,
-              maxLength: 20,
-              keyboardType: TextInputType.phone,
-              validator: Validators.validateSriLankanPhoneNumber,
-            ),
-            const SizedBox(height: 32),
 
             FilledButton.icon(
               onPressed: state.isLoading ? null : _save,

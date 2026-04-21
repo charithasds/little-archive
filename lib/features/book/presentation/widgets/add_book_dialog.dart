@@ -12,7 +12,14 @@ import '../../domain/entities/book_entity.dart';
 import '../providers/upsert_book_controller.dart';
 
 class AddBookDialog extends ConsumerStatefulWidget {
-  const AddBookDialog({super.key});
+  const AddBookDialog({
+    super.key,
+    this.allowedTypes,
+  });
+
+  /// Restricts which compilation types are shown in the dropdown.
+  /// If null, all types are shown.
+  final List<CompilationType>? allowedTypes;
 
   @override
   ConsumerState<AddBookDialog> createState() => _AddBookDialogState();
@@ -21,7 +28,15 @@ class AddBookDialog extends ConsumerStatefulWidget {
 class _AddBookDialogState extends ConsumerState<AddBookDialog> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
-  CompilationType _compilationType = CompilationType.collection;
+  late CompilationType _compilationType;
+
+  @override
+  void initState() {
+    super.initState();
+    final List<CompilationType> allowed =
+        widget.allowedTypes ?? CompilationType.values;
+    _compilationType = allowed.first;
+  }
 
   @override
   void dispose() {
@@ -79,9 +94,9 @@ class _AddBookDialogState extends ConsumerState<AddBookDialog> {
             FormDropdownField<CompilationType>(
               label: 'Compilation Type',
               prefixIcon: Icons.collections_bookmark_rounded,
-              items: CompilationType.values,
+              items: widget.allowedTypes ?? CompilationType.values,
               value: _compilationType,
-              itemLabel: (CompilationType c) => c.name.toUpperCase(),
+              itemLabel: (CompilationType c) => c.clientValue,
               onChanged: (CompilationType? type) {
                 if (type != null) {
                   setState(() => _compilationType = type);

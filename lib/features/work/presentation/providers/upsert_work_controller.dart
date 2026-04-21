@@ -9,6 +9,8 @@ import '../../../../core/shared/domain/enums/original_language.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
+import '../../../book/domain/entities/book_entity.dart';
+import '../../../book/presentation/providers/book_provider.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/domain/entities/sequence_volume_entity.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
@@ -162,6 +164,13 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
         await ref.read(addWorkUseCaseProvider)(workToSave);
       }
 
+      // Keep Book.workIds in sync with this work's bookId.
+      await _syncBookWorkIds(
+        workId: workId,
+        oldBookId: existingWork?.bookId,
+        newBookId: bookId,
+      );
+
       state = state.copyWith(isLoading: false);
 
       return workToSave;
@@ -171,6 +180,47 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
     } catch (e) {
       state = state.copyWith(isLoading: false, error: 'Error saving work: $e');
       return null;
+    }
+  }
+
+  /// Keeps [BookEntity.workIds] consistent when this work's [bookId] changes.
+  ///
+  /// - [oldBookId]: the bookId the work *previously* pointed to (null for new works).
+  /// - [newBookId]: the bookId the work *now* points to (null if unlinked).
+  Future<void> _syncBookWorkIds({
+    required String workId,
+    required String? oldBookId,
+    required String? newBookId,
+  }) async {
+    final bool bookUnchanged = oldBookId == newBookId;
+    if (bookUnchanged) {
+      return;
+    }
+
+    // Remove workId from the old book's workIds.
+    if (oldBookId != null) {
+      final BookEntity? oldBook =
+          await ref.read(getBookByIdUseCaseProvider)(oldBookId);
+      if (oldBook != null) {
+        final List<String> updated =
+            List<String>.from(oldBook.workIds)..remove(workId);
+        await ref.read(updateBookUseCaseProvider)(
+          oldBook.copyWith(workIds: updated),
+        );
+      }
+    }
+
+    // Add workId to the new book's workIds.
+    if (newBookId != null) {
+      final BookEntity? newBook =
+          await ref.read(getBookByIdUseCaseProvider)(newBookId);
+      if (newBook != null && !newBook.workIds.contains(workId)) {
+        final List<String> updated =
+            List<String>.from(newBook.workIds)..add(workId);
+        await ref.read(updateBookUseCaseProvider)(
+          newBook.copyWith(workIds: updated),
+        );
+      }
     }
   }
 }

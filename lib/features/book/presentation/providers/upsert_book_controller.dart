@@ -44,9 +44,7 @@ class UpsertBookController extends Notifier<UpsertBookState> {
   UpsertBookState build() => const UpsertBookState();
 
   void initializeWith(BookEntity? book) {
-    if (book != null && book.cover != null) {
-      state = state.copyWith(pickedBase64Image: book.cover);
-    }
+    state = UpsertBookState(pickedBase64Image: book?.cover);
   }
 
   Future<void> pickImage() async {
