@@ -20,19 +20,18 @@ class DashboardCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = ref.watch(activeThemeDataProvider);
-    final ColorScheme colorScheme = theme.colorScheme;
-    final bool isDark = theme.brightness == Brightness.dark;
-    final Color iconBackgroundColor = isDark ? colorScheme.tertiaryContainer : colorScheme.primary;
-    final Color iconColor = isDark ? Colors.white : colorScheme.onPrimary;
+    final ColorScheme cs = theme.colorScheme;
 
     return Card(
+      color: cs.surfaceContainerHigh,
       elevation: 0,
       margin: EdgeInsets.zero,
-      clipBehavior: Clip.hardEdge,
-      color: isDark ? colorScheme.surfaceContainerHighest : Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: InkWell(
         onTap: onTap,
+        splashColor: cs.primary.withValues(alpha: 0.12),
+        highlightColor: cs.primary.withValues(alpha: 0.08),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -41,32 +40,37 @@ class DashboardCard extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: iconBackgroundColor,
-                  borderRadius: BorderRadius.circular(16),
+                  color: cs.primaryContainer,
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(icon, color: iconColor, size: 28),
+                child: Icon(icon, color: cs.onPrimaryContainer, size: 28),
               ),
               const Spacer(),
               if (count != null)
                 Text(
                   count.toString(),
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
+                  style: theme.textTheme.displaySmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: cs.onSurface,
+                    height: 1.1,
                   ),
                 )
               else
-                const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 3),
+                SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: cs.primary,
+                  ),
                 ),
               const SizedBox(height: 4),
               Text(
                 title,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: cs.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
+                  letterSpacing: 0.1,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

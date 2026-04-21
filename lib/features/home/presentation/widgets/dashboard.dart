@@ -29,96 +29,117 @@ class Dashboard extends ConsumerWidget {
     final AsyncValue<List<TranslatorEntity>> translatorsAsync = ref.watch(
       translatorsStreamProvider,
     );
-    final AsyncValue<List<PublisherEntity>> publishersAsync = ref.watch(publishersStreamProvider);
+    final AsyncValue<List<PublisherEntity>> publishersAsync = ref.watch(
+      publishersStreamProvider,
+    );
     final AsyncValue<List<SequenceEntity>> sequencesAsync = ref.watch(sequencesStreamProvider);
     final AsyncValue<List<ReaderEntity>> readersAsync = ref.watch(readersStreamProvider);
 
-    final int? bookCount = _getCount(booksAsync);
-    final int? workCount = _getCount(worksAsync);
-    final int? authorCount = _getCount(authorsAsync);
-    final int? translatorCount = _getCount(translatorsAsync);
-    final int? publisherCount = _getCount(publishersAsync);
-    final int? sequenceCount = _getCount(sequencesAsync);
-    final int? readerCount = _getCount(readersAsync);
+    final int? bookCount = _count(booksAsync);
+    final int? workCount = _count(worksAsync);
+    final int? authorCount = _count(authorsAsync);
+    final int? translatorCount = _count(translatorsAsync);
+    final int? publisherCount = _count(publishersAsync);
+    final int? sequenceCount = _count(sequencesAsync);
+    final int? readerCount = _count(readersAsync);
 
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        final bool isLargeScreen = constraints.maxWidth >= 600;
-        const double aspectRatio = 0.95;
+    final List<_CardDef> cards = <_CardDef>[
+      _CardDef(
+        title: _label(bookCount, 'Book'),
+        icon: Icons.book_rounded,
+        count: bookCount,
+        route: '/books',
+      ),
+      _CardDef(
+        title: _label(workCount, 'Work'),
+        icon: Icons.article_rounded,
+        count: workCount,
+        route: '/works',
+      ),
+      _CardDef(
+        title: _label(authorCount, 'Author'),
+        icon: Icons.person_rounded,
+        count: authorCount,
+        route: '/authors',
+      ),
+      _CardDef(
+        title: _label(translatorCount, 'Translator'),
+        icon: Icons.translate_rounded,
+        count: translatorCount,
+        route: '/translators',
+      ),
+      _CardDef(
+        title: _label(publisherCount, 'Publisher'),
+        icon: Icons.business_rounded,
+        count: publisherCount,
+        route: '/publishers',
+      ),
+      _CardDef(
+        title: _label(sequenceCount, 'Sequence'),
+        icon: Icons.layers_rounded,
+        count: sequenceCount,
+        route: '/sequences',
+      ),
+      _CardDef(
+        title: _label(readerCount, 'Reader'),
+        icon: Icons.face_rounded,
+        count: readerCount,
+        route: '/readers',
+      ),
+    ];
 
-        return CustomScrollView(
-          slivers: <Widget>[
-            SliverPadding(
-              padding: const EdgeInsets.all(24),
-              sliver: SliverGrid(
-                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: isLargeScreen ? 220 : 200,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: aspectRatio,
-                ),
-                delegate: SliverChildListDelegate(<Widget>[
-                  DashboardCard(
-                    title: _getTitle(bookCount, 'Book'),
-                    icon: Icons.book_rounded,
-                    count: bookCount,
-                    onTap: () => context.go('/books'),
-                  ),
-                  DashboardCard(
-                    title: _getTitle(workCount, 'Work'),
-                    icon: Icons.article_rounded,
-                    count: workCount,
-                    onTap: () => context.go('/works'),
-                  ),
-                  DashboardCard(
-                    title: _getTitle(authorCount, 'Author'),
-                    icon: Icons.person_rounded,
-                    count: authorCount,
-                    onTap: () => context.go('/authors'),
-                  ),
-                  DashboardCard(
-                    title: _getTitle(translatorCount, 'Translator'),
-                    icon: Icons.translate_rounded,
-                    count: translatorCount,
-                    onTap: () => context.go('/translators'),
-                  ),
-                  DashboardCard(
-                    title: _getTitle(publisherCount, 'Publisher'),
-                    icon: Icons.business_rounded,
-                    count: publisherCount,
-                    onTap: () => context.go('/publishers'),
-                  ),
-                  DashboardCard(
-                    title: _getTitle(sequenceCount, 'Sequence'),
-                    icon: Icons.layers_rounded,
-                    count: sequenceCount,
-                    onTap: () => context.go('/sequences'),
-                  ),
-                  DashboardCard(
-                    title: _getTitle(readerCount, 'Reader'),
-                    icon: Icons.face_rounded,
-                    count: readerCount,
-                    onTap: () => context.go('/readers'),
-                  ),
-                ]),
-              ),
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      slivers: <Widget>[
+        SliverPadding(
+          padding: const EdgeInsets.all(16),
+          sliver: SliverGrid(
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 240,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              childAspectRatio: 0.95,
             ),
-          ],
-        );
-      },
+            delegate: SliverChildListDelegate(<Widget>[
+              for (final _CardDef c in cards)
+                DashboardCard(
+                  title: c.title,
+                  icon: c.icon,
+                  count: c.count,
+                  onTap: () => context.go(c.route),
+                ),
+            ]),
+          ),
+        ),
+        const SliverToBoxAdapter(child: SizedBox(height: 24)),
+      ],
     );
   }
 
-  static int? _getCount(AsyncValue<List<Object?>> asyncValue) => asyncValue.when(
+  static int? _count(AsyncValue<List<Object?>> asyncValue) => asyncValue.when(
     data: (List<Object?> d) => d.length,
     loading: () => null,
-    error: (Object err, StackTrace stack) => 0,
+    error: (Object _, StackTrace _) => 0,
   );
 
-  static String _getTitle(int? count, String singular) {
+  static String _label(int? count, String singular) {
     if (count == null) {
       return singular;
     }
     return count == 1 ? singular : '${singular}s';
   }
+}
+
+class _CardDef {
+  const _CardDef({
+    required this.title,
+    required this.icon,
+    required this.count,
+    required this.route,
+  });
+
+  final String title;
+  final IconData icon;
+  final int? count;
+  final String route;
 }
