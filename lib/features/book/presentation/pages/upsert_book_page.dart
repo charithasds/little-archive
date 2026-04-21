@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/enums/compilation_type.dart';
 import '../../../../core/shared/domain/enums/genre.dart';
@@ -331,10 +330,8 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
 
     if (widget.existingBook != null && !_isEditingInitialized) {
       final BookEntity book = widget.existingBook!;
-      final String? userId = ref.watch(authStateProvider).value?.uid;
 
-      if (userId != null &&
-          authorsAsync.hasValue &&
+      if (authorsAsync.hasValue &&
           translatorsAsync.hasValue &&
           worksAsync.hasValue &&
           publishersAsync.hasValue &&
@@ -347,7 +344,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
 
           final List<SequenceVolumeEntity> volumes = await ref.read(
             getSequenceVolumesByBookIdUseCaseProvider,
-          )(book.id, userId);
+          )(book.id);
 
           final Map<SequenceEntity, String> sequencesMap = <SequenceEntity, String>{};
           if (sequencesAsync.value != null) {

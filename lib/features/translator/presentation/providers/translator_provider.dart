@@ -1,9 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/data/services/firestore_service.dart';
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
+import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/presentation/providers/firestore_service_provider.dart';
 import '../../../../core/shared/presentation/providers/relationship_sync_service_provider.dart';
 import '../../data/datasources/translator_remote_datasource.dart';
@@ -17,8 +17,13 @@ part 'translator_provider.g.dart';
 @riverpod
 TranslatorRemoteDataSource translatorRemoteDataSource(Ref ref) {
   final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
+  final String? userId = ref.watch(currentUidProvider);
 
-  return TranslatorRemoteDataSourceImpl(firestoreService: firestoreService);
+  if (userId == null) {
+    throw const UnauthorizedException();
+  }
+
+  return TranslatorRemoteDataSourceImpl(firestoreService: firestoreService, userId: userId);
 }
 
 @riverpod
@@ -51,21 +56,21 @@ AddTranslatorUseCase addTranslatorUseCase(Ref ref) =>
     AddTranslatorUseCase(ref.watch(translatorRepositoryProvider));
 
 @riverpod
-UpdateTranslatorUseCase updateTranslatorUseCase(Ref ref) =>
-    UpdateTranslatorUseCase(ref.watch(translatorRepositoryProvider));
+EditTranslatorUseCase editTranslatorUseCase(Ref ref) =>
+    EditTranslatorUseCase(ref.watch(translatorRepositoryProvider));
 
 @riverpod
-DeleteTranslatorUseCase deleteTranslatorUseCase(Ref ref) =>
-    DeleteTranslatorUseCase(ref.watch(translatorRepositoryProvider));
+RemoveTranslatorUseCase removeTranslatorUseCase(Ref ref) =>
+    RemoveTranslatorUseCase(ref.watch(translatorRepositoryProvider));
 
 @riverpod
 Stream<List<TranslatorEntity>> translatorsStream(Ref ref) {
   final WatchTranslatorsUseCase watchTranslators = ref.watch(watchTranslatorsUseCaseProvider);
-  final UserEntity? user = ref.watch(authStateProvider).value;
+  final String? userId = ref.watch(currentUidProvider);
 
-  if (user == null) {
+  if (userId == null) {
     return Stream<List<TranslatorEntity>>.value(<TranslatorEntity>[]);
   }
 
-  return watchTranslators(user.uid);
+  return watchTranslators();
 }

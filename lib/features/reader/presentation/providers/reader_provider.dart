@@ -1,9 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/data/services/firestore_service.dart';
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
+import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/presentation/providers/firestore_service_provider.dart';
 import '../../../../core/shared/presentation/providers/relationship_sync_service_provider.dart';
 import '../../data/datasources/reader_remote_datasource.dart';
@@ -17,8 +17,13 @@ part 'reader_provider.g.dart';
 @riverpod
 ReaderRemoteDataSource readerRemoteDataSource(Ref ref) {
   final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
+  final String? userId = ref.watch(currentUidProvider);
 
-  return ReaderRemoteDataSourceImpl(firestoreService: firestoreService);
+  if (userId == null) {
+    throw const UnauthorizedException();
+  }
+
+  return ReaderRemoteDataSourceImpl(firestoreService: firestoreService, userId: userId);
 }
 
 @riverpod
@@ -50,21 +55,21 @@ GetReaderByIdUseCase getReaderByIdUseCase(Ref ref) =>
 AddReaderUseCase addReaderUseCase(Ref ref) => AddReaderUseCase(ref.watch(readerRepositoryProvider));
 
 @riverpod
-UpdateReaderUseCase updateReaderUseCase(Ref ref) =>
-    UpdateReaderUseCase(ref.watch(readerRepositoryProvider));
+EditReaderUseCase editReaderUseCase(Ref ref) =>
+    EditReaderUseCase(ref.watch(readerRepositoryProvider));
 
 @riverpod
-DeleteReaderUseCase deleteReaderUseCase(Ref ref) =>
-    DeleteReaderUseCase(ref.watch(readerRepositoryProvider));
+RemoveReaderUseCase removeReaderUseCase(Ref ref) =>
+    RemoveReaderUseCase(ref.watch(readerRepositoryProvider));
 
 @riverpod
 Stream<List<ReaderEntity>> readersStream(Ref ref) {
   final WatchReadersUseCase watchReaders = ref.watch(watchReadersUseCaseProvider);
-  final UserEntity? user = ref.watch(authStateProvider).value;
+  final String? userId = ref.watch(currentUidProvider);
 
-  if (user == null) {
+  if (userId == null) {
     return Stream<List<ReaderEntity>>.value(<ReaderEntity>[]);
   }
 
-  return watchReaders(user.uid);
+  return watchReaders();
 }

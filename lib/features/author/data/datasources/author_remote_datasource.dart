@@ -1,46 +1,34 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/shared/data/services/firestore_service.dart';
-import '../../../../core/shared/domain/error/exceptions.dart';
 import '../models/author_model.dart';
 
 abstract class AuthorRemoteDataSource {
   String generateId();
-  Future<List<AuthorModel>> getAuthors(String userId);
-  Future<AuthorModel?> getAuthorById(String id);
+  Future<List<AuthorModel>> fetchAuthors();
+  Future<AuthorModel?> fetchAuthorById(String id);
+  Stream<List<AuthorModel>> watchAuthors();
   Future<void> addAuthor(AuthorModel author);
-  Future<void> updateAuthor(AuthorModel author);
-  Future<void> deleteAuthor(String id);
-  Stream<List<AuthorModel>> watchAuthors(String userId);
+  Future<void> editAuthor(AuthorModel author);
+  Future<void> removeAuthor(String id);
 }
 
 class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
-  AuthorRemoteDataSourceImpl({required this.firestoreService});
+  AuthorRemoteDataSourceImpl({required this.firestoreService, required this.userId});
 
   final FirestoreService firestoreService;
+  final String userId;
 
-  FirebaseFirestore get firestore => firestoreService.firebaseFirestore;
+  FirebaseFirestore get _firestore => firestoreService.firebaseFirestore;
+  String get _collectionPath => 'users/$userId/authors';
 
   @override
   String generateId() => firestoreService.generateId('authors');
 
-  String get _currentUserId {
-    final User? user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      throw const UnauthorizedException();
-    }
-
-    return user.uid;
-  }
-
-  String collectionPath(String uid) => 'users/$uid/authors';
-
   @override
-  Future<List<AuthorModel>> getAuthors(String userId) async {
-    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(firestore.collection(collectionPath(userId)));
+  Future<List<AuthorModel>> fetchAuthors() async {
+    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
+        await firestoreService.safeGetDocs(_firestore.collection(_collectionPath));
 
     return docs
         .map(
@@ -51,10 +39,9 @@ class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
   }
 
   @override
-  Future<AuthorModel?> getAuthorById(String id) async {
-    final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
-      firestore.collection(collectionPath(_currentUserId)).doc(id),
-    );
+  Future<AuthorModel?> fetchAuthorById(String id) async {
+    final DocumentSnapshot<Map<String, dynamic>>? doc =
+        await firestoreService.safeGetDoc(_firestore.collection(_collectionPath).doc(id));
 
     if (doc == null || !doc.exists) {
       return null;
@@ -64,32 +51,8 @@ class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
   }
 
   @override
-  Future<void> addAuthor(AuthorModel author) async {
-    await firestoreService.requireConnectivity();
-    await firestore
-        .collection(collectionPath(_currentUserId))
-        .doc(author.id.isEmpty ? null : author.id)
-        .set(author.toMap());
-  }
-
-  @override
-  Future<void> updateAuthor(AuthorModel author) async {
-    await firestoreService.requireConnectivity();
-    await firestore
-        .collection(collectionPath(_currentUserId))
-        .doc(author.id)
-        .update(author.toMap());
-  }
-
-  @override
-  Future<void> deleteAuthor(String id) async {
-    await firestoreService.requireConnectivity();
-    await firestore.collection(collectionPath(_currentUserId)).doc(id).delete();
-  }
-
-  @override
-  Stream<List<AuthorModel>> watchAuthors(String userId) => firestore
-      .collection(collectionPath(userId))
+  Stream<List<AuthorModel>> watchAuthors() => _firestore
+      .collection(_collectionPath)
       .snapshots()
       .map(
         (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
@@ -99,4 +62,28 @@ class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
             )
             .toList(),
       );
+
+  @override
+  Future<void> addAuthor(AuthorModel author) async {
+    await firestoreService.requireConnectivity();
+    await _firestore
+        .collection(_collectionPath)
+        .doc(author.id.isEmpty ? null : author.id)
+        .set(author.toMap());
+  }
+
+  @override
+  Future<void> editAuthor(AuthorModel author) async {
+    await firestoreService.requireConnectivity();
+    await _firestore
+        .collection(_collectionPath)
+        .doc(author.id)
+        .update(author.toMap());
+  }
+
+  @override
+  Future<void> removeAuthor(String id) async {
+    await firestoreService.requireConnectivity();
+    await _firestore.collection(_collectionPath).doc(id).delete();
+  }
 }

@@ -14,23 +14,23 @@ import '../widgets/publisher_list_tile.dart';
 class PublisherListPage extends ConsumerWidget {
   const PublisherListPage({super.key});
 
-  Future<void> _handleDelete(BuildContext context, WidgetRef ref, String publisherId) async {
+  Future<void> _handleRemove(BuildContext context, WidgetRef ref, String publisherId) async {
     final ThemeData theme = ref.read(activeThemeDataProvider);
 
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
         icon: Icon(Icons.warning_rounded, color: theme.colorScheme.error, size: 48),
-        title: const Text('Delete Publisher'),
+        title: const Text('Remove Publisher'),
         content: const Text(
-          'Are you sure you want to delete this publisher? This action cannot be undone.',
+          'Are you sure you want to remove this publisher? This action cannot be undone.',
         ),
         actions: <Widget>[
           TextButton(onPressed: () => context.pop(false), child: const Text('Cancel')),
           FilledButton(
             onPressed: () => context.pop(true),
             style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.error),
-            child: const Text('Delete'),
+            child: const Text('Remove'),
           ),
         ],
       ),
@@ -41,12 +41,12 @@ class PublisherListPage extends ConsumerWidget {
     }
 
     try {
-      await ref.read<PublisherRepository>(publisherRepositoryProvider).deletePublisher(publisherId);
-      SnackBars.showSuccess('Publisher deleted successfully');
+      await ref.read<PublisherRepository>(publisherRepositoryProvider).removePublisher(publisherId);
+      SnackBars.showSuccess('Publisher removed successfully');
     } on NoConnectionException catch (e) {
       SnackBars.showError(e.message);
     } catch (e) {
-      SnackBars.showError('Delete failed: $e');
+      SnackBars.showError('Removal failed: $e');
     }
   }
 
@@ -99,7 +99,7 @@ class PublisherListPage extends ConsumerWidget {
                       publisher: publisher,
                       onTap: () => context.go('/publishers/${publisher.id}'),
                       onEdit: () => context.push('/publishers/add', extra: publisher),
-                      onDelete: () => _handleDelete(context, ref, publisher.id),
+                      onRemove: () => _handleRemove(context, ref, publisher.id),
                     );
                   },
                 );
@@ -119,7 +119,7 @@ class PublisherListPage extends ConsumerWidget {
                       publisher: publisher,
                       onTap: () => context.go('/publishers/${publisher.id}'),
                       onEdit: () => context.push('/publishers/add', extra: publisher),
-                      onDelete: () => _handleDelete(context, ref, publisher.id),
+                      onRemove: () => _handleRemove(context, ref, publisher.id),
                     );
                   },
                 );

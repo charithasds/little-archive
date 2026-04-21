@@ -99,7 +99,7 @@ class UpsertPublisherController extends Notifier<UpsertPublisherState> {
 
     try {
       if (existingPublisher != null) {
-        await ref.read(updatePublisherUseCaseProvider)(publisherToSave);
+        await ref.read(editPublisherUseCaseProvider)(publisherToSave);
       } else {
         await ref.read(addPublisherUseCaseProvider)(publisherToSave);
       }

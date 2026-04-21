@@ -13,10 +13,13 @@ class WorkRepositoryImpl implements WorkRepository {
   String generateId() => remoteDataSource.generateId();
 
   @override
-  Future<List<WorkEntity>> getWorks(String userId) => remoteDataSource.getWorks(userId);
+  Future<List<WorkEntity>> getWorks() => remoteDataSource.fetchWorks();
 
   @override
-  Future<WorkEntity?> getWorkById(String id) => remoteDataSource.getWorkById(id);
+  Future<WorkEntity?> getWorkById(String id) => remoteDataSource.fetchWorkById(id);
+
+  @override
+  Stream<List<WorkEntity>> watchWorks() => remoteDataSource.watchWorks();
 
   @override
   Future<void> addWork(WorkEntity work) async {
@@ -52,10 +55,10 @@ class WorkRepositoryImpl implements WorkRepository {
   }
 
   @override
-  Future<void> updateWork(WorkEntity work) async {
-    final WorkModel? existingWork = await remoteDataSource.getWorkById(work.id);
+  Future<void> editWork(WorkEntity work) async {
+    final WorkModel? existingWork = await remoteDataSource.fetchWorkById(work.id);
 
-    await remoteDataSource.updateWork(
+    await remoteDataSource.editWork(
       WorkModel(
         id: work.id,
         title: work.title,
@@ -89,8 +92,8 @@ class WorkRepositoryImpl implements WorkRepository {
   }
 
   @override
-  Future<void> deleteWork(String id) async {
-    final WorkModel? existingWork = await remoteDataSource.getWorkById(id);
+  Future<void> removeWork(String id) async {
+    final WorkModel? existingWork = await remoteDataSource.fetchWorkById(id);
 
     if (existingWork != null) {
       await relationshipSyncService.removeWorkRelationships(
@@ -100,9 +103,6 @@ class WorkRepositoryImpl implements WorkRepository {
       );
     }
 
-    await remoteDataSource.deleteWork(id);
+    await remoteDataSource.removeWork(id);
   }
-
-  @override
-  Stream<List<WorkEntity>> watchWorks(String userId) => remoteDataSource.watchWorks(userId);
 }

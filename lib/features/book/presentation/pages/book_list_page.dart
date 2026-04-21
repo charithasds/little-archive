@@ -18,23 +18,23 @@ import '../widgets/book_list_tile.dart';
 class BookListPage extends ConsumerWidget {
   const BookListPage({super.key});
 
-  Future<void> _handleDelete(BuildContext context, WidgetRef ref, String bookId) async {
+  Future<void> _handleRemove(BuildContext context, WidgetRef ref, String bookId) async {
     final ThemeData theme = ref.read(activeThemeDataProvider);
 
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
         icon: Icon(Icons.warning_rounded, color: theme.colorScheme.error, size: 48),
-        title: const Text('Delete Book'),
+        title: const Text('Remove Book'),
         content: const Text(
-          'Are you sure you want to delete this book? This action cannot be undone.',
+          'Are you sure you want to remove this book? This action cannot be undone.',
         ),
         actions: <Widget>[
           TextButton(onPressed: () => context.pop(false), child: const Text('Cancel')),
           FilledButton(
             onPressed: () => context.pop(true),
             style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.error),
-            child: const Text('Delete'),
+            child: const Text('Remove'),
           ),
         ],
       ),
@@ -45,12 +45,12 @@ class BookListPage extends ConsumerWidget {
     }
 
     try {
-      await ref.read<BookRepository>(bookRepositoryProvider).deleteBook(bookId);
-      SnackBars.showSuccess('Book deleted successfully');
+      await ref.read<BookRepository>(bookRepositoryProvider).removeBook(bookId);
+      SnackBars.showSuccess('Book removed successfully');
     } on NoConnectionException catch (e) {
       SnackBars.showError(e.message);
     } catch (e) {
-      SnackBars.showError('Delete failed: $e');
+      SnackBars.showError('Removal failed: $e');
     }
   }
 
@@ -123,7 +123,7 @@ class BookListPage extends ConsumerWidget {
                       firstCreatorName: creatorName,
                       onTap: () => context.go('/books/${book.id}'),
                       onEdit: () => context.push('/books/add', extra: book),
-                      onDelete: () => _handleDelete(context, ref, book.id),
+                      onRemove: () => _handleRemove(context, ref, book.id),
                     );
                   },
                 );
@@ -160,7 +160,7 @@ class BookListPage extends ConsumerWidget {
                       firstCreatorName: creatorName,
                       onTap: () => context.go('/books/${book.id}'),
                       onEdit: () => context.push('/books/add', extra: book),
-                      onDelete: () => _handleDelete(context, ref, book.id),
+                      onRemove: () => _handleRemove(context, ref, book.id),
                     );
                   },
                 );

@@ -1,46 +1,35 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/shared/data/services/firestore_service.dart';
-import '../../../../core/shared/domain/error/exceptions.dart';
 import '../models/publisher_model.dart';
 
 abstract class PublisherRemoteDataSource {
   String generateId();
-  Future<List<PublisherModel>> getPublishers(String userId);
-  Future<PublisherModel?> getPublisherById(String id);
+
+  Future<List<PublisherModel>> fetchPublishers();
+  Future<PublisherModel?> fetchPublisherById(String id);
+  Stream<List<PublisherModel>> watchPublishers();
   Future<void> addPublisher(PublisherModel publisher);
-  Future<void> updatePublisher(PublisherModel publisher);
-  Future<void> deletePublisher(String id);
-  Stream<List<PublisherModel>> watchPublishers(String userId);
+  Future<void> editPublisher(PublisherModel publisher);
+  Future<void> removePublisher(String id);
 }
 
 class PublisherRemoteDataSourceImpl implements PublisherRemoteDataSource {
-  PublisherRemoteDataSourceImpl({required this.firestoreService});
+  PublisherRemoteDataSourceImpl({required this.firestoreService, required this.userId});
 
   final FirestoreService firestoreService;
+  final String userId;
 
-  FirebaseFirestore get firestore => firestoreService.firebaseFirestore;
+  FirebaseFirestore get _firestore => firestoreService.firebaseFirestore;
+  String get _collectionPath => 'users/$userId/publishers';
 
   @override
   String generateId() => firestoreService.generateId('publishers');
 
-  String get _currentUserId {
-    final User? user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      throw const UnauthorizedException();
-    }
-
-    return user.uid;
-  }
-
-  String collectionPath(String uid) => 'users/$uid/publishers';
-
   @override
-  Future<List<PublisherModel>> getPublishers(String userId) async {
-    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(firestore.collection(collectionPath(userId)));
+  Future<List<PublisherModel>> fetchPublishers() async {
+    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
+        await firestoreService.safeGetDocs(_firestore.collection(_collectionPath));
 
     return docs
         .map(
@@ -51,10 +40,9 @@ class PublisherRemoteDataSourceImpl implements PublisherRemoteDataSource {
   }
 
   @override
-  Future<PublisherModel?> getPublisherById(String id) async {
-    final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
-      firestore.collection(collectionPath(_currentUserId)).doc(id),
-    );
+  Future<PublisherModel?> fetchPublisherById(String id) async {
+    final DocumentSnapshot<Map<String, dynamic>>? doc =
+        await firestoreService.safeGetDoc(_firestore.collection(_collectionPath).doc(id));
 
     if (doc == null || !doc.exists) {
       return null;
@@ -64,32 +52,8 @@ class PublisherRemoteDataSourceImpl implements PublisherRemoteDataSource {
   }
 
   @override
-  Future<void> addPublisher(PublisherModel publisher) async {
-    await firestoreService.requireConnectivity();
-    await firestore
-        .collection(collectionPath(_currentUserId))
-        .doc(publisher.id.isEmpty ? null : publisher.id)
-        .set(publisher.toMap());
-  }
-
-  @override
-  Future<void> updatePublisher(PublisherModel publisher) async {
-    await firestoreService.requireConnectivity();
-    await firestore
-        .collection(collectionPath(_currentUserId))
-        .doc(publisher.id)
-        .update(publisher.toMap());
-  }
-
-  @override
-  Future<void> deletePublisher(String id) async {
-    await firestoreService.requireConnectivity();
-    await firestore.collection(collectionPath(_currentUserId)).doc(id).delete();
-  }
-
-  @override
-  Stream<List<PublisherModel>> watchPublishers(String userId) => firestore
-      .collection(collectionPath(userId))
+  Stream<List<PublisherModel>> watchPublishers() => _firestore
+      .collection(_collectionPath)
       .snapshots()
       .map(
         (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
@@ -99,4 +63,25 @@ class PublisherRemoteDataSourceImpl implements PublisherRemoteDataSource {
             )
             .toList(),
       );
+
+  @override
+  Future<void> addPublisher(PublisherModel publisher) async {
+    await firestoreService.requireConnectivity();
+    await _firestore
+        .collection(_collectionPath)
+        .doc(publisher.id.isEmpty ? null : publisher.id)
+        .set(publisher.toMap());
+  }
+
+  @override
+  Future<void> editPublisher(PublisherModel publisher) async {
+    await firestoreService.requireConnectivity();
+    await _firestore.collection(_collectionPath).doc(publisher.id).update(publisher.toMap());
+  }
+
+  @override
+  Future<void> removePublisher(String id) async {
+    await firestoreService.requireConnectivity();
+    await _firestore.collection(_collectionPath).doc(id).delete();
+  }
 }

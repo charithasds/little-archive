@@ -14,23 +14,23 @@ import '../widgets/reader_list_tile.dart';
 class ReaderListPage extends ConsumerWidget {
   const ReaderListPage({super.key});
 
-  Future<void> _handleDelete(BuildContext context, WidgetRef ref, String readerId) async {
+  Future<void> _handleRemove(BuildContext context, WidgetRef ref, String readerId) async {
     final ThemeData theme = ref.read(activeThemeDataProvider);
 
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
         icon: Icon(Icons.warning_rounded, color: theme.colorScheme.error, size: 48),
-        title: const Text('Delete Reader'),
+        title: const Text('Remove Reader'),
         content: const Text(
-          'Are you sure you want to delete this reader? This action cannot be undone.',
+          'Are you sure you want to remove this reader? This action cannot be undone.',
         ),
         actions: <Widget>[
           TextButton(onPressed: () => context.pop(false), child: const Text('Cancel')),
           FilledButton(
             onPressed: () => context.pop(true),
             style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.error),
-            child: const Text('Delete'),
+            child: const Text('Remove'),
           ),
         ],
       ),
@@ -41,12 +41,12 @@ class ReaderListPage extends ConsumerWidget {
     }
 
     try {
-      await ref.read<ReaderRepository>(readerRepositoryProvider).deleteReader(readerId);
-      SnackBars.showSuccess('Reader deleted successfully');
+      await ref.read<ReaderRepository>(readerRepositoryProvider).removeReader(readerId);
+      SnackBars.showSuccess('Reader removed successfully');
     } on NoConnectionException catch (e) {
       SnackBars.showError(e.message);
     } catch (e) {
-      SnackBars.showError('Delete failed: $e');
+      SnackBars.showError('Removal failed: $e');
     }
   }
 
@@ -99,7 +99,7 @@ class ReaderListPage extends ConsumerWidget {
                       reader: reader,
                       onTap: () => context.go('/readers/${reader.id}'),
                       onEdit: () => context.push('/readers/add', extra: reader),
-                      onDelete: () => _handleDelete(context, ref, reader.id),
+                      onRemove: () => _handleRemove(context, ref, reader.id),
                     );
                   },
                 );
@@ -119,7 +119,7 @@ class ReaderListPage extends ConsumerWidget {
                       reader: reader,
                       onTap: () => context.go('/readers/${reader.id}'),
                       onEdit: () => context.push('/readers/add', extra: reader),
-                      onDelete: () => _handleDelete(context, ref, reader.id),
+                      onRemove: () => _handleRemove(context, ref, reader.id),
                     );
                   },
                 );

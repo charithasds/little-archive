@@ -5,14 +5,14 @@ class GetPublishersUseCase {
   const GetPublishersUseCase(this.repository);
   final PublisherRepository repository;
 
-  Future<List<PublisherEntity>> call(String userId) => repository.getPublishers(userId);
+  Future<List<PublisherEntity>> call() => repository.getPublishers();
 }
 
 class WatchPublishersUseCase {
   const WatchPublishersUseCase(this.repository);
   final PublisherRepository repository;
 
-  Stream<List<PublisherEntity>> call(String userId) => repository.watchPublishers(userId);
+  Stream<List<PublisherEntity>> call() => repository.watchPublishers();
 }
 
 class GetPublisherByIdUseCase {
@@ -29,16 +29,16 @@ class AddPublisherUseCase {
   Future<void> call(PublisherEntity publisher) => repository.addPublisher(publisher);
 }
 
-class UpdatePublisherUseCase {
-  const UpdatePublisherUseCase(this.repository);
+class EditPublisherUseCase {
+  const EditPublisherUseCase(this.repository);
   final PublisherRepository repository;
 
-  Future<void> call(PublisherEntity publisher) => repository.updatePublisher(publisher);
+  Future<void> call(PublisherEntity publisher) => repository.editPublisher(publisher);
 }
 
-class DeletePublisherUseCase {
-  const DeletePublisherUseCase(this.repository);
+class RemovePublisherUseCase {
+  const RemovePublisherUseCase(this.repository);
   final PublisherRepository repository;
 
-  Future<void> call(String id) => repository.deletePublisher(id);
+  Future<void> call(String id) => repository.removePublisher(id);
 }

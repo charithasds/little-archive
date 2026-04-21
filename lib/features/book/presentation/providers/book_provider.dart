@@ -1,9 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/data/services/firestore_service.dart';
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
+import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/presentation/providers/firestore_service_provider.dart';
 import '../../../../core/shared/presentation/providers/relationship_sync_service_provider.dart';
 import '../../data/datasources/book_remote_datasource.dart';
@@ -17,8 +17,13 @@ part 'book_provider.g.dart';
 @riverpod
 BookRemoteDataSource bookRemoteDataSource(Ref ref) {
   final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
+  final String? userId = ref.watch(currentUidProvider);
 
-  return BookRemoteDataSourceImpl(firestoreService: firestoreService);
+  if (userId == null) {
+    throw const UnauthorizedException();
+  }
+
+  return BookRemoteDataSourceImpl(firestoreService: firestoreService, userId: userId);
 }
 
 @riverpod
@@ -49,21 +54,20 @@ GetBookByIdUseCase getBookByIdUseCase(Ref ref) =>
 AddBookUseCase addBookUseCase(Ref ref) => AddBookUseCase(ref.watch(bookRepositoryProvider));
 
 @riverpod
-UpdateBookUseCase updateBookUseCase(Ref ref) =>
-    UpdateBookUseCase(ref.watch(bookRepositoryProvider));
+EditBookUseCase editBookUseCase(Ref ref) => EditBookUseCase(ref.watch(bookRepositoryProvider));
 
 @riverpod
-DeleteBookUseCase deleteBookUseCase(Ref ref) =>
-    DeleteBookUseCase(ref.watch(bookRepositoryProvider));
+RemoveBookUseCase removeBookUseCase(Ref ref) =>
+    RemoveBookUseCase(ref.watch(bookRepositoryProvider));
 
 @riverpod
 Stream<List<BookEntity>> booksStream(Ref ref) {
   final WatchBooksUseCase watchBooks = ref.watch(watchBooksUseCaseProvider);
-  final UserEntity? user = ref.watch(authStateProvider).value;
+  final String? userId = ref.watch(currentUidProvider);
 
-  if (user == null) {
+  if (userId == null) {
     return Stream<List<BookEntity>>.value(<BookEntity>[]);
   }
 
-  return watchBooks(user.uid);
+  return watchBooks();
 }

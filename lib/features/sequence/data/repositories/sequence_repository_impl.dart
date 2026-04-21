@@ -13,79 +13,68 @@ class SequenceRepositoryImpl implements SequenceRepository {
   String generateId() => remoteDataSource.generateId();
 
   @override
-  String generateVolumeId() => remoteDataSource.generateVolumeId();
+  Future<List<SequenceEntity>> getSequences() => remoteDataSource.fetchSequences();
 
   @override
-  Future<List<SequenceEntity>> getSequences(String userId) => remoteDataSource.getSequences(userId);
+  Future<SequenceEntity?> getSequenceById(String id) => remoteDataSource.fetchSequenceById(id);
 
   @override
-  Future<SequenceEntity?> getSequenceById(String id) => remoteDataSource.getSequenceById(id);
+  Stream<List<SequenceEntity>> watchSequences() => remoteDataSource.watchSequences();
 
   @override
   Future<void> addSequence(SequenceEntity sequence) => remoteDataSource.addSequence(
-    SequenceModel(
-      id: sequence.id,
-      name: sequence.name,
-      otherName: sequence.otherName,
-      notes: sequence.notes,
-      sequenceVolumeIds: sequence.sequenceVolumeIds,
-      createdDate: sequence.createdDate,
-      lastUpdated: sequence.lastUpdated,
-    ),
-  );
+        SequenceModel(
+          id: sequence.id,
+          name: sequence.name,
+          otherName: sequence.otherName,
+          notes: sequence.notes,
+          sequenceVolumeIds: sequence.sequenceVolumeIds,
+          createdDate: sequence.createdDate,
+          lastUpdated: sequence.lastUpdated,
+        ),
+      );
 
   @override
-  Future<void> updateSequence(SequenceEntity sequence) => remoteDataSource.updateSequence(
-    SequenceModel(
-      id: sequence.id,
-      name: sequence.name,
-      otherName: sequence.otherName,
-      notes: sequence.notes,
-      sequenceVolumeIds: sequence.sequenceVolumeIds,
-      createdDate: sequence.createdDate,
-      lastUpdated: sequence.lastUpdated,
-    ),
-  );
+  Future<void> editSequence(SequenceEntity sequence) => remoteDataSource.editSequence(
+        SequenceModel(
+          id: sequence.id,
+          name: sequence.name,
+          otherName: sequence.otherName,
+          notes: sequence.notes,
+          sequenceVolumeIds: sequence.sequenceVolumeIds,
+          createdDate: sequence.createdDate,
+          lastUpdated: sequence.lastUpdated,
+        ),
+      );
 
   @override
-  Future<void> deleteSequence(String id) => remoteDataSource.deleteSequence(id);
+  Future<void> removeSequence(String id) => remoteDataSource.removeSequence(id);
 
   @override
-  Stream<List<SequenceEntity>> watchSequences(String userId) =>
-      remoteDataSource.watchSequences(userId);
+  String generateVolumeId() => remoteDataSource.generateVolumeId();
 
   @override
-  Future<List<SequenceVolumeEntity>> getSequenceVolumes(String sequenceId, String userId) =>
-      remoteDataSource.getSequenceVolumes(sequenceId, userId);
+  Future<List<SequenceVolumeEntity>> getSequenceVolumes(String sequenceId) =>
+      remoteDataSource.fetchSequenceVolumes(sequenceId);
 
   @override
   Future<SequenceVolumeEntity?> getSequenceVolumeById(String id) =>
-      remoteDataSource.getSequenceVolumeById(id);
+      remoteDataSource.fetchSequenceVolumeById(id);
 
   @override
-  Future<List<SequenceVolumeEntity>> getSequenceVolumesByBookId(String bookId, String userId) =>
-      remoteDataSource.getSequenceVolumesByBookId(bookId, userId);
+  Future<List<SequenceVolumeEntity>> getSequenceVolumesByBookId(String bookId) =>
+      remoteDataSource.fetchSequenceVolumesByBookId(bookId);
 
   @override
-  Future<List<SequenceVolumeEntity>> getSequenceVolumesByWorkId(String workId, String userId) =>
-      remoteDataSource.getSequenceVolumesByWorkId(workId, userId);
+  Future<List<SequenceVolumeEntity>> getSequenceVolumesByWorkId(String workId) =>
+      remoteDataSource.fetchSequenceVolumesByWorkId(workId);
+
+  @override
+  Stream<List<SequenceVolumeEntity>> watchSequenceVolumes(String sequenceId) =>
+      remoteDataSource.watchSequenceVolumes(sequenceId);
 
   @override
   Future<void> addSequenceVolume(SequenceVolumeEntity volume) => remoteDataSource.addSequenceVolume(
-    SequenceVolumeModel(
-      id: volume.id,
-      volume: volume.volume,
-      sequenceId: volume.sequenceId,
-      bookId: volume.bookId,
-      workId: volume.workId,
-      createdDate: volume.createdDate,
-      lastUpdated: volume.lastUpdated,
-    ),
-  );
-
-  @override
-  Future<void> updateSequenceVolume(SequenceVolumeEntity volume) =>
-      remoteDataSource.updateSequenceVolume(
         SequenceVolumeModel(
           id: volume.id,
           volume: volume.volume,
@@ -98,9 +87,19 @@ class SequenceRepositoryImpl implements SequenceRepository {
       );
 
   @override
-  Future<void> deleteSequenceVolume(String id) => remoteDataSource.deleteSequenceVolume(id);
+  Future<void> editSequenceVolume(SequenceVolumeEntity volume) =>
+      remoteDataSource.editSequenceVolume(
+        SequenceVolumeModel(
+          id: volume.id,
+          volume: volume.volume,
+          sequenceId: volume.sequenceId,
+          bookId: volume.bookId,
+          workId: volume.workId,
+          createdDate: volume.createdDate,
+          lastUpdated: volume.lastUpdated,
+        ),
+      );
 
   @override
-  Stream<List<SequenceVolumeEntity>> watchSequenceVolumes(String sequenceId, String userId) =>
-      remoteDataSource.watchSequenceVolumes(sequenceId, userId);
+  Future<void> removeSequenceVolume(String id) => remoteDataSource.removeSequenceVolume(id);
 }

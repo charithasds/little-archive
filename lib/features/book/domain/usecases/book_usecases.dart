@@ -5,14 +5,14 @@ class GetBooksUseCase {
   const GetBooksUseCase(this.repository);
   final BookRepository repository;
 
-  Future<List<BookEntity>> call(String userId) => repository.getBooks(userId);
+  Future<List<BookEntity>> call() => repository.getBooks();
 }
 
 class WatchBooksUseCase {
   const WatchBooksUseCase(this.repository);
   final BookRepository repository;
 
-  Stream<List<BookEntity>> call(String userId) => repository.watchBooks(userId);
+  Stream<List<BookEntity>> call() => repository.watchBooks();
 }
 
 class GetBookByIdUseCase {
@@ -29,16 +29,16 @@ class AddBookUseCase {
   Future<void> call(BookEntity book) => repository.addBook(book);
 }
 
-class UpdateBookUseCase {
-  const UpdateBookUseCase(this.repository);
+class EditBookUseCase {
+  const EditBookUseCase(this.repository);
   final BookRepository repository;
 
-  Future<void> call(BookEntity book) => repository.updateBook(book);
+  Future<void> call(BookEntity book) => repository.editBook(book);
 }
 
-class DeleteBookUseCase {
-  const DeleteBookUseCase(this.repository);
+class RemoveBookUseCase {
+  const RemoveBookUseCase(this.repository);
   final BookRepository repository;
 
-  Future<void> call(String id) => repository.deleteBook(id);
+  Future<void> call(String id) => repository.removeBook(id);
 }

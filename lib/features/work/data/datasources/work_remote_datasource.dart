@@ -1,46 +1,35 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/shared/data/services/firestore_service.dart';
-import '../../../../core/shared/domain/error/exceptions.dart';
 import '../models/work_model.dart';
 
 abstract class WorkRemoteDataSource {
   String generateId();
-  Future<List<WorkModel>> getWorks(String userId);
-  Future<WorkModel?> getWorkById(String id);
+
+  Future<List<WorkModel>> fetchWorks();
+  Future<WorkModel?> fetchWorkById(String id);
+  Stream<List<WorkModel>> watchWorks();
   Future<void> addWork(WorkModel work);
-  Future<void> updateWork(WorkModel work);
-  Future<void> deleteWork(String id);
-  Stream<List<WorkModel>> watchWorks(String userId);
+  Future<void> editWork(WorkModel work);
+  Future<void> removeWork(String id);
 }
 
 class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
-  WorkRemoteDataSourceImpl({required this.firestoreService});
+  WorkRemoteDataSourceImpl({required this.firestoreService, required this.userId});
 
   final FirestoreService firestoreService;
+  final String userId;
 
-  FirebaseFirestore get firestore => firestoreService.firebaseFirestore;
+  FirebaseFirestore get _firestore => firestoreService.firebaseFirestore;
+  String get _collectionPath => 'users/$userId/works';
 
   @override
   String generateId() => firestoreService.generateId('works');
 
-  String get _currentUserId {
-    final User? user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      throw const UnauthorizedException();
-    }
-
-    return user.uid;
-  }
-
-  String collectionPath(String uid) => 'users/$uid/works';
-
   @override
-  Future<List<WorkModel>> getWorks(String userId) async {
-    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(firestore.collection(collectionPath(userId)));
+  Future<List<WorkModel>> fetchWorks() async {
+    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
+        await firestoreService.safeGetDocs(_firestore.collection(_collectionPath));
 
     return docs
         .map(
@@ -51,10 +40,9 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
   }
 
   @override
-  Future<WorkModel?> getWorkById(String id) async {
-    final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
-      firestore.collection(collectionPath(_currentUserId)).doc(id),
-    );
+  Future<WorkModel?> fetchWorkById(String id) async {
+    final DocumentSnapshot<Map<String, dynamic>>? doc =
+        await firestoreService.safeGetDoc(_firestore.collection(_collectionPath).doc(id));
 
     if (doc == null || !doc.exists) {
       return null;
@@ -64,29 +52,8 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
   }
 
   @override
-  Future<void> addWork(WorkModel work) async {
-    await firestoreService.requireConnectivity();
-    await firestore
-        .collection(collectionPath(_currentUserId))
-        .doc(work.id.isEmpty ? null : work.id)
-        .set(work.toMap());
-  }
-
-  @override
-  Future<void> updateWork(WorkModel work) async {
-    await firestoreService.requireConnectivity();
-    await firestore.collection(collectionPath(_currentUserId)).doc(work.id).update(work.toMap());
-  }
-
-  @override
-  Future<void> deleteWork(String id) async {
-    await firestoreService.requireConnectivity();
-    await firestore.collection(collectionPath(_currentUserId)).doc(id).delete();
-  }
-
-  @override
-  Stream<List<WorkModel>> watchWorks(String userId) => firestore
-      .collection(collectionPath(userId))
+  Stream<List<WorkModel>> watchWorks() => _firestore
+      .collection(_collectionPath)
       .snapshots()
       .map(
         (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
@@ -96,4 +63,25 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
             )
             .toList(),
       );
+
+  @override
+  Future<void> addWork(WorkModel work) async {
+    await firestoreService.requireConnectivity();
+    await _firestore
+        .collection(_collectionPath)
+        .doc(work.id.isEmpty ? null : work.id)
+        .set(work.toMap());
+  }
+
+  @override
+  Future<void> editWork(WorkModel work) async {
+    await firestoreService.requireConnectivity();
+    await _firestore.collection(_collectionPath).doc(work.id).update(work.toMap());
+  }
+
+  @override
+  Future<void> removeWork(String id) async {
+    await firestoreService.requireConnectivity();
+    await _firestore.collection(_collectionPath).doc(id).delete();
+  }
 }

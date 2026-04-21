@@ -94,7 +94,7 @@ class UpsertAuthorController extends Notifier<UpsertAuthorState> {
 
     try {
       if (existingAuthor != null) {
-        await ref.read(updateAuthorUseCaseProvider)(authorToSave);
+        await ref.read(editAuthorUseCaseProvider)(authorToSave);
       } else {
         await ref.read(addAuthorUseCaseProvider)(authorToSave);
       }

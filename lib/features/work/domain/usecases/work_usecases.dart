@@ -5,14 +5,14 @@ class GetWorksUseCase {
   const GetWorksUseCase(this.repository);
   final WorkRepository repository;
 
-  Future<List<WorkEntity>> call(String userId) => repository.getWorks(userId);
+  Future<List<WorkEntity>> call() => repository.getWorks();
 }
 
 class WatchWorksUseCase {
   const WatchWorksUseCase(this.repository);
   final WorkRepository repository;
 
-  Stream<List<WorkEntity>> call(String userId) => repository.watchWorks(userId);
+  Stream<List<WorkEntity>> call() => repository.watchWorks();
 }
 
 class GetWorkByIdUseCase {
@@ -29,16 +29,16 @@ class AddWorkUseCase {
   Future<void> call(WorkEntity work) => repository.addWork(work);
 }
 
-class UpdateWorkUseCase {
-  const UpdateWorkUseCase(this.repository);
+class EditWorkUseCase {
+  const EditWorkUseCase(this.repository);
   final WorkRepository repository;
 
-  Future<void> call(WorkEntity work) => repository.updateWork(work);
+  Future<void> call(WorkEntity work) => repository.editWork(work);
 }
 
-class DeleteWorkUseCase {
-  const DeleteWorkUseCase(this.repository);
+class RemoveWorkUseCase {
+  const RemoveWorkUseCase(this.repository);
   final WorkRepository repository;
 
-  Future<void> call(String id) => repository.deleteWork(id);
+  Future<void> call(String id) => repository.removeWork(id);
 }

@@ -13,46 +13,49 @@ class AuthorRepositoryImpl implements AuthorRepository {
   String generateId() => remoteDataSource.generateId();
 
   @override
-  Future<List<AuthorEntity>> getAuthors(String userId) => remoteDataSource.getAuthors(userId);
+  Future<List<AuthorEntity>> getAuthors() => remoteDataSource.fetchAuthors();
 
   @override
-  Future<AuthorEntity?> getAuthorById(String id) => remoteDataSource.getAuthorById(id);
+  Future<AuthorEntity?> getAuthorById(String id) => remoteDataSource.fetchAuthorById(id);
+
+  @override
+  Stream<List<AuthorEntity>> watchAuthors() => remoteDataSource.watchAuthors();
 
   @override
   Future<void> addAuthor(AuthorEntity author) => remoteDataSource.addAuthor(
-    AuthorModel(
-      id: author.id,
-      name: author.name,
-      image: author.image,
-      otherName: author.otherName,
-      website: author.website,
-      facebook: author.facebook,
-      bookIds: author.bookIds,
-      workIds: author.workIds,
-      createdDate: author.createdDate,
-      lastUpdated: author.lastUpdated,
-    ),
-  );
+        AuthorModel(
+          id: author.id,
+          name: author.name,
+          image: author.image,
+          otherName: author.otherName,
+          website: author.website,
+          facebook: author.facebook,
+          bookIds: author.bookIds,
+          workIds: author.workIds,
+          createdDate: author.createdDate,
+          lastUpdated: author.lastUpdated,
+        ),
+      );
 
   @override
-  Future<void> updateAuthor(AuthorEntity author) => remoteDataSource.updateAuthor(
-    AuthorModel(
-      id: author.id,
-      name: author.name,
-      image: author.image,
-      otherName: author.otherName,
-      website: author.website,
-      facebook: author.facebook,
-      bookIds: author.bookIds,
-      workIds: author.workIds,
-      createdDate: author.createdDate,
-      lastUpdated: author.lastUpdated,
-    ),
-  );
+  Future<void> editAuthor(AuthorEntity author) => remoteDataSource.editAuthor(
+        AuthorModel(
+          id: author.id,
+          name: author.name,
+          image: author.image,
+          otherName: author.otherName,
+          website: author.website,
+          facebook: author.facebook,
+          bookIds: author.bookIds,
+          workIds: author.workIds,
+          createdDate: author.createdDate,
+          lastUpdated: author.lastUpdated,
+        ),
+      );
 
   @override
-  Future<void> deleteAuthor(String id) async {
-    final AuthorModel? existingAuthor = await remoteDataSource.getAuthorById(id);
+  Future<void> removeAuthor(String id) async {
+    final AuthorModel? existingAuthor = await remoteDataSource.fetchAuthorById(id);
 
     if (existingAuthor != null) {
       await relationshipSyncService.removeAuthorRelationships(
@@ -62,9 +65,6 @@ class AuthorRepositoryImpl implements AuthorRepository {
       );
     }
 
-    await remoteDataSource.deleteAuthor(id);
+    await remoteDataSource.removeAuthor(id);
   }
-
-  @override
-  Stream<List<AuthorEntity>> watchAuthors(String userId) => remoteDataSource.watchAuthors(userId);
 }

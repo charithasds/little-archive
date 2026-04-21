@@ -2,10 +2,11 @@ import '../entities/translator_entity.dart';
 
 abstract class TranslatorRepository {
   String generateId();
-  Future<List<TranslatorEntity>> getTranslators(String userId);
+
+  Future<List<TranslatorEntity>> getTranslators();
   Future<TranslatorEntity?> getTranslatorById(String id);
+  Stream<List<TranslatorEntity>> watchTranslators();
   Future<void> addTranslator(TranslatorEntity translator);
-  Future<void> updateTranslator(TranslatorEntity translator);
-  Future<void> deleteTranslator(String id);
-  Stream<List<TranslatorEntity>> watchTranslators(String userId);
+  Future<void> editTranslator(TranslatorEntity translator);
+  Future<void> removeTranslator(String id);
 }

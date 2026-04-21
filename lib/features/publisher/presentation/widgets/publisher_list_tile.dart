@@ -11,13 +11,13 @@ class PublisherListTile extends ConsumerWidget {
     required this.publisher,
     required this.onTap,
     required this.onEdit,
-    required this.onDelete,
+    required this.onRemove,
   });
 
   final PublisherEntity publisher;
   final VoidCallback onTap;
   final VoidCallback onEdit;
-  final VoidCallback onDelete;
+  final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -93,9 +93,9 @@ class PublisherListTile extends ConsumerWidget {
                     tooltip: 'Edit',
                   ),
                   IconButton(
-                    icon: Icon(Icons.delete_sweep_rounded, color: colorScheme.error),
-                    onPressed: onDelete,
-                    tooltip: 'Delete',
+                    icon: Icon(Icons.remove_circle_outline_rounded, color: colorScheme.error),
+                    onPressed: onRemove,
+                    tooltip: 'Remove',
                   ),
                 ],
               ),

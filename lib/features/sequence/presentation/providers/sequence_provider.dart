@@ -1,8 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/data/services/firestore_service.dart';
+import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/presentation/providers/firestore_service_provider.dart';
 import '../../data/datasources/sequence_remote_datasource.dart';
 import '../../data/repositories/sequence_repository_impl.dart';
@@ -16,8 +16,13 @@ part 'sequence_provider.g.dart';
 @riverpod
 SequenceRemoteDataSource sequenceRemoteDataSource(Ref ref) {
   final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
+  final String? userId = ref.watch(currentUidProvider);
 
-  return SequenceRemoteDataSourceImpl(firestoreService: firestoreService);
+  if (userId == null) {
+    throw const UnauthorizedException();
+  }
+
+  return SequenceRemoteDataSourceImpl(firestoreService: firestoreService, userId: userId);
 }
 
 @riverpod
@@ -44,12 +49,12 @@ AddSequenceUseCase addSequenceUseCase(Ref ref) =>
     AddSequenceUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
-UpdateSequenceUseCase updateSequenceUseCase(Ref ref) =>
-    UpdateSequenceUseCase(ref.watch(sequenceRepositoryProvider));
+EditSequenceUseCase editSequenceUseCase(Ref ref) =>
+    EditSequenceUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
-DeleteSequenceUseCase deleteSequenceUseCase(Ref ref) =>
-    DeleteSequenceUseCase(ref.watch(sequenceRepositoryProvider));
+RemoveSequenceUseCase removeSequenceUseCase(Ref ref) =>
+    RemoveSequenceUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
 GetSequenceVolumeByIdUseCase getSequenceVolumeByIdUseCase(Ref ref) =>
@@ -72,12 +77,12 @@ AddSequenceVolumeUseCase addSequenceVolumeUseCase(Ref ref) =>
     AddSequenceVolumeUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
-UpdateSequenceVolumeUseCase updateSequenceVolumeUseCase(Ref ref) =>
-    UpdateSequenceVolumeUseCase(ref.watch(sequenceRepositoryProvider));
+EditSequenceVolumeUseCase editSequenceVolumeUseCase(Ref ref) =>
+    EditSequenceVolumeUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
-DeleteSequenceVolumeUseCase deleteSequenceVolumeUseCase(Ref ref) =>
-    DeleteSequenceVolumeUseCase(ref.watch(sequenceRepositoryProvider));
+RemoveSequenceVolumeUseCase removeSequenceVolumeUseCase(Ref ref) =>
+    RemoveSequenceVolumeUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
 WatchSequenceVolumesUseCase watchSequenceVolumesUseCase(Ref ref) =>
@@ -86,25 +91,25 @@ WatchSequenceVolumesUseCase watchSequenceVolumesUseCase(Ref ref) =>
 @riverpod
 Stream<List<SequenceEntity>> sequencesStream(Ref ref) {
   final WatchSequencesUseCase watchSequences = ref.watch(watchSequencesUseCaseProvider);
-  final UserEntity? user = ref.watch(authStateProvider).value;
+  final String? userId = ref.watch(currentUidProvider);
 
-  if (user == null) {
+  if (userId == null) {
     return Stream<List<SequenceEntity>>.value(<SequenceEntity>[]);
   }
 
-  return watchSequences(user.uid);
+  return watchSequences();
 }
 
 @riverpod
 Stream<List<SequenceVolumeEntity>> sequenceVolumesStream(Ref ref, String sequenceId) {
   final WatchSequenceVolumesUseCase watchVolumes = ref.watch(watchSequenceVolumesUseCaseProvider);
-  final UserEntity? user = ref.watch(authStateProvider).value;
+  final String? userId = ref.watch(currentUidProvider);
 
-  if (user == null) {
+  if (userId == null) {
     return Stream<List<SequenceVolumeEntity>>.value(<SequenceVolumeEntity>[]);
   }
 
-  return watchVolumes(sequenceId, user.uid);
+  return watchVolumes(sequenceId);
 }
 
 class SequenceStats {

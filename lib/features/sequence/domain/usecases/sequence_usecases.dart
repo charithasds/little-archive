@@ -6,14 +6,14 @@ class GetSequencesUseCase {
   const GetSequencesUseCase(this.repository);
   final SequenceRepository repository;
 
-  Future<List<SequenceEntity>> call(String userId) => repository.getSequences(userId);
+  Future<List<SequenceEntity>> call() => repository.getSequences();
 }
 
 class WatchSequencesUseCase {
   const WatchSequencesUseCase(this.repository);
   final SequenceRepository repository;
 
-  Stream<List<SequenceEntity>> call(String userId) => repository.watchSequences(userId);
+  Stream<List<SequenceEntity>> call() => repository.watchSequences();
 }
 
 class GetSequenceByIdUseCase {
@@ -30,26 +30,26 @@ class AddSequenceUseCase {
   Future<void> call(SequenceEntity sequence) => repository.addSequence(sequence);
 }
 
-class UpdateSequenceUseCase {
-  const UpdateSequenceUseCase(this.repository);
+class EditSequenceUseCase {
+  const EditSequenceUseCase(this.repository);
   final SequenceRepository repository;
 
-  Future<void> call(SequenceEntity sequence) => repository.updateSequence(sequence);
+  Future<void> call(SequenceEntity sequence) => repository.editSequence(sequence);
 }
 
-class DeleteSequenceUseCase {
-  const DeleteSequenceUseCase(this.repository);
+class RemoveSequenceUseCase {
+  const RemoveSequenceUseCase(this.repository);
   final SequenceRepository repository;
 
-  Future<void> call(String id) => repository.deleteSequence(id);
+  Future<void> call(String id) => repository.removeSequence(id);
 }
 
 class GetSequenceVolumesUseCase {
   const GetSequenceVolumesUseCase(this.repository);
   final SequenceRepository repository;
 
-  Future<List<SequenceVolumeEntity>> call(String sequenceId, String userId) =>
-      repository.getSequenceVolumes(sequenceId, userId);
+  Future<List<SequenceVolumeEntity>> call(String sequenceId) =>
+      repository.getSequenceVolumes(sequenceId);
 }
 
 class GetSequenceVolumeByIdUseCase {
@@ -63,16 +63,16 @@ class GetSequenceVolumesByBookIdUseCase {
   const GetSequenceVolumesByBookIdUseCase(this.repository);
   final SequenceRepository repository;
 
-  Future<List<SequenceVolumeEntity>> call(String bookId, String userId) =>
-      repository.getSequenceVolumesByBookId(bookId, userId);
+  Future<List<SequenceVolumeEntity>> call(String bookId) =>
+      repository.getSequenceVolumesByBookId(bookId);
 }
 
 class GetSequenceVolumesByWorkIdUseCase {
   const GetSequenceVolumesByWorkIdUseCase(this.repository);
   final SequenceRepository repository;
 
-  Future<List<SequenceVolumeEntity>> call(String workId, String userId) =>
-      repository.getSequenceVolumesByWorkId(workId, userId);
+  Future<List<SequenceVolumeEntity>> call(String workId) =>
+      repository.getSequenceVolumesByWorkId(workId);
 }
 
 class AddSequenceVolumeUseCase {
@@ -82,24 +82,24 @@ class AddSequenceVolumeUseCase {
   Future<void> call(SequenceVolumeEntity volume) => repository.addSequenceVolume(volume);
 }
 
-class UpdateSequenceVolumeUseCase {
-  const UpdateSequenceVolumeUseCase(this.repository);
+class EditSequenceVolumeUseCase {
+  const EditSequenceVolumeUseCase(this.repository);
   final SequenceRepository repository;
 
-  Future<void> call(SequenceVolumeEntity volume) => repository.updateSequenceVolume(volume);
+  Future<void> call(SequenceVolumeEntity volume) => repository.editSequenceVolume(volume);
 }
 
-class DeleteSequenceVolumeUseCase {
-  const DeleteSequenceVolumeUseCase(this.repository);
+class RemoveSequenceVolumeUseCase {
+  const RemoveSequenceVolumeUseCase(this.repository);
   final SequenceRepository repository;
 
-  Future<void> call(String id) => repository.deleteSequenceVolume(id);
+  Future<void> call(String id) => repository.removeSequenceVolume(id);
 }
 
 class WatchSequenceVolumesUseCase {
   const WatchSequenceVolumesUseCase(this.repository);
   final SequenceRepository repository;
 
-  Stream<List<SequenceVolumeEntity>> call(String sequenceId, String userId) =>
-      repository.watchSequenceVolumes(sequenceId, userId);
+  Stream<List<SequenceVolumeEntity>> call(String sequenceId) =>
+      repository.watchSequenceVolumes(sequenceId);
 }

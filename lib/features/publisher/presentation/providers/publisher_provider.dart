@@ -1,9 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/data/services/firestore_service.dart';
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
+import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/presentation/providers/firestore_service_provider.dart';
 import '../../../../core/shared/presentation/providers/relationship_sync_service_provider.dart';
 import '../../data/datasources/publisher_remote_datasource.dart';
@@ -17,8 +17,13 @@ part 'publisher_provider.g.dart';
 @riverpod
 PublisherRemoteDataSource publisherRemoteDataSource(Ref ref) {
   final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
+  final String? userId = ref.watch(currentUidProvider);
 
-  return PublisherRemoteDataSourceImpl(firestoreService: firestoreService);
+  if (userId == null) {
+    throw const UnauthorizedException();
+  }
+
+  return PublisherRemoteDataSourceImpl(firestoreService: firestoreService, userId: userId);
 }
 
 @riverpod
@@ -51,21 +56,21 @@ AddPublisherUseCase addPublisherUseCase(Ref ref) =>
     AddPublisherUseCase(ref.watch(publisherRepositoryProvider));
 
 @riverpod
-UpdatePublisherUseCase updatePublisherUseCase(Ref ref) =>
-    UpdatePublisherUseCase(ref.watch(publisherRepositoryProvider));
+EditPublisherUseCase editPublisherUseCase(Ref ref) =>
+    EditPublisherUseCase(ref.watch(publisherRepositoryProvider));
 
 @riverpod
-DeletePublisherUseCase deletePublisherUseCase(Ref ref) =>
-    DeletePublisherUseCase(ref.watch(publisherRepositoryProvider));
+RemovePublisherUseCase removePublisherUseCase(Ref ref) =>
+    RemovePublisherUseCase(ref.watch(publisherRepositoryProvider));
 
 @riverpod
 Stream<List<PublisherEntity>> publishersStream(Ref ref) {
   final WatchPublishersUseCase watchPublishers = ref.watch(watchPublishersUseCaseProvider);
-  final UserEntity? user = ref.watch(authStateProvider).value;
+  final String? userId = ref.watch(currentUidProvider);
 
-  if (user == null) {
+  if (userId == null) {
     return Stream<List<PublisherEntity>>.value(<PublisherEntity>[]);
   }
 
-  return watchPublishers(user.uid);
+  return watchPublishers();
 }

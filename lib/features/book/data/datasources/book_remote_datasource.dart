@@ -1,46 +1,34 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/shared/data/services/firestore_service.dart';
-import '../../../../core/shared/domain/error/exceptions.dart';
 import '../models/book_model.dart';
 
 abstract class BookRemoteDataSource {
   String generateId();
-  Future<List<BookModel>> getBooks(String userId);
-  Future<BookModel?> getBookById(String id);
+  Future<List<BookModel>> fetchBooks();
+  Future<BookModel?> fetchBookById(String id);
+  Stream<List<BookModel>> watchBooks();
   Future<void> addBook(BookModel book);
-  Future<void> updateBook(BookModel book);
-  Future<void> deleteBook(String id);
-  Stream<List<BookModel>> watchBooks(String userId);
+  Future<void> editBook(BookModel book);
+  Future<void> removeBook(String id);
 }
 
 class BookRemoteDataSourceImpl implements BookRemoteDataSource {
-  BookRemoteDataSourceImpl({required this.firestoreService});
+  BookRemoteDataSourceImpl({required this.firestoreService, required this.userId});
 
   final FirestoreService firestoreService;
+  final String userId;
 
-  FirebaseFirestore get firestore => firestoreService.firebaseFirestore;
+  FirebaseFirestore get _firestore => firestoreService.firebaseFirestore;
+  String get _collectionPath => 'users/$userId/books';
 
   @override
   String generateId() => firestoreService.generateId('books');
 
-  String get _currentUserId {
-    final User? user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      throw const UnauthorizedException();
-    }
-
-    return user.uid;
-  }
-
-  String collectionPath(String uid) => 'users/$uid/books';
-
   @override
-  Future<List<BookModel>> getBooks(String userId) async {
-    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(firestore.collection(collectionPath(userId)));
+  Future<List<BookModel>> fetchBooks() async {
+    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
+        await firestoreService.safeGetDocs(_firestore.collection(_collectionPath));
 
     return docs
         .map(
@@ -51,10 +39,9 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
   }
 
   @override
-  Future<BookModel?> getBookById(String id) async {
-    final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
-      firestore.collection(collectionPath(_currentUserId)).doc(id),
-    );
+  Future<BookModel?> fetchBookById(String id) async {
+    final DocumentSnapshot<Map<String, dynamic>>? doc =
+        await firestoreService.safeGetDoc(_firestore.collection(_collectionPath).doc(id));
 
     if (doc == null || !doc.exists) {
       return null;
@@ -64,29 +51,8 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
   }
 
   @override
-  Future<void> addBook(BookModel book) async {
-    await firestoreService.requireConnectivity();
-    await firestore
-        .collection(collectionPath(_currentUserId))
-        .doc(book.id.isEmpty ? null : book.id)
-        .set(book.toMap());
-  }
-
-  @override
-  Future<void> updateBook(BookModel book) async {
-    await firestoreService.requireConnectivity();
-    await firestore.collection(collectionPath(_currentUserId)).doc(book.id).update(book.toMap());
-  }
-
-  @override
-  Future<void> deleteBook(String id) async {
-    await firestoreService.requireConnectivity();
-    await firestore.collection(collectionPath(_currentUserId)).doc(id).delete();
-  }
-
-  @override
-  Stream<List<BookModel>> watchBooks(String userId) => firestore
-      .collection(collectionPath(userId))
+  Stream<List<BookModel>> watchBooks() => _firestore
+      .collection(_collectionPath)
       .snapshots()
       .map(
         (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
@@ -96,4 +62,25 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
             )
             .toList(),
       );
+
+  @override
+  Future<void> addBook(BookModel book) async {
+    await firestoreService.requireConnectivity();
+    await _firestore
+        .collection(_collectionPath)
+        .doc(book.id.isEmpty ? null : book.id)
+        .set(book.toMap());
+  }
+
+  @override
+  Future<void> editBook(BookModel book) async {
+    await firestoreService.requireConnectivity();
+    await _firestore.collection(_collectionPath).doc(book.id).update(book.toMap());
+  }
+
+  @override
+  Future<void> removeBook(String id) async {
+    await firestoreService.requireConnectivity();
+    await _firestore.collection(_collectionPath).doc(id).delete();
+  }
 }

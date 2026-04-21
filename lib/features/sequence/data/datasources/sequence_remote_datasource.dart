@@ -1,61 +1,46 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/shared/data/services/firestore_service.dart';
-import '../../../../core/shared/domain/error/exceptions.dart';
 import '../models/sequence_model.dart';
 import '../models/sequence_volume_model.dart';
 
 abstract class SequenceRemoteDataSource {
   String generateId();
-  String generateVolumeId();
-  Future<List<SequenceModel>> getSequences(String userId);
-  Future<SequenceModel?> getSequenceById(String id);
+  Future<List<SequenceModel>> fetchSequences();
+  Future<SequenceModel?> fetchSequenceById(String id);
+  Stream<List<SequenceModel>> watchSequences();
   Future<void> addSequence(SequenceModel sequence);
-  Future<void> updateSequence(SequenceModel sequence);
-  Future<void> deleteSequence(String id);
-  Stream<List<SequenceModel>> watchSequences(String userId);
+  Future<void> editSequence(SequenceModel sequence);
+  Future<void> removeSequence(String id);
 
-  Future<List<SequenceVolumeModel>> getSequenceVolumes(String sequenceId, String userId);
-  Future<SequenceVolumeModel?> getSequenceVolumeById(String id);
-  Future<List<SequenceVolumeModel>> getSequenceVolumesByBookId(String bookId, String userId);
-  Future<List<SequenceVolumeModel>> getSequenceVolumesByWorkId(String workId, String userId);
+  String generateVolumeId();
+  Future<List<SequenceVolumeModel>> fetchSequenceVolumes(String sequenceId);
+  Future<SequenceVolumeModel?> fetchSequenceVolumeById(String id);
+  Future<List<SequenceVolumeModel>> fetchSequenceVolumesByBookId(String bookId);
+  Future<List<SequenceVolumeModel>> fetchSequenceVolumesByWorkId(String workId);
+  Stream<List<SequenceVolumeModel>> watchSequenceVolumes(String sequenceId);
   Future<void> addSequenceVolume(SequenceVolumeModel volume);
-  Future<void> updateSequenceVolume(SequenceVolumeModel volume);
-  Future<void> deleteSequenceVolume(String id);
-  Stream<List<SequenceVolumeModel>> watchSequenceVolumes(String sequenceId, String userId);
+  Future<void> editSequenceVolume(SequenceVolumeModel volume);
+  Future<void> removeSequenceVolume(String id);
 }
 
 class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
-  SequenceRemoteDataSourceImpl({required this.firestoreService});
+  SequenceRemoteDataSourceImpl({required this.firestoreService, required this.userId});
 
   final FirestoreService firestoreService;
+  final String userId;
 
-  FirebaseFirestore get firestore => firestoreService.firebaseFirestore;
+  FirebaseFirestore get _firestore => firestoreService.firebaseFirestore;
+  String get _collectionPath => 'users/$userId/sequences';
+  String get _volumesCollectionPath => 'users/$userId/sequence_volumes';
 
   @override
   String generateId() => firestoreService.generateId('sequences');
 
   @override
-  String generateVolumeId() => firestoreService.generateId('sequence_volumes');
-
-  String get _currentUserId {
-    final User? user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      throw const UnauthorizedException();
-    }
-
-    return user.uid;
-  }
-
-  String collectionPath(String uid) => 'users/$uid/sequences';
-  String volumesCollectionPath(String uid) => 'users/$uid/sequence_volumes';
-
-  @override
-  Future<List<SequenceModel>> getSequences(String userId) async {
+  Future<List<SequenceModel>> fetchSequences() async {
     final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(firestore.collection(collectionPath(userId)));
+        .safeGetDocs(_firestore.collection(_collectionPath));
 
     return docs
         .map(
@@ -66,9 +51,9 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   }
 
   @override
-  Future<SequenceModel?> getSequenceById(String id) async {
+  Future<SequenceModel?> fetchSequenceById(String id) async {
     final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
-      firestore.collection(collectionPath(_currentUserId)).doc(id),
+      _firestore.collection(_collectionPath).doc(id),
     );
 
     if (doc == null || !doc.exists) {
@@ -79,32 +64,8 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   }
 
   @override
-  Future<void> addSequence(SequenceModel sequence) async {
-    await firestoreService.requireConnectivity();
-    await firestore
-        .collection(collectionPath(_currentUserId))
-        .doc(sequence.id.isEmpty ? null : sequence.id)
-        .set(sequence.toMap());
-  }
-
-  @override
-  Future<void> updateSequence(SequenceModel sequence) async {
-    await firestoreService.requireConnectivity();
-    await firestore
-        .collection(collectionPath(_currentUserId))
-        .doc(sequence.id)
-        .update(sequence.toMap());
-  }
-
-  @override
-  Future<void> deleteSequence(String id) async {
-    await firestoreService.requireConnectivity();
-    await firestore.collection(collectionPath(_currentUserId)).doc(id).delete();
-  }
-
-  @override
-  Stream<List<SequenceModel>> watchSequences(String userId) => firestore
-      .collection(collectionPath(userId))
+  Stream<List<SequenceModel>> watchSequences() => _firestore
+      .collection(_collectionPath)
       .snapshots()
       .map(
         (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
@@ -116,12 +77,34 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
       );
 
   @override
-  Future<List<SequenceVolumeModel>> getSequenceVolumes(String sequenceId, String userId) async {
+  Future<void> addSequence(SequenceModel sequence) async {
+    await firestoreService.requireConnectivity();
+    await _firestore
+        .collection(_collectionPath)
+        .doc(sequence.id.isEmpty ? null : sequence.id)
+        .set(sequence.toMap());
+  }
+
+  @override
+  Future<void> editSequence(SequenceModel sequence) async {
+    await firestoreService.requireConnectivity();
+    await _firestore.collection(_collectionPath).doc(sequence.id).update(sequence.toMap());
+  }
+
+  @override
+  Future<void> removeSequence(String id) async {
+    await firestoreService.requireConnectivity();
+    await _firestore.collection(_collectionPath).doc(id).delete();
+  }
+
+  @override
+  String generateVolumeId() => firestoreService.generateId('sequence_volumes');
+
+  @override
+  Future<List<SequenceVolumeModel>> fetchSequenceVolumes(String sequenceId) async {
     final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
         .safeGetDocs(
-          firestore
-              .collection(volumesCollectionPath(userId))
-              .where('sequenceId', isEqualTo: sequenceId),
+          _firestore.collection(_volumesCollectionPath).where('sequenceId', isEqualTo: sequenceId),
         );
 
     return docs
@@ -133,9 +116,9 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   }
 
   @override
-  Future<SequenceVolumeModel?> getSequenceVolumeById(String id) async {
+  Future<SequenceVolumeModel?> fetchSequenceVolumeById(String id) async {
     final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
-      firestore.collection(volumesCollectionPath(_currentUserId)).doc(id),
+      _firestore.collection(_volumesCollectionPath).doc(id),
     );
 
     if (doc == null || !doc.exists) {
@@ -146,10 +129,10 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   }
 
   @override
-  Future<List<SequenceVolumeModel>> getSequenceVolumesByBookId(String bookId, String userId) async {
+  Future<List<SequenceVolumeModel>> fetchSequenceVolumesByBookId(String bookId) async {
     final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
         .safeGetDocs(
-          firestore.collection(volumesCollectionPath(userId)).where('bookId', isEqualTo: bookId),
+          _firestore.collection(_volumesCollectionPath).where('bookId', isEqualTo: bookId),
         );
 
     return docs
@@ -161,10 +144,10 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   }
 
   @override
-  Future<List<SequenceVolumeModel>> getSequenceVolumesByWorkId(String workId, String userId) async {
+  Future<List<SequenceVolumeModel>> fetchSequenceVolumesByWorkId(String workId) async {
     final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
         .safeGetDocs(
-          firestore.collection(volumesCollectionPath(userId)).where('workId', isEqualTo: workId),
+          _firestore.collection(_volumesCollectionPath).where('workId', isEqualTo: workId),
         );
 
     return docs
@@ -174,43 +157,39 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
         )
         .toList();
   }
+
+  @override
+  Stream<List<SequenceVolumeModel>> watchSequenceVolumes(String sequenceId) => _firestore
+      .collection(_volumesCollectionPath)
+      .where('sequenceId', isEqualTo: sequenceId)
+      .snapshots()
+      .map(
+        (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
+            .map(
+              (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
+                  SequenceVolumeModel.fromMap(doc.data(), doc.id),
+            )
+            .toList(),
+      );
 
   @override
   Future<void> addSequenceVolume(SequenceVolumeModel volume) async {
     await firestoreService.requireConnectivity();
-    await firestore
-        .collection(volumesCollectionPath(_currentUserId))
+    await _firestore
+        .collection(_volumesCollectionPath)
         .doc(volume.id.isEmpty ? null : volume.id)
         .set(volume.toMap());
   }
 
   @override
-  Future<void> updateSequenceVolume(SequenceVolumeModel volume) async {
+  Future<void> editSequenceVolume(SequenceVolumeModel volume) async {
     await firestoreService.requireConnectivity();
-    await firestore
-        .collection(volumesCollectionPath(_currentUserId))
-        .doc(volume.id)
-        .update(volume.toMap());
+    await _firestore.collection(_volumesCollectionPath).doc(volume.id).update(volume.toMap());
   }
 
   @override
-  Future<void> deleteSequenceVolume(String id) async {
+  Future<void> removeSequenceVolume(String id) async {
     await firestoreService.requireConnectivity();
-    await firestore.collection(volumesCollectionPath(_currentUserId)).doc(id).delete();
+    await _firestore.collection(_volumesCollectionPath).doc(id).delete();
   }
-
-  @override
-  Stream<List<SequenceVolumeModel>> watchSequenceVolumes(String sequenceId, String userId) =>
-      firestore
-          .collection(volumesCollectionPath(userId))
-          .where('sequenceId', isEqualTo: sequenceId)
-          .snapshots()
-          .map(
-            (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
-                .map(
-                  (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-                      SequenceVolumeModel.fromMap(doc.data(), doc.id),
-                )
-                .toList(),
-          );
 }

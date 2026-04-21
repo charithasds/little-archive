@@ -66,10 +66,10 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
       if (existingWork != null) {
         final List<SequenceVolumeEntity> oldVolumes = await ref
             .read(sequenceRepositoryProvider)
-            .getSequenceVolumesByWorkId(workId, user.uid);
+            .getSequenceVolumesByWorkId(workId);
 
         for (final SequenceVolumeEntity vol in oldVolumes) {
-          await ref.read(sequenceRepositoryProvider).deleteSequenceVolume(vol.id);
+          await ref.read(sequenceRepositoryProvider).removeSequenceVolume(vol.id);
 
           final SequenceEntity? seq = await ref
               .read(sequenceRepositoryProvider)
@@ -79,7 +79,7 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
             final List<String> newIds = List<String>.from(seq.sequenceVolumeIds)..remove(vol.id);
             await ref
                 .read(sequenceRepositoryProvider)
-                .updateSequence(seq.copyWith(sequenceVolumeIds: newIds));
+                .editSequence(seq.copyWith(sequenceVolumeIds: newIds));
           }
         }
       }
@@ -108,7 +108,7 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
           final SequenceEntity updatedSequence = currentSequence.copyWith(
             sequenceVolumeIds: <String>[...currentSequence.sequenceVolumeIds, volumeId],
           );
-          await ref.read(sequenceRepositoryProvider).updateSequence(updatedSequence);
+          await ref.read(sequenceRepositoryProvider).editSequence(updatedSequence);
         }
 
         sequenceVolumeIds.add(volumeId);
@@ -159,7 +159,7 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
             );
 
       if (existingWork != null) {
-        await ref.read(updateWorkUseCaseProvider)(workToSave);
+        await ref.read(editWorkUseCaseProvider)(workToSave);
       } else {
         await ref.read(addWorkUseCaseProvider)(workToSave);
       }
@@ -204,7 +204,7 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
       if (oldBook != null) {
         final List<String> updated =
             List<String>.from(oldBook.workIds)..remove(workId);
-        await ref.read(updateBookUseCaseProvider)(
+        await ref.read(editBookUseCaseProvider)(
           oldBook.copyWith(workIds: updated),
         );
       }
@@ -217,7 +217,7 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
       if (newBook != null && !newBook.workIds.contains(workId)) {
         final List<String> updated =
             List<String>.from(newBook.workIds)..add(workId);
-        await ref.read(updateBookUseCaseProvider)(
+        await ref.read(editBookUseCaseProvider)(
           newBook.copyWith(workIds: updated),
         );
       }

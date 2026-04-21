@@ -1,46 +1,35 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/shared/data/services/firestore_service.dart';
-import '../../../../core/shared/domain/error/exceptions.dart';
 import '../models/translator_model.dart';
 
 abstract class TranslatorRemoteDataSource {
   String generateId();
-  Future<List<TranslatorModel>> getTranslators(String userId);
-  Future<TranslatorModel?> getTranslatorById(String id);
+
+  Future<List<TranslatorModel>> fetchTranslators();
+  Future<TranslatorModel?> fetchTranslatorById(String id);
+  Stream<List<TranslatorModel>> watchTranslators();
   Future<void> addTranslator(TranslatorModel translator);
-  Future<void> updateTranslator(TranslatorModel translator);
-  Future<void> deleteTranslator(String id);
-  Stream<List<TranslatorModel>> watchTranslators(String userId);
+  Future<void> editTranslator(TranslatorModel translator);
+  Future<void> removeTranslator(String id);
 }
 
 class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
-  TranslatorRemoteDataSourceImpl({required this.firestoreService});
+  TranslatorRemoteDataSourceImpl({required this.firestoreService, required this.userId});
 
   final FirestoreService firestoreService;
+  final String userId;
 
-  FirebaseFirestore get firestore => firestoreService.firebaseFirestore;
+  FirebaseFirestore get _firestore => firestoreService.firebaseFirestore;
+  String get _collectionPath => 'users/$userId/translators';
 
   @override
   String generateId() => firestoreService.generateId('translators');
 
-  String get _currentUserId {
-    final User? user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      throw const UnauthorizedException();
-    }
-
-    return user.uid;
-  }
-
-  String collectionPath(String uid) => 'users/$uid/translators';
-
   @override
-  Future<List<TranslatorModel>> getTranslators(String userId) async {
-    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(firestore.collection(collectionPath(userId)));
+  Future<List<TranslatorModel>> fetchTranslators() async {
+    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
+        await firestoreService.safeGetDocs(_firestore.collection(_collectionPath));
 
     return docs
         .map(
@@ -51,10 +40,9 @@ class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
   }
 
   @override
-  Future<TranslatorModel?> getTranslatorById(String id) async {
-    final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
-      firestore.collection(collectionPath(_currentUserId)).doc(id),
-    );
+  Future<TranslatorModel?> fetchTranslatorById(String id) async {
+    final DocumentSnapshot<Map<String, dynamic>>? doc =
+        await firestoreService.safeGetDoc(_firestore.collection(_collectionPath).doc(id));
 
     if (doc == null || !doc.exists) {
       return null;
@@ -64,32 +52,8 @@ class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
   }
 
   @override
-  Future<void> addTranslator(TranslatorModel translator) async {
-    await firestoreService.requireConnectivity();
-    await firestore
-        .collection(collectionPath(_currentUserId))
-        .doc(translator.id.isEmpty ? null : translator.id)
-        .set(translator.toMap());
-  }
-
-  @override
-  Future<void> updateTranslator(TranslatorModel translator) async {
-    await firestoreService.requireConnectivity();
-    await firestore
-        .collection(collectionPath(_currentUserId))
-        .doc(translator.id)
-        .update(translator.toMap());
-  }
-
-  @override
-  Future<void> deleteTranslator(String id) async {
-    await firestoreService.requireConnectivity();
-    await firestore.collection(collectionPath(_currentUserId)).doc(id).delete();
-  }
-
-  @override
-  Stream<List<TranslatorModel>> watchTranslators(String userId) => firestore
-      .collection(collectionPath(userId))
+  Stream<List<TranslatorModel>> watchTranslators() => _firestore
+      .collection(_collectionPath)
       .snapshots()
       .map(
         (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
@@ -99,4 +63,25 @@ class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
             )
             .toList(),
       );
+
+  @override
+  Future<void> addTranslator(TranslatorModel translator) async {
+    await firestoreService.requireConnectivity();
+    await _firestore
+        .collection(_collectionPath)
+        .doc(translator.id.isEmpty ? null : translator.id)
+        .set(translator.toMap());
+  }
+
+  @override
+  Future<void> editTranslator(TranslatorModel translator) async {
+    await firestoreService.requireConnectivity();
+    await _firestore.collection(_collectionPath).doc(translator.id).update(translator.toMap());
+  }
+
+  @override
+  Future<void> removeTranslator(String id) async {
+    await firestoreService.requireConnectivity();
+    await _firestore.collection(_collectionPath).doc(id).delete();
+  }
 }

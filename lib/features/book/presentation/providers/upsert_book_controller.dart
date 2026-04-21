@@ -104,10 +104,10 @@ class UpsertBookController extends Notifier<UpsertBookState> {
       if (existingBook != null) {
         final List<SequenceVolumeEntity> oldVolumes = await ref
             .read(sequenceRepositoryProvider)
-            .getSequenceVolumesByBookId(bookId, user.uid);
+            .getSequenceVolumesByBookId(bookId);
 
         for (final SequenceVolumeEntity vol in oldVolumes) {
-          await ref.read(sequenceRepositoryProvider).deleteSequenceVolume(vol.id);
+          await ref.read(sequenceRepositoryProvider).removeSequenceVolume(vol.id);
 
           final SequenceEntity? seq = await ref
               .read(sequenceRepositoryProvider)
@@ -117,7 +117,7 @@ class UpsertBookController extends Notifier<UpsertBookState> {
             final List<String> newIds = List<String>.from(seq.sequenceVolumeIds)..remove(vol.id);
             await ref
                 .read(sequenceRepositoryProvider)
-                .updateSequence(seq.copyWith(sequenceVolumeIds: newIds));
+                .editSequence(seq.copyWith(sequenceVolumeIds: newIds));
           }
         }
       }
@@ -146,7 +146,7 @@ class UpsertBookController extends Notifier<UpsertBookState> {
           final SequenceEntity updatedSequence = currentSequence.copyWith(
             sequenceVolumeIds: <String>[...currentSequence.sequenceVolumeIds, volumeId],
           );
-          await ref.read(sequenceRepositoryProvider).updateSequence(updatedSequence);
+          await ref.read(sequenceRepositoryProvider).editSequence(updatedSequence);
         }
 
         sequenceVolumeIds.add(volumeId);
@@ -215,7 +215,7 @@ class UpsertBookController extends Notifier<UpsertBookState> {
             );
 
       if (existingBook != null) {
-        await ref.read(updateBookUseCaseProvider)(bookToSave);
+        await ref.read(editBookUseCaseProvider)(bookToSave);
       } else {
         await ref.read(addBookUseCaseProvider)(bookToSave);
       }

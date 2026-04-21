@@ -13,46 +13,49 @@ class ReaderRepositoryImpl implements ReaderRepository {
   String generateId() => remoteDataSource.generateId();
 
   @override
-  Future<List<ReaderEntity>> getReaders(String userId) => remoteDataSource.getReaders(userId);
+  Future<List<ReaderEntity>> getReaders() => remoteDataSource.fetchReaders();
 
   @override
-  Future<ReaderEntity?> getReaderById(String id) => remoteDataSource.getReaderById(id);
+  Future<ReaderEntity?> getReaderById(String id) => remoteDataSource.fetchReaderById(id);
+
+  @override
+  Stream<List<ReaderEntity>> watchReaders() => remoteDataSource.watchReaders();
 
   @override
   Future<void> addReader(ReaderEntity reader) => remoteDataSource.addReader(
-    ReaderModel(
-      id: reader.id,
-      name: reader.name,
-      image: reader.image,
-      otherName: reader.otherName,
-      email: reader.email,
-      facebook: reader.facebook,
-      phoneNumber: reader.phoneNumber,
-      bookIds: reader.bookIds,
-      createdDate: reader.createdDate,
-      lastUpdated: reader.lastUpdated,
-    ),
-  );
+        ReaderModel(
+          id: reader.id,
+          name: reader.name,
+          image: reader.image,
+          otherName: reader.otherName,
+          email: reader.email,
+          facebook: reader.facebook,
+          phoneNumber: reader.phoneNumber,
+          bookIds: reader.bookIds,
+          createdDate: reader.createdDate,
+          lastUpdated: reader.lastUpdated,
+        ),
+      );
 
   @override
-  Future<void> updateReader(ReaderEntity reader) => remoteDataSource.updateReader(
-    ReaderModel(
-      id: reader.id,
-      name: reader.name,
-      image: reader.image,
-      otherName: reader.otherName,
-      email: reader.email,
-      facebook: reader.facebook,
-      phoneNumber: reader.phoneNumber,
-      bookIds: reader.bookIds,
-      createdDate: reader.createdDate,
-      lastUpdated: reader.lastUpdated,
-    ),
-  );
+  Future<void> editReader(ReaderEntity reader) => remoteDataSource.editReader(
+        ReaderModel(
+          id: reader.id,
+          name: reader.name,
+          image: reader.image,
+          otherName: reader.otherName,
+          email: reader.email,
+          facebook: reader.facebook,
+          phoneNumber: reader.phoneNumber,
+          bookIds: reader.bookIds,
+          createdDate: reader.createdDate,
+          lastUpdated: reader.lastUpdated,
+        ),
+      );
 
   @override
-  Future<void> deleteReader(String id) async {
-    final ReaderModel? existingReader = await remoteDataSource.getReaderById(id);
+  Future<void> removeReader(String id) async {
+    final ReaderModel? existingReader = await remoteDataSource.fetchReaderById(id);
 
     if (existingReader != null) {
       await relationshipSyncService.removeReaderRelationships(
@@ -61,9 +64,6 @@ class ReaderRepositoryImpl implements ReaderRepository {
       );
     }
 
-    await remoteDataSource.deleteReader(id);
+    await remoteDataSource.removeReader(id);
   }
-
-  @override
-  Stream<List<ReaderEntity>> watchReaders(String userId) => remoteDataSource.watchReaders(userId);
 }

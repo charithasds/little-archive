@@ -1,9 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/data/services/firestore_service.dart';
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
+import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/presentation/providers/firestore_service_provider.dart';
 import '../../../../core/shared/presentation/providers/relationship_sync_service_provider.dart';
 import '../../data/datasources/work_remote_datasource.dart';
@@ -17,8 +17,13 @@ part 'work_provider.g.dart';
 @riverpod
 WorkRemoteDataSource workRemoteDataSource(Ref ref) {
   final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
+  final String? userId = ref.watch(currentUidProvider);
 
-  return WorkRemoteDataSourceImpl(firestoreService: firestoreService);
+  if (userId == null) {
+    throw const UnauthorizedException();
+  }
+
+  return WorkRemoteDataSourceImpl(firestoreService: firestoreService, userId: userId);
 }
 
 @riverpod
@@ -49,21 +54,20 @@ GetWorkByIdUseCase getWorkByIdUseCase(Ref ref) =>
 AddWorkUseCase addWorkUseCase(Ref ref) => AddWorkUseCase(ref.watch(workRepositoryProvider));
 
 @riverpod
-UpdateWorkUseCase updateWorkUseCase(Ref ref) =>
-    UpdateWorkUseCase(ref.watch(workRepositoryProvider));
+EditWorkUseCase editWorkUseCase(Ref ref) => EditWorkUseCase(ref.watch(workRepositoryProvider));
 
 @riverpod
-DeleteWorkUseCase deleteWorkUseCase(Ref ref) =>
-    DeleteWorkUseCase(ref.watch(workRepositoryProvider));
+RemoveWorkUseCase removeWorkUseCase(Ref ref) =>
+    RemoveWorkUseCase(ref.watch(workRepositoryProvider));
 
 @riverpod
 Stream<List<WorkEntity>> worksStream(Ref ref) {
   final WatchWorksUseCase watchWorks = ref.watch(watchWorksUseCaseProvider);
-  final UserEntity? user = ref.watch(authStateProvider).value;
+  final String? userId = ref.watch(currentUidProvider);
 
-  if (user == null) {
+  if (userId == null) {
     return Stream<List<WorkEntity>>.value(<WorkEntity>[]);
   }
 
-  return watchWorks(user.uid);
+  return watchWorks();
 }

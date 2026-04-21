@@ -57,7 +57,7 @@ class UpsertSequenceController extends Notifier<UpsertSequenceState> {
 
     try {
       if (existingSequence != null) {
-        await ref.read(updateSequenceUseCaseProvider)(sequenceToSave);
+        await ref.read(editSequenceUseCaseProvider)(sequenceToSave);
       } else {
         await ref.read(addSequenceUseCaseProvider)(sequenceToSave);
       }

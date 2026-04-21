@@ -2,10 +2,10 @@ import '../entities/publisher_entity.dart';
 
 abstract class PublisherRepository {
   String generateId();
-  Future<List<PublisherEntity>> getPublishers(String userId);
+  Future<List<PublisherEntity>> getPublishers();
   Future<PublisherEntity?> getPublisherById(String id);
+  Stream<List<PublisherEntity>> watchPublishers();
   Future<void> addPublisher(PublisherEntity publisher);
-  Future<void> updatePublisher(PublisherEntity publisher);
-  Future<void> deletePublisher(String id);
-  Stream<List<PublisherEntity>> watchPublishers(String userId);
+  Future<void> editPublisher(PublisherEntity publisher);
+  Future<void> removePublisher(String id);
 }

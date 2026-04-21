@@ -14,23 +14,23 @@ import '../widgets/author_list_tile.dart';
 class AuthorListPage extends ConsumerWidget {
   const AuthorListPage({super.key});
 
-  Future<void> _handleDelete(BuildContext context, WidgetRef ref, String authorId) async {
+  Future<void> _handleRemove(BuildContext context, WidgetRef ref, String authorId) async {
     final ThemeData theme = ref.read(activeThemeDataProvider);
 
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
         icon: Icon(Icons.warning_rounded, color: theme.colorScheme.error, size: 48),
-        title: const Text('Delete Author'),
+        title: const Text('Remove Author'),
         content: const Text(
-          'Are you sure you want to delete this author? This action cannot be undone.',
+          'Are you sure you want to remove this author? This action cannot be undone.',
         ),
         actions: <Widget>[
           TextButton(onPressed: () => context.pop(false), child: const Text('Cancel')),
           FilledButton(
             onPressed: () => context.pop(true),
             style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.error),
-            child: const Text('Delete'),
+            child: const Text('Remove'),
           ),
         ],
       ),
@@ -41,12 +41,12 @@ class AuthorListPage extends ConsumerWidget {
     }
 
     try {
-      await ref.read<AuthorRepository>(authorRepositoryProvider).deleteAuthor(authorId);
-      SnackBars.showSuccess('Author deleted successfully');
+      await ref.read<AuthorRepository>(authorRepositoryProvider).removeAuthor(authorId);
+      SnackBars.showSuccess('Author removed successfully');
     } on NoConnectionException catch (e) {
       SnackBars.showError(e.message);
     } catch (e) {
-      SnackBars.showError('Delete failed: $e');
+      SnackBars.showError('Removal failed: $e');
     }
   }
 
@@ -99,7 +99,7 @@ class AuthorListPage extends ConsumerWidget {
                       author: author,
                       onTap: () => context.go('/authors/${author.id}'),
                       onEdit: () => context.push('/authors/add', extra: author),
-                      onDelete: () => _handleDelete(context, ref, author.id),
+                      onRemove: () => _handleRemove(context, ref, author.id),
                     );
                   },
                 );
@@ -119,7 +119,7 @@ class AuthorListPage extends ConsumerWidget {
                       author: author,
                       onTap: () => context.go('/authors/${author.id}'),
                       onEdit: () => context.push('/authors/add', extra: author),
-                      onDelete: () => _handleDelete(context, ref, author.id),
+                      onRemove: () => _handleRemove(context, ref, author.id),
                     );
                   },
                 );

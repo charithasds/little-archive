@@ -96,7 +96,7 @@ class UpsertReaderController extends Notifier<UpsertReaderState> {
 
     try {
       if (existingReader != null) {
-        await ref.read(updateReaderUseCaseProvider)(readerToSave);
+        await ref.read(editReaderUseCaseProvider)(readerToSave);
       } else {
         await ref.read(addReaderUseCaseProvider)(readerToSave);
       }

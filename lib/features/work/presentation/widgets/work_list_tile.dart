@@ -11,7 +11,7 @@ class WorkListTile extends ConsumerWidget {
     required this.work,
     required this.onTap,
     required this.onEdit,
-    required this.onDelete,
+    required this.onRemove,
     this.firstCreatorName,
     this.bookCover,
   });
@@ -19,7 +19,7 @@ class WorkListTile extends ConsumerWidget {
   final WorkEntity work;
   final VoidCallback onTap;
   final VoidCallback onEdit;
-  final VoidCallback onDelete;
+  final VoidCallback onRemove;
   final String? firstCreatorName;
   final String? bookCover;
 
@@ -120,9 +120,9 @@ class WorkListTile extends ConsumerWidget {
                     tooltip: 'Edit',
                   ),
                   IconButton(
-                    icon: Icon(Icons.delete_sweep_rounded, color: colorScheme.error),
-                    onPressed: onDelete,
-                    tooltip: 'Delete',
+                    icon: Icon(Icons.remove_circle_outline_rounded, color: colorScheme.error),
+                    onPressed: onRemove,
+                    tooltip: 'Remove',
                   ),
                 ],
               ),

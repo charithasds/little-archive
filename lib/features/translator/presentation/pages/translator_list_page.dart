@@ -14,23 +14,23 @@ import '../widgets/translator_list_tile.dart';
 class TranslatorListPage extends ConsumerWidget {
   const TranslatorListPage({super.key});
 
-  Future<void> _handleDelete(BuildContext context, WidgetRef ref, String translatorId) async {
+  Future<void> _handleRemove(BuildContext context, WidgetRef ref, String translatorId) async {
     final ThemeData theme = ref.read(activeThemeDataProvider);
 
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
         icon: Icon(Icons.warning_rounded, color: theme.colorScheme.error, size: 48),
-        title: const Text('Delete Translator'),
+        title: const Text('Remove Translator'),
         content: const Text(
-          'Are you sure you want to delete this translator? This action cannot be undone.',
+          'Are you sure you want to remove this translator? This action cannot be undone.',
         ),
         actions: <Widget>[
           TextButton(onPressed: () => context.pop(false), child: const Text('Cancel')),
           FilledButton(
             onPressed: () => context.pop(true),
             style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.error),
-            child: const Text('Delete'),
+            child: const Text('Remove'),
           ),
         ],
       ),
@@ -43,12 +43,12 @@ class TranslatorListPage extends ConsumerWidget {
     try {
       await ref
           .read<TranslatorRepository>(translatorRepositoryProvider)
-          .deleteTranslator(translatorId);
-      SnackBars.showSuccess('Translator deleted successfully');
+          .removeTranslator(translatorId);
+      SnackBars.showSuccess('Translator removed successfully');
     } on NoConnectionException catch (e) {
       SnackBars.showError(e.message);
     } catch (e) {
-      SnackBars.showError('Delete failed: $e');
+      SnackBars.showError('Removal failed: $e');
     }
   }
 
@@ -103,7 +103,7 @@ class TranslatorListPage extends ConsumerWidget {
                       translator: translator,
                       onTap: () => context.go('/translators/${translator.id}'),
                       onEdit: () => context.push('/translators/add', extra: translator),
-                      onDelete: () => _handleDelete(context, ref, translator.id),
+                      onRemove: () => _handleRemove(context, ref, translator.id),
                     );
                   },
                 );
@@ -123,7 +123,7 @@ class TranslatorListPage extends ConsumerWidget {
                       translator: translator,
                       onTap: () => context.go('/translators/${translator.id}'),
                       onEdit: () => context.push('/translators/add', extra: translator),
-                      onDelete: () => _handleDelete(context, ref, translator.id),
+                      onRemove: () => _handleRemove(context, ref, translator.id),
                     );
                   },
                 );

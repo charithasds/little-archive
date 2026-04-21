@@ -20,23 +20,23 @@ import '../widgets/work_list_tile.dart';
 class WorkListPage extends ConsumerWidget {
   const WorkListPage({super.key});
 
-  Future<void> _handleDelete(BuildContext context, WidgetRef ref, String workId) async {
+  Future<void> _handleRemove(BuildContext context, WidgetRef ref, String workId) async {
     final ThemeData theme = ref.read(activeThemeDataProvider);
 
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
         icon: Icon(Icons.warning_rounded, color: theme.colorScheme.error, size: 48),
-        title: const Text('Delete Work'),
+        title: const Text('Remove Work'),
         content: const Text(
-          'Are you sure you want to delete this work? This action cannot be undone.',
+          'Are you sure you want to remove this work? This action cannot be undone.',
         ),
         actions: <Widget>[
           TextButton(onPressed: () => context.pop(false), child: const Text('Cancel')),
           FilledButton(
             onPressed: () => context.pop(true),
             style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.error),
-            child: const Text('Delete'),
+            child: const Text('Remove'),
           ),
         ],
       ),
@@ -47,12 +47,12 @@ class WorkListPage extends ConsumerWidget {
     }
 
     try {
-      await ref.read<WorkRepository>(workRepositoryProvider).deleteWork(workId);
-      SnackBars.showSuccess('Work deleted successfully');
+      await ref.read<WorkRepository>(workRepositoryProvider).removeWork(workId);
+      SnackBars.showSuccess('Work removed successfully');
     } on NoConnectionException catch (e) {
       SnackBars.showError(e.message);
     } catch (e) {
-      SnackBars.showError('Delete failed: $e');
+      SnackBars.showError('Removal failed: $e');
     }
   }
 
@@ -132,7 +132,7 @@ class WorkListPage extends ConsumerWidget {
                       bookCover: bookCover,
                       onTap: () => context.go('/works/${work.id}'),
                       onEdit: () => context.push('/works/add', extra: work),
-                      onDelete: () => _handleDelete(context, ref, work.id),
+                      onRemove: () => _handleRemove(context, ref, work.id),
                     );
                   },
                 );
@@ -175,7 +175,7 @@ class WorkListPage extends ConsumerWidget {
                       bookCover: bookCover,
                       onTap: () => context.go('/works/${work.id}'),
                       onEdit: () => context.push('/works/add', extra: work),
-                      onDelete: () => _handleDelete(context, ref, work.id),
+                      onRemove: () => _handleRemove(context, ref, work.id),
                     );
                   },
                 );

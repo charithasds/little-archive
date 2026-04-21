@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/domain/enums/compilation_type.dart';
 import '../../../../core/shared/domain/enums/content_category.dart';
 import '../../../../core/shared/domain/enums/genre.dart';
@@ -208,12 +207,10 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
         <BookEntity>[];
 
     if (widget.existingWork != null && !_isEditingInitialized) {
-      final String? userId = ref.watch(authStateProvider).value?.uid;
       if (authorsAsync.hasValue &&
           translatorsAsync.hasValue &&
           booksAsync.hasValue &&
-          sequencesAsync.hasValue &&
-          userId != null) {
+          sequencesAsync.hasValue) {
         final WorkEntity work = widget.existingWork!;
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (!mounted) {
@@ -222,7 +219,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
 
           final List<SequenceVolumeEntity> volumes = await ref.read(
             getSequenceVolumesByWorkIdUseCaseProvider,
-          )(work.id, userId);
+          )(work.id);
 
           final Map<SequenceEntity, String> selectedSequences = <SequenceEntity, String>{};
           if (sequencesAsync.value != null) {

@@ -13,10 +13,13 @@ class BookRepositoryImpl implements BookRepository {
   String generateId() => remoteDataSource.generateId();
 
   @override
-  Future<List<BookEntity>> getBooks(String userId) => remoteDataSource.getBooks(userId);
+  Future<List<BookEntity>> getBooks() => remoteDataSource.fetchBooks();
 
   @override
-  Future<BookEntity?> getBookById(String id) => remoteDataSource.getBookById(id);
+  Future<BookEntity?> getBookById(String id) => remoteDataSource.fetchBookById(id);
+
+  @override
+  Stream<List<BookEntity>> watchBooks() => remoteDataSource.watchBooks();
 
   @override
   Future<void> addBook(BookEntity book) async {
@@ -63,10 +66,10 @@ class BookRepositoryImpl implements BookRepository {
   }
 
   @override
-  Future<void> updateBook(BookEntity book) async {
-    final BookModel? existingBook = await remoteDataSource.getBookById(book.id);
+  Future<void> editBook(BookEntity book) async {
+    final BookModel? existingBook = await remoteDataSource.fetchBookById(book.id);
 
-    await remoteDataSource.updateBook(
+    await remoteDataSource.editBook(
       BookModel(
         id: book.id,
         title: book.title,
@@ -113,8 +116,8 @@ class BookRepositoryImpl implements BookRepository {
   }
 
   @override
-  Future<void> deleteBook(String id) async {
-    final BookModel? existingBook = await remoteDataSource.getBookById(id);
+  Future<void> removeBook(String id) async {
+    final BookModel? existingBook = await remoteDataSource.fetchBookById(id);
 
     if (existingBook != null) {
       await relationshipSyncService.removeBookRelationships(
@@ -126,9 +129,6 @@ class BookRepositoryImpl implements BookRepository {
       );
     }
 
-    await remoteDataSource.deleteBook(id);
+    await remoteDataSource.removeBook(id);
   }
-
-  @override
-  Stream<List<BookEntity>> watchBooks(String userId) => remoteDataSource.watchBooks(userId);
 }

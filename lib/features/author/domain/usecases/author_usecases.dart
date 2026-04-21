@@ -5,14 +5,14 @@ class GetAuthorsUseCase {
   const GetAuthorsUseCase(this.repository);
   final AuthorRepository repository;
 
-  Future<List<AuthorEntity>> call(String userId) => repository.getAuthors(userId);
+  Future<List<AuthorEntity>> call() => repository.getAuthors();
 }
 
 class WatchAuthorsUseCase {
   const WatchAuthorsUseCase(this.repository);
   final AuthorRepository repository;
 
-  Stream<List<AuthorEntity>> call(String userId) => repository.watchAuthors(userId);
+  Stream<List<AuthorEntity>> call() => repository.watchAuthors();
 }
 
 class GetAuthorByIdUseCase {
@@ -29,16 +29,16 @@ class AddAuthorUseCase {
   Future<void> call(AuthorEntity author) => repository.addAuthor(author);
 }
 
-class UpdateAuthorUseCase {
-  const UpdateAuthorUseCase(this.repository);
+class EditAuthorUseCase {
+  const EditAuthorUseCase(this.repository);
   final AuthorRepository repository;
 
-  Future<void> call(AuthorEntity author) => repository.updateAuthor(author);
+  Future<void> call(AuthorEntity author) => repository.editAuthor(author);
 }
 
-class DeleteAuthorUseCase {
-  const DeleteAuthorUseCase(this.repository);
+class RemoveAuthorUseCase {
+  const RemoveAuthorUseCase(this.repository);
   final AuthorRepository repository;
 
-  Future<void> call(String id) => repository.deleteAuthor(id);
+  Future<void> call(String id) => repository.removeAuthor(id);
 }

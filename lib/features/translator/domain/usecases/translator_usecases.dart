@@ -5,14 +5,14 @@ class GetTranslatorsUseCase {
   const GetTranslatorsUseCase(this.repository);
   final TranslatorRepository repository;
 
-  Future<List<TranslatorEntity>> call(String userId) => repository.getTranslators(userId);
+  Future<List<TranslatorEntity>> call() => repository.getTranslators();
 }
 
 class WatchTranslatorsUseCase {
   const WatchTranslatorsUseCase(this.repository);
   final TranslatorRepository repository;
 
-  Stream<List<TranslatorEntity>> call(String userId) => repository.watchTranslators(userId);
+  Stream<List<TranslatorEntity>> call() => repository.watchTranslators();
 }
 
 class GetTranslatorByIdUseCase {
@@ -29,16 +29,16 @@ class AddTranslatorUseCase {
   Future<void> call(TranslatorEntity translator) => repository.addTranslator(translator);
 }
 
-class UpdateTranslatorUseCase {
-  const UpdateTranslatorUseCase(this.repository);
+class EditTranslatorUseCase {
+  const EditTranslatorUseCase(this.repository);
   final TranslatorRepository repository;
 
-  Future<void> call(TranslatorEntity translator) => repository.updateTranslator(translator);
+  Future<void> call(TranslatorEntity translator) => repository.editTranslator(translator);
 }
 
-class DeleteTranslatorUseCase {
-  const DeleteTranslatorUseCase(this.repository);
+class RemoveTranslatorUseCase {
+  const RemoveTranslatorUseCase(this.repository);
   final TranslatorRepository repository;
 
-  Future<void> call(String id) => repository.deleteTranslator(id);
+  Future<void> call(String id) => repository.removeTranslator(id);
 }

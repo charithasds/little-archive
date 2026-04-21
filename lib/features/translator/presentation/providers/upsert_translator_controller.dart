@@ -94,7 +94,7 @@ class UpsertTranslatorController extends Notifier<UpsertTranslatorState> {
 
     try {
       if (existingTranslator != null) {
-        await ref.read(updateTranslatorUseCaseProvider)(translatorToSave);
+        await ref.read(editTranslatorUseCaseProvider)(translatorToSave);
       } else {
         await ref.read(addTranslatorUseCaseProvider)(translatorToSave);
       }

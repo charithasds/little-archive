@@ -5,14 +5,14 @@ class GetReadersUseCase {
   const GetReadersUseCase(this.repository);
   final ReaderRepository repository;
 
-  Future<List<ReaderEntity>> call(String userId) => repository.getReaders(userId);
+  Future<List<ReaderEntity>> call() => repository.getReaders();
 }
 
 class WatchReadersUseCase {
   const WatchReadersUseCase(this.repository);
   final ReaderRepository repository;
 
-  Stream<List<ReaderEntity>> call(String userId) => repository.watchReaders(userId);
+  Stream<List<ReaderEntity>> call() => repository.watchReaders();
 }
 
 class GetReaderByIdUseCase {
@@ -29,16 +29,16 @@ class AddReaderUseCase {
   Future<void> call(ReaderEntity reader) => repository.addReader(reader);
 }
 
-class UpdateReaderUseCase {
-  const UpdateReaderUseCase(this.repository);
+class EditReaderUseCase {
+  const EditReaderUseCase(this.repository);
   final ReaderRepository repository;
 
-  Future<void> call(ReaderEntity reader) => repository.updateReader(reader);
+  Future<void> call(ReaderEntity reader) => repository.editReader(reader);
 }
 
-class DeleteReaderUseCase {
-  const DeleteReaderUseCase(this.repository);
+class RemoveReaderUseCase {
+  const RemoveReaderUseCase(this.repository);
   final ReaderRepository repository;
 
-  Future<void> call(String id) => repository.deleteReader(id);
+  Future<void> call(String id) => repository.removeReader(id);
 }
