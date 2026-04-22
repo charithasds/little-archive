@@ -6,6 +6,7 @@ import '../models/publisher_model.dart';
 
 class PublisherRepositoryImpl implements PublisherRepository {
   PublisherRepositoryImpl({required this.remoteDataSource, required this.relationshipSyncService});
+
   final PublisherRemoteDataSource remoteDataSource;
   final RelationshipSyncService relationshipSyncService;
 
@@ -22,38 +23,57 @@ class PublisherRepositoryImpl implements PublisherRepository {
   Stream<List<PublisherEntity>> watchPublishers() => remoteDataSource.watchPublishers();
 
   @override
-  Future<void> addPublisher(PublisherEntity publisher) => remoteDataSource.addPublisher(
-        PublisherModel(
-          id: publisher.id,
-          name: publisher.name,
-          logo: publisher.logo,
-          otherName: publisher.otherName,
-          website: publisher.website,
-          email: publisher.email,
-          facebook: publisher.facebook,
-          phoneNumber: publisher.phoneNumber,
-          bookIds: publisher.bookIds,
-          createdDate: publisher.createdDate,
-          lastUpdated: publisher.lastUpdated,
-        ),
-      );
+  Future<void> addPublisher(PublisherEntity publisher) async {
+    await remoteDataSource.addPublisher(
+      PublisherModel(
+        id: publisher.id,
+        name: publisher.name,
+        logo: publisher.logo,
+        otherName: publisher.otherName,
+        website: publisher.website,
+        email: publisher.email,
+        facebook: publisher.facebook,
+        phoneNumber: publisher.phoneNumber,
+        bookIds: publisher.bookIds,
+        createdDate: publisher.createdDate,
+        lastUpdated: publisher.lastUpdated,
+      ),
+    );
+
+    await relationshipSyncService.syncPublisherRelationships(
+      publisherId: publisher.id,
+      newBookIds: publisher.bookIds,
+    );
+  }
 
   @override
-  Future<void> editPublisher(PublisherEntity publisher) => remoteDataSource.editPublisher(
-        PublisherModel(
-          id: publisher.id,
-          name: publisher.name,
-          logo: publisher.logo,
-          otherName: publisher.otherName,
-          website: publisher.website,
-          email: publisher.email,
-          facebook: publisher.facebook,
-          phoneNumber: publisher.phoneNumber,
-          bookIds: publisher.bookIds,
-          createdDate: publisher.createdDate,
-          lastUpdated: publisher.lastUpdated,
-        ),
-      );
+  Future<void> editPublisher(PublisherEntity publisher) async {
+    final PublisherModel? existingPublisher = await remoteDataSource.fetchPublisherById(
+      publisher.id,
+    );
+
+    await remoteDataSource.editPublisher(
+      PublisherModel(
+        id: publisher.id,
+        name: publisher.name,
+        logo: publisher.logo,
+        otherName: publisher.otherName,
+        website: publisher.website,
+        email: publisher.email,
+        facebook: publisher.facebook,
+        phoneNumber: publisher.phoneNumber,
+        bookIds: publisher.bookIds,
+        createdDate: publisher.createdDate,
+        lastUpdated: publisher.lastUpdated,
+      ),
+    );
+
+    await relationshipSyncService.syncPublisherRelationships(
+      publisherId: publisher.id,
+      newBookIds: publisher.bookIds,
+      oldBookIds: existingPublisher?.bookIds ?? <String>[],
+    );
+  }
 
   @override
   Future<void> removePublisher(String id) async {

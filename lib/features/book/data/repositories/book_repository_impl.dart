@@ -6,6 +6,7 @@ import '../models/book_model.dart';
 
 class BookRepositoryImpl implements BookRepository {
   BookRepositoryImpl({required this.remoteDataSource, required this.relationshipSyncService});
+
   final BookRemoteDataSource remoteDataSource;
   final RelationshipSyncService relationshipSyncService;
 
@@ -60,6 +61,7 @@ class BookRepositoryImpl implements BookRepository {
       bookId: book.id,
       newAuthorIds: book.authorIds,
       newTranslatorIds: book.translatorIds,
+      newSequenceVolumeIds: book.sequenceVolumeIds,
       newPublisherId: book.publisherId,
       newReaderId: book.readerId,
     );
@@ -106,10 +108,12 @@ class BookRepositoryImpl implements BookRepository {
       bookId: book.id,
       newAuthorIds: book.authorIds,
       newTranslatorIds: book.translatorIds,
+      newSequenceVolumeIds: book.sequenceVolumeIds,
       newPublisherId: book.publisherId,
       newReaderId: book.readerId,
       oldAuthorIds: existingBook?.authorIds ?? <String>[],
       oldTranslatorIds: existingBook?.translatorIds ?? <String>[],
+      oldSequenceVolumeIds: existingBook?.sequenceVolumeIds ?? <String>[],
       oldPublisherId: existingBook?.publisherId,
       oldReaderId: existingBook?.readerId,
     );
@@ -124,6 +128,7 @@ class BookRepositoryImpl implements BookRepository {
         bookId: id,
         authorIds: existingBook.authorIds,
         translatorIds: existingBook.translatorIds,
+        sequenceVolumeIds: existingBook.sequenceVolumeIds,
         publisherId: existingBook.publisherId,
         readerId: existingBook.readerId,
       );

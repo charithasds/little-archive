@@ -2,8 +2,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/data/services/firestore_service.dart';
+import '../../../../core/shared/data/services/relationship_sync_service.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/presentation/providers/firestore_service_provider.dart';
+import '../../../../core/shared/presentation/providers/relationship_sync_service_provider.dart';
 import '../../data/datasources/sequence_remote_datasource.dart';
 import '../../data/repositories/sequence_repository_impl.dart';
 import '../../domain/entities/sequence_entity.dart';
@@ -28,8 +30,14 @@ SequenceRemoteDataSource sequenceRemoteDataSource(Ref ref) {
 @riverpod
 SequenceRepository sequenceRepository(Ref ref) {
   final SequenceRemoteDataSource remoteDataSource = ref.watch(sequenceRemoteDataSourceProvider);
+  final RelationshipSyncService relationshipSyncService = ref.watch(
+    relationshipSyncServiceProvider,
+  );
 
-  return SequenceRepositoryImpl(remoteDataSource: remoteDataSource);
+  return SequenceRepositoryImpl(
+    remoteDataSource: remoteDataSource,
+    relationshipSyncService: relationshipSyncService,
+  );
 }
 
 @riverpod

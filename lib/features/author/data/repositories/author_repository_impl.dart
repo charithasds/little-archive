@@ -6,6 +6,7 @@ import '../models/author_model.dart';
 
 class AuthorRepositoryImpl implements AuthorRepository {
   AuthorRepositoryImpl({required this.remoteDataSource, required this.relationshipSyncService});
+
   final AuthorRemoteDataSource remoteDataSource;
   final RelationshipSyncService relationshipSyncService;
 
@@ -22,36 +23,56 @@ class AuthorRepositoryImpl implements AuthorRepository {
   Stream<List<AuthorEntity>> watchAuthors() => remoteDataSource.watchAuthors();
 
   @override
-  Future<void> addAuthor(AuthorEntity author) => remoteDataSource.addAuthor(
-        AuthorModel(
-          id: author.id,
-          name: author.name,
-          image: author.image,
-          otherName: author.otherName,
-          website: author.website,
-          facebook: author.facebook,
-          bookIds: author.bookIds,
-          workIds: author.workIds,
-          createdDate: author.createdDate,
-          lastUpdated: author.lastUpdated,
-        ),
-      );
+  Future<void> addAuthor(AuthorEntity author) async {
+    await remoteDataSource.addAuthor(
+      AuthorModel(
+        id: author.id,
+        name: author.name,
+        image: author.image,
+        otherName: author.otherName,
+        website: author.website,
+        facebook: author.facebook,
+        bookIds: author.bookIds,
+        workIds: author.workIds,
+        createdDate: author.createdDate,
+        lastUpdated: author.lastUpdated,
+      ),
+    );
+
+    await relationshipSyncService.syncAuthorRelationships(
+      authorId: author.id,
+      newBookIds: author.bookIds,
+      newWorkIds: author.workIds,
+    );
+  }
 
   @override
-  Future<void> editAuthor(AuthorEntity author) => remoteDataSource.editAuthor(
-        AuthorModel(
-          id: author.id,
-          name: author.name,
-          image: author.image,
-          otherName: author.otherName,
-          website: author.website,
-          facebook: author.facebook,
-          bookIds: author.bookIds,
-          workIds: author.workIds,
-          createdDate: author.createdDate,
-          lastUpdated: author.lastUpdated,
-        ),
-      );
+  Future<void> editAuthor(AuthorEntity author) async {
+    final AuthorModel? existingAuthor = await remoteDataSource.fetchAuthorById(author.id);
+
+    await remoteDataSource.editAuthor(
+      AuthorModel(
+        id: author.id,
+        name: author.name,
+        image: author.image,
+        otherName: author.otherName,
+        website: author.website,
+        facebook: author.facebook,
+        bookIds: author.bookIds,
+        workIds: author.workIds,
+        createdDate: author.createdDate,
+        lastUpdated: author.lastUpdated,
+      ),
+    );
+
+    await relationshipSyncService.syncAuthorRelationships(
+      authorId: author.id,
+      newBookIds: author.bookIds,
+      newWorkIds: author.workIds,
+      oldBookIds: existingAuthor?.bookIds ?? <String>[],
+      oldWorkIds: existingAuthor?.workIds ?? <String>[],
+    );
+  }
 
   @override
   Future<void> removeAuthor(String id) async {

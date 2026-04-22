@@ -6,6 +6,7 @@ import '../models/work_model.dart';
 
 class WorkRepositoryImpl implements WorkRepository {
   WorkRepositoryImpl({required this.remoteDataSource, required this.relationshipSyncService});
+
   final WorkRemoteDataSource remoteDataSource;
   final RelationshipSyncService relationshipSyncService;
 
@@ -48,6 +49,7 @@ class WorkRepositoryImpl implements WorkRepository {
       workId: work.id,
       newAuthorIds: work.authorIds,
       newTranslatorIds: work.translatorIds,
+      newSequenceVolumeIds: work.sequenceVolumeIds,
     );
   }
 
@@ -80,8 +82,10 @@ class WorkRepositoryImpl implements WorkRepository {
       workId: work.id,
       newAuthorIds: work.authorIds,
       newTranslatorIds: work.translatorIds,
+      newSequenceVolumeIds: work.sequenceVolumeIds,
       oldAuthorIds: existingWork?.authorIds ?? <String>[],
       oldTranslatorIds: existingWork?.translatorIds ?? <String>[],
+      oldSequenceVolumeIds: existingWork?.sequenceVolumeIds ?? <String>[],
     );
   }
 
@@ -94,6 +98,7 @@ class WorkRepositoryImpl implements WorkRepository {
         workId: id,
         authorIds: existingWork.authorIds,
         translatorIds: existingWork.translatorIds,
+        sequenceVolumeIds: existingWork.sequenceVolumeIds,
       );
     }
 
