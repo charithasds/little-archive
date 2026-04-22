@@ -1,11 +1,18 @@
 import '../entities/translator_entity.dart';
 import '../repositories/translator_repository.dart';
 
-class GetTranslatorsUseCase {
-  const GetTranslatorsUseCase(this.repository);
+class FetchTranslatorsUseCase {
+  const FetchTranslatorsUseCase(this.repository);
   final TranslatorRepository repository;
 
-  Future<List<TranslatorEntity>> call() => repository.getTranslators();
+  Future<List<TranslatorEntity>> call() => repository.fetchTranslators();
+}
+
+class FetchTranslatorByIdUseCase {
+  const FetchTranslatorByIdUseCase(this.repository);
+  final TranslatorRepository repository;
+
+  Future<TranslatorEntity?> call(String id) => repository.fetchTranslatorById(id);
 }
 
 class WatchTranslatorsUseCase {
@@ -13,13 +20,6 @@ class WatchTranslatorsUseCase {
   final TranslatorRepository repository;
 
   Stream<List<TranslatorEntity>> call() => repository.watchTranslators();
-}
-
-class GetTranslatorByIdUseCase {
-  const GetTranslatorByIdUseCase(this.repository);
-  final TranslatorRepository repository;
-
-  Future<TranslatorEntity?> call(String id) => repository.getTranslatorById(id);
 }
 
 class AddTranslatorUseCase {

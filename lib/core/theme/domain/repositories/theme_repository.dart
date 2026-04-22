@@ -1,5 +1,5 @@
 abstract class ThemeRepository {
-  Future<bool> getIsDarkMode();
+  Future<bool> fetchIsDarkMode();
 
   Future<void> setIsDarkMode(bool isDarkMode);
 }

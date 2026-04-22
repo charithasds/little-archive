@@ -14,10 +14,10 @@ class WorkRepositoryImpl implements WorkRepository {
   String generateId() => remoteDataSource.generateId();
 
   @override
-  Future<List<WorkEntity>> getWorks() => remoteDataSource.fetchWorks();
+  Future<List<WorkEntity>> fetchWorks() => remoteDataSource.fetchWorks();
 
   @override
-  Future<WorkEntity?> getWorkById(String id) => remoteDataSource.fetchWorkById(id);
+  Future<WorkEntity?> fetchWorkById(String id) => remoteDataSource.fetchWorkById(id);
 
   @override
   Stream<List<WorkEntity>> watchWorks() => remoteDataSource.watchWorks();

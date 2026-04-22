@@ -40,15 +40,15 @@ WorkRepository workRepository(Ref ref) {
 }
 
 @riverpod
-GetWorksUseCase getWorksUseCase(Ref ref) => GetWorksUseCase(ref.watch(workRepositoryProvider));
+FetchWorksUseCase fetchWorksUseCase(Ref ref) => FetchWorksUseCase(ref.watch(workRepositoryProvider));
 
 @riverpod
 WatchWorksUseCase watchWorksUseCase(Ref ref) =>
     WatchWorksUseCase(ref.watch(workRepositoryProvider));
 
 @riverpod
-GetWorkByIdUseCase getWorkByIdUseCase(Ref ref) =>
-    GetWorkByIdUseCase(ref.watch(workRepositoryProvider));
+FetchWorkByIdUseCase fetchWorkByIdUseCase(Ref ref) =>
+    FetchWorkByIdUseCase(ref.watch(workRepositoryProvider));
 
 @riverpod
 AddWorkUseCase addWorkUseCase(Ref ref) => AddWorkUseCase(ref.watch(workRepositoryProvider));

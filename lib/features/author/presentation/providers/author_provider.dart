@@ -40,16 +40,16 @@ AuthorRepository authorRepository(Ref ref) {
 }
 
 @riverpod
-GetAuthorsUseCase getAuthorsUseCase(Ref ref) =>
-    GetAuthorsUseCase(ref.watch(authorRepositoryProvider));
+FetchAuthorsUseCase fetchAuthorsUseCase(Ref ref) =>
+    FetchAuthorsUseCase(ref.watch(authorRepositoryProvider));
 
 @riverpod
 WatchAuthorsUseCase watchAuthorsUseCase(Ref ref) =>
     WatchAuthorsUseCase(ref.watch(authorRepositoryProvider));
 
 @riverpod
-GetAuthorByIdUseCase getAuthorByIdUseCase(Ref ref) =>
-    GetAuthorByIdUseCase(ref.watch(authorRepositoryProvider));
+FetchAuthorByIdUseCase fetchAuthorByIdUseCase(Ref ref) =>
+    FetchAuthorByIdUseCase(ref.watch(authorRepositoryProvider));
 
 @riverpod
 AddAuthorUseCase addAuthorUseCase(Ref ref) => AddAuthorUseCase(ref.watch(authorRepositoryProvider));
@@ -68,7 +68,7 @@ Stream<List<AuthorEntity>> authorsStream(Ref ref) {
   final String? userId = ref.watch(currentUidProvider);
 
   if (userId == null) {
-    return Stream<List<AuthorEntity>>.value(<AuthorEntity>[]);
+    return Stream<List<AuthorEntity>>.value(<AuthorEntity>[]); // Wait, SequenceEntity? Typo in existing code maybe.
   }
 
   return watchAuthors();

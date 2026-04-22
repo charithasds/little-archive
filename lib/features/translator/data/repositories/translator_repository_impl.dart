@@ -14,10 +14,10 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
   String generateId() => remoteDataSource.generateId();
 
   @override
-  Future<List<TranslatorEntity>> getTranslators() => remoteDataSource.fetchTranslators();
+  Future<List<TranslatorEntity>> fetchTranslators() => remoteDataSource.fetchTranslators();
 
   @override
-  Future<TranslatorEntity?> getTranslatorById(String id) =>
+  Future<TranslatorEntity?> fetchTranslatorById(String id) =>
       remoteDataSource.fetchTranslatorById(id);
 
   @override

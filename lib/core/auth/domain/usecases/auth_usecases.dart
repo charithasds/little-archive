@@ -1,6 +1,13 @@
 import '../entities/user_entity.dart';
 import '../repositories/auth_repository.dart';
 
+class FetchAuthStateChangesUseCase {
+  const FetchAuthStateChangesUseCase(this._repository);
+  final AuthRepository _repository;
+
+  Stream<UserEntity?> call() => _repository.authStateChanges;
+}
+
 class SignInWithGoogleUseCase {
   const SignInWithGoogleUseCase(this._repository);
   final AuthRepository _repository;
@@ -17,11 +24,4 @@ class SignOutUseCase {
   Future<void> call() async {
     await _repository.signOut();
   }
-}
-
-class GetAuthStateChangesUseCase {
-  const GetAuthStateChangesUseCase(this._repository);
-  final AuthRepository _repository;
-
-  Stream<UserEntity?> call() => _repository.authStateChanges;
 }

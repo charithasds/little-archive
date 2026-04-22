@@ -3,8 +3,8 @@ import '../entities/translator_entity.dart';
 abstract class TranslatorRepository {
   String generateId();
 
-  Future<List<TranslatorEntity>> getTranslators();
-  Future<TranslatorEntity?> getTranslatorById(String id);
+  Future<List<TranslatorEntity>> fetchTranslators();
+  Future<TranslatorEntity?> fetchTranslatorById(String id);
   Stream<List<TranslatorEntity>> watchTranslators();
   Future<void> addTranslator(TranslatorEntity translator);
   Future<void> editTranslator(TranslatorEntity translator);

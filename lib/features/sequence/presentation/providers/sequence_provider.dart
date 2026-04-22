@@ -41,16 +41,16 @@ SequenceRepository sequenceRepository(Ref ref) {
 }
 
 @riverpod
-GetSequencesUseCase getSequencesUseCase(Ref ref) =>
-    GetSequencesUseCase(ref.watch(sequenceRepositoryProvider));
+FetchSequencesUseCase fetchSequencesUseCase(Ref ref) =>
+    FetchSequencesUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
 WatchSequencesUseCase watchSequencesUseCase(Ref ref) =>
     WatchSequencesUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
-GetSequenceByIdUseCase getSequenceByIdUseCase(Ref ref) =>
-    GetSequenceByIdUseCase(ref.watch(sequenceRepositoryProvider));
+FetchSequenceByIdUseCase fetchSequenceByIdUseCase(Ref ref) =>
+    FetchSequenceByIdUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
 AddSequenceUseCase addSequenceUseCase(Ref ref) =>
@@ -65,20 +65,20 @@ RemoveSequenceUseCase removeSequenceUseCase(Ref ref) =>
     RemoveSequenceUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
-GetSequenceVolumeByIdUseCase getSequenceVolumeByIdUseCase(Ref ref) =>
-    GetSequenceVolumeByIdUseCase(ref.watch(sequenceRepositoryProvider));
+FetchSequenceVolumeByIdUseCase fetchSequenceVolumeByIdUseCase(Ref ref) =>
+    FetchSequenceVolumeByIdUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
-GetSequenceVolumesByBookIdUseCase getSequenceVolumesByBookIdUseCase(Ref ref) =>
-    GetSequenceVolumesByBookIdUseCase(ref.watch(sequenceRepositoryProvider));
+FetchSequenceVolumesByBookIdUseCase fetchSequenceVolumesByBookIdUseCase(Ref ref) =>
+    FetchSequenceVolumesByBookIdUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
-GetSequenceVolumesByWorkIdUseCase getSequenceVolumesByWorkIdUseCase(Ref ref) =>
-    GetSequenceVolumesByWorkIdUseCase(ref.watch(sequenceRepositoryProvider));
+FetchSequenceVolumesByWorkIdUseCase fetchSequenceVolumesByWorkIdUseCase(Ref ref) =>
+    FetchSequenceVolumesByWorkIdUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
-GetSequenceVolumesUseCase getSequenceVolumesUseCase(Ref ref) =>
-    GetSequenceVolumesUseCase(ref.watch(sequenceRepositoryProvider));
+FetchSequenceVolumesUseCase fetchSequenceVolumesUseCase(Ref ref) =>
+    FetchSequenceVolumesUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
 AddSequenceVolumeUseCase addSequenceVolumeUseCase(Ref ref) =>

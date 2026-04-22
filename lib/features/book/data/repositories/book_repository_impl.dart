@@ -14,10 +14,10 @@ class BookRepositoryImpl implements BookRepository {
   String generateId() => remoteDataSource.generateId();
 
   @override
-  Future<List<BookEntity>> getBooks() => remoteDataSource.fetchBooks();
+  Future<List<BookEntity>> fetchBooks() => remoteDataSource.fetchBooks();
 
   @override
-  Future<BookEntity?> getBookById(String id) => remoteDataSource.fetchBookById(id);
+  Future<BookEntity?> fetchBookById(String id) => remoteDataSource.fetchBookById(id);
 
   @override
   Stream<List<BookEntity>> watchBooks() => remoteDataSource.watchBooks();

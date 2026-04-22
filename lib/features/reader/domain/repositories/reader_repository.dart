@@ -2,8 +2,8 @@ import '../entities/reader_entity.dart';
 
 abstract class ReaderRepository {
   String generateId();
-  Future<List<ReaderEntity>> getReaders();
-  Future<ReaderEntity?> getReaderById(String id);
+  Future<List<ReaderEntity>> fetchReaders();
+  Future<ReaderEntity?> fetchReaderById(String id);
   Stream<List<ReaderEntity>> watchReaders();
   Future<void> addReader(ReaderEntity reader);
   Future<void> editReader(ReaderEntity reader);

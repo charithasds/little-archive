@@ -343,7 +343,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
           }
 
           final List<SequenceVolumeEntity> volumes = await ref.read(
-            getSequenceVolumesByBookIdUseCaseProvider,
+            fetchSequenceVolumesByBookIdUseCaseProvider,
           )(book.id);
 
           final Map<SequenceEntity, String> sequencesMap = <SequenceEntity, String>{};

@@ -4,8 +4,8 @@ import '../entities/sequence_volume_entity.dart';
 abstract class SequenceRepository {
   String generateId();
 
-  Future<List<SequenceEntity>> getSequences();
-  Future<SequenceEntity?> getSequenceById(String id);
+  Future<List<SequenceEntity>> fetchSequences();
+  Future<SequenceEntity?> fetchSequenceById(String id);
   Stream<List<SequenceEntity>> watchSequences();
   Future<void> addSequence(SequenceEntity sequence);
   Future<void> editSequence(SequenceEntity sequence);
@@ -13,10 +13,10 @@ abstract class SequenceRepository {
 
   String generateVolumeId();
 
-  Future<List<SequenceVolumeEntity>> getSequenceVolumes(String sequenceId);
-  Future<SequenceVolumeEntity?> getSequenceVolumeById(String id);
-  Future<List<SequenceVolumeEntity>> getSequenceVolumesByBookId(String bookId);
-  Future<List<SequenceVolumeEntity>> getSequenceVolumesByWorkId(String workId);
+  Future<List<SequenceVolumeEntity>> fetchSequenceVolumes(String sequenceId);
+  Future<SequenceVolumeEntity?> fetchSequenceVolumeById(String id);
+  Future<List<SequenceVolumeEntity>> fetchSequenceVolumesByBookId(String bookId);
+  Future<List<SequenceVolumeEntity>> fetchSequenceVolumesByWorkId(String workId);
   Stream<List<SequenceVolumeEntity>> watchSequenceVolumes(String sequenceId);
   Future<void> addSequenceVolume(SequenceVolumeEntity volume);
   Future<void> editSequenceVolume(SequenceVolumeEntity volume);

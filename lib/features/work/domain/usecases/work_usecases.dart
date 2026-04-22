@@ -1,11 +1,18 @@
 import '../entities/work_entity.dart';
 import '../repositories/work_repository.dart';
 
-class GetWorksUseCase {
-  const GetWorksUseCase(this.repository);
+class FetchWorksUseCase {
+  const FetchWorksUseCase(this.repository);
   final WorkRepository repository;
 
-  Future<List<WorkEntity>> call() => repository.getWorks();
+  Future<List<WorkEntity>> call() => repository.fetchWorks();
+}
+
+class FetchWorkByIdUseCase {
+  const FetchWorkByIdUseCase(this.repository);
+  final WorkRepository repository;
+
+  Future<WorkEntity?> call(String id) => repository.fetchWorkById(id);
 }
 
 class WatchWorksUseCase {
@@ -13,13 +20,6 @@ class WatchWorksUseCase {
   final WorkRepository repository;
 
   Stream<List<WorkEntity>> call() => repository.watchWorks();
-}
-
-class GetWorkByIdUseCase {
-  const GetWorkByIdUseCase(this.repository);
-  final WorkRepository repository;
-
-  Future<WorkEntity?> call(String id) => repository.getWorkById(id);
 }
 
 class AddWorkUseCase {

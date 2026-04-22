@@ -40,16 +40,16 @@ ReaderRepository readerRepository(Ref ref) {
 }
 
 @riverpod
-GetReadersUseCase getReadersUseCase(Ref ref) =>
-    GetReadersUseCase(ref.watch(readerRepositoryProvider));
+FetchReadersUseCase fetchReadersUseCase(Ref ref) =>
+    FetchReadersUseCase(ref.watch(readerRepositoryProvider));
 
 @riverpod
 WatchReadersUseCase watchReadersUseCase(Ref ref) =>
     WatchReadersUseCase(ref.watch(readerRepositoryProvider));
 
 @riverpod
-GetReaderByIdUseCase getReaderByIdUseCase(Ref ref) =>
-    GetReaderByIdUseCase(ref.watch(readerRepositoryProvider));
+FetchReaderByIdUseCase fetchReaderByIdUseCase(Ref ref) =>
+    FetchReaderByIdUseCase(ref.watch(readerRepositoryProvider));
 
 @riverpod
 AddReaderUseCase addReaderUseCase(Ref ref) => AddReaderUseCase(ref.watch(readerRepositoryProvider));

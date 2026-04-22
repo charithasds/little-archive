@@ -1,11 +1,18 @@
 import '../entities/reader_entity.dart';
 import '../repositories/reader_repository.dart';
 
-class GetReadersUseCase {
-  const GetReadersUseCase(this.repository);
+class FetchReadersUseCase {
+  const FetchReadersUseCase(this.repository);
   final ReaderRepository repository;
 
-  Future<List<ReaderEntity>> call() => repository.getReaders();
+  Future<List<ReaderEntity>> call() => repository.fetchReaders();
+}
+
+class FetchReaderByIdUseCase {
+  const FetchReaderByIdUseCase(this.repository);
+  final ReaderRepository repository;
+
+  Future<ReaderEntity?> call(String id) => repository.fetchReaderById(id);
 }
 
 class WatchReadersUseCase {
@@ -13,13 +20,6 @@ class WatchReadersUseCase {
   final ReaderRepository repository;
 
   Stream<List<ReaderEntity>> call() => repository.watchReaders();
-}
-
-class GetReaderByIdUseCase {
-  const GetReaderByIdUseCase(this.repository);
-  final ReaderRepository repository;
-
-  Future<ReaderEntity?> call(String id) => repository.getReaderById(id);
 }
 
 class AddReaderUseCase {

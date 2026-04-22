@@ -14,10 +14,10 @@ class PublisherRepositoryImpl implements PublisherRepository {
   String generateId() => remoteDataSource.generateId();
 
   @override
-  Future<List<PublisherEntity>> getPublishers() => remoteDataSource.fetchPublishers();
+  Future<List<PublisherEntity>> fetchPublishers() => remoteDataSource.fetchPublishers();
 
   @override
-  Future<PublisherEntity?> getPublisherById(String id) => remoteDataSource.fetchPublisherById(id);
+  Future<PublisherEntity?> fetchPublisherById(String id) => remoteDataSource.fetchPublisherById(id);
 
   @override
   Stream<List<PublisherEntity>> watchPublishers() => remoteDataSource.watchPublishers();

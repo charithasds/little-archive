@@ -13,12 +13,12 @@ part 'theme_provider.g.dart';
 @riverpod
 ThemeService themeService(Ref ref) => ThemeService();
 
-final Provider<GetThemeModeUseCase?> getThemeModeUseCaseProvider = Provider<GetThemeModeUseCase?>((
+final Provider<FetchThemeModeUseCase?> fetchThemeModeUseCaseProvider = Provider<FetchThemeModeUseCase?>((
   Ref ref,
 ) {
   final ThemeRepository? repository = ref.watch(themeRepositoryProvider);
 
-  return repository != null ? GetThemeModeUseCase(repository) : null;
+  return repository != null ? FetchThemeModeUseCase(repository) : null;
 });
 
 final Provider<SetThemeModeUseCase?> setThemeModeUseCaseProvider = Provider<SetThemeModeUseCase?>((
@@ -38,7 +38,7 @@ class ThemeNotifier extends Notifier<ThemeMode> {
       return ThemeMode.light;
     }
 
-    return localDataSource.getIsDarkMode() ? ThemeMode.dark : ThemeMode.light;
+    return localDataSource.fetchIsDarkMode() ? ThemeMode.dark : ThemeMode.light;
   }
 
   Future<void> toggleTheme() async {

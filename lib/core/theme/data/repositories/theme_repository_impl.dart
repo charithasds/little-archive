@@ -11,7 +11,7 @@ class ThemeRepositoryImpl implements ThemeRepository {
   final ThemeLocalDataSource localDataSource;
 
   @override
-  Future<bool> getIsDarkMode() async => localDataSource.getIsDarkMode();
+  Future<bool> fetchIsDarkMode() async => localDataSource.fetchIsDarkMode();
 
   @override
   Future<void> setIsDarkMode(bool isDarkMode) async {

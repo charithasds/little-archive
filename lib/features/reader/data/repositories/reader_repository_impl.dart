@@ -14,10 +14,10 @@ class ReaderRepositoryImpl implements ReaderRepository {
   String generateId() => remoteDataSource.generateId();
 
   @override
-  Future<List<ReaderEntity>> getReaders() => remoteDataSource.fetchReaders();
+  Future<List<ReaderEntity>> fetchReaders() => remoteDataSource.fetchReaders();
 
   @override
-  Future<ReaderEntity?> getReaderById(String id) => remoteDataSource.fetchReaderById(id);
+  Future<ReaderEntity?> fetchReaderById(String id) => remoteDataSource.fetchReaderById(id);
 
   @override
   Stream<List<ReaderEntity>> watchReaders() => remoteDataSource.watchReaders();

@@ -3,8 +3,8 @@ import '../entities/work_entity.dart';
 abstract class WorkRepository {
   String generateId();
 
-  Future<List<WorkEntity>> getWorks();
-  Future<WorkEntity?> getWorkById(String id);
+  Future<List<WorkEntity>> fetchWorks();
+  Future<WorkEntity?> fetchWorkById(String id);
   Stream<List<WorkEntity>> watchWorks();
   Future<void> addWork(WorkEntity work);
   Future<void> editWork(WorkEntity work);

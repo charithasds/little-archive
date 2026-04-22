@@ -1,11 +1,18 @@
 import '../entities/publisher_entity.dart';
 import '../repositories/publisher_repository.dart';
 
-class GetPublishersUseCase {
-  const GetPublishersUseCase(this.repository);
+class FetchPublishersUseCase {
+  const FetchPublishersUseCase(this.repository);
   final PublisherRepository repository;
 
-  Future<List<PublisherEntity>> call() => repository.getPublishers();
+  Future<List<PublisherEntity>> call() => repository.fetchPublishers();
+}
+
+class FetchPublisherByIdUseCase {
+  const FetchPublisherByIdUseCase(this.repository);
+  final PublisherRepository repository;
+
+  Future<PublisherEntity?> call(String id) => repository.fetchPublisherById(id);
 }
 
 class WatchPublishersUseCase {
@@ -13,13 +20,6 @@ class WatchPublishersUseCase {
   final PublisherRepository repository;
 
   Stream<List<PublisherEntity>> call() => repository.watchPublishers();
-}
-
-class GetPublisherByIdUseCase {
-  const GetPublisherByIdUseCase(this.repository);
-  final PublisherRepository repository;
-
-  Future<PublisherEntity?> call(String id) => repository.getPublisherById(id);
 }
 
 class AddPublisherUseCase {

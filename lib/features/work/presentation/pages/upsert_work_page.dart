@@ -183,7 +183,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
           }
 
           final List<SequenceVolumeEntity> volumes = await ref.read(
-            getSequenceVolumesByWorkIdUseCaseProvider,
+            fetchSequenceVolumesByWorkIdUseCaseProvider,
           )(work.id);
 
           final Map<SequenceEntity, String> selectedSequences = <SequenceEntity, String>{};

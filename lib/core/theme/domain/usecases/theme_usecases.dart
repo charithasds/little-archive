@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../repositories/theme_repository.dart';
 
-class GetThemeModeUseCase {
-  const GetThemeModeUseCase(this.repository);
+class FetchThemeModeUseCase {
+  const FetchThemeModeUseCase(this.repository);
   final ThemeRepository repository;
 
   Future<ThemeMode> call() async {
-    final bool isDark = await repository.getIsDarkMode();
+    final bool isDark = await repository.fetchIsDarkMode();
     return isDark ? ThemeMode.dark : ThemeMode.light;
   }
 }

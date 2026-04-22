@@ -1,11 +1,18 @@
 import '../entities/book_entity.dart';
 import '../repositories/book_repository.dart';
 
-class GetBooksUseCase {
-  const GetBooksUseCase(this.repository);
+class FetchBooksUseCase {
+  const FetchBooksUseCase(this.repository);
   final BookRepository repository;
 
-  Future<List<BookEntity>> call() => repository.getBooks();
+  Future<List<BookEntity>> call() => repository.fetchBooks();
+}
+
+class FetchBookByIdUseCase {
+  const FetchBookByIdUseCase(this.repository);
+  final BookRepository repository;
+
+  Future<BookEntity?> call(String id) => repository.fetchBookById(id);
 }
 
 class WatchBooksUseCase {
@@ -13,13 +20,6 @@ class WatchBooksUseCase {
   final BookRepository repository;
 
   Stream<List<BookEntity>> call() => repository.watchBooks();
-}
-
-class GetBookByIdUseCase {
-  const GetBookByIdUseCase(this.repository);
-  final BookRepository repository;
-
-  Future<BookEntity?> call(String id) => repository.getBookById(id);
 }
 
 class AddBookUseCase {

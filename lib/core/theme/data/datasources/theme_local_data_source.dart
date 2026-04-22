@@ -7,7 +7,7 @@ class ThemeLocalDataSource {
 
   static const String _themeKey = 'is_dark_mode';
 
-  bool getIsDarkMode() => _sharedPreferences.getBool(_themeKey) ?? false;
+  bool fetchIsDarkMode() => _sharedPreferences.getBool(_themeKey) ?? false;
 
   Future<void> setIsDarkMode(bool isDarkMode) async {
     await _sharedPreferences.setBool(_themeKey, isDarkMode);

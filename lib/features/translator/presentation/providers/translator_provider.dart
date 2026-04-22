@@ -40,16 +40,16 @@ TranslatorRepository translatorRepository(Ref ref) {
 }
 
 @riverpod
-GetTranslatorsUseCase getTranslatorsUseCase(Ref ref) =>
-    GetTranslatorsUseCase(ref.watch(translatorRepositoryProvider));
+FetchTranslatorsUseCase fetchTranslatorsUseCase(Ref ref) =>
+    FetchTranslatorsUseCase(ref.watch(translatorRepositoryProvider));
 
 @riverpod
 WatchTranslatorsUseCase watchTranslatorsUseCase(Ref ref) =>
     WatchTranslatorsUseCase(ref.watch(translatorRepositoryProvider));
 
 @riverpod
-GetTranslatorByIdUseCase getTranslatorByIdUseCase(Ref ref) =>
-    GetTranslatorByIdUseCase(ref.watch(translatorRepositoryProvider));
+FetchTranslatorByIdUseCase fetchTranslatorByIdUseCase(Ref ref) =>
+    FetchTranslatorByIdUseCase(ref.watch(translatorRepositoryProvider));
 
 @riverpod
 AddTranslatorUseCase addTranslatorUseCase(Ref ref) =>

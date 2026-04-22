@@ -15,11 +15,11 @@ SignInWithGoogleUseCase signInWithGoogleUseCase(Ref ref) =>
 SignOutUseCase signOutUseCase(Ref ref) => SignOutUseCase(ref.watch(authRepositoryProvider));
 
 @riverpod
-GetAuthStateChangesUseCase getAuthStateChangesUseCase(Ref ref) =>
-    GetAuthStateChangesUseCase(ref.watch(authRepositoryProvider));
+FetchAuthStateChangesUseCase fetchAuthStateChangesUseCase(Ref ref) =>
+    FetchAuthStateChangesUseCase(ref.watch(authRepositoryProvider));
 
 final StreamProvider<UserEntity?> authStateProvider = StreamProvider<UserEntity?>(
-  (Ref ref) => ref.watch(getAuthStateChangesUseCaseProvider).call(),
+  (Ref ref) => ref.watch(fetchAuthStateChangesUseCaseProvider).call(),
 );
 
 final Provider<String?> currentUidProvider = Provider<String?>(

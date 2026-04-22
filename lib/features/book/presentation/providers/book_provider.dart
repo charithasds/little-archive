@@ -40,15 +40,15 @@ BookRepository bookRepository(Ref ref) {
 }
 
 @riverpod
-GetBooksUseCase getBooksUseCase(Ref ref) => GetBooksUseCase(ref.watch(bookRepositoryProvider));
+FetchBooksUseCase fetchBooksUseCase(Ref ref) => FetchBooksUseCase(ref.watch(bookRepositoryProvider));
 
 @riverpod
 WatchBooksUseCase watchBooksUseCase(Ref ref) =>
     WatchBooksUseCase(ref.watch(bookRepositoryProvider));
 
 @riverpod
-GetBookByIdUseCase getBookByIdUseCase(Ref ref) =>
-    GetBookByIdUseCase(ref.watch(bookRepositoryProvider));
+FetchBookByIdUseCase fetchBookByIdUseCase(Ref ref) =>
+    FetchBookByIdUseCase(ref.watch(bookRepositoryProvider));
 
 @riverpod
 AddBookUseCase addBookUseCase(Ref ref) => AddBookUseCase(ref.watch(bookRepositoryProvider));

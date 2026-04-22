@@ -61,13 +61,13 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
 
       if (existingWork != null) {
         final List<SequenceVolumeEntity> oldVolumes =
-            await ref.read(sequenceRepositoryProvider).getSequenceVolumesByWorkId(workId);
+            await ref.read(sequenceRepositoryProvider).fetchSequenceVolumesByWorkId(workId);
 
         for (final SequenceVolumeEntity vol in oldVolumes) {
           await ref.read(sequenceRepositoryProvider).removeSequenceVolume(vol.id);
 
           final SequenceEntity? seq =
-              await ref.read(sequenceRepositoryProvider).getSequenceById(vol.sequenceId);
+              await ref.read(sequenceRepositoryProvider).fetchSequenceById(vol.sequenceId);
 
           if (seq != null) {
             final List<String> newIds = List<String>.from(seq.sequenceVolumeIds)..remove(vol.id);
@@ -95,7 +95,7 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
         await ref.read(sequenceRepositoryProvider).addSequenceVolume(volume);
 
         final SequenceEntity? currentSequence =
-            await ref.read(sequenceRepositoryProvider).getSequenceById(sequence.id);
+            await ref.read(sequenceRepositoryProvider).fetchSequenceById(sequence.id);
 
         if (currentSequence != null) {
           final SequenceEntity updatedSequence = currentSequence.copyWith(
@@ -183,7 +183,7 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
 
     // Remove workId from the old book's workIds.
     if (oldBookId != null) {
-      final BookEntity? oldBook = await ref.read(getBookByIdUseCaseProvider)(oldBookId);
+      final BookEntity? oldBook = await ref.read(fetchBookByIdUseCaseProvider)(oldBookId);
       if (oldBook != null) {
         final List<String> updated = List<String>.from(oldBook.workIds)..remove(workId);
         await ref.read(editBookUseCaseProvider)(oldBook.copyWith(workIds: updated));
@@ -192,7 +192,7 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
 
     // Add workId to the new book's workIds.
     if (newBookId != null) {
-      final BookEntity? newBook = await ref.read(getBookByIdUseCaseProvider)(newBookId);
+      final BookEntity? newBook = await ref.read(fetchBookByIdUseCaseProvider)(newBookId);
       if (newBook != null && !newBook.workIds.contains(workId)) {
         final List<String> updated = List<String>.from(newBook.workIds)..add(workId);
         await ref.read(editBookUseCaseProvider)(newBook.copyWith(workIds: updated));

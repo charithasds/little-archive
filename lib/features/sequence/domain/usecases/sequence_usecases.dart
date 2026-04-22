@@ -2,11 +2,18 @@ import '../entities/sequence_entity.dart';
 import '../entities/sequence_volume_entity.dart';
 import '../repositories/sequence_repository.dart';
 
-class GetSequencesUseCase {
-  const GetSequencesUseCase(this.repository);
+class FetchSequencesUseCase {
+  const FetchSequencesUseCase(this.repository);
   final SequenceRepository repository;
 
-  Future<List<SequenceEntity>> call() => repository.getSequences();
+  Future<List<SequenceEntity>> call() => repository.fetchSequences();
+}
+
+class FetchSequenceByIdUseCase {
+  const FetchSequenceByIdUseCase(this.repository);
+  final SequenceRepository repository;
+
+  Future<SequenceEntity?> call(String id) => repository.fetchSequenceById(id);
 }
 
 class WatchSequencesUseCase {
@@ -14,13 +21,6 @@ class WatchSequencesUseCase {
   final SequenceRepository repository;
 
   Stream<List<SequenceEntity>> call() => repository.watchSequences();
-}
-
-class GetSequenceByIdUseCase {
-  const GetSequenceByIdUseCase(this.repository);
-  final SequenceRepository repository;
-
-  Future<SequenceEntity?> call(String id) => repository.getSequenceById(id);
 }
 
 class AddSequenceUseCase {
@@ -44,35 +44,43 @@ class RemoveSequenceUseCase {
   Future<void> call(String id) => repository.removeSequence(id);
 }
 
-class GetSequenceVolumesUseCase {
-  const GetSequenceVolumesUseCase(this.repository);
+class FetchSequenceVolumesUseCase {
+  const FetchSequenceVolumesUseCase(this.repository);
   final SequenceRepository repository;
 
   Future<List<SequenceVolumeEntity>> call(String sequenceId) =>
-      repository.getSequenceVolumes(sequenceId);
+      repository.fetchSequenceVolumes(sequenceId);
 }
 
-class GetSequenceVolumeByIdUseCase {
-  const GetSequenceVolumeByIdUseCase(this.repository);
+class FetchSequenceVolumeByIdUseCase {
+  const FetchSequenceVolumeByIdUseCase(this.repository);
   final SequenceRepository repository;
 
-  Future<SequenceVolumeEntity?> call(String id) => repository.getSequenceVolumeById(id);
+  Future<SequenceVolumeEntity?> call(String id) => repository.fetchSequenceVolumeById(id);
 }
 
-class GetSequenceVolumesByBookIdUseCase {
-  const GetSequenceVolumesByBookIdUseCase(this.repository);
+class FetchSequenceVolumesByBookIdUseCase {
+  const FetchSequenceVolumesByBookIdUseCase(this.repository);
   final SequenceRepository repository;
 
   Future<List<SequenceVolumeEntity>> call(String bookId) =>
-      repository.getSequenceVolumesByBookId(bookId);
+      repository.fetchSequenceVolumesByBookId(bookId);
 }
 
-class GetSequenceVolumesByWorkIdUseCase {
-  const GetSequenceVolumesByWorkIdUseCase(this.repository);
+class FetchSequenceVolumesByWorkIdUseCase {
+  const FetchSequenceVolumesByWorkIdUseCase(this.repository);
   final SequenceRepository repository;
 
   Future<List<SequenceVolumeEntity>> call(String workId) =>
-      repository.getSequenceVolumesByWorkId(workId);
+      repository.fetchSequenceVolumesByWorkId(workId);
+}
+
+class WatchSequenceVolumesUseCase {
+  const WatchSequenceVolumesUseCase(this.repository);
+  final SequenceRepository repository;
+
+  Stream<List<SequenceVolumeEntity>> call(String sequenceId) =>
+      repository.watchSequenceVolumes(sequenceId);
 }
 
 class AddSequenceVolumeUseCase {
@@ -94,12 +102,4 @@ class RemoveSequenceVolumeUseCase {
   final SequenceRepository repository;
 
   Future<void> call(String id) => repository.removeSequenceVolume(id);
-}
-
-class WatchSequenceVolumesUseCase {
-  const WatchSequenceVolumesUseCase(this.repository);
-  final SequenceRepository repository;
-
-  Stream<List<SequenceVolumeEntity>> call(String sequenceId) =>
-      repository.watchSequenceVolumes(sequenceId);
 }

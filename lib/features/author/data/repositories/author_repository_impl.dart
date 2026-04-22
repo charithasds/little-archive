@@ -14,10 +14,10 @@ class AuthorRepositoryImpl implements AuthorRepository {
   String generateId() => remoteDataSource.generateId();
 
   @override
-  Future<List<AuthorEntity>> getAuthors() => remoteDataSource.fetchAuthors();
+  Future<List<AuthorEntity>> fetchAuthors() => remoteDataSource.fetchAuthors();
 
   @override
-  Future<AuthorEntity?> getAuthorById(String id) => remoteDataSource.fetchAuthorById(id);
+  Future<AuthorEntity?> fetchAuthorById(String id) => remoteDataSource.fetchAuthorById(id);
 
   @override
   Stream<List<AuthorEntity>> watchAuthors() => remoteDataSource.watchAuthors();

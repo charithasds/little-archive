@@ -40,16 +40,16 @@ PublisherRepository publisherRepository(Ref ref) {
 }
 
 @riverpod
-GetPublishersUseCase getPublishersUseCase(Ref ref) =>
-    GetPublishersUseCase(ref.watch(publisherRepositoryProvider));
+FetchPublishersUseCase fetchPublishersUseCase(Ref ref) =>
+    FetchPublishersUseCase(ref.watch(publisherRepositoryProvider));
 
 @riverpod
 WatchPublishersUseCase watchPublishersUseCase(Ref ref) =>
     WatchPublishersUseCase(ref.watch(publisherRepositoryProvider));
 
 @riverpod
-GetPublisherByIdUseCase getPublisherByIdUseCase(Ref ref) =>
-    GetPublisherByIdUseCase(ref.watch(publisherRepositoryProvider));
+FetchPublisherByIdUseCase fetchPublisherByIdUseCase(Ref ref) =>
+    FetchPublisherByIdUseCase(ref.watch(publisherRepositoryProvider));
 
 @riverpod
 AddPublisherUseCase addPublisherUseCase(Ref ref) =>
