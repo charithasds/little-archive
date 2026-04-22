@@ -24,8 +24,8 @@ class TranslatorModel extends TranslatorEntity {
     facebook: map['facebook'] as String?,
     bookIds: List<String>.from(map['bookIds'] as Iterable<dynamic>? ?? <String>[]),
     workIds: List<String>.from(map['workIds'] as Iterable<dynamic>? ?? <String>[]),
-    createdDate: (map['createdDate'] as Timestamp).toDate(),
-    lastUpdated: (map['lastUpdated'] as Timestamp).toDate(),
+    createdDate: (map['createdDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
+    lastUpdated: (map['lastUpdated'] as Timestamp?)?.toDate() ?? DateTime.now(),
   );
 
   Map<String, dynamic> toMap() => <String, dynamic>{

@@ -32,11 +32,12 @@ class UpsertBookState {
     String? error,
     String? pickedBase64Image,
     bool clearCover = false,
-  }) => UpsertBookState(
-    isLoading: isLoading ?? this.isLoading,
-    error: error,
-    pickedBase64Image: clearCover ? null : (pickedBase64Image ?? this.pickedBase64Image),
-  );
+  }) =>
+      UpsertBookState(
+        isLoading: isLoading ?? this.isLoading,
+        error: error,
+        pickedBase64Image: clearCover ? null : (pickedBase64Image ?? this.pickedBase64Image),
+      );
 }
 
 class UpsertBookController extends Notifier<UpsertBookState> {
@@ -65,19 +66,20 @@ class UpsertBookController extends Notifier<UpsertBookState> {
     required BookEntity? existingBook,
     required String title,
     required CompilationType compilationType,
+    required bool isTranslation,
+    String? cover,
     Language? language,
     Genre? genre,
     String? isbn,
     DateTime? publishedDate,
     int? noOfPages,
-    bool isTranslation = false,
     String? originalTitle,
     OriginalLanguage? originalLanguage,
-    CollectionStatus collectionStatus = CollectionStatus.collected,
+    CollectionStatus? collectionStatus,
     DateTime? collectedDate,
     DateTime? lendedDate,
     DateTime? dueDate,
-    ReadingStatus readingStatus = ReadingStatus.notStarted,
+    ReadingStatus? readingStatus,
     int? pausedPage,
     DateTime? completedDate,
     String? notes,
@@ -102,16 +104,14 @@ class UpsertBookController extends Notifier<UpsertBookState> {
       final List<String> sequenceVolumeIds = <String>[];
 
       if (existingBook != null) {
-        final List<SequenceVolumeEntity> oldVolumes = await ref
-            .read(sequenceRepositoryProvider)
-            .getSequenceVolumesByBookId(bookId);
+        final List<SequenceVolumeEntity> oldVolumes =
+            await ref.read(sequenceRepositoryProvider).getSequenceVolumesByBookId(bookId);
 
         for (final SequenceVolumeEntity vol in oldVolumes) {
           await ref.read(sequenceRepositoryProvider).removeSequenceVolume(vol.id);
 
-          final SequenceEntity? seq = await ref
-              .read(sequenceRepositoryProvider)
-              .getSequenceById(vol.sequenceId);
+          final SequenceEntity? seq =
+              await ref.read(sequenceRepositoryProvider).getSequenceById(vol.sequenceId);
 
           if (seq != null) {
             final List<String> newIds = List<String>.from(seq.sequenceVolumeIds)..remove(vol.id);
@@ -138,9 +138,8 @@ class UpsertBookController extends Notifier<UpsertBookState> {
 
         await ref.read(sequenceRepositoryProvider).addSequenceVolume(volume);
 
-        final SequenceEntity? currentSequence = await ref
-            .read(sequenceRepositoryProvider)
-            .getSequenceById(sequence.id);
+        final SequenceEntity? currentSequence =
+            await ref.read(sequenceRepositoryProvider).getSequenceById(sequence.id);
 
         if (currentSequence != null) {
           final SequenceEntity updatedSequence = currentSequence.copyWith(
@@ -152,67 +151,68 @@ class UpsertBookController extends Notifier<UpsertBookState> {
         sequenceVolumeIds.add(volumeId);
       }
 
-      final BookEntity bookToSave = existingBook != null
-          ? existingBook.copyWith(
-              title: title,
-              cover: Nullable<String?>(state.pickedBase64Image),
-              compilationType: compilationType,
-              language: Nullable<Language?>(language),
-              genre: Nullable<Genre?>(genre),
-              isbn: Nullable<String?>((isbn?.isEmpty ?? true) ? null : isbn),
-              publishedDate: Nullable<DateTime?>(publishedDate),
-              noOfPages: Nullable<int?>(noOfPages),
-              isTranslation: isTranslation,
-              originalTitle: Nullable<String?>(
-                (originalTitle?.isEmpty ?? true) ? null : originalTitle,
-              ),
-              originalLanguage: Nullable<OriginalLanguage?>(originalLanguage),
-              collectionStatus: collectionStatus,
-              collectedDate: Nullable<DateTime?>(collectedDate),
-              lendedDate: Nullable<DateTime?>(lendedDate),
-              dueDate: Nullable<DateTime?>(dueDate),
-              readingStatus: readingStatus,
-              pausedPage: Nullable<int?>(pausedPage),
-              completedDate: Nullable<DateTime?>(completedDate),
-              notes: Nullable<String?>((notes?.isEmpty ?? true) ? null : notes),
-              lastUpdated: DateTime.now(),
-              authorIds: authorIds,
-              translatorIds: translatorIds,
-              workIds: workIds,
-              sequenceVolumeIds: sequenceVolumeIds,
-              publisherId: Nullable<String?>(publisherId),
-              readerId: Nullable<String?>(readerId),
-            )
-          : BookEntity(
-              id: bookId,
-              title: title,
-              cover: state.pickedBase64Image,
-              compilationType: compilationType,
-              language: language,
-              genre: genre,
-              isbn: isbn,
-              publishedDate: publishedDate,
-              noOfPages: noOfPages,
-              isTranslation: isTranslation,
-              originalTitle: isTranslation ? originalTitle : null,
-              originalLanguage: isTranslation ? originalLanguage : null,
-              collectionStatus: collectionStatus,
-              collectedDate: collectedDate,
-              lendedDate: lendedDate,
-              dueDate: dueDate,
-              readingStatus: readingStatus,
-              pausedPage: pausedPage,
-              completedDate: completedDate,
-              notes: notes,
-              createdDate: DateTime.now(),
-              lastUpdated: DateTime.now(),
-              authorIds: authorIds,
-              translatorIds: translatorIds,
-              workIds: workIds,
-              sequenceVolumeIds: sequenceVolumeIds,
-              publisherId: publisherId,
-              readerId: readerId,
-            );
+      final BookEntity bookToSave =
+          existingBook != null
+              ? existingBook.copyWith(
+                title: title,
+                compilationType: compilationType,
+                isTranslation: isTranslation,
+                cover: Nullable<String?>(state.pickedBase64Image),
+                language: Nullable<Language?>(language),
+                genre: Nullable<Genre?>(genre),
+                isbn: Nullable<String?>((isbn?.isEmpty ?? true) ? null : isbn),
+                publishedDate: Nullable<DateTime?>(publishedDate),
+                noOfPages: Nullable<int?>(noOfPages),
+                originalTitle: Nullable<String?>(
+                  (originalTitle?.isEmpty ?? true) ? null : originalTitle,
+                ),
+                originalLanguage: Nullable<OriginalLanguage?>(originalLanguage),
+                collectionStatus: Nullable<CollectionStatus?>(collectionStatus),
+                collectedDate: Nullable<DateTime?>(collectedDate),
+                lendedDate: Nullable<DateTime?>(lendedDate),
+                dueDate: Nullable<DateTime?>(dueDate),
+                readingStatus: Nullable<ReadingStatus?>(readingStatus),
+                pausedPage: Nullable<int?>(pausedPage),
+                completedDate: Nullable<DateTime?>(completedDate),
+                notes: Nullable<String?>((notes?.isEmpty ?? true) ? null : notes),
+                authorIds: authorIds,
+                translatorIds: translatorIds,
+                workIds: workIds,
+                sequenceVolumeIds: sequenceVolumeIds,
+                publisherId: Nullable<String?>(publisherId),
+                readerId: Nullable<String?>(readerId),
+                lastUpdated: DateTime.now(),
+              )
+              : BookEntity(
+                id: bookId,
+                title: title,
+                compilationType: compilationType,
+                isTranslation: isTranslation,
+                cover: state.pickedBase64Image,
+                language: language,
+                genre: genre,
+                isbn: isbn,
+                publishedDate: publishedDate,
+                noOfPages: noOfPages,
+                originalTitle: isTranslation ? originalTitle : null,
+                originalLanguage: isTranslation ? originalLanguage : null,
+                collectionStatus: collectionStatus,
+                collectedDate: collectedDate,
+                lendedDate: lendedDate,
+                dueDate: dueDate,
+                readingStatus: readingStatus,
+                pausedPage: pausedPage,
+                completedDate: completedDate,
+                notes: notes,
+                authorIds: authorIds,
+                translatorIds: translatorIds,
+                workIds: workIds,
+                sequenceVolumeIds: sequenceVolumeIds,
+                publisherId: publisherId,
+                readerId: readerId,
+                createdDate: DateTime.now(),
+                lastUpdated: DateTime.now(),
+              );
 
       if (existingBook != null) {
         await ref.read(editBookUseCaseProvider)(bookToSave);

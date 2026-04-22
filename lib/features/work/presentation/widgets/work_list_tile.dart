@@ -102,7 +102,7 @@ class WorkListTile extends ConsumerWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${work.contentCategory.clientValue} • ${work.readingStatus.clientValue}',
+                      work.contentCategory.clientValue,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(

@@ -37,6 +37,7 @@ class _AddWorkDialogState extends ConsumerState<AddWorkDialog> {
             existingWork: null,
             title: _titleController.text.trim(),
             contentCategory: _contentCategory,
+            isTranslation: false,
           );
 
       if (mounted) {

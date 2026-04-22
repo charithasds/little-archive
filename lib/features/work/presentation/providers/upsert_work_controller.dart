@@ -6,7 +6,6 @@ import '../../../../core/shared/domain/enums/content_category.dart';
 import '../../../../core/shared/domain/enums/genre.dart';
 import '../../../../core/shared/domain/enums/language.dart';
 import '../../../../core/shared/domain/enums/original_language.dart';
-import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../book/domain/entities/book_entity.dart';
@@ -35,15 +34,12 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
     required WorkEntity? existingWork,
     required String title,
     required ContentCategory contentCategory,
+    required bool isTranslation,
     Language? language,
     Genre? genre,
     int? noOfPages,
-    bool isTranslation = false,
     String? originalTitle,
     OriginalLanguage? originalLanguage,
-    ReadingStatus readingStatus = ReadingStatus.notStarted,
-    int? pausedPage,
-    DateTime? completedDate,
     String? notes,
     List<String> authorIds = const <String>[],
     List<String> translatorIds = const <String>[],
@@ -64,16 +60,14 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
       final List<String> sequenceVolumeIds = <String>[];
 
       if (existingWork != null) {
-        final List<SequenceVolumeEntity> oldVolumes = await ref
-            .read(sequenceRepositoryProvider)
-            .getSequenceVolumesByWorkId(workId);
+        final List<SequenceVolumeEntity> oldVolumes =
+            await ref.read(sequenceRepositoryProvider).getSequenceVolumesByWorkId(workId);
 
         for (final SequenceVolumeEntity vol in oldVolumes) {
           await ref.read(sequenceRepositoryProvider).removeSequenceVolume(vol.id);
 
-          final SequenceEntity? seq = await ref
-              .read(sequenceRepositoryProvider)
-              .getSequenceById(vol.sequenceId);
+          final SequenceEntity? seq =
+              await ref.read(sequenceRepositoryProvider).getSequenceById(vol.sequenceId);
 
           if (seq != null) {
             final List<String> newIds = List<String>.from(seq.sequenceVolumeIds)..remove(vol.id);
@@ -100,9 +94,8 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
 
         await ref.read(sequenceRepositoryProvider).addSequenceVolume(volume);
 
-        final SequenceEntity? currentSequence = await ref
-            .read(sequenceRepositoryProvider)
-            .getSequenceById(sequence.id);
+        final SequenceEntity? currentSequence =
+            await ref.read(sequenceRepositoryProvider).getSequenceById(sequence.id);
 
         if (currentSequence != null) {
           final SequenceEntity updatedSequence = currentSequence.copyWith(
@@ -114,49 +107,44 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
         sequenceVolumeIds.add(volumeId);
       }
 
-      final WorkEntity workToSave = existingWork != null
-          ? existingWork.copyWith(
-              title: title,
-              language: Nullable<Language?>(language),
-              genre: Nullable<Genre?>(genre),
-              contentCategory: contentCategory,
-              noOfPages: Nullable<int?>(noOfPages),
-              isTranslation: isTranslation,
-              originalTitle: Nullable<String?>(
-                originalTitle?.isEmpty ?? true ? null : originalTitle,
-              ),
-              originalLanguage: Nullable<OriginalLanguage?>(originalLanguage),
-              readingStatus: readingStatus,
-              pausedPage: Nullable<int?>(pausedPage),
-              completedDate: Nullable<DateTime?>(completedDate),
-              notes: Nullable<String?>(notes?.isEmpty ?? true ? null : notes),
-              authorIds: authorIds,
-              translatorIds: translatorIds,
-              sequenceVolumeIds: sequenceVolumeIds,
-              bookId: Nullable<String?>(bookId),
-              lastUpdated: DateTime.now(),
-            )
-          : WorkEntity(
-              id: workId,
-              title: title,
-              language: language,
-              genre: genre,
-              contentCategory: contentCategory,
-              noOfPages: noOfPages,
-              isTranslation: isTranslation,
-              originalTitle: isTranslation ? originalTitle : null,
-              originalLanguage: isTranslation ? originalLanguage : null,
-              readingStatus: readingStatus,
-              pausedPage: pausedPage,
-              completedDate: completedDate,
-              notes: notes,
-              createdDate: DateTime.now(),
-              lastUpdated: DateTime.now(),
-              authorIds: authorIds,
-              translatorIds: translatorIds,
-              sequenceVolumeIds: sequenceVolumeIds,
-              bookId: bookId,
-            );
+      final WorkEntity workToSave =
+          existingWork != null
+              ? existingWork.copyWith(
+                title: title,
+                contentCategory: contentCategory,
+                isTranslation: isTranslation,
+                language: Nullable<Language?>(language),
+                genre: Nullable<Genre?>(genre),
+                noOfPages: Nullable<int?>(noOfPages),
+                originalTitle: Nullable<String?>(
+                  originalTitle?.isEmpty ?? true ? null : originalTitle,
+                ),
+                originalLanguage: Nullable<OriginalLanguage?>(originalLanguage),
+                notes: Nullable<String?>(notes?.isEmpty ?? true ? null : notes),
+                authorIds: authorIds,
+                translatorIds: translatorIds,
+                sequenceVolumeIds: sequenceVolumeIds,
+                bookId: Nullable<String?>(bookId),
+                lastUpdated: DateTime.now(),
+              )
+              : WorkEntity(
+                id: workId,
+                title: title,
+                contentCategory: contentCategory,
+                isTranslation: isTranslation,
+                language: language,
+                genre: genre,
+                noOfPages: noOfPages,
+                originalTitle: isTranslation ? originalTitle : null,
+                originalLanguage: isTranslation ? originalLanguage : null,
+                notes: notes,
+                authorIds: authorIds,
+                translatorIds: translatorIds,
+                sequenceVolumeIds: sequenceVolumeIds,
+                bookId: bookId,
+                createdDate: DateTime.now(),
+                lastUpdated: DateTime.now(),
+              );
 
       if (existingWork != null) {
         await ref.read(editWorkUseCaseProvider)(workToSave);
@@ -165,11 +153,7 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
       }
 
       // Keep Book.workIds in sync with this work's bookId.
-      await _syncBookWorkIds(
-        workId: workId,
-        oldBookId: existingWork?.bookId,
-        newBookId: bookId,
-      );
+      await _syncBookWorkIds(workId: workId, oldBookId: existingWork?.bookId, newBookId: bookId);
 
       state = state.copyWith(isLoading: false);
 
@@ -199,27 +183,19 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
 
     // Remove workId from the old book's workIds.
     if (oldBookId != null) {
-      final BookEntity? oldBook =
-          await ref.read(getBookByIdUseCaseProvider)(oldBookId);
+      final BookEntity? oldBook = await ref.read(getBookByIdUseCaseProvider)(oldBookId);
       if (oldBook != null) {
-        final List<String> updated =
-            List<String>.from(oldBook.workIds)..remove(workId);
-        await ref.read(editBookUseCaseProvider)(
-          oldBook.copyWith(workIds: updated),
-        );
+        final List<String> updated = List<String>.from(oldBook.workIds)..remove(workId);
+        await ref.read(editBookUseCaseProvider)(oldBook.copyWith(workIds: updated));
       }
     }
 
     // Add workId to the new book's workIds.
     if (newBookId != null) {
-      final BookEntity? newBook =
-          await ref.read(getBookByIdUseCaseProvider)(newBookId);
+      final BookEntity? newBook = await ref.read(getBookByIdUseCaseProvider)(newBookId);
       if (newBook != null && !newBook.workIds.contains(workId)) {
-        final List<String> updated =
-            List<String>.from(newBook.workIds)..add(workId);
-        await ref.read(editBookUseCaseProvider)(
-          newBook.copyWith(workIds: updated),
-        );
+        final List<String> updated = List<String>.from(newBook.workIds)..add(workId);
+        await ref.read(editBookUseCaseProvider)(newBook.copyWith(workIds: updated));
       }
     }
   }

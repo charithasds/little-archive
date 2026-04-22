@@ -19,8 +19,8 @@ class SequenceVolumeModel extends SequenceVolumeEntity {
         sequenceId: (map['sequenceId'] as String?) ?? '',
         bookId: map['bookId'] as String?,
         workId: map['workId'] as String?,
-        createdDate: (map['createdDate'] as Timestamp).toDate(),
-        lastUpdated: (map['lastUpdated'] as Timestamp).toDate(),
+        createdDate: (map['createdDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
+        lastUpdated: (map['lastUpdated'] as Timestamp?)?.toDate() ?? DateTime.now(),
       );
 
   Map<String, dynamic> toMap() => <String, dynamic>{

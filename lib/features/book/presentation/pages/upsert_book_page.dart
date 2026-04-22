@@ -229,8 +229,8 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
       _compilationType = book.compilationType;
       _language = book.language;
       _genre = book.genre;
-      _collectionStatus = book.collectionStatus;
-      _readingStatus = book.readingStatus;
+      _collectionStatus = book.collectionStatus ?? CollectionStatus.collected;
+      _readingStatus = book.readingStatus ?? ReadingStatus.notStarted;
       _originalLanguage = book.originalLanguage;
       _isTranslation = book.isTranslation;
       _publishedDate = book.publishedDate;

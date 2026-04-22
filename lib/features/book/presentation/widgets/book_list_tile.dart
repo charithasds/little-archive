@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/enums/compilation_type.dart';
+import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/book_entity.dart';
@@ -103,7 +105,7 @@ class BookListTile extends ConsumerWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${book.collectionStatus.clientValue} • ${book.readingStatus.clientValue}',
+                      '${book.collectionStatus?.clientValue ?? CollectionStatus.collected.clientValue} • ${book.readingStatus?.clientValue ?? ReadingStatus.notStarted.clientValue}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(

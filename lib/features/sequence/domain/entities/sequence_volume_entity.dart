@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/shared/domain/utils/nullable.dart';
+
 class SequenceVolumeEntity extends Equatable {
   const SequenceVolumeEntity({
     required this.id,
@@ -26,17 +28,18 @@ class SequenceVolumeEntity extends Equatable {
     String? id,
     String? volume,
     String? sequenceId,
-    String? bookId,
-    String? workId,
+    Nullable<String?>? bookId,
+    Nullable<String?>? workId,
     DateTime? createdDate,
     DateTime? lastUpdated,
-  }) => SequenceVolumeEntity(
-    id: id ?? this.id,
-    volume: volume ?? this.volume,
-    sequenceId: sequenceId ?? this.sequenceId,
-    bookId: bookId ?? this.bookId,
-    workId: workId ?? this.workId,
-    createdDate: createdDate ?? this.createdDate,
-    lastUpdated: lastUpdated ?? this.lastUpdated,
-  );
+  }) =>
+      SequenceVolumeEntity(
+        id: id ?? this.id,
+        volume: volume ?? this.volume,
+        sequenceId: sequenceId ?? this.sequenceId,
+        bookId: bookId != null ? bookId.value : this.bookId,
+        workId: workId != null ? workId.value : this.workId,
+        createdDate: createdDate ?? this.createdDate,
+        lastUpdated: lastUpdated ?? this.lastUpdated,
+      );
 }

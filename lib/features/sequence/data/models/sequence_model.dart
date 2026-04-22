@@ -20,8 +20,8 @@ class SequenceModel extends SequenceEntity {
     sequenceVolumeIds: List<String>.from(
       map['sequenceVolumeIds'] as Iterable<dynamic>? ?? <String>[],
     ),
-    createdDate: (map['createdDate'] as Timestamp).toDate(),
-    lastUpdated: (map['lastUpdated'] as Timestamp).toDate(),
+    createdDate: (map['createdDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
+    lastUpdated: (map['lastUpdated'] as Timestamp?)?.toDate() ?? DateTime.now(),
   );
 
   Map<String, dynamic> toMap() => <String, dynamic>{

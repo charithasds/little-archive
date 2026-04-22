@@ -52,6 +52,7 @@ class _AddBookDialogState extends ConsumerState<AddBookDialog> {
             existingBook: null,
             title: _titleController.text.trim(),
             compilationType: _compilationType,
+            isTranslation: false,
           );
 
       if (mounted) {
