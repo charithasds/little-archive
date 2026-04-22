@@ -3,22 +3,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/domain/enums/content_category.dart';
-import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
+import '../../../../core/shared/presentation/widgets/form_bottom_sheet.dart';
 import '../../../../core/shared/presentation/widgets/form_dropdown_field.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
-import '../../../../core/theme/presentation/providers/theme_provider.dart';
+import '../../../../core/shared/presentation/widgets/loading_filled_button.dart';
 import '../../domain/entities/work_entity.dart';
 import '../providers/upsert_work_controller.dart';
 
-class AddWorkDialog extends ConsumerStatefulWidget {
-  const AddWorkDialog({super.key});
+class AddWorkBottomSheet extends ConsumerStatefulWidget {
+  const AddWorkBottomSheet({super.key});
 
   @override
-  ConsumerState<AddWorkDialog> createState() => _AddWorkDialogState();
+  ConsumerState<AddWorkBottomSheet> createState() => _AddWorkBottomSheetState();
 }
 
-class _AddWorkDialogState extends ConsumerState<AddWorkDialog> {
+class _AddWorkBottomSheetState extends ConsumerState<AddWorkBottomSheet> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   ContentCategory _contentCategory = ContentCategory.shortStory;
@@ -39,9 +39,7 @@ class _AddWorkDialogState extends ConsumerState<AddWorkDialog> {
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
-      final WorkEntity? savedWork = await ref
-          .read(upsertWorkControllerProvider.notifier)
-          .saveWork(
+      final WorkEntity? savedWork = await ref.read(upsertWorkControllerProvider.notifier).saveWork(
             title: _titleController.text.trim(),
             contentCategory: _contentCategory,
             isTranslation: false,
@@ -64,12 +62,19 @@ class _AddWorkDialogState extends ConsumerState<AddWorkDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = ref.watch(activeThemeDataProvider);
     final UpsertWorkState state = ref.watch(upsertWorkControllerProvider);
 
-    return AlertDialog(
-      title: const Text('Add Work'),
-      content: Form(
+    return FormBottomSheet(
+      title: 'Add Work',
+      actions: <Widget>[
+        LoadingFilledButton(
+          onPressed: _save,
+          isLoading: state.isLoading,
+          label: 'Save Work',
+          icon: Icons.save_rounded,
+        ),
+      ],
+      child: Form(
         key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -100,25 +105,6 @@ class _AddWorkDialogState extends ConsumerState<AddWorkDialog> {
           ],
         ),
       ),
-      actions: <Widget>[
-        TextButton(onPressed: () => context.pop(), child: const Text('Cancel')),
-        FilledButton(
-          onPressed: state.isLoading ? null : _save,
-          style: Buttons.getPrimaryFilledButtonStyle(
-            theme,
-          ).copyWith(minimumSize: WidgetStateProperty.all(const Size(100, 44))),
-          child: state.isLoading
-              ? SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: theme.colorScheme.onPrimary,
-                  ),
-                )
-              : const Text('Add'),
-        ),
-      ],
     );
   }
 }

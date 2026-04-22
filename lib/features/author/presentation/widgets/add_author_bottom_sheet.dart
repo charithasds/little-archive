@@ -2,21 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
+import '../../../../core/shared/presentation/widgets/form_bottom_sheet.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
-import '../../../../core/theme/presentation/providers/theme_provider.dart';
+import '../../../../core/shared/presentation/widgets/loading_filled_button.dart';
 import '../../domain/entities/author_entity.dart';
 import '../providers/upsert_author_controller.dart';
 
-class AddAuthorDialog extends ConsumerStatefulWidget {
-  const AddAuthorDialog({super.key});
+class AddAuthorBottomSheet extends ConsumerStatefulWidget {
+  const AddAuthorBottomSheet({super.key});
 
   @override
-  ConsumerState<AddAuthorDialog> createState() => _AddAuthorDialogState();
+  ConsumerState<AddAuthorBottomSheet> createState() => _AddAuthorBottomSheetState();
 }
 
-class _AddAuthorDialogState extends ConsumerState<AddAuthorDialog> {
+class _AddAuthorBottomSheetState extends ConsumerState<AddAuthorBottomSheet> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
 
@@ -58,12 +58,19 @@ class _AddAuthorDialogState extends ConsumerState<AddAuthorDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = ref.watch(activeThemeDataProvider);
     final UpsertAuthorState state = ref.watch(upsertAuthorControllerProvider);
 
-    return AlertDialog(
-      title: const Text('Add Author'),
-      content: Form(
+    return FormBottomSheet(
+      title: 'Add Author',
+      actions: <Widget>[
+        LoadingFilledButton(
+          onPressed: _save,
+          isLoading: state.isLoading,
+          label: 'Save Author',
+          icon: Icons.save_rounded,
+        ),
+      ],
+      child: Form(
         key: _formKey,
         child: FormTextField(
           controller: _nameController,
@@ -75,25 +82,6 @@ class _AddAuthorDialogState extends ConsumerState<AddAuthorDialog> {
           autofocus: true,
         ),
       ),
-      actions: <Widget>[
-        TextButton(onPressed: () => context.pop(), child: const Text('Cancel')),
-        FilledButton(
-          onPressed: state.isLoading ? null : _save,
-          style: Buttons.getPrimaryFilledButtonStyle(
-            theme,
-          ).copyWith(minimumSize: WidgetStateProperty.all(const Size(100, 44))),
-          child: state.isLoading
-              ? SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: theme.colorScheme.onPrimary,
-                  ),
-                )
-              : const Text('Add'),
-        ),
-      ],
     );
   }
 }

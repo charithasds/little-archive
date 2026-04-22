@@ -18,18 +18,18 @@ import '../../../../core/shared/presentation/widgets/search_picker_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../author/domain/entities/author_entity.dart';
 import '../../../author/presentation/providers/author_provider.dart';
-import '../../../author/presentation/widgets/add_author_dialog.dart';
+import '../../../author/presentation/widgets/add_author_bottom_sheet.dart';
 import '../../../book/domain/entities/book_entity.dart';
 import '../../../book/presentation/providers/book_provider.dart';
-import '../../../book/presentation/widgets/add_book_dialog.dart';
+import '../../../book/presentation/widgets/add_book_bottom_sheet.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/domain/entities/sequence_volume_entity.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
-import '../../../sequence/presentation/widgets/add_sequence_dialog.dart';
+import '../../../sequence/presentation/widgets/add_sequence_bottom_sheet.dart';
 import '../../../sequence/presentation/widgets/sequence_number_dialog.dart';
 import '../../../translator/domain/entities/translator_entity.dart';
 import '../../../translator/presentation/providers/translator_provider.dart';
-import '../../../translator/presentation/widgets/add_translator_dialog.dart';
+import '../../../translator/presentation/widgets/add_translator_bottom_sheet.dart';
 import '../../domain/entities/work_entity.dart';
 import '../providers/upsert_work_controller.dart';
 
@@ -321,9 +321,11 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                                 itemKey: (TranslatorEntity t) => t.id,
                                 onChanged: (List<TranslatorEntity> l) =>
                                     setState(() => _selectedTranslators = l),
-                                onAdd: () async => showDialog<TranslatorEntity>(
+                                onAdd: () async => showModalBottomSheet<TranslatorEntity>(
                                   context: context,
-                                  builder: (_) => const AddTranslatorDialog(),
+                                  isScrollControlled: true,
+                                  useSafeArea: true,
+                                  builder: (_) => const AddTranslatorBottomSheet(),
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -343,9 +345,11 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                                       )
                                       .toList(),
                               onChanged: (BookEntity? b) => setState(() => _selectedBook = b),
-                              onAdd: () async => showDialog<BookEntity>(
+                              onAdd: () async => showModalBottomSheet<BookEntity>(
                                 context: context,
-                                builder: (_) => const AddBookDialog(
+                                isScrollControlled: true,
+                                useSafeArea: true,
+                                builder: (_) => const AddBookBottomSheet(
                                   allowedTypes: <CompilationType>[
                                     CompilationType.collection,
                                     CompilationType.anthology,
@@ -377,9 +381,11 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                             itemLabel: (AuthorEntity a) => a.name,
                             itemKey: (AuthorEntity a) => a.id,
                             onChanged: (List<AuthorEntity> l) => setState(() => _selectedAuthors = l),
-                            onAdd: () async => showDialog<AuthorEntity>(
+                            onAdd: () async => showModalBottomSheet<AuthorEntity>(
                               context: context,
-                              builder: (_) => const AddAuthorDialog(),
+                              isScrollControlled: true,
+                              useSafeArea: true,
+                              builder: (_) => const AddAuthorBottomSheet(),
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -467,9 +473,11 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                                 setState(() => _selectedSequences[s] = number);
                               }
                             },
-                            onAdd: () async => showDialog<SequenceEntity>(
+                            onAdd: () async => showModalBottomSheet<SequenceEntity>(
                               context: context,
-                              builder: (_) => const AddSequenceDialog(),
+                              isScrollControlled: true,
+                              useSafeArea: true,
+                              builder: (_) => const AddSequenceBottomSheet(),
                             ),
                           ),
                         ],

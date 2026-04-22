@@ -34,7 +34,7 @@ class BookListTile extends ConsumerWidget {
     final int additionalCount = creatorIds.length > 1 ? creatorIds.length - 1 : 0;
     String creatorText;
 
-    if (book.compilationType == CompilationType.single ||
+    if (book.compilationType == CompilationType.standalone ||
         book.compilationType == CompilationType.collection ||
         (book.compilationType == CompilationType.anthology && book.isTranslation)) {
       if (firstCreatorName != null && firstCreatorName!.isNotEmpty) {

@@ -3,16 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/domain/enums/compilation_type.dart';
-import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
+import '../../../../core/shared/presentation/widgets/form_bottom_sheet.dart';
 import '../../../../core/shared/presentation/widgets/form_dropdown_field.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
-import '../../../../core/theme/presentation/providers/theme_provider.dart';
+import '../../../../core/shared/presentation/widgets/loading_filled_button.dart';
 import '../../domain/entities/book_entity.dart';
 import '../providers/upsert_book_controller.dart';
 
-class AddBookDialog extends ConsumerStatefulWidget {
-  const AddBookDialog({
+class AddBookBottomSheet extends ConsumerStatefulWidget {
+  const AddBookBottomSheet({
     super.key,
     this.allowedTypes,
   });
@@ -22,10 +22,10 @@ class AddBookDialog extends ConsumerStatefulWidget {
   final List<CompilationType>? allowedTypes;
 
   @override
-  ConsumerState<AddBookDialog> createState() => _AddBookDialogState();
+  ConsumerState<AddBookBottomSheet> createState() => _AddBookBottomSheetState();
 }
 
-class _AddBookDialogState extends ConsumerState<AddBookDialog> {
+class _AddBookBottomSheetState extends ConsumerState<AddBookBottomSheet> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   late CompilationType _compilationType;
@@ -49,9 +49,7 @@ class _AddBookDialogState extends ConsumerState<AddBookDialog> {
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
-      final BookEntity? savedBook = await ref
-          .read(upsertBookControllerProvider.notifier)
-          .saveBook(
+      final BookEntity? savedBook = await ref.read(upsertBookControllerProvider.notifier).saveBook(
             title: _titleController.text.trim(),
             compilationType: _compilationType,
             isTranslation: false,
@@ -74,12 +72,19 @@ class _AddBookDialogState extends ConsumerState<AddBookDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = ref.watch(activeThemeDataProvider);
     final UpsertBookState state = ref.watch(upsertBookControllerProvider);
 
-    return AlertDialog(
-      title: const Text('Add Book'),
-      content: Form(
+    return FormBottomSheet(
+      title: 'Add Book',
+      actions: <Widget>[
+        LoadingFilledButton(
+          onPressed: _save,
+          isLoading: state.isLoading,
+          label: 'Save Book',
+          icon: Icons.save_rounded,
+        ),
+      ],
+      child: Form(
         key: _formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -110,25 +115,6 @@ class _AddBookDialogState extends ConsumerState<AddBookDialog> {
           ],
         ),
       ),
-      actions: <Widget>[
-        TextButton(onPressed: () => context.pop(), child: const Text('Cancel')),
-        FilledButton(
-          onPressed: state.isLoading ? null : _save,
-          style: Buttons.getPrimaryFilledButtonStyle(
-            theme,
-          ).copyWith(minimumSize: WidgetStateProperty.all(const Size(100, 44))),
-          child: state.isLoading
-              ? SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: theme.colorScheme.onPrimary,
-                  ),
-                )
-              : const Text('Add'),
-        ),
-      ],
     );
   }
 }

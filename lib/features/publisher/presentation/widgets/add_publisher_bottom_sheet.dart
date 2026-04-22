@@ -2,21 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
+import '../../../../core/shared/presentation/widgets/form_bottom_sheet.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
-import '../../../../core/theme/presentation/providers/theme_provider.dart';
+import '../../../../core/shared/presentation/widgets/loading_filled_button.dart';
 import '../../domain/entities/publisher_entity.dart';
 import '../providers/upsert_publisher_controller.dart';
 
-class AddPublisherDialog extends ConsumerStatefulWidget {
-  const AddPublisherDialog({super.key});
+class AddPublisherBottomSheet extends ConsumerStatefulWidget {
+  const AddPublisherBottomSheet({super.key});
 
   @override
-  ConsumerState<AddPublisherDialog> createState() => _AddPublisherDialogState();
+  ConsumerState<AddPublisherBottomSheet> createState() => _AddPublisherBottomSheetState();
 }
 
-class _AddPublisherDialogState extends ConsumerState<AddPublisherDialog> {
+class _AddPublisherBottomSheetState extends ConsumerState<AddPublisherBottomSheet> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
 
@@ -58,12 +58,19 @@ class _AddPublisherDialogState extends ConsumerState<AddPublisherDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = ref.watch(activeThemeDataProvider);
     final UpsertPublisherState state = ref.watch(upsertPublisherControllerProvider);
 
-    return AlertDialog(
-      title: const Text('Add Publisher'),
-      content: Form(
+    return FormBottomSheet(
+      title: 'Add Publisher',
+      actions: <Widget>[
+        LoadingFilledButton(
+          onPressed: _save,
+          isLoading: state.isLoading,
+          label: 'Save Publisher',
+          icon: Icons.save_rounded,
+        ),
+      ],
+      child: Form(
         key: _formKey,
         child: FormTextField(
           controller: _nameController,
@@ -75,25 +82,6 @@ class _AddPublisherDialogState extends ConsumerState<AddPublisherDialog> {
           autofocus: true,
         ),
       ),
-      actions: <Widget>[
-        TextButton(onPressed: () => context.pop(), child: const Text('Cancel')),
-        FilledButton(
-          onPressed: state.isLoading ? null : _save,
-          style: Buttons.getPrimaryFilledButtonStyle(
-            theme,
-          ).copyWith(minimumSize: WidgetStateProperty.all(const Size(100, 44))),
-          child: state.isLoading
-              ? SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: theme.colorScheme.onPrimary,
-                  ),
-                )
-              : const Text('Add'),
-        ),
-      ],
     );
   }
 }

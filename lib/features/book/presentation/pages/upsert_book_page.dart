@@ -20,24 +20,24 @@ import '../../../../core/shared/presentation/widgets/search_picker_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../author/domain/entities/author_entity.dart';
 import '../../../author/presentation/providers/author_provider.dart';
-import '../../../author/presentation/widgets/add_author_dialog.dart';
+import '../../../author/presentation/widgets/add_author_bottom_sheet.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
-import '../../../publisher/presentation/widgets/add_publisher_dialog.dart';
+import '../../../publisher/presentation/widgets/add_publisher_bottom_sheet.dart';
 import '../../../reader/domain/entities/reader_entity.dart';
 import '../../../reader/presentation/providers/reader_provider.dart';
-import '../../../reader/presentation/widgets/add_reader_dialog.dart';
+import '../../../reader/presentation/widgets/add_reader_bottom_sheet.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/domain/entities/sequence_volume_entity.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
-import '../../../sequence/presentation/widgets/add_sequence_dialog.dart';
+import '../../../sequence/presentation/widgets/add_sequence_bottom_sheet.dart';
 import '../../../sequence/presentation/widgets/sequence_number_dialog.dart';
 import '../../../translator/domain/entities/translator_entity.dart';
 import '../../../translator/presentation/providers/translator_provider.dart';
-import '../../../translator/presentation/widgets/add_translator_dialog.dart';
+import '../../../translator/presentation/widgets/add_translator_bottom_sheet.dart';
 import '../../../work/domain/entities/work_entity.dart';
 import '../../../work/presentation/providers/work_provider.dart';
-import '../../../work/presentation/widgets/add_work_dialog.dart';
+import '../../../work/presentation/widgets/add_work_bottom_sheet.dart';
 import '../../domain/entities/book_entity.dart';
 import '../providers/upsert_book_controller.dart';
 
@@ -60,7 +60,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
   final TextEditingController _pausedPageController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
 
-  CompilationType _compilationType = CompilationType.single;
+  CompilationType _compilationType = CompilationType.standalone;
   Language? _language = Language.sinhala;
   Genre? _genre;
   CollectionStatus _collectionStatus = CollectionStatus.collected;
@@ -91,22 +91,23 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
   // ── Compilation-type field visibility helpers ─────────────────────────────
 
   bool get _showAuthorIds =>
-      _compilationType == CompilationType.single || _compilationType == CompilationType.collection;
+      _compilationType == CompilationType.standalone ||
+      _compilationType == CompilationType.collection;
 
-  bool get _showGenre => _compilationType == CompilationType.single;
+  bool get _showGenre => _compilationType == CompilationType.standalone;
 
-  bool get _showLanguage => _compilationType == CompilationType.single;
+  bool get _showLanguage => _compilationType == CompilationType.standalone;
 
   bool get _showOriginalTitle =>
       _isTranslation &&
-      (_compilationType == CompilationType.single ||
+      (_compilationType == CompilationType.standalone ||
           _compilationType == CompilationType.collection);
 
   bool get _showOriginalLanguage => _showOriginalTitle;
 
   bool get _showTranslatorIds =>
       _isTranslation &&
-      (_compilationType == CompilationType.single ||
+      (_compilationType == CompilationType.standalone ||
           _compilationType == CompilationType.collection);
 
   bool get _showWorkIds =>
@@ -114,7 +115,8 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
       _compilationType == CompilationType.collection;
 
   bool get _showSequenceVolumeIds =>
-      _compilationType == CompilationType.single || _compilationType == CompilationType.collection;
+      _compilationType == CompilationType.standalone ||
+      _compilationType == CompilationType.collection;
 
   // ── Collection-status field visibility helpers ────────────────────────────
 
@@ -459,7 +461,6 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
               ),
               const SizedBox(height: 24),
 
-
               // 1. Details
               FormSection(
                 title: 'Details',
@@ -508,22 +509,12 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                         itemKey: (TranslatorEntity t) => t.id,
                         onChanged: (List<TranslatorEntity> l) =>
                             setState(() => _selectedTranslators = l),
-                        onAdd: () async {
-                          final TranslatorEntity? newTranslator =
-                              await showDialog<TranslatorEntity>(
-                            context: context,
-                            builder: (_) => const AddTranslatorDialog(),
-                          );
-                          if (newTranslator != null && context.mounted) {
-                            setState(
-                              () => _selectedTranslators = <TranslatorEntity>[
-                                ..._selectedTranslators,
-                                newTranslator,
-                              ],
-                            );
-                          }
-                          return null;
-                        },
+                        onAdd: () async => showModalBottomSheet<TranslatorEntity>(
+                          context: context,
+                          isScrollControlled: true,
+                          useSafeArea: true,
+                          builder: (_) => const AddTranslatorBottomSheet(),
+                        ),
                       ),
                       if (_showOriginalTitle) const SizedBox(height: 16),
                     ],
@@ -551,11 +542,12 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       itemsProvider: authorsStreamProvider,
                       itemLabel: (AuthorEntity a) => a.name,
                       itemKey: (AuthorEntity a) => a.id,
-                      onChanged: (List<AuthorEntity> l) =>
-                          setState(() => _selectedAuthors = l),
-                      onAdd: () async => showDialog<AuthorEntity>(
+                      onChanged: (List<AuthorEntity> l) => setState(() => _selectedAuthors = l),
+                      onAdd: () async => showModalBottomSheet<AuthorEntity>(
                         context: context,
-                        builder: (_) => const AddAuthorDialog(),
+                        isScrollControlled: true,
+                        useSafeArea: true,
+                        builder: (_) => const AddAuthorBottomSheet(),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -578,8 +570,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       prefixIcon: Icons.language_rounded,
                       items: OriginalLanguage.values,
                       itemLabel: (OriginalLanguage e) => e.clientValue,
-                      onChanged: (OriginalLanguage? v) =>
-                          setState(() => _originalLanguage = v),
+                      onChanged: (OriginalLanguage? v) => setState(() => _originalLanguage = v),
                     ),
                 ],
               ),
@@ -597,28 +588,25 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                         selectedItems: _selectedSequences.keys.toList(),
                         itemsProvider: sequencesStreamProvider,
                         itemLabel: (SequenceEntity s) => s.name,
-                        chipLabel: (SequenceEntity s) =>
-                            '${s.name} #${_selectedSequences[s]}',
+                        chipLabel: (SequenceEntity s) => '${s.name} #${_selectedSequences[s]}',
                         itemKey: (SequenceEntity s) => s.id,
                         onChanged: (List<SequenceEntity> list) async {
-                          await Future<void>.delayed(
-                              const Duration(milliseconds: 300));
+                          await Future<void>.delayed(const Duration(milliseconds: 300));
                           if (!mounted) {
                             return;
                           }
 
-                          final Set<String> existingIds = _selectedSequences
-                              .keys
+                          final Set<String> existingIds = _selectedSequences.keys
                               .map((SequenceEntity s) => s.id)
                               .toSet();
                           final List<SequenceEntity> newSequences = list
-                              .where((SequenceEntity s) =>
-                                  !existingIds.contains(s.id))
+                              .where((SequenceEntity s) => !existingIds.contains(s.id))
                               .toList();
 
                           setState(() {
                             _selectedSequences.removeWhere(
-                                (SequenceEntity k, _) => !list.contains(k));
+                              (SequenceEntity k, _) => !list.contains(k),
+                            );
                           });
 
                           for (final SequenceEntity s in newSequences) {
@@ -627,8 +615,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                             }
                             final String? number = await showDialog<String>(
                               context: context,
-                              builder: (_) =>
-                                  SequenceNumberDialog(sequenceName: s.name),
+                              builder: (_) => SequenceNumberDialog(sequenceName: s.name),
                             );
                             if (number != null) {
                               setState(() => _selectedSequences[s] = number);
@@ -652,9 +639,11 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                             setState(() => _selectedSequences[s] = number);
                           }
                         },
-                        onAdd: () async => showDialog<SequenceEntity>(
+                        onAdd: () async => showModalBottomSheet<SequenceEntity>(
                           context: context,
-                          builder: (_) => const AddSequenceDialog(),
+                          isScrollControlled: true,
+                          useSafeArea: true,
+                          builder: (_) => const AddSequenceBottomSheet(),
                         ),
                       ),
                       if (_showWorkIds) const SizedBox(height: 16),
@@ -667,11 +656,12 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                         itemsProvider: worksStreamProvider,
                         itemLabel: (WorkEntity s) => s.title,
                         itemKey: (WorkEntity w) => w.id,
-                        onChanged: (List<WorkEntity> l) =>
-                            setState(() => _selectedWorks = l),
-                        onAdd: () async => showDialog<WorkEntity>(
+                        onChanged: (List<WorkEntity> l) => setState(() => _selectedWorks = l),
+                        onAdd: () async => showModalBottomSheet<WorkEntity>(
                           context: context,
-                          builder: (_) => const AddWorkDialog(),
+                          isScrollControlled: true,
+                          useSafeArea: true,
+                          builder: (_) => const AddWorkBottomSheet(),
                         ),
                       ),
                   ],
@@ -700,8 +690,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                     FormDateField(
                       label: 'Collected Date',
                       value: _collectedDate,
-                      onDateSelected: (DateTime d) =>
-                          setState(() => _collectedDate = d),
+                      onDateSelected: (DateTime d) => setState(() => _collectedDate = d),
                       icon: Icons.inventory_2_rounded,
                     ),
                   ],
@@ -721,22 +710,21 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                         selectedItem: _selectedReader,
                         itemsProvider: readersStreamProvider,
                         itemLabel: (ReaderEntity r) => r.name,
-                        onChanged: (ReaderEntity? r) =>
-                            setState(() => _selectedReader = r),
-                        onAdd: () async => showDialog<ReaderEntity>(
+                        onChanged: (ReaderEntity? r) => setState(() => _selectedReader = r),
+                        onAdd: () async => showModalBottomSheet<ReaderEntity>(
                           context: context,
-                          builder: (_) => const AddReaderDialog(),
+                          isScrollControlled: true,
+                          useSafeArea: true,
+                          builder: (_) => const AddReaderBottomSheet(),
                         ),
                       ),
-                      if (_showLendedDate || _showDueDate)
-                        const SizedBox(height: 16),
+                      if (_showLendedDate || _showDueDate) const SizedBox(height: 16),
                     ],
                     if (_showLendedDate) ...<Widget>[
                       FormDateField(
                         label: 'Lended Date',
                         value: _lendedDate,
-                        onDateSelected: (DateTime d) =>
-                            setState(() => _lendedDate = d),
+                        onDateSelected: (DateTime d) => setState(() => _lendedDate = d),
                         onCleared: () => setState(() => _lendedDate = null),
                         isClearable: true,
                         icon: Icons.handshake_rounded,
@@ -747,8 +735,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       FormDateField(
                         label: 'Due Date',
                         value: _dueDate,
-                        onDateSelected: (DateTime d) =>
-                            setState(() => _dueDate = d),
+                        onDateSelected: (DateTime d) => setState(() => _dueDate = d),
                         onCleared: () => setState(() => _dueDate = null),
                         isClearable: true,
                         icon: Icons.event_rounded,
@@ -788,8 +775,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                     FormDateField(
                       label: 'Completed Date',
                       value: _completedDate,
-                      onDateSelected: (DateTime d) =>
-                          setState(() => _completedDate = d),
+                      onDateSelected: (DateTime d) => setState(() => _completedDate = d),
                       icon: Icons.check_circle_outline_rounded,
                     ),
                   ],
@@ -830,8 +816,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       if (value == null || value.isEmpty) {
                         return null;
                       }
-                      final String clean =
-                          value.replaceAll(RegExp(r'[-\s]'), '').toUpperCase();
+                      final String clean = value.replaceAll(RegExp(r'[-\s]'), '').toUpperCase();
                       if (clean.length != 10 && clean.length != 13) {
                         return 'Enter 10 or 13 digits';
                       }
@@ -854,19 +839,19 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                     selectedItem: _selectedPublisher,
                     itemsProvider: publishersStreamProvider,
                     itemLabel: (PublisherEntity p) => p.name,
-                    onChanged: (PublisherEntity? p) =>
-                        setState(() => _selectedPublisher = p),
-                    onAdd: () async => showDialog<PublisherEntity>(
+                    onChanged: (PublisherEntity? p) => setState(() => _selectedPublisher = p),
+                    onAdd: () async => showModalBottomSheet<PublisherEntity>(
                       context: context,
-                      builder: (_) => const AddPublisherDialog(),
+                      isScrollControlled: true,
+                      useSafeArea: true,
+                      builder: (_) => const AddPublisherBottomSheet(),
                     ),
                   ),
                   const SizedBox(height: 16),
                   FormDateField(
                     label: 'Published Date',
                     value: _publishedDate,
-                    onDateSelected: (DateTime d) =>
-                        setState(() => _publishedDate = d),
+                    onDateSelected: (DateTime d) => setState(() => _publishedDate = d),
                     icon: Icons.public_rounded,
                   ),
                 ],
