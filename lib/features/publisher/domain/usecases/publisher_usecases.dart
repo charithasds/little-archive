@@ -1,6 +1,13 @@
 import '../entities/publisher_entity.dart';
 import '../repositories/publisher_repository.dart';
 
+class GeneratePublisherIdUseCase {
+  const GeneratePublisherIdUseCase(this.repository);
+  final PublisherRepository repository;
+
+  String call() => repository.generateId();
+}
+
 class FetchPublishersUseCase {
   const FetchPublishersUseCase(this.repository);
   final PublisherRepository repository;

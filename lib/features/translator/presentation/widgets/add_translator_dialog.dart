@@ -21,6 +21,14 @@ class _AddTranslatorDialogState extends ConsumerState<AddTranslatorDialog> {
   final TextEditingController _nameController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(upsertTranslatorControllerProvider.notifier).initializeWith(null);
+    });
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     super.dispose();
@@ -28,9 +36,10 @@ class _AddTranslatorDialogState extends ConsumerState<AddTranslatorDialog> {
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
-      final TranslatorEntity? savedTranslator = await ref
-          .read(upsertTranslatorControllerProvider.notifier)
-          .saveTranslator(existingTranslator: null, name: _nameController.text.trim());
+      final TranslatorEntity? savedTranslator =
+          await ref.read(upsertTranslatorControllerProvider.notifier).saveTranslator(
+            name: _nameController.text.trim(),
+          );
 
       if (mounted) {
         if (savedTranslator != null) {

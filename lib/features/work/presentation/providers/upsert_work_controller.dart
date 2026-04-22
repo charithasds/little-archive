@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
@@ -16,22 +16,41 @@ import '../../../sequence/presentation/providers/sequence_provider.dart';
 import '../../domain/entities/work_entity.dart';
 import 'work_provider.dart';
 
-class UpsertWorkState {
-  const UpsertWorkState({this.isLoading = false, this.error});
+part 'upsert_work_controller.g.dart';
 
+class UpsertWorkState {
+  const UpsertWorkState({
+    this.existingWork,
+    this.isLoading = false,
+    this.error,
+  });
+
+  final WorkEntity? existingWork;
   final bool isLoading;
   final String? error;
 
-  UpsertWorkState copyWith({bool? isLoading, String? error}) =>
-      UpsertWorkState(isLoading: isLoading ?? this.isLoading, error: error);
+  UpsertWorkState copyWith({
+    Nullable<WorkEntity?>? existingWork,
+    bool? isLoading,
+    Nullable<String?>? error,
+  }) =>
+      UpsertWorkState(
+        existingWork: existingWork != null ? existingWork.value : this.existingWork,
+        isLoading: isLoading ?? this.isLoading,
+        error: error != null ? error.value : this.error,
+      );
 }
 
-class UpsertWorkController extends Notifier<UpsertWorkState> {
+@riverpod
+class UpsertWorkController extends _$UpsertWorkController {
   @override
   UpsertWorkState build() => const UpsertWorkState();
 
+  void initializeWith(WorkEntity? work) {
+    state = UpsertWorkState(existingWork: work);
+  }
+
   Future<WorkEntity?> saveWork({
-    required WorkEntity? existingWork,
     required String title,
     required ContentCategory contentCategory,
     required bool isTranslation,
@@ -46,34 +65,34 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
     Map<SequenceEntity, String> sequenceEntries = const <SequenceEntity, String>{},
     String? bookId,
   }) async {
-    state = state.copyWith(isLoading: true);
+    state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
     final UserEntity? user = ref.read(authStateProvider).value;
 
     if (user == null) {
-      state = state.copyWith(isLoading: false, error: 'User not authenticated');
+      state = state.copyWith(isLoading: false, error: const Nullable<String?>('User not authenticated'));
       return null;
     }
 
     try {
-      final String workId = existingWork?.id ?? ref.read(workRepositoryProvider).generateId();
+      final WorkEntity? existingWork = state.existingWork;
+      final String workId = existingWork?.id ?? ref.read(generateWorkIdUseCaseProvider)();
       final List<String> sequenceVolumeIds = <String>[];
 
       if (existingWork != null) {
         final List<SequenceVolumeEntity> oldVolumes =
-            await ref.read(sequenceRepositoryProvider).fetchSequenceVolumesByWorkId(workId);
+            await ref.read(fetchSequenceVolumesByWorkIdUseCaseProvider)(workId);
 
         for (final SequenceVolumeEntity vol in oldVolumes) {
-          await ref.read(sequenceRepositoryProvider).removeSequenceVolume(vol.id);
+          await ref.read(removeSequenceVolumeUseCaseProvider)(vol.id);
 
           final SequenceEntity? seq =
-              await ref.read(sequenceRepositoryProvider).fetchSequenceById(vol.sequenceId);
+              await ref.read(fetchSequenceByIdUseCaseProvider)(vol.sequenceId);
 
           if (seq != null) {
             final List<String> newIds = List<String>.from(seq.sequenceVolumeIds)..remove(vol.id);
             await ref
-                .read(sequenceRepositoryProvider)
-                .editSequence(seq.copyWith(sequenceVolumeIds: newIds));
+                .read(editSequenceUseCaseProvider)(seq.copyWith(sequenceVolumeIds: newIds));
           }
         }
       }
@@ -82,7 +101,7 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
         final SequenceEntity sequence = entry.key;
         final String volumeNumber = entry.value;
 
-        final String volumeId = ref.read(sequenceRepositoryProvider).generateVolumeId();
+        final String volumeId = ref.read(generateSequenceVolumeIdUseCaseProvider)();
         final SequenceVolumeEntity volume = SequenceVolumeEntity(
           id: volumeId,
           volume: volumeNumber,
@@ -92,16 +111,16 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
           lastUpdated: DateTime.now(),
         );
 
-        await ref.read(sequenceRepositoryProvider).addSequenceVolume(volume);
+        await ref.read(addSequenceVolumeUseCaseProvider)(volume);
 
         final SequenceEntity? currentSequence =
-            await ref.read(sequenceRepositoryProvider).fetchSequenceById(sequence.id);
+            await ref.read(fetchSequenceByIdUseCaseProvider)(sequence.id);
 
         if (currentSequence != null) {
           final SequenceEntity updatedSequence = currentSequence.copyWith(
             sequenceVolumeIds: <String>[...currentSequence.sequenceVolumeIds, volumeId],
           );
-          await ref.read(sequenceRepositoryProvider).editSequence(updatedSequence);
+          await ref.read(editSequenceUseCaseProvider)(updatedSequence);
         }
 
         sequenceVolumeIds.add(volumeId);
@@ -110,41 +129,41 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
       final WorkEntity workToSave =
           existingWork != null
               ? existingWork.copyWith(
-                title: title,
-                contentCategory: contentCategory,
-                isTranslation: isTranslation,
-                language: Nullable<Language?>(language),
-                genre: Nullable<Genre?>(genre),
-                noOfPages: Nullable<int?>(noOfPages),
-                originalTitle: Nullable<String?>(
-                  originalTitle?.isEmpty ?? true ? null : originalTitle,
-                ),
-                originalLanguage: Nullable<OriginalLanguage?>(originalLanguage),
-                notes: Nullable<String?>(notes?.isEmpty ?? true ? null : notes),
-                authorIds: authorIds,
-                translatorIds: translatorIds,
-                sequenceVolumeIds: sequenceVolumeIds,
-                bookId: Nullable<String?>(bookId),
-                lastUpdated: DateTime.now(),
-              )
+                  title: title,
+                  contentCategory: contentCategory,
+                  isTranslation: isTranslation,
+                  language: Nullable<Language?>(language),
+                  genre: Nullable<Genre?>(genre),
+                  noOfPages: Nullable<int?>(noOfPages),
+                  originalTitle: Nullable<String?>(
+                    originalTitle?.isEmpty ?? true ? null : originalTitle,
+                  ),
+                  originalLanguage: Nullable<OriginalLanguage?>(originalLanguage),
+                  notes: Nullable<String?>(notes?.isEmpty ?? true ? null : notes),
+                  authorIds: authorIds,
+                  translatorIds: translatorIds,
+                  sequenceVolumeIds: sequenceVolumeIds,
+                  bookId: Nullable<String?>(bookId),
+                  lastUpdated: DateTime.now(),
+                )
               : WorkEntity(
-                id: workId,
-                title: title,
-                contentCategory: contentCategory,
-                isTranslation: isTranslation,
-                language: language,
-                genre: genre,
-                noOfPages: noOfPages,
-                originalTitle: isTranslation ? originalTitle : null,
-                originalLanguage: isTranslation ? originalLanguage : null,
-                notes: notes,
-                authorIds: authorIds,
-                translatorIds: translatorIds,
-                sequenceVolumeIds: sequenceVolumeIds,
-                bookId: bookId,
-                createdDate: DateTime.now(),
-                lastUpdated: DateTime.now(),
-              );
+                  id: workId,
+                  title: title,
+                  contentCategory: contentCategory,
+                  isTranslation: isTranslation,
+                  language: language,
+                  genre: genre,
+                  noOfPages: noOfPages,
+                  originalTitle: isTranslation ? originalTitle : null,
+                  originalLanguage: isTranslation ? originalLanguage : null,
+                  notes: notes,
+                  authorIds: authorIds,
+                  translatorIds: translatorIds,
+                  sequenceVolumeIds: sequenceVolumeIds,
+                  bookId: bookId,
+                  createdDate: DateTime.now(),
+                  lastUpdated: DateTime.now(),
+                );
 
       if (existingWork != null) {
         await ref.read(editWorkUseCaseProvider)(workToSave);
@@ -159,10 +178,10 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
 
       return workToSave;
     } on NoConnectionException catch (e) {
-      state = state.copyWith(isLoading: false, error: e.message);
+      state = state.copyWith(isLoading: false, error: Nullable<String?>(e.message));
       return null;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: 'Error saving work: $e');
+      state = state.copyWith(isLoading: false, error: Nullable<String?>('Error saving work: $e'));
       return null;
     }
   }
@@ -200,6 +219,3 @@ class UpsertWorkController extends Notifier<UpsertWorkState> {
     }
   }
 }
-
-final NotifierProvider<UpsertWorkController, UpsertWorkState> upsertWorkControllerProvider =
-    NotifierProvider<UpsertWorkController, UpsertWorkState>(UpsertWorkController.new);

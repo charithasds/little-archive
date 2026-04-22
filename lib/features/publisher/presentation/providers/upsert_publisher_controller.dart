@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
@@ -11,31 +11,45 @@ import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../domain/entities/publisher_entity.dart';
 import 'publisher_provider.dart';
 
-class UpsertPublisherState {
-  const UpsertPublisherState({this.isLoading = false, this.error, this.pickedBase64Logo});
+part 'upsert_publisher_controller.g.dart';
 
+class UpsertPublisherState {
+  const UpsertPublisherState({
+    this.existingPublisher,
+    this.isLoading = false,
+    this.error,
+    this.pickedBase64Logo,
+  });
+
+  final PublisherEntity? existingPublisher;
   final bool isLoading;
   final String? error;
   final String? pickedBase64Logo;
 
   UpsertPublisherState copyWith({
+    Nullable<PublisherEntity?>? existingPublisher,
     bool? isLoading,
-    String? error,
-    String? pickedBase64Logo,
-    bool clearLogo = false,
-  }) => UpsertPublisherState(
-    isLoading: isLoading ?? this.isLoading,
-    error: error,
-    pickedBase64Logo: clearLogo ? null : (pickedBase64Logo ?? this.pickedBase64Logo),
-  );
+    Nullable<String?>? error,
+    Nullable<String?>? pickedBase64Logo,
+  }) =>
+      UpsertPublisherState(
+        existingPublisher: existingPublisher != null ? existingPublisher.value : this.existingPublisher,
+        isLoading: isLoading ?? this.isLoading,
+        error: error != null ? error.value : this.error,
+        pickedBase64Logo: pickedBase64Logo != null ? pickedBase64Logo.value : this.pickedBase64Logo,
+      );
 }
 
-class UpsertPublisherController extends Notifier<UpsertPublisherState> {
+@riverpod
+class UpsertPublisherController extends _$UpsertPublisherController {
   @override
   UpsertPublisherState build() => const UpsertPublisherState();
 
   void initializeWith(PublisherEntity? publisher) {
-    state = UpsertPublisherState(pickedBase64Logo: publisher?.logo);
+    state = UpsertPublisherState(
+      existingPublisher: publisher,
+      pickedBase64Logo: publisher?.logo,
+    );
   }
 
   Future<void> pickImage() async {
@@ -44,16 +58,15 @@ class UpsertPublisherController extends Notifier<UpsertPublisherState> {
 
     if (pickedFile != null) {
       final Uint8List bytes = await pickedFile.readAsBytes();
-      state = state.copyWith(pickedBase64Logo: base64Encode(bytes));
+      state = state.copyWith(pickedBase64Logo: Nullable<String?>(base64Encode(bytes)));
     }
   }
 
   void clearLogo() {
-    state = state.copyWith(clearLogo: true);
+    state = state.copyWith(pickedBase64Logo: const Nullable<String?>(null));
   }
 
   Future<PublisherEntity?> savePublisher({
-    required PublisherEntity? existingPublisher,
     required String name,
     String? otherName,
     String? website,
@@ -61,16 +74,17 @@ class UpsertPublisherController extends Notifier<UpsertPublisherState> {
     String? facebook,
     String? phone,
   }) async {
-    state = state.copyWith(isLoading: true);
+    state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
     final UserEntity? user = ref.read(authStateProvider).value;
 
     if (user == null) {
-      state = state.copyWith(isLoading: false, error: 'User not authenticated');
+      state = state.copyWith(isLoading: false, error: const Nullable<String?>('User not authenticated'));
       return null;
     }
 
-    final String generatedId = ref.read(publisherRepositoryProvider).generateId();
+    final PublisherEntity? existingPublisher = state.existingPublisher;
+    final String generatedId = ref.read(generatePublisherIdUseCaseProvider)();
 
     final PublisherEntity publisherToSave = existingPublisher != null
         ? existingPublisher.copyWith(
@@ -108,17 +122,11 @@ class UpsertPublisherController extends Notifier<UpsertPublisherState> {
 
       return publisherToSave;
     } on NoConnectionException catch (e) {
-      state = state.copyWith(isLoading: false, error: e.message);
+      state = state.copyWith(isLoading: false, error: Nullable<String?>(e.message));
       return null;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: 'Error saving publisher: $e');
+      state = state.copyWith(isLoading: false, error: Nullable<String?>('Error saving publisher: $e'));
       return null;
     }
   }
 }
-
-final NotifierProvider<UpsertPublisherController, UpsertPublisherState>
-upsertPublisherControllerProvider =
-    NotifierProvider<UpsertPublisherController, UpsertPublisherState>(
-      UpsertPublisherController.new,
-    );

@@ -7,7 +7,6 @@ import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/author_entity.dart';
-import '../../domain/repositories/author_repository.dart';
 import '../providers/author_provider.dart';
 import '../widgets/author_list_tile.dart';
 
@@ -41,7 +40,7 @@ class AuthorListPage extends ConsumerWidget {
     }
 
     try {
-      await ref.read<AuthorRepository>(authorRepositoryProvider).removeAuthor(authorId);
+      await ref.read(removeAuthorUseCaseProvider)(authorId);
       SnackBars.showSuccess('Author removed successfully');
     } on NoConnectionException catch (e) {
       SnackBars.showError(e.message);

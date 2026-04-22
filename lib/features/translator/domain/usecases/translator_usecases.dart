@@ -1,6 +1,13 @@
 import '../entities/translator_entity.dart';
 import '../repositories/translator_repository.dart';
 
+class GenerateTranslatorIdUseCase {
+  const GenerateTranslatorIdUseCase(this.repository);
+  final TranslatorRepository repository;
+
+  String call() => repository.generateId();
+}
+
 class FetchTranslatorsUseCase {
   const FetchTranslatorsUseCase(this.repository);
   final TranslatorRepository repository;

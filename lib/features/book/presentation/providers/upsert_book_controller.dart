@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
@@ -20,32 +20,45 @@ import '../../../sequence/presentation/providers/sequence_provider.dart';
 import '../../domain/entities/book_entity.dart';
 import 'book_provider.dart';
 
-class UpsertBookState {
-  const UpsertBookState({this.isLoading = false, this.error, this.pickedBase64Image});
+part 'upsert_book_controller.g.dart';
 
+class UpsertBookState {
+  const UpsertBookState({
+    this.existingBook,
+    this.isLoading = false,
+    this.error,
+    this.pickedBase64Image,
+  });
+
+  final BookEntity? existingBook;
   final bool isLoading;
   final String? error;
   final String? pickedBase64Image;
 
   UpsertBookState copyWith({
+    Nullable<BookEntity?>? existingBook,
     bool? isLoading,
-    String? error,
-    String? pickedBase64Image,
-    bool clearCover = false,
+    Nullable<String?>? error,
+    Nullable<String?>? pickedBase64Image,
   }) =>
       UpsertBookState(
+        existingBook: existingBook != null ? existingBook.value : this.existingBook,
         isLoading: isLoading ?? this.isLoading,
-        error: error,
-        pickedBase64Image: clearCover ? null : (pickedBase64Image ?? this.pickedBase64Image),
+        error: error != null ? error.value : this.error,
+        pickedBase64Image: pickedBase64Image != null ? pickedBase64Image.value : this.pickedBase64Image,
       );
 }
 
-class UpsertBookController extends Notifier<UpsertBookState> {
+@riverpod
+class UpsertBookController extends _$UpsertBookController {
   @override
   UpsertBookState build() => const UpsertBookState();
 
   void initializeWith(BookEntity? book) {
-    state = UpsertBookState(pickedBase64Image: book?.cover);
+    state = UpsertBookState(
+      existingBook: book,
+      pickedBase64Image: book?.cover,
+    );
   }
 
   Future<void> pickImage() async {
@@ -54,20 +67,18 @@ class UpsertBookController extends Notifier<UpsertBookState> {
 
     if (pickedFile != null) {
       final Uint8List bytes = await pickedFile.readAsBytes();
-      state = state.copyWith(pickedBase64Image: base64Encode(bytes));
+      state = state.copyWith(pickedBase64Image: Nullable<String?>(base64Encode(bytes)));
     }
   }
 
   void clearCover() {
-    state = state.copyWith(clearCover: true);
+    state = state.copyWith(pickedBase64Image: const Nullable<String?>(null));
   }
 
   Future<BookEntity?> saveBook({
-    required BookEntity? existingBook,
     required String title,
     required CompilationType compilationType,
     required bool isTranslation,
-    String? cover,
     Language? language,
     Genre? genre,
     String? isbn,
@@ -90,34 +101,34 @@ class UpsertBookController extends Notifier<UpsertBookState> {
     String? publisherId,
     String? readerId,
   }) async {
-    state = state.copyWith(isLoading: true);
+    state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
     final UserEntity? user = ref.read(authStateProvider).value;
 
     if (user == null) {
-      state = state.copyWith(isLoading: false, error: 'User not authenticated');
+      state = state.copyWith(isLoading: false, error: const Nullable<String?>('User not authenticated'));
       return null;
     }
 
     try {
-      final String bookId = existingBook?.id ?? ref.read(bookRepositoryProvider).generateId();
+      final BookEntity? existingBook = state.existingBook;
+      final String bookId = existingBook?.id ?? ref.read(generateBookIdUseCaseProvider)();
       final List<String> sequenceVolumeIds = <String>[];
 
       if (existingBook != null) {
         final List<SequenceVolumeEntity> oldVolumes =
-            await ref.read(sequenceRepositoryProvider).fetchSequenceVolumesByBookId(bookId);
+            await ref.read(fetchSequenceVolumesByBookIdUseCaseProvider)(bookId);
 
         for (final SequenceVolumeEntity vol in oldVolumes) {
-          await ref.read(sequenceRepositoryProvider).removeSequenceVolume(vol.id);
+          await ref.read(removeSequenceVolumeUseCaseProvider)(vol.id);
 
           final SequenceEntity? seq =
-              await ref.read(sequenceRepositoryProvider).fetchSequenceById(vol.sequenceId);
+              await ref.read(fetchSequenceByIdUseCaseProvider)(vol.sequenceId);
 
           if (seq != null) {
             final List<String> newIds = List<String>.from(seq.sequenceVolumeIds)..remove(vol.id);
             await ref
-                .read(sequenceRepositoryProvider)
-                .editSequence(seq.copyWith(sequenceVolumeIds: newIds));
+                .read(editSequenceUseCaseProvider)(seq.copyWith(sequenceVolumeIds: newIds));
           }
         }
       }
@@ -126,7 +137,7 @@ class UpsertBookController extends Notifier<UpsertBookState> {
         final SequenceEntity sequence = entry.key;
         final String volumeNumber = entry.value;
 
-        final String volumeId = ref.read(sequenceRepositoryProvider).generateVolumeId();
+        final String volumeId = ref.read(generateSequenceVolumeIdUseCaseProvider)();
         final SequenceVolumeEntity volume = SequenceVolumeEntity(
           id: volumeId,
           volume: volumeNumber,
@@ -136,16 +147,16 @@ class UpsertBookController extends Notifier<UpsertBookState> {
           lastUpdated: DateTime.now(),
         );
 
-        await ref.read(sequenceRepositoryProvider).addSequenceVolume(volume);
+        await ref.read(addSequenceVolumeUseCaseProvider)(volume);
 
         final SequenceEntity? currentSequence =
-            await ref.read(sequenceRepositoryProvider).fetchSequenceById(sequence.id);
+            await ref.read(fetchSequenceByIdUseCaseProvider)(sequence.id);
 
         if (currentSequence != null) {
           final SequenceEntity updatedSequence = currentSequence.copyWith(
             sequenceVolumeIds: <String>[...currentSequence.sequenceVolumeIds, volumeId],
           );
-          await ref.read(sequenceRepositoryProvider).editSequence(updatedSequence);
+          await ref.read(editSequenceUseCaseProvider)(updatedSequence);
         }
 
         sequenceVolumeIds.add(volumeId);
@@ -154,65 +165,65 @@ class UpsertBookController extends Notifier<UpsertBookState> {
       final BookEntity bookToSave =
           existingBook != null
               ? existingBook.copyWith(
-                title: title,
-                compilationType: compilationType,
-                isTranslation: isTranslation,
-                cover: Nullable<String?>(state.pickedBase64Image),
-                language: Nullable<Language?>(language),
-                genre: Nullable<Genre?>(genre),
-                isbn: Nullable<String?>((isbn?.isEmpty ?? true) ? null : isbn),
-                publishedDate: Nullable<DateTime?>(publishedDate),
-                noOfPages: Nullable<int?>(noOfPages),
-                originalTitle: Nullable<String?>(
-                  (originalTitle?.isEmpty ?? true) ? null : originalTitle,
-                ),
-                originalLanguage: Nullable<OriginalLanguage?>(originalLanguage),
-                collectionStatus: Nullable<CollectionStatus?>(collectionStatus),
-                collectedDate: Nullable<DateTime?>(collectedDate),
-                lendedDate: Nullable<DateTime?>(lendedDate),
-                dueDate: Nullable<DateTime?>(dueDate),
-                readingStatus: Nullable<ReadingStatus?>(readingStatus),
-                pausedPage: Nullable<int?>(pausedPage),
-                completedDate: Nullable<DateTime?>(completedDate),
-                notes: Nullable<String?>((notes?.isEmpty ?? true) ? null : notes),
-                authorIds: authorIds,
-                translatorIds: translatorIds,
-                workIds: workIds,
-                sequenceVolumeIds: sequenceVolumeIds,
-                publisherId: Nullable<String?>(publisherId),
-                readerId: Nullable<String?>(readerId),
-                lastUpdated: DateTime.now(),
-              )
+                  title: title,
+                  compilationType: compilationType,
+                  isTranslation: isTranslation,
+                  cover: Nullable<String?>(state.pickedBase64Image),
+                  language: Nullable<Language?>(language),
+                  genre: Nullable<Genre?>(genre),
+                  isbn: Nullable<String?>((isbn?.isEmpty ?? true) ? null : isbn),
+                  publishedDate: Nullable<DateTime?>(publishedDate),
+                  noOfPages: Nullable<int?>(noOfPages),
+                  originalTitle: Nullable<String?>(
+                    (originalTitle?.isEmpty ?? true) ? null : originalTitle,
+                  ),
+                  originalLanguage: Nullable<OriginalLanguage?>(originalLanguage),
+                  collectionStatus: Nullable<CollectionStatus?>(collectionStatus),
+                  collectedDate: Nullable<DateTime?>(collectedDate),
+                  lendedDate: Nullable<DateTime?>(lendedDate),
+                  dueDate: Nullable<DateTime?>(dueDate),
+                  readingStatus: Nullable<ReadingStatus?>(readingStatus),
+                  pausedPage: Nullable<int?>(pausedPage),
+                  completedDate: Nullable<DateTime?>(completedDate),
+                  notes: Nullable<String?>((notes?.isEmpty ?? true) ? null : notes),
+                  authorIds: authorIds,
+                  translatorIds: translatorIds,
+                  workIds: workIds,
+                  sequenceVolumeIds: sequenceVolumeIds,
+                  publisherId: Nullable<String?>(publisherId),
+                  readerId: Nullable<String?>(readerId),
+                  lastUpdated: DateTime.now(),
+                )
               : BookEntity(
-                id: bookId,
-                title: title,
-                compilationType: compilationType,
-                isTranslation: isTranslation,
-                cover: state.pickedBase64Image,
-                language: language,
-                genre: genre,
-                isbn: isbn,
-                publishedDate: publishedDate,
-                noOfPages: noOfPages,
-                originalTitle: isTranslation ? originalTitle : null,
-                originalLanguage: isTranslation ? originalLanguage : null,
-                collectionStatus: collectionStatus,
-                collectedDate: collectedDate,
-                lendedDate: lendedDate,
-                dueDate: dueDate,
-                readingStatus: readingStatus,
-                pausedPage: pausedPage,
-                completedDate: completedDate,
-                notes: notes,
-                authorIds: authorIds,
-                translatorIds: translatorIds,
-                workIds: workIds,
-                sequenceVolumeIds: sequenceVolumeIds,
-                publisherId: publisherId,
-                readerId: readerId,
-                createdDate: DateTime.now(),
-                lastUpdated: DateTime.now(),
-              );
+                  id: bookId,
+                  title: title,
+                  compilationType: compilationType,
+                  isTranslation: isTranslation,
+                  cover: state.pickedBase64Image,
+                  language: language,
+                  genre: genre,
+                  isbn: isbn,
+                  publishedDate: publishedDate,
+                  noOfPages: noOfPages,
+                  originalTitle: isTranslation ? originalTitle : null,
+                  originalLanguage: isTranslation ? originalLanguage : null,
+                  collectionStatus: collectionStatus,
+                  collectedDate: collectedDate,
+                  lendedDate: lendedDate,
+                  dueDate: dueDate,
+                  readingStatus: readingStatus,
+                  pausedPage: pausedPage,
+                  completedDate: completedDate,
+                  notes: notes,
+                  authorIds: authorIds,
+                  translatorIds: translatorIds,
+                  workIds: workIds,
+                  sequenceVolumeIds: sequenceVolumeIds,
+                  publisherId: publisherId,
+                  readerId: readerId,
+                  createdDate: DateTime.now(),
+                  lastUpdated: DateTime.now(),
+                );
 
       if (existingBook != null) {
         await ref.read(editBookUseCaseProvider)(bookToSave);
@@ -224,14 +235,11 @@ class UpsertBookController extends Notifier<UpsertBookState> {
 
       return bookToSave;
     } on NoConnectionException catch (e) {
-      state = state.copyWith(isLoading: false, error: e.message);
+      state = state.copyWith(isLoading: false, error: Nullable<String?>(e.message));
       return null;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: 'Error saving book: $e');
+      state = state.copyWith(isLoading: false, error: Nullable<String?>('Error saving book: $e'));
       return null;
     }
   }
 }
-
-final NotifierProvider<UpsertBookController, UpsertBookState> upsertBookControllerProvider =
-    NotifierProvider<UpsertBookController, UpsertBookState>(UpsertBookController.new);

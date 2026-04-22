@@ -33,9 +33,12 @@ class _AddBookDialogState extends ConsumerState<AddBookDialog> {
   @override
   void initState() {
     super.initState();
-    final List<CompilationType> allowed =
-        widget.allowedTypes ?? CompilationType.values;
+    final List<CompilationType> allowed = widget.allowedTypes ?? CompilationType.values;
     _compilationType = allowed.first;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(upsertBookControllerProvider.notifier).initializeWith(null);
+    });
   }
 
   @override
@@ -49,7 +52,6 @@ class _AddBookDialogState extends ConsumerState<AddBookDialog> {
       final BookEntity? savedBook = await ref
           .read(upsertBookControllerProvider.notifier)
           .saveBook(
-            existingBook: null,
             title: _titleController.text.trim(),
             compilationType: _compilationType,
             isTranslation: false,

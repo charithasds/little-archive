@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
@@ -11,31 +11,45 @@ import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../domain/entities/translator_entity.dart';
 import 'translator_provider.dart';
 
-class UpsertTranslatorState {
-  const UpsertTranslatorState({this.isLoading = false, this.error, this.pickedBase64Image});
+part 'upsert_translator_controller.g.dart';
 
+class UpsertTranslatorState {
+  const UpsertTranslatorState({
+    this.existingTranslator,
+    this.isLoading = false,
+    this.error,
+    this.pickedBase64Image,
+  });
+
+  final TranslatorEntity? existingTranslator;
   final bool isLoading;
   final String? error;
   final String? pickedBase64Image;
 
   UpsertTranslatorState copyWith({
+    Nullable<TranslatorEntity?>? existingTranslator,
     bool? isLoading,
-    String? error,
-    String? pickedBase64Image,
-    bool clearImage = false,
-  }) => UpsertTranslatorState(
-    isLoading: isLoading ?? this.isLoading,
-    error: error,
-    pickedBase64Image: clearImage ? null : (pickedBase64Image ?? this.pickedBase64Image),
-  );
+    Nullable<String?>? error,
+    Nullable<String?>? pickedBase64Image,
+  }) =>
+      UpsertTranslatorState(
+        existingTranslator: existingTranslator != null ? existingTranslator.value : this.existingTranslator,
+        isLoading: isLoading ?? this.isLoading,
+        error: error != null ? error.value : this.error,
+        pickedBase64Image: pickedBase64Image != null ? pickedBase64Image.value : this.pickedBase64Image,
+      );
 }
 
-class UpsertTranslatorController extends Notifier<UpsertTranslatorState> {
+@riverpod
+class UpsertTranslatorController extends _$UpsertTranslatorController {
   @override
   UpsertTranslatorState build() => const UpsertTranslatorState();
 
   void initializeWith(TranslatorEntity? translator) {
-    state = UpsertTranslatorState(pickedBase64Image: translator?.image);
+    state = UpsertTranslatorState(
+      existingTranslator: translator,
+      pickedBase64Image: translator?.image,
+    );
   }
 
   Future<void> pickImage() async {
@@ -44,31 +58,31 @@ class UpsertTranslatorController extends Notifier<UpsertTranslatorState> {
 
     if (pickedFile != null) {
       final Uint8List bytes = await pickedFile.readAsBytes();
-      state = state.copyWith(pickedBase64Image: base64Encode(bytes));
+      state = state.copyWith(pickedBase64Image: Nullable<String?>(base64Encode(bytes)));
     }
   }
 
   void clearImage() {
-    state = state.copyWith(clearImage: true);
+    state = state.copyWith(pickedBase64Image: const Nullable<String?>(null));
   }
 
   Future<TranslatorEntity?> saveTranslator({
-    required TranslatorEntity? existingTranslator,
     required String name,
     String? otherName,
     String? website,
     String? facebook,
   }) async {
-    state = state.copyWith(isLoading: true);
+    state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
     final UserEntity? user = ref.read(authStateProvider).value;
 
     if (user == null) {
-      state = state.copyWith(isLoading: false, error: 'User not authenticated');
+      state = state.copyWith(isLoading: false, error: const Nullable<String?>('User not authenticated'));
       return null;
     }
 
-    final String generatedId = ref.read(translatorRepositoryProvider).generateId();
+    final TranslatorEntity? existingTranslator = state.existingTranslator;
+    final String generatedId = ref.read(generateTranslatorIdUseCaseProvider)();
 
     final TranslatorEntity translatorToSave = existingTranslator != null
         ? existingTranslator.copyWith(
@@ -103,17 +117,11 @@ class UpsertTranslatorController extends Notifier<UpsertTranslatorState> {
 
       return translatorToSave;
     } on NoConnectionException catch (e) {
-      state = state.copyWith(isLoading: false, error: e.message);
+      state = state.copyWith(isLoading: false, error: Nullable<String?>(e.message));
       return null;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: 'Error saving translator: $e');
+      state = state.copyWith(isLoading: false, error: Nullable<String?>('Error saving translator: $e'));
       return null;
     }
   }
 }
-
-final NotifierProvider<UpsertTranslatorController, UpsertTranslatorState>
-upsertTranslatorControllerProvider =
-    NotifierProvider<UpsertTranslatorController, UpsertTranslatorState>(
-      UpsertTranslatorController.new,
-    );

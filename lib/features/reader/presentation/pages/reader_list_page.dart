@@ -7,7 +7,6 @@ import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/reader_entity.dart';
-import '../../domain/repositories/reader_repository.dart';
 import '../providers/reader_provider.dart';
 import '../widgets/reader_list_tile.dart';
 
@@ -41,7 +40,7 @@ class ReaderListPage extends ConsumerWidget {
     }
 
     try {
-      await ref.read<ReaderRepository>(readerRepositoryProvider).removeReader(readerId);
+      await ref.read(removeReaderUseCaseProvider)(readerId);
       SnackBars.showSuccess('Reader removed successfully');
     } on NoConnectionException catch (e) {
       SnackBars.showError(e.message);

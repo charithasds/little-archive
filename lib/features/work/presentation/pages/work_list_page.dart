@@ -13,7 +13,6 @@ import '../../../../features/translator/presentation/providers/translator_provid
 import '../../../book/domain/entities/book_entity.dart';
 import '../../../book/presentation/providers/book_provider.dart';
 import '../../domain/entities/work_entity.dart';
-import '../../domain/repositories/work_repository.dart';
 import '../providers/work_provider.dart';
 import '../widgets/work_list_tile.dart';
 
@@ -47,7 +46,7 @@ class WorkListPage extends ConsumerWidget {
     }
 
     try {
-      await ref.read<WorkRepository>(workRepositoryProvider).removeWork(workId);
+      await ref.read(removeWorkUseCaseProvider)(workId);
       SnackBars.showSuccess('Work removed successfully');
     } on NoConnectionException catch (e) {
       SnackBars.showError(e.message);

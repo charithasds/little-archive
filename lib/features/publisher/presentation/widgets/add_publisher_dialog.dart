@@ -21,6 +21,14 @@ class _AddPublisherDialogState extends ConsumerState<AddPublisherDialog> {
   final TextEditingController _nameController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(upsertPublisherControllerProvider.notifier).initializeWith(null);
+    });
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     super.dispose();
@@ -28,9 +36,10 @@ class _AddPublisherDialogState extends ConsumerState<AddPublisherDialog> {
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
-      final PublisherEntity? savedPublisher = await ref
-          .read(upsertPublisherControllerProvider.notifier)
-          .savePublisher(existingPublisher: null, name: _nameController.text.trim());
+      final PublisherEntity? savedPublisher =
+          await ref.read(upsertPublisherControllerProvider.notifier).savePublisher(
+            name: _nameController.text.trim(),
+          );
 
       if (mounted) {
         if (savedPublisher != null) {

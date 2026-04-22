@@ -15,7 +15,7 @@ import '../../domain/usecases/translator_usecases.dart';
 part 'translator_provider.g.dart';
 
 @riverpod
-TranslatorRemoteDataSource translatorRemoteDataSource(Ref ref) {
+TranslatorRemoteDataSource _translatorRemoteDataSource(Ref ref) {
   final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
   final String? userId = ref.watch(currentUidProvider);
 
@@ -27,8 +27,8 @@ TranslatorRemoteDataSource translatorRemoteDataSource(Ref ref) {
 }
 
 @riverpod
-TranslatorRepository translatorRepository(Ref ref) {
-  final TranslatorRemoteDataSource remoteDataSource = ref.watch(translatorRemoteDataSourceProvider);
+TranslatorRepository _translatorRepository(Ref ref) {
+  final TranslatorRemoteDataSource remoteDataSource = ref.watch(_translatorRemoteDataSourceProvider);
   final RelationshipSyncService relationshipSyncService = ref.watch(
     relationshipSyncServiceProvider,
   );
@@ -40,28 +40,32 @@ TranslatorRepository translatorRepository(Ref ref) {
 }
 
 @riverpod
-FetchTranslatorsUseCase fetchTranslatorsUseCase(Ref ref) =>
-    FetchTranslatorsUseCase(ref.watch(translatorRepositoryProvider));
+GenerateTranslatorIdUseCase generateTranslatorIdUseCase(Ref ref) =>
+    GenerateTranslatorIdUseCase(ref.watch(_translatorRepositoryProvider));
 
 @riverpod
-WatchTranslatorsUseCase watchTranslatorsUseCase(Ref ref) =>
-    WatchTranslatorsUseCase(ref.watch(translatorRepositoryProvider));
+FetchTranslatorsUseCase fetchTranslatorsUseCase(Ref ref) =>
+    FetchTranslatorsUseCase(ref.watch(_translatorRepositoryProvider));
 
 @riverpod
 FetchTranslatorByIdUseCase fetchTranslatorByIdUseCase(Ref ref) =>
-    FetchTranslatorByIdUseCase(ref.watch(translatorRepositoryProvider));
+    FetchTranslatorByIdUseCase(ref.watch(_translatorRepositoryProvider));
+
+@riverpod
+WatchTranslatorsUseCase watchTranslatorsUseCase(Ref ref) =>
+    WatchTranslatorsUseCase(ref.watch(_translatorRepositoryProvider));
 
 @riverpod
 AddTranslatorUseCase addTranslatorUseCase(Ref ref) =>
-    AddTranslatorUseCase(ref.watch(translatorRepositoryProvider));
+    AddTranslatorUseCase(ref.watch(_translatorRepositoryProvider));
 
 @riverpod
 EditTranslatorUseCase editTranslatorUseCase(Ref ref) =>
-    EditTranslatorUseCase(ref.watch(translatorRepositoryProvider));
+    EditTranslatorUseCase(ref.watch(_translatorRepositoryProvider));
 
 @riverpod
 RemoveTranslatorUseCase removeTranslatorUseCase(Ref ref) =>
-    RemoveTranslatorUseCase(ref.watch(translatorRepositoryProvider));
+    RemoveTranslatorUseCase(ref.watch(_translatorRepositoryProvider));
 
 @riverpod
 Stream<List<TranslatorEntity>> translatorsStream(Ref ref) {

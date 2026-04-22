@@ -16,7 +16,7 @@ import '../../domain/usecases/sequence_usecases.dart';
 part 'sequence_provider.g.dart';
 
 @riverpod
-SequenceRemoteDataSource sequenceRemoteDataSource(Ref ref) {
+SequenceRemoteDataSource _sequenceRemoteDataSource(Ref ref) {
   final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
   final String? userId = ref.watch(currentUidProvider);
 
@@ -28,8 +28,8 @@ SequenceRemoteDataSource sequenceRemoteDataSource(Ref ref) {
 }
 
 @riverpod
-SequenceRepository sequenceRepository(Ref ref) {
-  final SequenceRemoteDataSource remoteDataSource = ref.watch(sequenceRemoteDataSourceProvider);
+SequenceRepository _sequenceRepository(Ref ref) {
+  final SequenceRemoteDataSource remoteDataSource = ref.watch(_sequenceRemoteDataSourceProvider);
   final RelationshipSyncService relationshipSyncService = ref.watch(
     relationshipSyncServiceProvider,
   );
@@ -41,60 +41,68 @@ SequenceRepository sequenceRepository(Ref ref) {
 }
 
 @riverpod
-FetchSequencesUseCase fetchSequencesUseCase(Ref ref) =>
-    FetchSequencesUseCase(ref.watch(sequenceRepositoryProvider));
+GenerateSequenceIdUseCase generateSequenceIdUseCase(Ref ref) =>
+    GenerateSequenceIdUseCase(ref.watch(_sequenceRepositoryProvider));
 
 @riverpod
-WatchSequencesUseCase watchSequencesUseCase(Ref ref) =>
-    WatchSequencesUseCase(ref.watch(sequenceRepositoryProvider));
+FetchSequencesUseCase fetchSequencesUseCase(Ref ref) =>
+    FetchSequencesUseCase(ref.watch(_sequenceRepositoryProvider));
 
 @riverpod
 FetchSequenceByIdUseCase fetchSequenceByIdUseCase(Ref ref) =>
-    FetchSequenceByIdUseCase(ref.watch(sequenceRepositoryProvider));
+    FetchSequenceByIdUseCase(ref.watch(_sequenceRepositoryProvider));
+
+@riverpod
+WatchSequencesUseCase watchSequencesUseCase(Ref ref) =>
+    WatchSequencesUseCase(ref.watch(_sequenceRepositoryProvider));
 
 @riverpod
 AddSequenceUseCase addSequenceUseCase(Ref ref) =>
-    AddSequenceUseCase(ref.watch(sequenceRepositoryProvider));
+    AddSequenceUseCase(ref.watch(_sequenceRepositoryProvider));
 
 @riverpod
 EditSequenceUseCase editSequenceUseCase(Ref ref) =>
-    EditSequenceUseCase(ref.watch(sequenceRepositoryProvider));
+    EditSequenceUseCase(ref.watch(_sequenceRepositoryProvider));
 
 @riverpod
 RemoveSequenceUseCase removeSequenceUseCase(Ref ref) =>
-    RemoveSequenceUseCase(ref.watch(sequenceRepositoryProvider));
+    RemoveSequenceUseCase(ref.watch(_sequenceRepositoryProvider));
 
 @riverpod
-FetchSequenceVolumeByIdUseCase fetchSequenceVolumeByIdUseCase(Ref ref) =>
-    FetchSequenceVolumeByIdUseCase(ref.watch(sequenceRepositoryProvider));
-
-@riverpod
-FetchSequenceVolumesByBookIdUseCase fetchSequenceVolumesByBookIdUseCase(Ref ref) =>
-    FetchSequenceVolumesByBookIdUseCase(ref.watch(sequenceRepositoryProvider));
-
-@riverpod
-FetchSequenceVolumesByWorkIdUseCase fetchSequenceVolumesByWorkIdUseCase(Ref ref) =>
-    FetchSequenceVolumesByWorkIdUseCase(ref.watch(sequenceRepositoryProvider));
+GenerateSequenceVolumeIdUseCase generateSequenceVolumeIdUseCase(Ref ref) =>
+    GenerateSequenceVolumeIdUseCase(ref.watch(_sequenceRepositoryProvider));
 
 @riverpod
 FetchSequenceVolumesUseCase fetchSequenceVolumesUseCase(Ref ref) =>
-    FetchSequenceVolumesUseCase(ref.watch(sequenceRepositoryProvider));
+    FetchSequenceVolumesUseCase(ref.watch(_sequenceRepositoryProvider));
 
 @riverpod
-AddSequenceVolumeUseCase addSequenceVolumeUseCase(Ref ref) =>
-    AddSequenceVolumeUseCase(ref.watch(sequenceRepositoryProvider));
+FetchSequenceVolumeByIdUseCase fetchSequenceVolumeByIdUseCase(Ref ref) =>
+    FetchSequenceVolumeByIdUseCase(ref.watch(_sequenceRepositoryProvider));
 
 @riverpod
-EditSequenceVolumeUseCase editSequenceVolumeUseCase(Ref ref) =>
-    EditSequenceVolumeUseCase(ref.watch(sequenceRepositoryProvider));
+FetchSequenceVolumesByBookIdUseCase fetchSequenceVolumesByBookIdUseCase(Ref ref) =>
+    FetchSequenceVolumesByBookIdUseCase(ref.watch(_sequenceRepositoryProvider));
 
 @riverpod
-RemoveSequenceVolumeUseCase removeSequenceVolumeUseCase(Ref ref) =>
-    RemoveSequenceVolumeUseCase(ref.watch(sequenceRepositoryProvider));
+FetchSequenceVolumesByWorkIdUseCase fetchSequenceVolumesByWorkIdUseCase(Ref ref) =>
+    FetchSequenceVolumesByWorkIdUseCase(ref.watch(_sequenceRepositoryProvider));
 
 @riverpod
 WatchSequenceVolumesUseCase watchSequenceVolumesUseCase(Ref ref) =>
-    WatchSequenceVolumesUseCase(ref.watch(sequenceRepositoryProvider));
+    WatchSequenceVolumesUseCase(ref.watch(_sequenceRepositoryProvider));
+
+@riverpod
+AddSequenceVolumeUseCase addSequenceVolumeUseCase(Ref ref) =>
+    AddSequenceVolumeUseCase(ref.watch(_sequenceRepositoryProvider));
+
+@riverpod
+EditSequenceVolumeUseCase editSequenceVolumeUseCase(Ref ref) =>
+    EditSequenceVolumeUseCase(ref.watch(_sequenceRepositoryProvider));
+
+@riverpod
+RemoveSequenceVolumeUseCase removeSequenceVolumeUseCase(Ref ref) =>
+    RemoveSequenceVolumeUseCase(ref.watch(_sequenceRepositoryProvider));
 
 @riverpod
 Stream<List<SequenceEntity>> sequencesStream(Ref ref) {

@@ -21,6 +21,14 @@ class _AddAuthorDialogState extends ConsumerState<AddAuthorDialog> {
   final TextEditingController _nameController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(upsertAuthorControllerProvider.notifier).initializeWith(null);
+    });
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     super.dispose();
@@ -28,9 +36,10 @@ class _AddAuthorDialogState extends ConsumerState<AddAuthorDialog> {
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
-      final AuthorEntity? savedAuthor = await ref
-          .read(upsertAuthorControllerProvider.notifier)
-          .saveAuthor(existingAuthor: null, name: _nameController.text.trim());
+      final AuthorEntity? savedAuthor =
+          await ref.read(upsertAuthorControllerProvider.notifier).saveAuthor(
+            name: _nameController.text.trim(),
+          );
 
       if (mounted) {
         if (savedAuthor != null) {

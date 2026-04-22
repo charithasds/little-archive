@@ -7,7 +7,6 @@ import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/translator_entity.dart';
-import '../../domain/repositories/translator_repository.dart';
 import '../providers/translator_provider.dart';
 import '../widgets/translator_list_tile.dart';
 
@@ -41,9 +40,7 @@ class TranslatorListPage extends ConsumerWidget {
     }
 
     try {
-      await ref
-          .read<TranslatorRepository>(translatorRepositoryProvider)
-          .removeTranslator(translatorId);
+      await ref.read(removeTranslatorUseCaseProvider)(translatorId);
       SnackBars.showSuccess('Translator removed successfully');
     } on NoConnectionException catch (e) {
       SnackBars.showError(e.message);

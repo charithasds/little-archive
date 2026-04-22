@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
@@ -11,31 +11,45 @@ import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../domain/entities/reader_entity.dart';
 import 'reader_provider.dart';
 
-class UpsertReaderState {
-  const UpsertReaderState({this.isLoading = false, this.error, this.pickedBase64Image});
+part 'upsert_reader_controller.g.dart';
 
+class UpsertReaderState {
+  const UpsertReaderState({
+    this.existingReader,
+    this.isLoading = false,
+    this.error,
+    this.pickedBase64Image,
+  });
+
+  final ReaderEntity? existingReader;
   final bool isLoading;
   final String? error;
   final String? pickedBase64Image;
 
   UpsertReaderState copyWith({
+    Nullable<ReaderEntity?>? existingReader,
     bool? isLoading,
-    String? error,
-    String? pickedBase64Image,
-    bool clearImage = false,
-  }) => UpsertReaderState(
-    isLoading: isLoading ?? this.isLoading,
-    error: error,
-    pickedBase64Image: clearImage ? null : (pickedBase64Image ?? this.pickedBase64Image),
-  );
+    Nullable<String?>? error,
+    Nullable<String?>? pickedBase64Image,
+  }) =>
+      UpsertReaderState(
+        existingReader: existingReader != null ? existingReader.value : this.existingReader,
+        isLoading: isLoading ?? this.isLoading,
+        error: error != null ? error.value : this.error,
+        pickedBase64Image: pickedBase64Image != null ? pickedBase64Image.value : this.pickedBase64Image,
+      );
 }
 
-class UpsertReaderController extends Notifier<UpsertReaderState> {
+@riverpod
+class UpsertReaderController extends _$UpsertReaderController {
   @override
   UpsertReaderState build() => const UpsertReaderState();
 
   void initializeWith(ReaderEntity? reader) {
-    state = UpsertReaderState(pickedBase64Image: reader?.image);
+    state = UpsertReaderState(
+      existingReader: reader,
+      pickedBase64Image: reader?.image,
+    );
   }
 
   Future<void> pickImage() async {
@@ -44,32 +58,32 @@ class UpsertReaderController extends Notifier<UpsertReaderState> {
 
     if (pickedFile != null) {
       final Uint8List bytes = await pickedFile.readAsBytes();
-      state = state.copyWith(pickedBase64Image: base64Encode(bytes));
+      state = state.copyWith(pickedBase64Image: Nullable<String?>(base64Encode(bytes)));
     }
   }
 
   void clearImage() {
-    state = state.copyWith(clearImage: true);
+    state = state.copyWith(pickedBase64Image: const Nullable<String?>(null));
   }
 
   Future<ReaderEntity?> saveReader({
-    required ReaderEntity? existingReader,
     required String name,
     String? otherName,
     String? email,
     String? facebook,
     String? phoneNumber,
   }) async {
-    state = state.copyWith(isLoading: true);
+    state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
     final UserEntity? user = ref.read(authStateProvider).value;
 
     if (user == null) {
-      state = state.copyWith(isLoading: false, error: 'User not authenticated');
+      state = state.copyWith(isLoading: false, error: const Nullable<String?>('User not authenticated'));
       return null;
     }
 
-    final String generatedId = ref.read(readerRepositoryProvider).generateId();
+    final ReaderEntity? existingReader = state.existingReader;
+    final String generatedId = ref.read(generateReaderIdUseCaseProvider)();
 
     final ReaderEntity readerToSave = existingReader != null
         ? existingReader.copyWith(
@@ -105,14 +119,11 @@ class UpsertReaderController extends Notifier<UpsertReaderState> {
 
       return readerToSave;
     } on NoConnectionException catch (e) {
-      state = state.copyWith(isLoading: false, error: e.message);
+      state = state.copyWith(isLoading: false, error: Nullable<String?>(e.message));
       return null;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: 'Error saving reader: $e');
+      state = state.copyWith(isLoading: false, error: Nullable<String?>('Error saving reader: $e'));
       return null;
     }
   }
 }
-
-final NotifierProvider<UpsertReaderController, UpsertReaderState> upsertReaderControllerProvider =
-    NotifierProvider<UpsertReaderController, UpsertReaderState>(UpsertReaderController.new);

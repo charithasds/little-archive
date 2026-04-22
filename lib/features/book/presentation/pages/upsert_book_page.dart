@@ -262,7 +262,6 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
       final BookEntity? savedBook = await ref
           .read(upsertBookControllerProvider.notifier)
           .saveBook(
-            existingBook: widget.existingBook,
             title: _titleController.text.trim(),
             compilationType: _compilationType,
             language: _showLanguage ? _language : null,

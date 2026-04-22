@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
@@ -11,31 +11,45 @@ import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../domain/entities/author_entity.dart';
 import 'author_provider.dart';
 
-class UpsertAuthorState {
-  const UpsertAuthorState({this.isLoading = false, this.error, this.pickedBase64Image});
+part 'upsert_author_controller.g.dart';
 
+class UpsertAuthorState {
+  const UpsertAuthorState({
+    this.existingAuthor,
+    this.isLoading = false,
+    this.error,
+    this.pickedBase64Image,
+  });
+
+  final AuthorEntity? existingAuthor;
   final bool isLoading;
   final String? error;
   final String? pickedBase64Image;
 
   UpsertAuthorState copyWith({
+    Nullable<AuthorEntity?>? existingAuthor,
     bool? isLoading,
-    String? error,
-    String? pickedBase64Image,
-    bool clearImage = false,
-  }) => UpsertAuthorState(
-    isLoading: isLoading ?? this.isLoading,
-    error: error,
-    pickedBase64Image: clearImage ? null : (pickedBase64Image ?? this.pickedBase64Image),
-  );
+    Nullable<String?>? error,
+    Nullable<String?>? pickedBase64Image,
+  }) =>
+      UpsertAuthorState(
+        existingAuthor: existingAuthor != null ? existingAuthor.value : this.existingAuthor,
+        isLoading: isLoading ?? this.isLoading,
+        error: error != null ? error.value : this.error,
+        pickedBase64Image: pickedBase64Image != null ? pickedBase64Image.value : this.pickedBase64Image,
+      );
 }
 
-class UpsertAuthorController extends Notifier<UpsertAuthorState> {
+@riverpod
+class UpsertAuthorController extends _$UpsertAuthorController {
   @override
   UpsertAuthorState build() => const UpsertAuthorState();
 
   void initializeWith(AuthorEntity? author) {
-    state = UpsertAuthorState(pickedBase64Image: author?.image);
+    state = UpsertAuthorState(
+      existingAuthor: author,
+      pickedBase64Image: author?.image,
+    );
   }
 
   Future<void> pickImage() async {
@@ -44,31 +58,31 @@ class UpsertAuthorController extends Notifier<UpsertAuthorState> {
 
     if (pickedFile != null) {
       final Uint8List bytes = await pickedFile.readAsBytes();
-      state = state.copyWith(pickedBase64Image: base64Encode(bytes));
+      state = state.copyWith(pickedBase64Image: Nullable<String?>(base64Encode(bytes)));
     }
   }
 
   void clearImage() {
-    state = state.copyWith(clearImage: true);
+    state = state.copyWith(pickedBase64Image: const Nullable<String?>(null));
   }
 
   Future<AuthorEntity?> saveAuthor({
-    required AuthorEntity? existingAuthor,
     required String name,
     String? otherName,
     String? website,
     String? facebook,
   }) async {
-    state = state.copyWith(isLoading: true);
+    state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
     final UserEntity? user = ref.read(authStateProvider).value;
 
     if (user == null) {
-      state = state.copyWith(isLoading: false, error: 'User not authenticated');
+      state = state.copyWith(isLoading: false, error: const Nullable<String?>('User not authenticated'));
       return null;
     }
 
-    final String generatedId = ref.read(authorRepositoryProvider).generateId();
+    final AuthorEntity? existingAuthor = state.existingAuthor;
+    final String generatedId = ref.read(generateAuthorIdUseCaseProvider)();
 
     final AuthorEntity authorToSave = existingAuthor != null
         ? existingAuthor.copyWith(
@@ -103,14 +117,11 @@ class UpsertAuthorController extends Notifier<UpsertAuthorState> {
 
       return authorToSave;
     } on NoConnectionException catch (e) {
-      state = state.copyWith(isLoading: false, error: e.message);
+      state = state.copyWith(isLoading: false, error: Nullable<String?>(e.message));
       return null;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: 'Error saving author: $e');
+      state = state.copyWith(isLoading: false, error: Nullable<String?>('Error saving author: $e'));
       return null;
     }
   }
 }
-
-final NotifierProvider<UpsertAuthorController, UpsertAuthorState> upsertAuthorControllerProvider =
-    NotifierProvider<UpsertAuthorController, UpsertAuthorState>(UpsertAuthorController.new);

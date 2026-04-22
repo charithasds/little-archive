@@ -35,6 +35,10 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
       _otherNameController.text = sequence.otherName ?? '';
       _notesController.text = sequence.notes ?? '';
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(upsertSequenceControllerProvider.notifier).initializeWith(widget.existingSequence);
+    });
   }
 
   Future<void> _save() async {
@@ -42,7 +46,6 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
       final SequenceEntity? result = await ref
           .read(upsertSequenceControllerProvider.notifier)
           .saveSequence(
-            existingSequence: widget.existingSequence,
             name: _nameController.text.trim(),
             otherName: _otherNameController.text.trim(),
             notes: _notesController.text.trim(),

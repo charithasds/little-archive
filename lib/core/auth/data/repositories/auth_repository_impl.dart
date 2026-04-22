@@ -1,9 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-
-import '../../../shared/presentation/providers/connectivity_provider.dart';
-import '../../../shared/presentation/providers/firebase_provider.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_data_source.dart';
@@ -45,19 +40,3 @@ class AuthRepositoryImpl implements AuthRepository {
     await _dataSource.signOut();
   }
 }
-
-final Provider<GoogleSignIn> googleSignInProvider = Provider<GoogleSignIn>(
-  (Ref ref) => GoogleSignIn.instance,
-);
-
-final Provider<AuthRemoteDataSource> authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>(
-  (Ref ref) => AuthRemoteDataSource(
-    ref.watch(firebaseAuthProvider),
-    ref.watch(googleSignInProvider),
-    ref.watch(connectivityServiceProvider),
-  ),
-);
-
-final Provider<AuthRepository> authRepositoryProvider = Provider<AuthRepository>(
-  (Ref ref) => AuthRepositoryImpl(ref.watch(authRemoteDataSourceProvider)),
-);

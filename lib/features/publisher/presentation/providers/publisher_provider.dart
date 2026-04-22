@@ -15,7 +15,7 @@ import '../../domain/usecases/publisher_usecases.dart';
 part 'publisher_provider.g.dart';
 
 @riverpod
-PublisherRemoteDataSource publisherRemoteDataSource(Ref ref) {
+PublisherRemoteDataSource _publisherRemoteDataSource(Ref ref) {
   final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
   final String? userId = ref.watch(currentUidProvider);
 
@@ -27,8 +27,8 @@ PublisherRemoteDataSource publisherRemoteDataSource(Ref ref) {
 }
 
 @riverpod
-PublisherRepository publisherRepository(Ref ref) {
-  final PublisherRemoteDataSource remoteDataSource = ref.watch(publisherRemoteDataSourceProvider);
+PublisherRepository _publisherRepository(Ref ref) {
+  final PublisherRemoteDataSource remoteDataSource = ref.watch(_publisherRemoteDataSourceProvider);
   final RelationshipSyncService relationshipSyncService = ref.watch(
     relationshipSyncServiceProvider,
   );
@@ -40,28 +40,32 @@ PublisherRepository publisherRepository(Ref ref) {
 }
 
 @riverpod
-FetchPublishersUseCase fetchPublishersUseCase(Ref ref) =>
-    FetchPublishersUseCase(ref.watch(publisherRepositoryProvider));
+GeneratePublisherIdUseCase generatePublisherIdUseCase(Ref ref) =>
+    GeneratePublisherIdUseCase(ref.watch(_publisherRepositoryProvider));
 
 @riverpod
-WatchPublishersUseCase watchPublishersUseCase(Ref ref) =>
-    WatchPublishersUseCase(ref.watch(publisherRepositoryProvider));
+FetchPublishersUseCase fetchPublishersUseCase(Ref ref) =>
+    FetchPublishersUseCase(ref.watch(_publisherRepositoryProvider));
 
 @riverpod
 FetchPublisherByIdUseCase fetchPublisherByIdUseCase(Ref ref) =>
-    FetchPublisherByIdUseCase(ref.watch(publisherRepositoryProvider));
+    FetchPublisherByIdUseCase(ref.watch(_publisherRepositoryProvider));
+
+@riverpod
+WatchPublishersUseCase watchPublishersUseCase(Ref ref) =>
+    WatchPublishersUseCase(ref.watch(_publisherRepositoryProvider));
 
 @riverpod
 AddPublisherUseCase addPublisherUseCase(Ref ref) =>
-    AddPublisherUseCase(ref.watch(publisherRepositoryProvider));
+    AddPublisherUseCase(ref.watch(_publisherRepositoryProvider));
 
 @riverpod
 EditPublisherUseCase editPublisherUseCase(Ref ref) =>
-    EditPublisherUseCase(ref.watch(publisherRepositoryProvider));
+    EditPublisherUseCase(ref.watch(_publisherRepositoryProvider));
 
 @riverpod
 RemovePublisherUseCase removePublisherUseCase(Ref ref) =>
-    RemovePublisherUseCase(ref.watch(publisherRepositoryProvider));
+    RemovePublisherUseCase(ref.watch(_publisherRepositoryProvider));
 
 @riverpod
 Stream<List<PublisherEntity>> publishersStream(Ref ref) {

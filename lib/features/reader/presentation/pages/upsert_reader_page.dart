@@ -50,11 +50,8 @@ class _UpsertReaderPageState extends ConsumerState<UpsertReaderPage> {
       final ReaderEntity? savedReader = await ref
           .read(upsertReaderControllerProvider.notifier)
           .saveReader(
-            existingReader: widget.existingReader,
             name: _nameController.text.trim(),
-            otherName: _otherNameController.text.trim().isEmpty
-                ? null
-                : _otherNameController.text.trim(),
+            otherName: _otherNameController.text.trim(),
             email: _emailController.text.trim(),
             facebook: _facebookController.text.trim(),
             phoneNumber: _phoneController.text.trim(),

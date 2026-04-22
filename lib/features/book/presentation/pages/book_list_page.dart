@@ -11,7 +11,6 @@ import '../../../../features/author/presentation/providers/author_provider.dart'
 import '../../../../features/translator/domain/entities/translator_entity.dart';
 import '../../../../features/translator/presentation/providers/translator_provider.dart';
 import '../../domain/entities/book_entity.dart';
-import '../../domain/repositories/book_repository.dart';
 import '../providers/book_provider.dart';
 import '../widgets/book_list_tile.dart';
 
@@ -45,7 +44,7 @@ class BookListPage extends ConsumerWidget {
     }
 
     try {
-      await ref.read<BookRepository>(bookRepositoryProvider).removeBook(bookId);
+      await ref.read(removeBookUseCaseProvider)(bookId);
       SnackBars.showSuccess('Book removed successfully');
     } on NoConnectionException catch (e) {
       SnackBars.showError(e.message);

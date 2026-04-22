@@ -21,6 +21,14 @@ class _AddSequenceDialogState extends ConsumerState<AddSequenceDialog> {
   final TextEditingController _nameController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(upsertSequenceControllerProvider.notifier).initializeWith(null);
+    });
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     super.dispose();
@@ -28,9 +36,10 @@ class _AddSequenceDialogState extends ConsumerState<AddSequenceDialog> {
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
-      final SequenceEntity? savedSequence = await ref
-          .read(upsertSequenceControllerProvider.notifier)
-          .saveSequence(existingSequence: null, name: _nameController.text.trim());
+      final SequenceEntity? savedSequence =
+          await ref.read(upsertSequenceControllerProvider.notifier).saveSequence(
+            name: _nameController.text.trim(),
+          );
 
       if (mounted) {
         if (savedSequence != null) {

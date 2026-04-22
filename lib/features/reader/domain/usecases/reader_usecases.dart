@@ -1,6 +1,13 @@
 import '../entities/reader_entity.dart';
 import '../repositories/reader_repository.dart';
 
+class GenerateReaderIdUseCase {
+  const GenerateReaderIdUseCase(this.repository);
+  final ReaderRepository repository;
+
+  String call() => repository.generateId();
+}
+
 class FetchReadersUseCase {
   const FetchReadersUseCase(this.repository);
   final ReaderRepository repository;

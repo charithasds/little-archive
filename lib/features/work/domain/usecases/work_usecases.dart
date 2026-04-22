@@ -1,6 +1,13 @@
 import '../entities/work_entity.dart';
 import '../repositories/work_repository.dart';
 
+class GenerateWorkIdUseCase {
+  const GenerateWorkIdUseCase(this.repository);
+  final WorkRepository repository;
+
+  String call() => repository.generateId();
+}
+
 class FetchWorksUseCase {
   const FetchWorksUseCase(this.repository);
   final WorkRepository repository;

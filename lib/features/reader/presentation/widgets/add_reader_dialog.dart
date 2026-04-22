@@ -21,6 +21,14 @@ class _AddReaderDialogState extends ConsumerState<AddReaderDialog> {
   final TextEditingController _nameController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(upsertReaderControllerProvider.notifier).initializeWith(null);
+    });
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     super.dispose();
@@ -28,9 +36,10 @@ class _AddReaderDialogState extends ConsumerState<AddReaderDialog> {
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
-      final ReaderEntity? savedReader = await ref
-          .read(upsertReaderControllerProvider.notifier)
-          .saveReader(existingReader: null, name: _nameController.text.trim());
+      final ReaderEntity? savedReader =
+          await ref.read(upsertReaderControllerProvider.notifier).saveReader(
+            name: _nameController.text.trim(),
+          );
 
       if (mounted) {
         if (savedReader != null) {

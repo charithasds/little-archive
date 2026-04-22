@@ -98,6 +98,10 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
       _originalLanguage = work.originalLanguage;
       _isTranslation = work.isTranslation;
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(upsertWorkControllerProvider.notifier).initializeWith(widget.existingWork);
+    });
   }
 
   @override
@@ -113,7 +117,6 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
       final WorkEntity? savedWork = await ref.read(upsertWorkControllerProvider.notifier).saveWork(
-        existingWork: widget.existingWork,
         title: _titleController.text.trim(),
         contentCategory: _contentCategory,
         isTranslation: _isTranslation,

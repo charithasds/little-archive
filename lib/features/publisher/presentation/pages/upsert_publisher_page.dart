@@ -53,7 +53,6 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
       final PublisherEntity? savedPublisher = await ref
           .read(upsertPublisherControllerProvider.notifier)
           .savePublisher(
-            existingPublisher: widget.existingPublisher,
             name: _nameController.text.trim(),
             otherName: _otherNameController.text.trim(),
             website: _websiteController.text.trim(),

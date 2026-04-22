@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
@@ -7,36 +7,56 @@ import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../domain/entities/sequence_entity.dart';
 import 'sequence_provider.dart';
 
-class UpsertSequenceState {
-  const UpsertSequenceState({this.isLoading = false, this.error});
+part 'upsert_sequence_controller.g.dart';
 
+class UpsertSequenceState {
+  const UpsertSequenceState({
+    this.existingSequence,
+    this.isLoading = false,
+    this.error,
+  });
+
+  final SequenceEntity? existingSequence;
   final bool isLoading;
   final String? error;
 
-  UpsertSequenceState copyWith({bool? isLoading, String? error}) =>
-      UpsertSequenceState(isLoading: isLoading ?? this.isLoading, error: error);
+  UpsertSequenceState copyWith({
+    Nullable<SequenceEntity?>? existingSequence,
+    bool? isLoading,
+    Nullable<String?>? error,
+  }) =>
+      UpsertSequenceState(
+        existingSequence: existingSequence != null ? existingSequence.value : this.existingSequence,
+        isLoading: isLoading ?? this.isLoading,
+        error: error != null ? error.value : this.error,
+      );
 }
 
-class UpsertSequenceController extends Notifier<UpsertSequenceState> {
+@riverpod
+class UpsertSequenceController extends _$UpsertSequenceController {
   @override
   UpsertSequenceState build() => const UpsertSequenceState();
 
+  void initializeWith(SequenceEntity? sequence) {
+    state = UpsertSequenceState(existingSequence: sequence);
+  }
+
   Future<SequenceEntity?> saveSequence({
-    required SequenceEntity? existingSequence,
     required String name,
     String? otherName,
     String? notes,
   }) async {
-    state = state.copyWith(isLoading: true);
+    state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
     final UserEntity? user = ref.read(authStateProvider).value;
 
     if (user == null) {
-      state = state.copyWith(isLoading: false, error: 'User not authenticated');
+      state = state.copyWith(isLoading: false, error: const Nullable<String?>('User not authenticated'));
       return null;
     }
 
-    final String generatedId = ref.read(sequenceRepositoryProvider).generateId();
+    final SequenceEntity? existingSequence = state.existingSequence;
+    final String generatedId = ref.read(generateSequenceIdUseCaseProvider)();
 
     final SequenceEntity sequenceToSave = existingSequence != null
         ? existingSequence.copyWith(
@@ -66,16 +86,11 @@ class UpsertSequenceController extends Notifier<UpsertSequenceState> {
 
       return sequenceToSave;
     } on NoConnectionException catch (e) {
-      state = state.copyWith(isLoading: false, error: e.message);
+      state = state.copyWith(isLoading: false, error: Nullable<String?>(e.message));
       return null;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: 'Error saving sequence: $e');
+      state = state.copyWith(isLoading: false, error: Nullable<String?>('Error saving sequence: $e'));
       return null;
     }
   }
 }
-
-final NotifierProvider<UpsertSequenceController, UpsertSequenceState>
-upsertSequenceControllerProvider = NotifierProvider<UpsertSequenceController, UpsertSequenceState>(
-  UpsertSequenceController.new,
-);

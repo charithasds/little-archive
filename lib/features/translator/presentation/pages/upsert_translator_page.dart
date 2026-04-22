@@ -51,7 +51,6 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
       final TranslatorEntity? savedTranslator = await ref
           .read(upsertTranslatorControllerProvider.notifier)
           .saveTranslator(
-            existingTranslator: widget.existingTranslator,
             name: _nameController.text.trim(),
             otherName: _otherNameController.text.trim(),
             website: _websiteController.text.trim(),

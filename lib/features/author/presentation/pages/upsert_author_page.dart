@@ -49,7 +49,6 @@ class _UpsertAuthorPageState extends ConsumerState<UpsertAuthorPage> {
       final AuthorEntity? savedAuthor = await ref
           .read(upsertAuthorControllerProvider.notifier)
           .saveAuthor(
-            existingAuthor: widget.existingAuthor,
             name: _nameController.text.trim(),
             otherName: _otherNameController.text.trim(),
             website: _websiteController.text.trim(),

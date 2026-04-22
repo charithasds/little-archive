@@ -7,7 +7,6 @@ import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/publisher_entity.dart';
-import '../../domain/repositories/publisher_repository.dart';
 import '../providers/publisher_provider.dart';
 import '../widgets/publisher_list_tile.dart';
 
@@ -41,7 +40,7 @@ class PublisherListPage extends ConsumerWidget {
     }
 
     try {
-      await ref.read<PublisherRepository>(publisherRepositoryProvider).removePublisher(publisherId);
+      await ref.read(removePublisherUseCaseProvider)(publisherId);
       SnackBars.showSuccess('Publisher removed successfully');
     } on NoConnectionException catch (e) {
       SnackBars.showError(e.message);

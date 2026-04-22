@@ -1,6 +1,13 @@
 import '../entities/book_entity.dart';
 import '../repositories/book_repository.dart';
 
+class GenerateBookIdUseCase {
+  const GenerateBookIdUseCase(this.repository);
+  final BookRepository repository;
+
+  String call() => repository.generateId();
+}
+
 class FetchBooksUseCase {
   const FetchBooksUseCase(this.repository);
   final BookRepository repository;

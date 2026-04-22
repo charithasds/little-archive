@@ -1,6 +1,13 @@
 import '../entities/author_entity.dart';
 import '../repositories/author_repository.dart';
 
+class GenerateAuthorIdUseCase {
+  const GenerateAuthorIdUseCase(this.repository);
+  final AuthorRepository repository;
+
+  String call() => repository.generateId();
+}
+
 class FetchAuthorsUseCase {
   const FetchAuthorsUseCase(this.repository);
   final AuthorRepository repository;

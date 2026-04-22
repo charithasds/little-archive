@@ -15,7 +15,7 @@ import '../../domain/usecases/work_usecases.dart';
 part 'work_provider.g.dart';
 
 @riverpod
-WorkRemoteDataSource workRemoteDataSource(Ref ref) {
+WorkRemoteDataSource _workRemoteDataSource(Ref ref) {
   final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
   final String? userId = ref.watch(currentUidProvider);
 
@@ -27,8 +27,8 @@ WorkRemoteDataSource workRemoteDataSource(Ref ref) {
 }
 
 @riverpod
-WorkRepository workRepository(Ref ref) {
-  final WorkRemoteDataSource remoteDataSource = ref.watch(workRemoteDataSourceProvider);
+WorkRepository _workRepository(Ref ref) {
+  final WorkRemoteDataSource remoteDataSource = ref.watch(_workRemoteDataSourceProvider);
   final RelationshipSyncService relationshipSyncService = ref.watch(
     relationshipSyncServiceProvider,
   );
@@ -40,25 +40,30 @@ WorkRepository workRepository(Ref ref) {
 }
 
 @riverpod
-FetchWorksUseCase fetchWorksUseCase(Ref ref) => FetchWorksUseCase(ref.watch(workRepositoryProvider));
+GenerateWorkIdUseCase generateWorkIdUseCase(Ref ref) =>
+    GenerateWorkIdUseCase(ref.watch(_workRepositoryProvider));
 
 @riverpod
-WatchWorksUseCase watchWorksUseCase(Ref ref) =>
-    WatchWorksUseCase(ref.watch(workRepositoryProvider));
+FetchWorksUseCase fetchWorksUseCase(Ref ref) =>
+    FetchWorksUseCase(ref.watch(_workRepositoryProvider));
 
 @riverpod
 FetchWorkByIdUseCase fetchWorkByIdUseCase(Ref ref) =>
-    FetchWorkByIdUseCase(ref.watch(workRepositoryProvider));
+    FetchWorkByIdUseCase(ref.watch(_workRepositoryProvider));
 
 @riverpod
-AddWorkUseCase addWorkUseCase(Ref ref) => AddWorkUseCase(ref.watch(workRepositoryProvider));
+WatchWorksUseCase watchWorksUseCase(Ref ref) =>
+    WatchWorksUseCase(ref.watch(_workRepositoryProvider));
 
 @riverpod
-EditWorkUseCase editWorkUseCase(Ref ref) => EditWorkUseCase(ref.watch(workRepositoryProvider));
+AddWorkUseCase addWorkUseCase(Ref ref) => AddWorkUseCase(ref.watch(_workRepositoryProvider));
+
+@riverpod
+EditWorkUseCase editWorkUseCase(Ref ref) => EditWorkUseCase(ref.watch(_workRepositoryProvider));
 
 @riverpod
 RemoveWorkUseCase removeWorkUseCase(Ref ref) =>
-    RemoveWorkUseCase(ref.watch(workRepositoryProvider));
+    RemoveWorkUseCase(ref.watch(_workRepositoryProvider));
 
 @riverpod
 Stream<List<WorkEntity>> worksStream(Ref ref) {

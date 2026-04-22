@@ -2,6 +2,13 @@ import '../entities/sequence_entity.dart';
 import '../entities/sequence_volume_entity.dart';
 import '../repositories/sequence_repository.dart';
 
+class GenerateSequenceIdUseCase {
+  const GenerateSequenceIdUseCase(this.repository);
+  final SequenceRepository repository;
+
+  String call() => repository.generateId();
+}
+
 class FetchSequencesUseCase {
   const FetchSequencesUseCase(this.repository);
   final SequenceRepository repository;
@@ -42,6 +49,13 @@ class RemoveSequenceUseCase {
   final SequenceRepository repository;
 
   Future<void> call(String id) => repository.removeSequence(id);
+}
+
+class GenerateSequenceVolumeIdUseCase {
+  const GenerateSequenceVolumeIdUseCase(this.repository);
+  final SequenceRepository repository;
+
+  String call() => repository.generateVolumeId();
 }
 
 class FetchSequenceVolumesUseCase {

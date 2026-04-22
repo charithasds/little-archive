@@ -15,7 +15,7 @@ import '../../domain/usecases/author_usecases.dart';
 part 'author_provider.g.dart';
 
 @riverpod
-AuthorRemoteDataSource authorRemoteDataSource(Ref ref) {
+AuthorRemoteDataSource _authorRemoteDataSource(Ref ref) {
   final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
   final String? userId = ref.watch(currentUidProvider);
 
@@ -27,8 +27,8 @@ AuthorRemoteDataSource authorRemoteDataSource(Ref ref) {
 }
 
 @riverpod
-AuthorRepository authorRepository(Ref ref) {
-  final AuthorRemoteDataSource remoteDataSource = ref.watch(authorRemoteDataSourceProvider);
+AuthorRepository _authorRepository(Ref ref) {
+  final AuthorRemoteDataSource remoteDataSource = ref.watch(_authorRemoteDataSourceProvider);
   final RelationshipSyncService relationshipSyncService = ref.watch(
     relationshipSyncServiceProvider,
   );
@@ -40,27 +40,31 @@ AuthorRepository authorRepository(Ref ref) {
 }
 
 @riverpod
-FetchAuthorsUseCase fetchAuthorsUseCase(Ref ref) =>
-    FetchAuthorsUseCase(ref.watch(authorRepositoryProvider));
+GenerateAuthorIdUseCase generateAuthorIdUseCase(Ref ref) =>
+    GenerateAuthorIdUseCase(ref.watch(_authorRepositoryProvider));
 
 @riverpod
-WatchAuthorsUseCase watchAuthorsUseCase(Ref ref) =>
-    WatchAuthorsUseCase(ref.watch(authorRepositoryProvider));
+FetchAuthorsUseCase fetchAuthorsUseCase(Ref ref) =>
+    FetchAuthorsUseCase(ref.watch(_authorRepositoryProvider));
 
 @riverpod
 FetchAuthorByIdUseCase fetchAuthorByIdUseCase(Ref ref) =>
-    FetchAuthorByIdUseCase(ref.watch(authorRepositoryProvider));
+    FetchAuthorByIdUseCase(ref.watch(_authorRepositoryProvider));
 
 @riverpod
-AddAuthorUseCase addAuthorUseCase(Ref ref) => AddAuthorUseCase(ref.watch(authorRepositoryProvider));
+WatchAuthorsUseCase watchAuthorsUseCase(Ref ref) =>
+    WatchAuthorsUseCase(ref.watch(_authorRepositoryProvider));
+
+@riverpod
+AddAuthorUseCase addAuthorUseCase(Ref ref) => AddAuthorUseCase(ref.watch(_authorRepositoryProvider));
 
 @riverpod
 EditAuthorUseCase editAuthorUseCase(Ref ref) =>
-    EditAuthorUseCase(ref.watch(authorRepositoryProvider));
+    EditAuthorUseCase(ref.watch(_authorRepositoryProvider));
 
 @riverpod
 RemoveAuthorUseCase removeAuthorUseCase(Ref ref) =>
-    RemoveAuthorUseCase(ref.watch(authorRepositoryProvider));
+    RemoveAuthorUseCase(ref.watch(_authorRepositoryProvider));
 
 @riverpod
 Stream<List<AuthorEntity>> authorsStream(Ref ref) {
@@ -68,7 +72,7 @@ Stream<List<AuthorEntity>> authorsStream(Ref ref) {
   final String? userId = ref.watch(currentUidProvider);
 
   if (userId == null) {
-    return Stream<List<AuthorEntity>>.value(<AuthorEntity>[]); // Wait, SequenceEntity? Typo in existing code maybe.
+    return Stream<List<AuthorEntity>>.value(<AuthorEntity>[]);
   }
 
   return watchAuthors();

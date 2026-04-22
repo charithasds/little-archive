@@ -24,6 +24,14 @@ class _AddWorkDialogState extends ConsumerState<AddWorkDialog> {
   ContentCategory _contentCategory = ContentCategory.shortStory;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(upsertWorkControllerProvider.notifier).initializeWith(null);
+    });
+  }
+
+  @override
   void dispose() {
     _titleController.dispose();
     super.dispose();
@@ -34,7 +42,6 @@ class _AddWorkDialogState extends ConsumerState<AddWorkDialog> {
       final WorkEntity? savedWork = await ref
           .read(upsertWorkControllerProvider.notifier)
           .saveWork(
-            existingWork: null,
             title: _titleController.text.trim(),
             contentCategory: _contentCategory,
             isTranslation: false,
