@@ -50,6 +50,7 @@ class WorkRepositoryImpl implements WorkRepository {
       newAuthorIds: work.authorIds,
       newTranslatorIds: work.translatorIds,
       newSequenceVolumeIds: work.sequenceVolumeIds,
+      newBookId: work.bookId,
     );
   }
 
@@ -83,9 +84,11 @@ class WorkRepositoryImpl implements WorkRepository {
       newAuthorIds: work.authorIds,
       newTranslatorIds: work.translatorIds,
       newSequenceVolumeIds: work.sequenceVolumeIds,
+      newBookId: work.bookId,
       oldAuthorIds: existingWork?.authorIds ?? <String>[],
       oldTranslatorIds: existingWork?.translatorIds ?? <String>[],
       oldSequenceVolumeIds: existingWork?.sequenceVolumeIds ?? <String>[],
+      oldBookId: existingWork?.bookId,
     );
   }
 
@@ -99,6 +102,7 @@ class WorkRepositoryImpl implements WorkRepository {
         authorIds: existingWork.authorIds,
         translatorIds: existingWork.translatorIds,
         sequenceVolumeIds: existingWork.sequenceVolumeIds,
+        bookId: existingWork.bookId,
       );
     }
 

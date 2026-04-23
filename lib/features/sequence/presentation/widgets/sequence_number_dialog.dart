@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/shared/presentation/utils/validators.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
 
 class SequenceNumberDialog extends StatefulWidget {
@@ -14,6 +16,7 @@ class SequenceNumberDialog extends StatefulWidget {
 
 class _SequenceNumberDialogState extends State<SequenceNumberDialog> {
   late final TextEditingController _controller;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -34,17 +37,32 @@ class _SequenceNumberDialogState extends State<SequenceNumberDialog> {
               ? 'Enter Volume Number for ${widget.sequenceName}'
               : 'Enter Sequence Number',
         ),
-    content: FormTextField(
-      controller: _controller,
-      label: 'Sequence Number',
-      hint: '1, 2.5, ...',
-      prefixIcon: Icons.format_list_numbered_rounded,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      autofocus: true,
-    ),
-    actions: <Widget>[
-      TextButton(onPressed: () => context.pop(), child: const Text('Cancel')),
-      FilledButton(onPressed: () => context.pop(_controller.text.trim()), child: const Text('OK')),
-    ],
-  );
+        content: Form(
+          key: _formKey,
+          child: FormTextField(
+            controller: _controller,
+            label: 'Sequence Number',
+            hint: '1, 2.5, ...',
+            prefixIcon: Icons.format_list_numbered_rounded,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+            ],
+            autofocus: true,
+            isRequired: true,
+            validator: Validators.validatePositiveNumber,
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(onPressed: () => context.pop(), child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () {
+              if (_formKey.currentState?.validate() ?? false) {
+                context.pop(_controller.text.trim());
+              }
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      );
 }

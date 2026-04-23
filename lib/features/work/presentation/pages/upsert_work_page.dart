@@ -10,6 +10,7 @@ import '../../../../core/shared/domain/enums/original_language.dart';
 import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
+import '../../../../core/shared/presentation/utils/validators.dart';
 import '../../../../core/shared/presentation/widgets/form_dropdown_field.dart';
 import '../../../../core/shared/presentation/widgets/form_section.dart';
 import '../../../../core/shared/presentation/widgets/form_text_field.dart';
@@ -493,6 +494,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                             hint: 'e.g. 99',
                             prefixIcon: Icons.numbers_rounded,
                             keyboardType: TextInputType.number,
+                            validator: Validators.validatePositiveNumber,
                           ),
                           const SizedBox(height: 16),
                           FormDropdownField<Genre>(

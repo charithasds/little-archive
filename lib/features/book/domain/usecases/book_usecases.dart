@@ -1,3 +1,5 @@
+import '../../../sequence/domain/entities/sequence_entity.dart';
+import '../../../sequence/domain/usecases/sequence_usecases.dart';
 import '../entities/book_entity.dart';
 import '../repositories/book_repository.dart';
 
@@ -48,4 +50,36 @@ class RemoveBookUseCase {
   final BookRepository repository;
 
   Future<void> call(String id) => repository.removeBook(id);
+}
+
+class UpsertBookUseCase {
+  const UpsertBookUseCase({
+    required this.bookRepository,
+    required this.syncSequenceVolumesUseCase,
+  });
+
+  final BookRepository bookRepository;
+  final SyncBookSequenceVolumesUseCase syncSequenceVolumesUseCase;
+
+  Future<BookEntity> call({
+    required BookEntity book,
+    required Map<SequenceEntity, String> sequenceEntries,
+    required bool isEdit,
+  }) async {
+    final List<String> sequenceVolumeIds = await syncSequenceVolumesUseCase(
+      bookId: book.id,
+      entries: sequenceEntries,
+      isEdit: isEdit,
+    );
+
+    final BookEntity bookToSave = book.copyWith(sequenceVolumeIds: sequenceVolumeIds);
+
+    if (isEdit) {
+      await bookRepository.editBook(bookToSave);
+    } else {
+      await bookRepository.addBook(bookToSave);
+    }
+
+    return bookToSave;
+  }
 }

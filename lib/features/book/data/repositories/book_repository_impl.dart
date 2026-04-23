@@ -62,6 +62,7 @@ class BookRepositoryImpl implements BookRepository {
       newAuthorIds: book.authorIds,
       newTranslatorIds: book.translatorIds,
       newSequenceVolumeIds: book.sequenceVolumeIds,
+      newWorkIds: book.workIds,
       newPublisherId: book.publisherId,
       newReaderId: book.readerId,
     );
@@ -109,11 +110,13 @@ class BookRepositoryImpl implements BookRepository {
       newAuthorIds: book.authorIds,
       newTranslatorIds: book.translatorIds,
       newSequenceVolumeIds: book.sequenceVolumeIds,
+      newWorkIds: book.workIds,
       newPublisherId: book.publisherId,
       newReaderId: book.readerId,
       oldAuthorIds: existingBook?.authorIds ?? <String>[],
       oldTranslatorIds: existingBook?.translatorIds ?? <String>[],
       oldSequenceVolumeIds: existingBook?.sequenceVolumeIds ?? <String>[],
+      oldWorkIds: existingBook?.workIds ?? <String>[],
       oldPublisherId: existingBook?.publisherId,
       oldReaderId: existingBook?.readerId,
     );
@@ -129,6 +132,7 @@ class BookRepositoryImpl implements BookRepository {
         authorIds: existingBook.authorIds,
         translatorIds: existingBook.translatorIds,
         sequenceVolumeIds: existingBook.sequenceVolumeIds,
+        workIds: existingBook.workIds,
         publisherId: existingBook.publisherId,
         readerId: existingBook.readerId,
       );

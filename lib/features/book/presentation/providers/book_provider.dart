@@ -6,6 +6,7 @@ import '../../../../core/shared/data/services/relationship_sync_service.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/presentation/providers/firestore_service_provider.dart';
 import '../../../../core/shared/presentation/providers/relationship_sync_service_provider.dart';
+import '../../../sequence/presentation/providers/sequence_provider.dart';
 import '../../data/datasources/book_remote_datasource.dart';
 import '../../data/repositories/book_repository_impl.dart';
 import '../../domain/entities/book_entity.dart';
@@ -64,6 +65,12 @@ EditBookUseCase editBookUseCase(Ref ref) => EditBookUseCase(ref.watch(_bookRepos
 @riverpod
 RemoveBookUseCase removeBookUseCase(Ref ref) =>
     RemoveBookUseCase(ref.watch(_bookRepositoryProvider));
+
+@riverpod
+UpsertBookUseCase upsertBookUseCase(Ref ref) => UpsertBookUseCase(
+  bookRepository: ref.watch(_bookRepositoryProvider),
+  syncSequenceVolumesUseCase: ref.watch(syncBookSequenceVolumesUseCaseProvider),
+);
 
 @riverpod
 Stream<List<BookEntity>> booksStream(Ref ref) {

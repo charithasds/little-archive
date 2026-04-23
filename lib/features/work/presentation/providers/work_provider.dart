@@ -6,6 +6,7 @@ import '../../../../core/shared/data/services/relationship_sync_service.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/presentation/providers/firestore_service_provider.dart';
 import '../../../../core/shared/presentation/providers/relationship_sync_service_provider.dart';
+import '../../../sequence/presentation/providers/sequence_provider.dart';
 import '../../data/datasources/work_remote_datasource.dart';
 import '../../data/repositories/work_repository_impl.dart';
 import '../../domain/entities/work_entity.dart';
@@ -64,6 +65,12 @@ EditWorkUseCase editWorkUseCase(Ref ref) => EditWorkUseCase(ref.watch(_workRepos
 @riverpod
 RemoveWorkUseCase removeWorkUseCase(Ref ref) =>
     RemoveWorkUseCase(ref.watch(_workRepositoryProvider));
+
+@riverpod
+UpsertWorkUseCase upsertWorkUseCase(Ref ref) => UpsertWorkUseCase(
+  workRepository: ref.watch(_workRepositoryProvider),
+  syncSequenceVolumesUseCase: ref.watch(syncWorkSequenceVolumesUseCaseProvider),
+);
 
 @riverpod
 Stream<List<WorkEntity>> worksStream(Ref ref) {

@@ -11,6 +11,7 @@ import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
+import '../../../../core/shared/presentation/utils/validators.dart';
 import '../../../../core/shared/presentation/widgets/form_date_field.dart';
 import '../../../../core/shared/presentation/widgets/form_dropdown_field.dart';
 import '../../../../core/shared/presentation/widgets/form_section.dart';
@@ -768,6 +769,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       label: 'Paused Page',
                       prefixIcon: Icons.bookmark_border_rounded,
                       keyboardType: TextInputType.number,
+                      validator: Validators.validatePositiveNumber,
                     ),
                   ],
                   if (_showCompletedDate) ...<Widget>[
@@ -786,6 +788,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                     hint: 'e.g. 153',
                     prefixIcon: Icons.numbers_rounded,
                     keyboardType: TextInputType.number,
+                    validator: Validators.validatePositiveNumber,
                   ),
                 ],
               ),
@@ -812,25 +815,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                     hint: 'e.g. ISBN10 or ISBN13',
                     prefixIcon: Icons.qr_code_rounded,
                     maxLength: 13,
-                    validator: (String? value) {
-                      if (value == null || value.isEmpty) {
-                        return null;
-                      }
-                      final String clean = value.replaceAll(RegExp(r'[-\s]'), '').toUpperCase();
-                      if (clean.length != 10 && clean.length != 13) {
-                        return 'Enter 10 or 13 digits';
-                      }
-                      if (clean.length == 10) {
-                        if (!RegExp(r'^\d{9}[\dX]$').hasMatch(clean)) {
-                          return 'Invalid ISBN-10 format';
-                        }
-                      } else {
-                        if (!RegExp(r'^\d{13}$').hasMatch(clean)) {
-                          return 'Invalid ISBN-13 format';
-                        }
-                      }
-                      return null;
-                    },
+                    validator: Validators.validateIsbn,
                   ),
                   const SizedBox(height: 16),
                   SearchPickerField<PublisherEntity>(

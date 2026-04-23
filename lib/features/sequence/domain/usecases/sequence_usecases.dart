@@ -117,3 +117,85 @@ class RemoveSequenceVolumeUseCase {
 
   Future<void> call(String id) => repository.removeSequenceVolume(id);
 }
+
+class SyncBookSequenceVolumesUseCase {
+  const SyncBookSequenceVolumesUseCase(this.repository);
+  final SequenceRepository repository;
+
+  Future<List<String>> call({
+    required String bookId,
+    required Map<SequenceEntity, String> entries,
+    bool isEdit = false,
+  }) async {
+    if (isEdit) {
+      final List<SequenceVolumeEntity> oldVolumes = await repository.fetchSequenceVolumesByBookId(
+        bookId,
+      );
+
+      for (final SequenceVolumeEntity vol in oldVolumes) {
+        await repository.removeSequenceVolume(vol.id);
+      }
+    }
+
+    final List<String> volumeIds = <String>[];
+
+    for (final MapEntry<SequenceEntity, String> entry in entries.entries) {
+      final String id = repository.generateVolumeId();
+      await repository.addSequenceVolume(
+        SequenceVolumeEntity(
+          id: id,
+          volume: entry.value,
+          sequenceId: entry.key.id,
+          bookId: bookId,
+          createdDate: DateTime.now(),
+          lastUpdated: DateTime.now(),
+        ),
+      );
+
+      volumeIds.add(id);
+    }
+
+    return volumeIds;
+  }
+}
+
+class SyncWorkSequenceVolumesUseCase {
+  const SyncWorkSequenceVolumesUseCase(this.repository);
+  final SequenceRepository repository;
+
+  Future<List<String>> call({
+    required String workId,
+    required Map<SequenceEntity, String> entries,
+    bool isEdit = false,
+  }) async {
+    if (isEdit) {
+      final List<SequenceVolumeEntity> oldVolumes = await repository.fetchSequenceVolumesByWorkId(
+        workId,
+      );
+
+      for (final SequenceVolumeEntity vol in oldVolumes) {
+        await repository.removeSequenceVolume(vol.id);
+      }
+    }
+
+    final List<String> volumeIds = <String>[];
+
+    for (final MapEntry<SequenceEntity, String> entry in entries.entries) {
+      final String id = repository.generateVolumeId();
+      await repository.addSequenceVolume(
+        SequenceVolumeEntity(
+          id: id,
+          volume: entry.value,
+          sequenceId: entry.key.id,
+          workId: workId,
+          createdDate: DateTime.now(),
+          lastUpdated: DateTime.now(),
+        ),
+      );
+
+      volumeIds.add(id);
+    }
+
+    return volumeIds;
+  }
+}

@@ -1,21 +1,3 @@
-class NoConnectionException implements Exception {
-  const NoConnectionException([
-    this.message = 'No internet connection. Please check your network and try again.',
-  ]);
-  final String message;
-
-  @override
-  String toString() => message;
-}
-
-class ServerException implements Exception {
-  const ServerException([this.message = 'Server error occurred. Please try again later.']);
-  final String message;
-
-  @override
-  String toString() => message;
-}
-
 class CacheException implements Exception {
   const CacheException([this.message = 'Cache error occurred.']);
   final String message;
@@ -24,8 +6,18 @@ class CacheException implements Exception {
   String toString() => message;
 }
 
-class UnauthorizedException implements Exception {
-  const UnauthorizedException([this.message = 'You must be logged in to perform this operation.']);
+class InitializationException implements Exception {
+  const InitializationException([this.message = 'The application has not been fully initialized.']);
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
+class NoConnectionException implements Exception {
+  const NoConnectionException([
+    this.message = 'No internet connection. Please check your network and try again.',
+  ]);
   final String message;
 
   @override
@@ -40,8 +32,16 @@ class PermissionException implements Exception {
   String toString() => message;
 }
 
-class InitializationException implements Exception {
-  const InitializationException([this.message = 'The application has not been fully initialized.']);
+class ServerException implements Exception {
+  const ServerException([this.message = 'Server error occurred. Please try again later.']);
+  final String message;
+
+  @override
+  String toString() => message;
+}
+
+class UnauthorizedException implements Exception {
+  const UnauthorizedException([this.message = 'You must be logged in to perform this operation.']);
   final String message;
 
   @override

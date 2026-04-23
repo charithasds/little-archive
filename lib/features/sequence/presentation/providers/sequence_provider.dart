@@ -105,6 +105,14 @@ RemoveSequenceVolumeUseCase removeSequenceVolumeUseCase(Ref ref) =>
     RemoveSequenceVolumeUseCase(ref.watch(_sequenceRepositoryProvider));
 
 @riverpod
+SyncBookSequenceVolumesUseCase syncBookSequenceVolumesUseCase(Ref ref) =>
+    SyncBookSequenceVolumesUseCase(ref.watch(_sequenceRepositoryProvider));
+
+@riverpod
+SyncWorkSequenceVolumesUseCase syncWorkSequenceVolumesUseCase(Ref ref) =>
+    SyncWorkSequenceVolumesUseCase(ref.watch(_sequenceRepositoryProvider));
+
+@riverpod
 Stream<List<SequenceEntity>> sequencesStream(Ref ref) {
   final WatchSequencesUseCase watchSequences = ref.watch(watchSequencesUseCaseProvider);
   final String? userId = ref.watch(currentUidProvider);

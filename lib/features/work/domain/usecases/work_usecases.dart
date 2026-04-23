@@ -1,3 +1,5 @@
+import '../../../sequence/domain/entities/sequence_entity.dart';
+import '../../../sequence/domain/usecases/sequence_usecases.dart';
 import '../entities/work_entity.dart';
 import '../repositories/work_repository.dart';
 
@@ -48,4 +50,36 @@ class RemoveWorkUseCase {
   final WorkRepository repository;
 
   Future<void> call(String id) => repository.removeWork(id);
+}
+
+class UpsertWorkUseCase {
+  const UpsertWorkUseCase({
+    required this.workRepository,
+    required this.syncSequenceVolumesUseCase,
+  });
+
+  final WorkRepository workRepository;
+  final SyncWorkSequenceVolumesUseCase syncSequenceVolumesUseCase;
+
+  Future<WorkEntity> call({
+    required WorkEntity work,
+    required Map<SequenceEntity, String> sequenceEntries,
+    required bool isEdit,
+  }) async {
+    final List<String> sequenceVolumeIds = await syncSequenceVolumesUseCase(
+      workId: work.id,
+      entries: sequenceEntries,
+      isEdit: isEdit,
+    );
+
+    final WorkEntity workToSave = work.copyWith(sequenceVolumeIds: sequenceVolumeIds);
+
+    if (isEdit) {
+      await workRepository.editWork(workToSave);
+    } else {
+      await workRepository.addWork(workToSave);
+    }
+
+    return workToSave;
+  }
 }

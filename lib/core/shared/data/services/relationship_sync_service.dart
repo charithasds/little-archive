@@ -1,33 +1,29 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-
-import '../../../shared/domain/error/exceptions.dart';
 
 class RelationshipSyncService {
-  RelationshipSyncService({required FirebaseFirestore firestore}) : _firestore = firestore;
+  RelationshipSyncService({required FirebaseFirestore firestore, required String userId})
+    : _firestore = firestore,
+      _userId = userId;
 
   final FirebaseFirestore _firestore;
+  final String _userId;
 
-  String get _currentUserId {
-    final User? user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      throw const UnauthorizedException();
-    }
-    return user.uid;
-  }
+  String get _userPath => 'users/$_userId';
 
-  String _collectionPath(String collection) => 'users/$_currentUserId/$collection';
+  String _collectionPath(String collection) => '$_userPath/$collection';
 
   Future<void> syncBookRelationships({
     required String bookId,
     required List<String> newAuthorIds,
     required List<String> newTranslatorIds,
     required List<String> newSequenceVolumeIds,
+    required List<String> newWorkIds,
     String? newPublisherId,
     String? newReaderId,
     List<String> oldAuthorIds = const <String>[],
     List<String> oldTranslatorIds = const <String>[],
     List<String> oldSequenceVolumeIds = const <String>[],
+    List<String> oldWorkIds = const <String>[],
     String? oldPublisherId,
     String? oldReaderId,
   }) async {
@@ -49,6 +45,16 @@ class RelationshipSyncService {
       entityId: bookId,
       newIds: newTranslatorIds,
       oldIds: oldTranslatorIds,
+    );
+
+    await _syncEntityRelationship(
+      batch: batch,
+      collection: 'works',
+      fieldName: 'bookId',
+      entityId: bookId,
+      newIds: newWorkIds,
+      oldIds: oldWorkIds,
+      isSingleSync: true,
     );
 
     await _syncEntityRelationship(
@@ -87,9 +93,11 @@ class RelationshipSyncService {
     required List<String> newAuthorIds,
     required List<String> newTranslatorIds,
     required List<String> newSequenceVolumeIds,
+    String? newBookId,
     List<String> oldAuthorIds = const <String>[],
     List<String> oldTranslatorIds = const <String>[],
     List<String> oldSequenceVolumeIds = const <String>[],
+    String? oldBookId,
   }) async {
     final WriteBatch batch = _firestore.batch();
 
@@ -109,6 +117,15 @@ class RelationshipSyncService {
       entityId: workId,
       newIds: newTranslatorIds,
       oldIds: oldTranslatorIds,
+    );
+
+    await _syncSingleEntityRelationship(
+      batch: batch,
+      collection: 'books',
+      fieldName: 'workIds',
+      entityId: workId,
+      newId: newBookId,
+      oldId: oldBookId,
     );
 
     await _syncEntityRelationship(
@@ -290,44 +307,61 @@ class RelationshipSyncService {
     required List<String> authorIds,
     required List<String> translatorIds,
     required List<String> sequenceVolumeIds,
+    required List<String> workIds,
     String? publisherId,
     String? readerId,
   }) async {
     final WriteBatch batch = _firestore.batch();
 
     for (final String authorId in authorIds) {
-      batch.update(_firestore.collection(_collectionPath('authors')).doc(authorId), <String, dynamic>{
+      batch.set(_firestore.collection(_collectionPath('authors')).doc(authorId), <String, dynamic>{
         'bookIds': FieldValue.arrayRemove(<dynamic>[bookId]),
         'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      }, SetOptions(merge: true));
     }
 
     for (final String translatorId in translatorIds) {
-      batch.update(_firestore.collection(_collectionPath('translators')).doc(translatorId), <String, dynamic>{
-        'bookIds': FieldValue.arrayRemove(<dynamic>[bookId]),
+      batch.set(
+        _firestore.collection(_collectionPath('translators')).doc(translatorId),
+        <String, dynamic>{
+          'bookIds': FieldValue.arrayRemove(<dynamic>[bookId]),
+          'lastUpdated': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+    }
+
+    for (final String workId in workIds) {
+      batch.set(_firestore.collection(_collectionPath('works')).doc(workId), <String, dynamic>{
+        'bookId': null,
         'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      }, SetOptions(merge: true));
     }
 
     for (final String volumeId in sequenceVolumeIds) {
-      batch.update(_firestore.collection(_collectionPath('sequence_volumes')).doc(volumeId), <String, dynamic>{
-        'bookId': null,
-        'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      batch.set(
+        _firestore.collection(_collectionPath('sequence_volumes')).doc(volumeId),
+        <String, dynamic>{'bookId': null, 'lastUpdated': FieldValue.serverTimestamp()},
+        SetOptions(merge: true),
+      );
     }
 
     if (publisherId != null) {
-      batch.update(_firestore.collection(_collectionPath('publishers')).doc(publisherId), <String, dynamic>{
-        'bookIds': FieldValue.arrayRemove(<dynamic>[bookId]),
-        'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      batch.set(
+        _firestore.collection(_collectionPath('publishers')).doc(publisherId),
+        <String, dynamic>{
+          'bookIds': FieldValue.arrayRemove(<dynamic>[bookId]),
+          'lastUpdated': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
     }
 
     if (readerId != null) {
-      batch.update(_firestore.collection(_collectionPath('readers')).doc(readerId), <String, dynamic>{
+      batch.set(_firestore.collection(_collectionPath('readers')).doc(readerId), <String, dynamic>{
         'bookIds': FieldValue.arrayRemove(<dynamic>[bookId]),
         'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      }, SetOptions(merge: true));
     }
 
     await batch.commit();
@@ -338,28 +372,41 @@ class RelationshipSyncService {
     required List<String> authorIds,
     required List<String> translatorIds,
     required List<String> sequenceVolumeIds,
+    String? bookId,
   }) async {
     final WriteBatch batch = _firestore.batch();
 
     for (final String authorId in authorIds) {
-      batch.update(_firestore.collection(_collectionPath('authors')).doc(authorId), <String, dynamic>{
+      batch.set(_firestore.collection(_collectionPath('authors')).doc(authorId), <String, dynamic>{
         'workIds': FieldValue.arrayRemove(<dynamic>[workId]),
         'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      }, SetOptions(merge: true));
     }
 
     for (final String translatorId in translatorIds) {
-      batch.update(_firestore.collection(_collectionPath('translators')).doc(translatorId), <String, dynamic>{
+      batch.set(
+        _firestore.collection(_collectionPath('translators')).doc(translatorId),
+        <String, dynamic>{
+          'workIds': FieldValue.arrayRemove(<dynamic>[workId]),
+          'lastUpdated': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
+    }
+
+    if (bookId != null && bookId.isNotEmpty) {
+      batch.set(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
         'workIds': FieldValue.arrayRemove(<dynamic>[workId]),
         'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      }, SetOptions(merge: true));
     }
 
     for (final String volumeId in sequenceVolumeIds) {
-      batch.update(_firestore.collection(_collectionPath('sequence_volumes')).doc(volumeId), <String, dynamic>{
-        'workId': null,
-        'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      batch.set(
+        _firestore.collection(_collectionPath('sequence_volumes')).doc(volumeId),
+        <String, dynamic>{'workId': null, 'lastUpdated': FieldValue.serverTimestamp()},
+        SetOptions(merge: true),
+      );
     }
 
     await batch.commit();
@@ -373,17 +420,17 @@ class RelationshipSyncService {
     final WriteBatch batch = _firestore.batch();
 
     for (final String bookId in bookIds) {
-      batch.update(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
+      batch.set(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
         'authorIds': FieldValue.arrayRemove(<dynamic>[authorId]),
         'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      }, SetOptions(merge: true));
     }
 
     for (final String workId in workIds) {
-      batch.update(_firestore.collection(_collectionPath('works')).doc(workId), <String, dynamic>{
+      batch.set(_firestore.collection(_collectionPath('works')).doc(workId), <String, dynamic>{
         'authorIds': FieldValue.arrayRemove(<dynamic>[authorId]),
         'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      }, SetOptions(merge: true));
     }
 
     await batch.commit();
@@ -397,17 +444,17 @@ class RelationshipSyncService {
     final WriteBatch batch = _firestore.batch();
 
     for (final String bookId in bookIds) {
-      batch.update(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
+      batch.set(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
         'translatorIds': FieldValue.arrayRemove(<dynamic>[translatorId]),
         'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      }, SetOptions(merge: true));
     }
 
     for (final String workId in workIds) {
-      batch.update(_firestore.collection(_collectionPath('works')).doc(workId), <String, dynamic>{
+      batch.set(_firestore.collection(_collectionPath('works')).doc(workId), <String, dynamic>{
         'translatorIds': FieldValue.arrayRemove(<dynamic>[translatorId]),
         'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      }, SetOptions(merge: true));
     }
 
     await batch.commit();
@@ -420,10 +467,10 @@ class RelationshipSyncService {
     final WriteBatch batch = _firestore.batch();
 
     for (final String bookId in bookIds) {
-      batch.update(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
+      batch.set(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
         'publisherId': null,
         'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      }, SetOptions(merge: true));
     }
 
     await batch.commit();
@@ -436,10 +483,10 @@ class RelationshipSyncService {
     final WriteBatch batch = _firestore.batch();
 
     for (final String bookId in bookIds) {
-      batch.update(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
+      batch.set(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
         'readerId': null,
         'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      }, SetOptions(merge: true));
     }
 
     await batch.commit();
@@ -452,10 +499,11 @@ class RelationshipSyncService {
     final WriteBatch batch = _firestore.batch();
 
     for (final String volumeId in sequenceVolumeIds) {
-      batch.update(_firestore.collection(_collectionPath('sequence_volumes')).doc(volumeId), <String, dynamic>{
-        'sequenceId': '',
-        'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      batch.set(
+        _firestore.collection(_collectionPath('sequence_volumes')).doc(volumeId),
+        <String, dynamic>{'sequenceId': '', 'lastUpdated': FieldValue.serverTimestamp()},
+        SetOptions(merge: true),
+      );
     }
 
     await batch.commit();
@@ -469,23 +517,27 @@ class RelationshipSyncService {
   }) async {
     final WriteBatch batch = _firestore.batch();
 
-    batch.update(_firestore.collection(_collectionPath('sequences')).doc(sequenceId), <String, dynamic>{
-      'sequenceVolumeIds': FieldValue.arrayRemove(<dynamic>[volumeId]),
-      'lastUpdated': FieldValue.serverTimestamp(),
-    });
-
-    if (bookId != null && bookId.isNotEmpty) {
-      batch.update(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
+    batch.set(
+      _firestore.collection(_collectionPath('sequences')).doc(sequenceId),
+      <String, dynamic>{
         'sequenceVolumeIds': FieldValue.arrayRemove(<dynamic>[volumeId]),
         'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      },
+      SetOptions(merge: true),
+    );
+
+    if (bookId != null && bookId.isNotEmpty) {
+      batch.set(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
+        'sequenceVolumeIds': FieldValue.arrayRemove(<dynamic>[volumeId]),
+        'lastUpdated': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
     }
 
     if (workId != null && workId.isNotEmpty) {
-      batch.update(_firestore.collection(_collectionPath('works')).doc(workId), <String, dynamic>{
+      batch.set(_firestore.collection(_collectionPath('works')).doc(workId), <String, dynamic>{
         'sequenceVolumeIds': FieldValue.arrayRemove(<dynamic>[volumeId]),
         'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      }, SetOptions(merge: true));
     }
 
     await batch.commit();
@@ -507,20 +559,22 @@ class RelationshipSyncService {
       if (id.isEmpty) {
         continue;
       }
-      batch.update(_firestore.collection(_collectionPath(collection)).doc(id), <String, dynamic>{
+
+      batch.set(_firestore.collection(_collectionPath(collection)).doc(id), <String, dynamic>{
         fieldName: isSingleSync ? entityId : FieldValue.arrayUnion(<dynamic>[entityId]),
         'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      }, SetOptions(merge: true));
     }
 
     for (final String id in toRemove) {
       if (id.isEmpty) {
         continue;
       }
-      batch.update(_firestore.collection(_collectionPath(collection)).doc(id), <String, dynamic>{
+
+      batch.set(_firestore.collection(_collectionPath(collection)).doc(id), <String, dynamic>{
         fieldName: isSingleSync ? null : FieldValue.arrayRemove(<dynamic>[entityId]),
         'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      }, SetOptions(merge: true));
     }
   }
 
@@ -537,17 +591,17 @@ class RelationshipSyncService {
     }
 
     if (oldId != null && oldId.isNotEmpty) {
-      batch.update(_firestore.collection(_collectionPath(collection)).doc(oldId), <String, dynamic>{
+      batch.set(_firestore.collection(_collectionPath(collection)).doc(oldId), <String, dynamic>{
         fieldName: FieldValue.arrayRemove(<dynamic>[entityId]),
         'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      }, SetOptions(merge: true));
     }
 
     if (newId != null && newId.isNotEmpty) {
-      batch.update(_firestore.collection(_collectionPath(collection)).doc(newId), <String, dynamic>{
+      batch.set(_firestore.collection(_collectionPath(collection)).doc(newId), <String, dynamic>{
         fieldName: FieldValue.arrayUnion(<dynamic>[entityId]),
         'lastUpdated': FieldValue.serverTimestamp(),
-      });
+      }, SetOptions(merge: true));
     }
   }
 }

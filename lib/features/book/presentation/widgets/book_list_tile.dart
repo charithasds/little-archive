@@ -123,7 +123,7 @@ class BookListTile extends ConsumerWidget {
                     tooltip: 'Edit',
                   ),
                   IconButton(
-                    icon: Icon(Icons.remove_circle_outline_rounded, color: colorScheme.error),
+                    icon: Icon(Icons.delete_rounded, color: colorScheme.error),
                     onPressed: onRemove,
                     tooltip: 'Remove',
                   ),
