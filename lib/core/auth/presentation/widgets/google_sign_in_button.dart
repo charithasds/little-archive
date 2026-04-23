@@ -25,8 +25,8 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
     return FilledButton(
       onPressed: isLoading ? null : _handleSignIn,
       style: FilledButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -39,8 +39,8 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
             )
           else
             Container(
-              width: 24,
-              height: 24,
+              width: 28,
+              height: 28,
               padding: const EdgeInsets.all(3),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -51,8 +51,8 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
           const SizedBox(width: 12),
           Text(
             isLoading ? 'Signing in...' : 'Continue with Google',
-            style: theme.textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.w600,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
               color: colorScheme.onPrimary,
             ),
           ),

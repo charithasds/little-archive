@@ -16,11 +16,19 @@ class LoginPage extends ConsumerWidget {
     return ExpressivePageLayout(
       title: 'Little Archive',
       description: 'Your personal library companion',
+      titleStyle: theme.textTheme.displayLarge?.copyWith(
+        fontWeight: FontWeight.w800,
+        color: colorScheme.onSurface,
+      ),
+      descriptionStyle: theme.textTheme.headlineSmall?.copyWith(
+        color: colorScheme.onSurface.withValues(alpha: 0.6),
+      ),
+      iconHeight: 240,
       content: const GoogleSignInButton(),
       secondaryContent: Text(
         'Keep your library in sync across all your devices.',
         textAlign: TextAlign.center,
-        style: theme.textTheme.bodyMedium?.copyWith(
+        style: theme.textTheme.titleMedium?.copyWith(
           color: colorScheme.onSurface.withValues(alpha: 0.4),
         ),
       ),

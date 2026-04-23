@@ -31,6 +31,9 @@ class ExpressivePageLayout extends ConsumerWidget {
     required this.content,
     this.secondaryContent,
     this.useErrorColors = false,
+    this.titleStyle,
+    this.descriptionStyle,
+    this.iconHeight,
     super.key,
   });
 
@@ -39,6 +42,9 @@ class ExpressivePageLayout extends ConsumerWidget {
   final Widget content;
   final Widget? secondaryContent;
   final bool useErrorColors;
+  final TextStyle? titleStyle;
+  final TextStyle? descriptionStyle;
+  final double? iconHeight;
 
   _SizeTokens _sizeTokens(double screenWidth, TextTheme textTheme) {
     if (screenWidth < _kCompactBreakpoint) {
@@ -101,7 +107,7 @@ class ExpressivePageLayout extends ConsumerWidget {
 
                         Image.asset(
                           'assets/icon/app_icon.png',
-                          height: tokens.iconHeight,
+                          height: iconHeight ?? tokens.iconHeight,
                           fit: BoxFit.contain,
                         ),
                         SizedBox(height: tokens.iconBottomSpacing),
@@ -109,14 +115,14 @@ class ExpressivePageLayout extends ConsumerWidget {
                         Text(
                           title,
                           textAlign: TextAlign.center,
-                          style: tokens.titleStyle?.copyWith(color: colorScheme.onSurface),
+                          style: titleStyle ?? tokens.titleStyle?.copyWith(color: colorScheme.onSurface),
                         ),
                         const SizedBox(height: 8),
 
                         Text(
                           description,
                           textAlign: TextAlign.center,
-                          style: tokens.descriptionStyle?.copyWith(color: descriptionColor),
+                          style: descriptionStyle ?? tokens.descriptionStyle?.copyWith(color: descriptionColor),
                         ),
 
                         const Spacer(flex: 2),
