@@ -12,13 +12,8 @@ import '../../domain/entities/book_entity.dart';
 import '../providers/upsert_book_controller.dart';
 
 class AddBookBottomSheet extends ConsumerStatefulWidget {
-  const AddBookBottomSheet({
-    super.key,
-    this.allowedTypes,
-  });
+  const AddBookBottomSheet({super.key, this.allowedTypes});
 
-  /// Restricts which compilation types are shown in the dropdown.
-  /// If null, all types are shown.
   final List<CompilationType>? allowedTypes;
 
   @override
@@ -49,7 +44,9 @@ class _AddBookBottomSheetState extends ConsumerState<AddBookBottomSheet> {
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
-      final BookEntity? savedBook = await ref.read(upsertBookControllerProvider.notifier).saveBook(
+      final BookEntity? savedBook = await ref
+          .read(upsertBookControllerProvider.notifier)
+          .saveBook(
             title: _titleController.text.trim(),
             compilationType: _compilationType,
             isTranslation: false,

@@ -2,12 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class FormBottomSheet extends StatelessWidget {
-  const FormBottomSheet({
-    super.key,
-    required this.title,
-    required this.child,
-    this.actions,
-  });
+  const FormBottomSheet({super.key, required this.title, required this.child, this.actions});
 
   final String title;
   final Widget child;
@@ -19,16 +14,13 @@ class FormBottomSheet extends StatelessWidget {
     final ColorScheme colorScheme = theme.colorScheme;
 
     return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
         padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            // Drag Handle
             Center(
               child: Container(
                 width: 32,
@@ -45,23 +37,15 @@ class FormBottomSheet extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
-                IconButton(
-                  onPressed: () => context.pop(),
-                  icon: const Icon(Icons.close_rounded),
-                ),
+                IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.close_rounded)),
               ],
             ),
             const SizedBox(height: 16),
             child,
-            if (actions != null) ...<Widget>[
-              const SizedBox(height: 24),
-              ...actions!,
-            ],
+            if (actions != null) ...<Widget>[const SizedBox(height: 24), ...actions!],
           ],
         ),
       ),

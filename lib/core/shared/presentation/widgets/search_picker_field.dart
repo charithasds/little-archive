@@ -28,7 +28,6 @@ class SearchPickerField<T> extends ConsumerStatefulWidget {
   final Future<T?> Function()? onAdd;
   final bool isNullable;
   final Object Function(T)? itemKey;
-  /// Optional callback to pre-filter the full list before search is applied.
   final List<T> Function(List<T>)? filterItems;
 
   @override
@@ -191,8 +190,9 @@ class _PickerSheetState<T> extends ConsumerState<_PickerSheet<T>> {
           Expanded(
             child: itemsAsync.when(
               data: (List<T> items) {
-                final List<T> preFiltered =
-                    widget.filterItems != null ? widget.filterItems!(items) : items;
+                final List<T> preFiltered = widget.filterItems != null
+                    ? widget.filterItems!(items)
+                    : items;
                 final List<T> sortedItems = preFiltered.toList()
                   ..sort((T a, T b) => widget.itemLabel(a).compareTo(widget.itemLabel(b)));
 
