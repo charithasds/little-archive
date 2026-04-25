@@ -13,6 +13,7 @@ import '../../../../features/translator/presentation/providers/translator_provid
 import '../../../book/domain/entities/book_entity.dart';
 import '../../../book/presentation/providers/book_provider.dart';
 import '../../domain/entities/work_entity.dart';
+import '../../domain/usecases/work_usecases.dart';
 import '../providers/work_provider.dart';
 import '../widgets/work_list_tile.dart';
 

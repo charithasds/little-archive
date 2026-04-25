@@ -1,7 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../domain/error/exceptions.dart';
+import '../../presentation/providers/firebase_provider.dart';
 import 'connectivity_service.dart';
+
+part 'firestore_service.g.dart';
 
 class FirestoreService {
   FirestoreService({
@@ -51,4 +55,15 @@ class FirestoreService {
       }
     }
   }
+}
+
+@riverpod
+FirestoreService firestoreService(Ref ref) {
+  final ConnectivityService connectivityService = ref.watch(connectivityServiceProvider);
+  final FirebaseFirestore firebaseFirestore = ref.watch(firebaseFirestoreProvider);
+
+  return FirestoreService(
+    connectivityService: connectivityService,
+    firebaseFirestore: firebaseFirestore,
+  );
 }

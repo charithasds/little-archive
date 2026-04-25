@@ -1,8 +1,12 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
 import '../../domain/entities/translator_entity.dart';
 import '../../domain/repositories/translator_repository.dart';
 import '../datasources/translator_remote_datasource.dart';
 import '../models/translator_model.dart';
+
+part 'translator_repository_impl.g.dart';
 
 class TranslatorRepositoryImpl implements TranslatorRepository {
   TranslatorRepositoryImpl({required this.remoteDataSource, required this.relationshipSyncService});
@@ -91,4 +95,19 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
 
     await remoteDataSource.removeTranslator(id);
   }
+}
+
+@riverpod
+TranslatorRepository translatorRepository(Ref ref) {
+  final TranslatorRemoteDataSource remoteDataSource = ref.watch(
+    translatorRemoteDataSourceProvider,
+  );
+  final RelationshipSyncService relationshipSyncService = ref.watch(
+    relationshipSyncServiceProvider,
+  );
+
+  return TranslatorRepositoryImpl(
+    remoteDataSource: remoteDataSource,
+    relationshipSyncService: relationshipSyncService,
+  );
 }

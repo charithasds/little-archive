@@ -9,7 +9,7 @@ import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../domain/entities/translator_entity.dart';
-import 'translator_provider.dart';
+import '../../domain/usecases/translator_usecases.dart';
 
 part 'upsert_translator_controller.g.dart';
 

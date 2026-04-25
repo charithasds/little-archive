@@ -1,4 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../presentation/providers/firebase_provider.dart';
+
+part 'relationship_sync_service.g.dart';
 
 class RelationshipSyncService {
   RelationshipSyncService({required FirebaseFirestore firestore, required String userId})
@@ -604,4 +610,16 @@ class RelationshipSyncService {
       }, SetOptions(merge: true));
     }
   }
+}
+
+@riverpod
+RelationshipSyncService relationshipSyncService(Ref ref) {
+  final FirebaseFirestore firestore = ref.watch(firebaseFirestoreProvider);
+  final String? userId = ref.watch(currentUidProvider);
+
+  if (userId == null) {
+    throw Exception('User not authenticated');
+  }
+
+  return RelationshipSyncService(firestore: firestore, userId: userId);
 }

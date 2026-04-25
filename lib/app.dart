@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'core/shared/presentation/providers/connectivity_provider.dart';
+import 'core/shared/data/services/connectivity_service.dart';
 import 'core/shared/presentation/providers/firestore_network_provider.dart';
-import 'core/shared/presentation/providers/router_service_provider.dart';
+import 'core/shared/presentation/routes/router_service.dart';
 import 'core/shared/presentation/utils/snack_bars.dart';
 import 'core/theme/presentation/providers/theme_provider.dart';
 import 'core/theme/presentation/theme/theme_service.dart';

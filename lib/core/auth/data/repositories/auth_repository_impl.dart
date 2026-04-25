@@ -1,8 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_data_source.dart';
 import '../models/user_model.dart';
+
+part 'auth_repository_impl.g.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl(this._dataSource);
@@ -39,4 +43,10 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> signOut() async {
     await _dataSource.signOut();
   }
+}
+
+@riverpod
+AuthRepository authRepository(Ref ref) {
+  final AuthRemoteDataSource remoteDataSource = ref.watch(authRemoteDataSourceProvider);
+  return AuthRepositoryImpl(remoteDataSource);
 }

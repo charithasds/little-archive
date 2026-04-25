@@ -16,7 +16,7 @@ import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../domain/entities/book_entity.dart';
-import 'book_provider.dart';
+import '../../domain/usecases/book_usecases.dart';
 
 part 'upsert_book_controller.g.dart';
 
@@ -63,6 +63,10 @@ class UpsertBookController extends _$UpsertBookController {
       final Uint8List bytes = await pickedFile.readAsBytes();
       state = state.copyWith(pickedBase64Image: Nullable<String?>(base64Encode(bytes)));
     }
+  }
+
+  void setCover(String base64Image) {
+    state = state.copyWith(pickedBase64Image: Nullable<String?>(base64Image));
   }
 
   void clearCover() {

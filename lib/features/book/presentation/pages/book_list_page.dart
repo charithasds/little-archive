@@ -11,6 +11,7 @@ import '../../../../features/author/presentation/providers/author_provider.dart'
 import '../../../../features/translator/domain/entities/translator_entity.dart';
 import '../../../../features/translator/presentation/providers/translator_provider.dart';
 import '../../domain/entities/book_entity.dart';
+import '../../domain/usecases/book_usecases.dart';
 import '../providers/book_provider.dart';
 import '../widgets/book_list_tile.dart';
 

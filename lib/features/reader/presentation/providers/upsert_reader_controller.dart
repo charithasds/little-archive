@@ -9,7 +9,7 @@ import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../domain/entities/reader_entity.dart';
-import 'reader_provider.dart';
+import '../../domain/usecases/reader_usecases.dart';
 
 part 'upsert_reader_controller.g.dart';
 

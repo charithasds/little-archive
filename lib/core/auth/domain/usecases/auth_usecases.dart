@@ -1,5 +1,10 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import '../../data/repositories/auth_repository_impl.dart';
 import '../entities/user_entity.dart';
 import '../repositories/auth_repository.dart';
+
+part 'auth_usecases.g.dart';
 
 class FetchAuthStateChangesUseCase {
   const FetchAuthStateChangesUseCase(this._repository);
@@ -25,3 +30,14 @@ class SignOutUseCase {
     await _repository.signOut();
   }
 }
+
+@riverpod
+FetchAuthStateChangesUseCase fetchAuthStateChangesUseCase(Ref ref) =>
+    FetchAuthStateChangesUseCase(ref.watch(authRepositoryProvider));
+
+@riverpod
+SignInWithGoogleUseCase signInWithGoogleUseCase(Ref ref) =>
+    SignInWithGoogleUseCase(ref.watch(authRepositoryProvider));
+
+@riverpod
+SignOutUseCase signOutUseCase(Ref ref) => SignOutUseCase(ref.watch(authRepositoryProvider));

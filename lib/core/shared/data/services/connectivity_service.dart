@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'connectivity_service.g.dart';
 
 class ConnectivityService {
   ConnectivityService({Connectivity? connectivity})
@@ -21,4 +24,14 @@ class ConnectivityService {
     (List<ConnectivityResult> results) =>
         results.any((ConnectivityResult result) => result != ConnectivityResult.none),
   );
+}
+
+@riverpod
+ConnectivityService connectivityService(Ref ref) => ConnectivityService();
+
+@riverpod
+Stream<bool> connectivityStream(Ref ref) {
+  final ConnectivityService connectivityService = ref.watch(connectivityServiceProvider);
+
+  return connectivityService.onConnectivityChanged;
 }

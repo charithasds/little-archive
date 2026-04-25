@@ -1,8 +1,12 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
 import '../../domain/entities/author_entity.dart';
 import '../../domain/repositories/author_repository.dart';
 import '../datasources/author_remote_datasource.dart';
 import '../models/author_model.dart';
+
+part 'author_repository_impl.g.dart';
 
 class AuthorRepositoryImpl implements AuthorRepository {
   AuthorRepositoryImpl({required this.remoteDataSource, required this.relationshipSyncService});
@@ -88,4 +92,17 @@ class AuthorRepositoryImpl implements AuthorRepository {
 
     await remoteDataSource.removeAuthor(id);
   }
+}
+
+@riverpod
+AuthorRepository authorRepository(Ref ref) {
+  final AuthorRemoteDataSource remoteDataSource = ref.watch(authorRemoteDataSourceProvider);
+  final RelationshipSyncService relationshipSyncService = ref.watch(
+    relationshipSyncServiceProvider,
+  );
+
+  return AuthorRepositoryImpl(
+    remoteDataSource: remoteDataSource,
+    relationshipSyncService: relationshipSyncService,
+  );
 }

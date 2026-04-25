@@ -25,6 +25,7 @@ import '../../../book/presentation/providers/book_provider.dart';
 import '../../../book/presentation/widgets/add_book_bottom_sheet.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/domain/entities/sequence_volume_entity.dart';
+import '../../../sequence/domain/usecases/sequence_usecases.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
 import '../../../sequence/presentation/widgets/add_sequence_bottom_sheet.dart';
 import '../../../sequence/presentation/widgets/sequence_number_dialog.dart';

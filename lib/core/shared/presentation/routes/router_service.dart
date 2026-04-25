@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../features/author/domain/entities/author_entity.dart';
 import '../../../../features/author/presentation/pages/author_detail_page.dart';
@@ -33,8 +33,12 @@ import '../../../../features/work/presentation/pages/work_detail_page.dart';
 import '../../../../features/work/presentation/pages/work_list_page.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/presentation/pages/login_page.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../presentation/providers/initialization_provider.dart';
 import '../pages/error_page.dart';
 import '../pages/loading_page.dart';
+
+part 'router_service.g.dart';
 
 class RouterService {
   GoRouter createRouter(AsyncValue<void> init, AsyncValue<UserEntity?> auth) => GoRouter(
@@ -220,4 +224,20 @@ class RouterService {
 
     return null;
   }
+}
+
+@riverpod
+RouterService routerService(Ref ref) => RouterService();
+
+@riverpod
+GoRouter goRouter(Ref ref) {
+  final AsyncValue<void> init = ref.watch(initializationProvider);
+  final RouterService routerService = ref.watch(routerServiceProvider);
+  final AsyncValue<UserEntity?> auth = ref.watch(authStateProvider);
+
+  if (!init.hasValue && init.isLoading) {
+    return routerService.createRouter(init, const AsyncValue<UserEntity?>.loading());
+  }
+
+  return routerService.createRouter(init, auth);
 }

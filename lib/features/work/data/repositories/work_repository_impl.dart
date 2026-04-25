@@ -1,8 +1,12 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
 import '../../domain/entities/work_entity.dart';
 import '../../domain/repositories/work_repository.dart';
 import '../datasources/work_remote_datasource.dart';
 import '../models/work_model.dart';
+
+part 'work_repository_impl.g.dart';
 
 class WorkRepositoryImpl implements WorkRepository {
   WorkRepositoryImpl({required this.remoteDataSource, required this.relationshipSyncService});
@@ -108,4 +112,17 @@ class WorkRepositoryImpl implements WorkRepository {
 
     await remoteDataSource.removeWork(id);
   }
+}
+
+@riverpod
+WorkRepository workRepository(Ref ref) {
+  final WorkRemoteDataSource remoteDataSource = ref.watch(workRemoteDataSourceProvider);
+  final RelationshipSyncService relationshipSyncService = ref.watch(
+    relationshipSyncServiceProvider,
+  );
+
+  return WorkRepositoryImpl(
+    remoteDataSource: remoteDataSource,
+    relationshipSyncService: relationshipSyncService,
+  );
 }

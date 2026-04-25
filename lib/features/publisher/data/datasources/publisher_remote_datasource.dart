@@ -1,7 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/data/services/firestore_service.dart';
+import '../../../../core/shared/domain/error/exceptions.dart';
 import '../models/publisher_model.dart';
+
+part 'publisher_remote_datasource.g.dart';
 
 abstract class PublisherRemoteDataSource {
   String generateId();
@@ -84,4 +89,16 @@ class PublisherRemoteDataSourceImpl implements PublisherRemoteDataSource {
     await firestoreService.requireConnectivity();
     await _firestore.collection(_collectionPath).doc(id).delete();
   }
+}
+
+@riverpod
+PublisherRemoteDataSource publisherRemoteDataSource(Ref ref) {
+  final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
+  final String? userId = ref.watch(currentUidProvider);
+
+  if (userId == null) {
+    throw const UnauthorizedException();
+  }
+
+  return PublisherRemoteDataSourceImpl(firestoreService: firestoreService, userId: userId);
 }

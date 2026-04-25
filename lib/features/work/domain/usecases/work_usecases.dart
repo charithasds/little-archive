@@ -1,7 +1,12 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/domain/usecases/sequence_usecases.dart';
+import '../../data/repositories/work_repository_impl.dart';
 import '../entities/work_entity.dart';
 import '../repositories/work_repository.dart';
+
+part 'work_usecases.g.dart';
 
 class GenerateWorkIdUseCase {
   const GenerateWorkIdUseCase(this.repository);
@@ -83,3 +88,35 @@ class UpsertWorkUseCase {
     return workToSave;
   }
 }
+
+@riverpod
+GenerateWorkIdUseCase generateWorkIdUseCase(Ref ref) =>
+    GenerateWorkIdUseCase(ref.watch(workRepositoryProvider));
+
+@riverpod
+FetchWorksUseCase fetchWorksUseCase(Ref ref) =>
+    FetchWorksUseCase(ref.watch(workRepositoryProvider));
+
+@riverpod
+FetchWorkByIdUseCase fetchWorkByIdUseCase(Ref ref) =>
+    FetchWorkByIdUseCase(ref.watch(workRepositoryProvider));
+
+@riverpod
+WatchWorksUseCase watchWorksUseCase(Ref ref) =>
+    WatchWorksUseCase(ref.watch(workRepositoryProvider));
+
+@riverpod
+AddWorkUseCase addWorkUseCase(Ref ref) => AddWorkUseCase(ref.watch(workRepositoryProvider));
+
+@riverpod
+EditWorkUseCase editWorkUseCase(Ref ref) => EditWorkUseCase(ref.watch(workRepositoryProvider));
+
+@riverpod
+RemoveWorkUseCase removeWorkUseCase(Ref ref) =>
+    RemoveWorkUseCase(ref.watch(workRepositoryProvider));
+
+@riverpod
+UpsertWorkUseCase upsertWorkUseCase(Ref ref) => UpsertWorkUseCase(
+  workRepository: ref.watch(workRepositoryProvider),
+  syncSequenceVolumesUseCase: ref.watch(syncWorkSequenceVolumesUseCaseProvider),
+);

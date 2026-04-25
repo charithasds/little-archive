@@ -1,6 +1,10 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/enums/compilation_type.dart';
@@ -20,9 +24,11 @@ import '../../../../core/shared/presentation/widgets/search_multi_picker_field.d
 import '../../../../core/shared/presentation/widgets/search_picker_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../author/domain/entities/author_entity.dart';
+import '../../../author/domain/usecases/author_usecases.dart';
 import '../../../author/presentation/providers/author_provider.dart';
 import '../../../author/presentation/widgets/add_author_bottom_sheet.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
+import '../../../publisher/domain/usecases/publisher_usecases.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
 import '../../../publisher/presentation/widgets/add_publisher_bottom_sheet.dart';
 import '../../../reader/domain/entities/reader_entity.dart';
@@ -30,17 +36,22 @@ import '../../../reader/presentation/providers/reader_provider.dart';
 import '../../../reader/presentation/widgets/add_reader_bottom_sheet.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/domain/entities/sequence_volume_entity.dart';
+import '../../../sequence/domain/usecases/sequence_usecases.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
 import '../../../sequence/presentation/widgets/add_sequence_bottom_sheet.dart';
 import '../../../sequence/presentation/widgets/sequence_number_dialog.dart';
 import '../../../translator/domain/entities/translator_entity.dart';
+import '../../../translator/domain/usecases/translator_usecases.dart';
 import '../../../translator/presentation/providers/translator_provider.dart';
 import '../../../translator/presentation/widgets/add_translator_bottom_sheet.dart';
 import '../../../work/domain/entities/work_entity.dart';
 import '../../../work/presentation/providers/work_provider.dart';
 import '../../../work/presentation/widgets/add_work_bottom_sheet.dart';
 import '../../domain/entities/book_entity.dart';
+import '../../domain/entities/scanned_book_entity.dart';
+import '../providers/book_scanner_controller.dart';
 import '../providers/upsert_book_controller.dart';
+import '../widgets/scanned_book_approval_dialog.dart';
 
 class UpsertBookPage extends ConsumerStatefulWidget {
   const UpsertBookPage({super.key, this.existingBook});
@@ -260,6 +271,16 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
     super.dispose();
   }
 
+  Future<void> _scanBook() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final Uint8List imageBytes = await pickedFile.readAsBytes();
+      ref.read(upsertBookControllerProvider.notifier).setCover(base64Encode(imageBytes));
+      await ref.read(bookScannerControllerProvider.notifier).scanBook(imageBytes);
+    }
+  }
+
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
       final BookEntity? savedBook = await ref
@@ -320,6 +341,141 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
     final UpsertBookState state = ref.watch(upsertBookControllerProvider);
+
+    ref.listen(bookScannerControllerProvider, (
+      AsyncValue<ScannedBookEntity?>? previous,
+      AsyncValue<ScannedBookEntity?> next,
+    ) {
+      if (next.hasValue && next.value != null && next.value != previous?.value) {
+        final ScannedBookEntity data = next.value!;
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          final ScannedBookApprovalResult? approvedData =
+              await showDialog<ScannedBookApprovalResult>(
+                context: context,
+                builder: (_) => ScannedBookApprovalDialog(
+                  scannedBook: data,
+                  existingAuthors: ref.read(authorsStreamProvider).value ?? <AuthorEntity>[],
+                  existingTranslators:
+                      ref.read(translatorsStreamProvider).value ?? <TranslatorEntity>[],
+                  existingPublishers:
+                      ref.read(publishersStreamProvider).value ?? <PublisherEntity>[],
+                ),
+              );
+
+          if (approvedData == null || !mounted) {
+            return;
+          }
+
+          // Create new entities if requested
+          for (final String name in approvedData.newAuthorNames) {
+            final String newId = ref.read(generateAuthorIdUseCaseProvider)();
+            final AuthorEntity newAuthor = AuthorEntity(
+              id: newId,
+              name: name,
+              bookIds: const <String>[],
+              workIds: const <String>[],
+              createdDate: DateTime.now(),
+              lastUpdated: DateTime.now(),
+            );
+            await ref.read(addAuthorUseCaseProvider)(newAuthor);
+            approvedData.selectedAuthors.add(newAuthor);
+          }
+
+          for (final String name in approvedData.newTranslatorNames) {
+            final String newId = ref.read(generateTranslatorIdUseCaseProvider)();
+            final TranslatorEntity newTranslator = TranslatorEntity(
+              id: newId,
+              name: name,
+              bookIds: const <String>[],
+              workIds: const <String>[],
+              createdDate: DateTime.now(),
+              lastUpdated: DateTime.now(),
+            );
+            await ref.read(addTranslatorUseCaseProvider)(newTranslator);
+            approvedData.selectedTranslators.add(newTranslator);
+          }
+
+          PublisherEntity? finalPublisher = approvedData.selectedPublisher;
+          if (approvedData.newPublisherName != null) {
+            final String newId = ref.read(generatePublisherIdUseCaseProvider)();
+            finalPublisher = PublisherEntity(
+              id: newId,
+              name: approvedData.newPublisherName!,
+              bookIds: const <String>[],
+              createdDate: DateTime.now(),
+              lastUpdated: DateTime.now(),
+            );
+            await ref.read(addPublisherUseCaseProvider)(finalPublisher);
+          }
+
+          setState(() {
+            _titleController.clear();
+            _isbnController.clear();
+            _noOfPagesController.clear();
+            _originalTitleController.clear();
+            _pausedPageController.clear();
+            _notesController.clear();
+
+            if (!_hasConnectedWorks) {
+              _compilationType = CompilationType.standalone;
+            }
+            _language = Language.sinhala;
+            _genre = null;
+            _collectionStatus = CollectionStatus.collected;
+            _readingStatus = ReadingStatus.notStarted;
+            _originalLanguage = OriginalLanguage.english;
+            _isTranslation = false;
+
+            _publishedDate = null;
+            _collectedDate = null;
+            _lendedDate = null;
+            _dueDate = null;
+            _completedDate = null;
+
+            _selectedAuthors = List<AuthorEntity>.from(approvedData.selectedAuthors);
+            _selectedTranslators = List<TranslatorEntity>.from(approvedData.selectedTranslators);
+            _selectedPublisher = finalPublisher;
+            _selectedReader = null;
+            _selectedSequences = <SequenceEntity, String>{};
+            _selectedWorks = <WorkEntity>[];
+
+            final BookEntity b = approvedData.book;
+            if (b.title.isNotEmpty) {
+              _titleController.text = b.title;
+            }
+            if (b.isbn != null) {
+              _isbnController.text = b.isbn!;
+            }
+            if (b.noOfPages != null) {
+              _noOfPagesController.text = b.noOfPages.toString();
+            }
+            if (b.originalTitle != null) {
+              _originalTitleController.text = b.originalTitle!;
+            }
+
+            _isTranslation = b.isTranslation;
+            if (b.language != null) {
+              _language = b.language;
+            }
+            if (b.originalLanguage != null) {
+              _originalLanguage = b.originalLanguage;
+            }
+            if (b.genre != null) {
+              _genre = b.genre;
+            }
+            if (b.publishedDate != null) {
+              _publishedDate = b.publishedDate;
+            }
+          });
+          SnackBars.showSuccess('Approved scan data applied.');
+        });
+      }
+      next.when(
+        data: (_) {},
+        error: (Object e, _) => SnackBars.showError('Failed to scan book: $e'),
+        loading: () {},
+      );
+    });
 
     final AsyncValue<List<AuthorEntity>> authorsAsync = ref.watch(authorsStreamProvider);
     final AsyncValue<List<TranslatorEntity>> translatorsAsync = ref.watch(
@@ -443,11 +599,24 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
               Center(
                 child: Wrap(
                   spacing: 12,
+                  runSpacing: 12,
+                  alignment: WrapAlignment.center,
                   children: <Widget>[
                     TextButton.icon(
                       onPressed: () => ref.read(upsertBookControllerProvider.notifier).pickImage(),
                       icon: const Icon(Icons.camera_rounded),
                       label: Text(state.pickedBase64Image == null ? 'Add Cover' : 'Change Cover'),
+                    ),
+                    TextButton.icon(
+                      onPressed: ref.watch(bookScannerControllerProvider).isLoading ? null : _scanBook,
+                      icon: ref.watch(bookScannerControllerProvider).isLoading
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.document_scanner_rounded),
+                      label: const Text('Auto-fill with Gemini'),
                     ),
                     if (state.pickedBase64Image != null)
                       TextButton.icon(

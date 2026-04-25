@@ -10,7 +10,7 @@ import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../domain/entities/work_entity.dart';
-import 'work_provider.dart';
+import '../../domain/usecases/work_usecases.dart';
 
 part 'upsert_work_controller.g.dart';
 

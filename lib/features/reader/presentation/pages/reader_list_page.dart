@@ -7,6 +7,7 @@ import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/reader_entity.dart';
+import '../../domain/usecases/reader_usecases.dart';
 import '../providers/reader_provider.dart';
 import '../widgets/reader_list_tile.dart';
 

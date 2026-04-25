@@ -1,5 +1,10 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import '../../data/repositories/author_repository_impl.dart';
 import '../entities/author_entity.dart';
 import '../repositories/author_repository.dart';
+
+part 'author_usecases.g.dart';
 
 class GenerateAuthorIdUseCase {
   const GenerateAuthorIdUseCase(this.repository);
@@ -49,3 +54,30 @@ class RemoveAuthorUseCase {
 
   Future<void> call(String id) => repository.removeAuthor(id);
 }
+
+@riverpod
+GenerateAuthorIdUseCase generateAuthorIdUseCase(Ref ref) =>
+    GenerateAuthorIdUseCase(ref.watch(authorRepositoryProvider));
+
+@riverpod
+FetchAuthorsUseCase fetchAuthorsUseCase(Ref ref) =>
+    FetchAuthorsUseCase(ref.watch(authorRepositoryProvider));
+
+@riverpod
+FetchAuthorByIdUseCase fetchAuthorByIdUseCase(Ref ref) =>
+    FetchAuthorByIdUseCase(ref.watch(authorRepositoryProvider));
+
+@riverpod
+WatchAuthorsUseCase watchAuthorsUseCase(Ref ref) =>
+    WatchAuthorsUseCase(ref.watch(authorRepositoryProvider));
+
+@riverpod
+AddAuthorUseCase addAuthorUseCase(Ref ref) => AddAuthorUseCase(ref.watch(authorRepositoryProvider));
+
+@riverpod
+EditAuthorUseCase editAuthorUseCase(Ref ref) =>
+    EditAuthorUseCase(ref.watch(authorRepositoryProvider));
+
+@riverpod
+RemoveAuthorUseCase removeAuthorUseCase(Ref ref) =>
+    RemoveAuthorUseCase(ref.watch(authorRepositoryProvider));

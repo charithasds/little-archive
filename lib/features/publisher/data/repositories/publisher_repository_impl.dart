@@ -1,8 +1,12 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
 import '../../domain/entities/publisher_entity.dart';
 import '../../domain/repositories/publisher_repository.dart';
 import '../datasources/publisher_remote_datasource.dart';
 import '../models/publisher_model.dart';
+
+part 'publisher_repository_impl.g.dart';
 
 class PublisherRepositoryImpl implements PublisherRepository {
   PublisherRepositoryImpl({required this.remoteDataSource, required this.relationshipSyncService});
@@ -88,4 +92,17 @@ class PublisherRepositoryImpl implements PublisherRepository {
 
     await remoteDataSource.removePublisher(id);
   }
+}
+
+@riverpod
+PublisherRepository publisherRepository(Ref ref) {
+  final PublisherRemoteDataSource remoteDataSource = ref.watch(publisherRemoteDataSourceProvider);
+  final RelationshipSyncService relationshipSyncService = ref.watch(
+    relationshipSyncServiceProvider,
+  );
+
+  return PublisherRepositoryImpl(
+    remoteDataSource: remoteDataSource,
+    relationshipSyncService: relationshipSyncService,
+  );
 }

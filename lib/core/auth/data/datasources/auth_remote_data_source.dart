@@ -2,9 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../shared/data/services/connectivity_service.dart';
 import '../../../shared/domain/error/exceptions.dart';
+import '../../../shared/presentation/providers/firebase_provider.dart';
+
+part 'auth_remote_data_source.g.dart';
 
 class AuthRemoteDataSource {
   AuthRemoteDataSource(this._firebaseAuth, this._googleSignIn, this._connectivityService);
@@ -91,4 +95,16 @@ class AuthRemoteDataSource {
       await userDoc.update(<String, dynamic>{'lastLogin': FieldValue.serverTimestamp()});
     }
   }
+}
+
+@riverpod
+GoogleSignIn googleSignIn(Ref ref) => GoogleSignIn.instance;
+
+@riverpod
+AuthRemoteDataSource authRemoteDataSource(Ref ref) {
+  final FirebaseAuth firebaseAuth = ref.watch(firebaseAuthProvider);
+  final GoogleSignIn gSignIn = ref.watch(googleSignInProvider);
+  final ConnectivityService connectivityService = ref.watch(connectivityServiceProvider);
+
+  return AuthRemoteDataSource(firebaseAuth, gSignIn, connectivityService);
 }

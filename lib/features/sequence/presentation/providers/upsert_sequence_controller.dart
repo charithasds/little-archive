@@ -5,7 +5,7 @@ import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../domain/entities/sequence_entity.dart';
-import 'sequence_provider.dart';
+import '../../domain/usecases/sequence_usecases.dart';
 
 part 'upsert_sequence_controller.g.dart';
 

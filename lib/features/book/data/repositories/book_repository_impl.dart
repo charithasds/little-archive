@@ -1,8 +1,12 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
 import '../../domain/entities/book_entity.dart';
 import '../../domain/repositories/book_repository.dart';
 import '../datasources/book_remote_datasource.dart';
 import '../models/book_model.dart';
+
+part 'book_repository_impl.g.dart';
 
 class BookRepositoryImpl implements BookRepository {
   BookRepositoryImpl({required this.remoteDataSource, required this.relationshipSyncService});
@@ -140,4 +144,17 @@ class BookRepositoryImpl implements BookRepository {
 
     await remoteDataSource.removeBook(id);
   }
+}
+
+@riverpod
+BookRepository bookRepository(Ref ref) {
+  final BookRemoteDataSource remoteDataSource = ref.watch(bookRemoteDataSourceProvider);
+  final RelationshipSyncService relationshipSyncService = ref.watch(
+    relationshipSyncServiceProvider,
+  );
+
+  return BookRepositoryImpl(
+    remoteDataSource: remoteDataSource,
+    relationshipSyncService: relationshipSyncService,
+  );
 }

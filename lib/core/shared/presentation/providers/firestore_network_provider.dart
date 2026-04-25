@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'connectivity_provider.dart';
+import '../../data/services/connectivity_service.dart';
 import 'firebase_provider.dart';
 import 'initialization_provider.dart';
 

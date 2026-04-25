@@ -1,8 +1,12 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
 import '../../domain/entities/reader_entity.dart';
 import '../../domain/repositories/reader_repository.dart';
 import '../datasources/reader_remote_datasource.dart';
 import '../models/reader_model.dart';
+
+part 'reader_repository_impl.g.dart';
 
 class ReaderRepositoryImpl implements ReaderRepository {
   ReaderRepositoryImpl({required this.remoteDataSource, required this.relationshipSyncService});
@@ -84,4 +88,17 @@ class ReaderRepositoryImpl implements ReaderRepository {
 
     await remoteDataSource.removeReader(id);
   }
+}
+
+@riverpod
+ReaderRepository readerRepository(Ref ref) {
+  final ReaderRemoteDataSource remoteDataSource = ref.watch(readerRemoteDataSourceProvider);
+  final RelationshipSyncService relationshipSyncService = ref.watch(
+    relationshipSyncServiceProvider,
+  );
+
+  return ReaderRepositoryImpl(
+    remoteDataSource: remoteDataSource,
+    relationshipSyncService: relationshipSyncService,
+  );
 }

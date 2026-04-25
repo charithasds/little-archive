@@ -1,5 +1,10 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import '../../data/repositories/translator_repository_impl.dart';
 import '../entities/translator_entity.dart';
 import '../repositories/translator_repository.dart';
+
+part 'translator_usecases.g.dart';
 
 class GenerateTranslatorIdUseCase {
   const GenerateTranslatorIdUseCase(this.repository);
@@ -49,3 +54,31 @@ class RemoveTranslatorUseCase {
 
   Future<void> call(String id) => repository.removeTranslator(id);
 }
+
+@riverpod
+GenerateTranslatorIdUseCase generateTranslatorIdUseCase(Ref ref) =>
+    GenerateTranslatorIdUseCase(ref.watch(translatorRepositoryProvider));
+
+@riverpod
+FetchTranslatorsUseCase fetchTranslatorsUseCase(Ref ref) =>
+    FetchTranslatorsUseCase(ref.watch(translatorRepositoryProvider));
+
+@riverpod
+FetchTranslatorByIdUseCase fetchTranslatorByIdUseCase(Ref ref) =>
+    FetchTranslatorByIdUseCase(ref.watch(translatorRepositoryProvider));
+
+@riverpod
+WatchTranslatorsUseCase watchTranslatorsUseCase(Ref ref) =>
+    WatchTranslatorsUseCase(ref.watch(translatorRepositoryProvider));
+
+@riverpod
+AddTranslatorUseCase addTranslatorUseCase(Ref ref) =>
+    AddTranslatorUseCase(ref.watch(translatorRepositoryProvider));
+
+@riverpod
+EditTranslatorUseCase editTranslatorUseCase(Ref ref) =>
+    EditTranslatorUseCase(ref.watch(translatorRepositoryProvider));
+
+@riverpod
+RemoveTranslatorUseCase removeTranslatorUseCase(Ref ref) =>
+    RemoveTranslatorUseCase(ref.watch(translatorRepositoryProvider));

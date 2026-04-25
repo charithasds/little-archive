@@ -7,6 +7,7 @@ import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/sequence_entity.dart';
+import '../../domain/usecases/sequence_usecases.dart';
 import '../providers/sequence_provider.dart';
 import '../widgets/sequence_list_tile.dart';
 

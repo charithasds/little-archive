@@ -1,8 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/data/services/firestore_service.dart';
+import '../../../../core/shared/domain/error/exceptions.dart';
 import '../models/sequence_model.dart';
 import '../models/sequence_volume_model.dart';
+
+part 'sequence_remote_datasource.g.dart';
 
 abstract class SequenceRemoteDataSource {
   String generateId();
@@ -192,4 +197,16 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
     await firestoreService.requireConnectivity();
     await _firestore.collection(_volumesCollectionPath).doc(id).delete();
   }
+}
+
+@riverpod
+SequenceRemoteDataSource sequenceRemoteDataSource(Ref ref) {
+  final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
+  final String? userId = ref.watch(currentUidProvider);
+
+  if (userId == null) {
+    throw const UnauthorizedException();
+  }
+
+  return SequenceRemoteDataSourceImpl(firestoreService: firestoreService, userId: userId);
 }

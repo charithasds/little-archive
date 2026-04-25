@@ -1,3 +1,5 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
 import '../../domain/entities/sequence_entity.dart';
 import '../../domain/entities/sequence_volume_entity.dart';
@@ -5,6 +7,8 @@ import '../../domain/repositories/sequence_repository.dart';
 import '../datasources/sequence_remote_datasource.dart';
 import '../models/sequence_model.dart';
 import '../models/sequence_volume_model.dart';
+
+part 'sequence_repository_impl.g.dart';
 
 class SequenceRepositoryImpl implements SequenceRepository {
   SequenceRepositoryImpl({required this.remoteDataSource, required this.relationshipSyncService});
@@ -170,4 +174,17 @@ class SequenceRepositoryImpl implements SequenceRepository {
 
     await remoteDataSource.removeSequenceVolume(id);
   }
+}
+
+@riverpod
+SequenceRepository sequenceRepository(Ref ref) {
+  final SequenceRemoteDataSource remoteDataSource = ref.watch(sequenceRemoteDataSourceProvider);
+  final RelationshipSyncService relationshipSyncService = ref.watch(
+    relationshipSyncServiceProvider,
+  );
+
+  return SequenceRepositoryImpl(
+    remoteDataSource: remoteDataSource,
+    relationshipSyncService: relationshipSyncService,
+  );
 }

@@ -1,7 +1,12 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/domain/usecases/sequence_usecases.dart';
+import '../../data/repositories/book_repository_impl.dart';
 import '../entities/book_entity.dart';
 import '../repositories/book_repository.dart';
+
+part 'book_usecases.g.dart';
 
 class GenerateBookIdUseCase {
   const GenerateBookIdUseCase(this.repository);
@@ -83,3 +88,35 @@ class UpsertBookUseCase {
     return bookToSave;
   }
 }
+
+@riverpod
+GenerateBookIdUseCase generateBookIdUseCase(Ref ref) =>
+    GenerateBookIdUseCase(ref.watch(bookRepositoryProvider));
+
+@riverpod
+FetchBooksUseCase fetchBooksUseCase(Ref ref) =>
+    FetchBooksUseCase(ref.watch(bookRepositoryProvider));
+
+@riverpod
+FetchBookByIdUseCase fetchBookByIdUseCase(Ref ref) =>
+    FetchBookByIdUseCase(ref.watch(bookRepositoryProvider));
+
+@riverpod
+WatchBooksUseCase watchBooksUseCase(Ref ref) =>
+    WatchBooksUseCase(ref.watch(bookRepositoryProvider));
+
+@riverpod
+AddBookUseCase addBookUseCase(Ref ref) => AddBookUseCase(ref.watch(bookRepositoryProvider));
+
+@riverpod
+EditBookUseCase editBookUseCase(Ref ref) => EditBookUseCase(ref.watch(bookRepositoryProvider));
+
+@riverpod
+RemoveBookUseCase removeBookUseCase(Ref ref) =>
+    RemoveBookUseCase(ref.watch(bookRepositoryProvider));
+
+@riverpod
+UpsertBookUseCase upsertBookUseCase(Ref ref) => UpsertBookUseCase(
+  bookRepository: ref.watch(bookRepositoryProvider),
+  syncSequenceVolumesUseCase: ref.watch(syncBookSequenceVolumesUseCaseProvider),
+);
