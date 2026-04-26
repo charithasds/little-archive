@@ -19,10 +19,7 @@ Stream<List<BookEntity>> booksStream(Ref ref) {
 }
 
 @riverpod
-Future<int> bookCount(Ref ref) async {
-  final FetchBookCountUseCase fetchBookCount = ref.watch(fetchBookCountUseCaseProvider);
-  return fetchBookCount();
-}
+int? bookCount(Ref ref) => ref.watch(booksStreamProvider).value?.length;
 
 @riverpod
 Future<String?> bookCover(Ref ref, String id) async {

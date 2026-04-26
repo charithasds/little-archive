@@ -9,5 +9,4 @@ abstract class WorkRepository {
   Future<void> addWork(WorkEntity work);
   Future<void> editWork(WorkEntity work);
   Future<void> removeWork(String id);
-  Future<int> fetchCount();
 }

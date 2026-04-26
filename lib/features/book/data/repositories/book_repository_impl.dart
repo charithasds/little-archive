@@ -45,12 +45,23 @@ class BookRepositoryImpl implements BookRepository {
         originalTitle: book.originalTitle,
         originalLanguage: book.originalLanguage,
         publishedDate: book.publishedDate,
+        noOfPages: book.noOfPages,
         isbn: book.isbn,
         genre: book.genre,
+        collectionStatus: book.collectionStatus,
+        collectedDate: book.collectedDate,
+        lendedDate: book.lendedDate,
+        dueDate: book.dueDate,
+        readingStatus: book.readingStatus,
+        pausedPage: book.pausedPage,
+        completedDate: book.completedDate,
+        notes: book.notes,
         authorIds: book.authorIds,
         translatorIds: book.translatorIds,
         workIds: book.workIds,
         sequenceVolumeIds: book.sequenceVolumeIds,
+        publisherId: book.publisherId,
+        readerId: book.readerId,
         createdDate: book.createdDate,
         lastUpdated: book.lastUpdated,
         cover: book.cover,
@@ -63,6 +74,8 @@ class BookRepositoryImpl implements BookRepository {
       newTranslatorIds: book.translatorIds,
       newSequenceVolumeIds: book.sequenceVolumeIds,
       newWorkIds: book.workIds,
+      newPublisherId: book.publisherId,
+      newReaderId: book.readerId,
     );
   }
 
@@ -80,12 +93,23 @@ class BookRepositoryImpl implements BookRepository {
         originalTitle: book.originalTitle,
         originalLanguage: book.originalLanguage,
         publishedDate: book.publishedDate,
+        noOfPages: book.noOfPages,
         isbn: book.isbn,
         genre: book.genre,
+        collectionStatus: book.collectionStatus,
+        collectedDate: book.collectedDate,
+        lendedDate: book.lendedDate,
+        dueDate: book.dueDate,
+        readingStatus: book.readingStatus,
+        pausedPage: book.pausedPage,
+        completedDate: book.completedDate,
+        notes: book.notes,
         authorIds: book.authorIds,
         translatorIds: book.translatorIds,
         workIds: book.workIds,
         sequenceVolumeIds: book.sequenceVolumeIds,
+        publisherId: book.publisherId,
+        readerId: book.readerId,
         createdDate: book.createdDate,
         lastUpdated: book.lastUpdated,
         cover: book.cover,
@@ -98,10 +122,14 @@ class BookRepositoryImpl implements BookRepository {
       newTranslatorIds: book.translatorIds,
       newSequenceVolumeIds: book.sequenceVolumeIds,
       newWorkIds: book.workIds,
+      newPublisherId: book.publisherId,
+      newReaderId: book.readerId,
       oldAuthorIds: existingBook?.authorIds ?? <String>[],
       oldTranslatorIds: existingBook?.translatorIds ?? <String>[],
       oldSequenceVolumeIds: existingBook?.sequenceVolumeIds ?? <String>[],
       oldWorkIds: existingBook?.workIds ?? <String>[],
+      oldPublisherId: existingBook?.publisherId,
+      oldReaderId: existingBook?.readerId,
     );
   }
 
@@ -116,20 +144,18 @@ class BookRepositoryImpl implements BookRepository {
         translatorIds: existingBook.translatorIds,
         sequenceVolumeIds: existingBook.sequenceVolumeIds,
         workIds: existingBook.workIds,
+        publisherId: existingBook.publisherId,
+        readerId: existingBook.readerId,
       );
     }
 
     await remoteDataSource.removeBook(id);
   }
 
-  @override
-  Future<int> fetchCount() => remoteDataSource.fetchCount();
-
   String _toTitleCase(String text) {
     if (text.isEmpty) {
       return text;
     }
-    // Split by any whitespace and handle each part
     return text
         .split(RegExp(r'\s+'))
         .map((String word) {

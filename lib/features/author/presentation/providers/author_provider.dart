@@ -19,16 +19,7 @@ Stream<List<AuthorEntity>> authorsStream(Ref ref) {
 }
 
 @riverpod
-Future<int> authorCount(Ref ref) async {
-  final FetchAuthorCountUseCase fetchAuthorCount = ref.watch(fetchAuthorCountUseCaseProvider);
-  final String? userId = ref.watch(currentUidProvider);
-
-  if (userId == null) {
-    return 0;
-  }
-
-  return fetchAuthorCount();
-}
+int? authorCount(Ref ref) => ref.watch(authorsStreamProvider).value?.length;
 
 @riverpod
 Future<String?> authorName(Ref ref, String id) async {

@@ -110,9 +110,6 @@ class WorkRepositoryImpl implements WorkRepository {
 
     await remoteDataSource.removeWork(id);
   }
-
-  @override
-  Future<int> fetchCount() => remoteDataSource.fetchCount();
 }
 
 @riverpod

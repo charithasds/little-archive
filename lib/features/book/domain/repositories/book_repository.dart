@@ -11,6 +11,5 @@ abstract class BookRepository {
   Future<void> addBook(BookEntity book);
   Future<void> editBook(BookEntity book);
   Future<void> removeBook(String id);
-  Future<int> fetchCount();
   Future<ScannedBookEntity> scanBookCover(Uint8List imageBytes);
 }

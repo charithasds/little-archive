@@ -19,15 +19,4 @@ Stream<List<PublisherEntity>> publishersStream(Ref ref) {
 }
 
 @riverpod
-Future<int> publisherCount(Ref ref) async {
-  final FetchPublisherCountUseCase fetchPublisherCount = ref.watch(
-    fetchPublisherCountUseCaseProvider,
-  );
-  final String? userId = ref.watch(currentUidProvider);
-
-  if (userId == null) {
-    return 0;
-  }
-
-  return fetchPublisherCount();
-}
+int? publisherCount(Ref ref) => ref.watch(publishersStreamProvider).value?.length;

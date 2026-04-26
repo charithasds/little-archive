@@ -16,21 +16,13 @@ class Dashboard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final AsyncValue<int> bookCountAsync = ref.watch(bookCountProvider);
-    final AsyncValue<int> workCountAsync = ref.watch(workCountProvider);
-    final AsyncValue<int> authorCountAsync = ref.watch(authorCountProvider);
-    final AsyncValue<int> translatorCountAsync = ref.watch(translatorCountProvider);
-    final AsyncValue<int> publisherCountAsync = ref.watch(publisherCountProvider);
-    final AsyncValue<int> sequenceCountAsync = ref.watch(sequenceCountProvider);
-    final AsyncValue<int> readerCountAsync = ref.watch(readerCountProvider);
-
-    final int? bookCount = bookCountAsync.value;
-    final int? workCount = workCountAsync.value;
-    final int? authorCount = authorCountAsync.value;
-    final int? translatorCount = translatorCountAsync.value;
-    final int? publisherCount = publisherCountAsync.value;
-    final int? sequenceCount = sequenceCountAsync.value;
-    final int? readerCount = readerCountAsync.value;
+    final int? bookCount = ref.watch(bookCountProvider);
+    final int? workCount = ref.watch(workCountProvider);
+    final int? authorCount = ref.watch(authorCountProvider);
+    final int? translatorCount = ref.watch(translatorCountProvider);
+    final int? publisherCount = ref.watch(publisherCountProvider);
+    final int? sequenceCount = ref.watch(sequenceCountProvider);
+    final int? readerCount = ref.watch(readerCountProvider);
 
     final List<_CardDef> cards = <_CardDef>[
       _CardDef(

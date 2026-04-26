@@ -16,7 +16,6 @@ abstract class AuthorRemoteDataSource {
   Future<void> addAuthor(AuthorModel author);
   Future<void> editAuthor(AuthorModel author);
   Future<void> removeAuthor(String id);
-  Future<int> fetchCount();
 }
 
 class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
@@ -34,7 +33,7 @@ class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
   @override
   Future<List<AuthorModel>> fetchAuthors() async {
     final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(_firestore.collection(_collectionPath));
+        .safeGetDocs(_firestore.collection(_collectionPath).orderBy('name'));
 
     return docs
         .map(
@@ -60,6 +59,7 @@ class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
   @override
   Stream<List<AuthorModel>> watchAuthors() => _firestore
       .collection(_collectionPath)
+      .orderBy('name')
       .snapshots()
       .map(
         (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
@@ -89,15 +89,6 @@ class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
   Future<void> removeAuthor(String id) async {
     await firestoreService.requireConnectivity();
     await _firestore.collection(_collectionPath).doc(id).delete();
-  }
-
-  @override
-  Future<int> fetchCount() async {
-    final AggregateQuerySnapshot snapshot = await _firestore
-        .collection(_collectionPath)
-        .count()
-        .get();
-    return snapshot.count ?? 0;
   }
 }
 

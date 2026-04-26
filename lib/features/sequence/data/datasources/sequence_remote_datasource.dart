@@ -19,7 +19,6 @@ abstract class SequenceRemoteDataSource {
   Future<void> addSequence(SequenceModel sequence);
   Future<void> editSequence(SequenceModel sequence);
   Future<void> removeSequence(String id);
-  Future<int> fetchSequenceCount();
 
   Future<List<SequenceVolumeModel>> fetchSequenceVolumes(String sequenceId);
   Future<SequenceVolumeModel?> fetchSequenceVolumeById(String id);
@@ -50,7 +49,7 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   @override
   Future<List<SequenceModel>> fetchSequences() async {
     final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(_firestore.collection(_sequencesPath));
+        .safeGetDocs(_firestore.collection(_sequencesPath).orderBy('name'));
 
     return docs
         .map(
@@ -76,6 +75,7 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   @override
   Stream<List<SequenceModel>> watchSequences() => _firestore
       .collection(_sequencesPath)
+      .orderBy('name')
       .snapshots()
       .map(
         (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
@@ -108,19 +108,10 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   }
 
   @override
-  Future<int> fetchSequenceCount() async {
-    final AggregateQuerySnapshot snapshot = await _firestore
-        .collection(_sequencesPath)
-        .count()
-        .get();
-    return snapshot.count ?? 0;
-  }
-
-  @override
   Future<List<SequenceVolumeModel>> fetchSequenceVolumes(String sequenceId) async {
     final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
         .safeGetDocs(
-          _firestore.collection(_volumesPath).where('sequenceId', isEqualTo: sequenceId),
+          _firestore.collection(_volumesPath).where('sequenceId', isEqualTo: sequenceId).orderBy('volume'),
         );
 
     return docs
@@ -174,6 +165,7 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   Stream<List<SequenceVolumeModel>> watchSequenceVolumes(String sequenceId) => _firestore
       .collection(_volumesPath)
       .where('sequenceId', isEqualTo: sequenceId)
+      .orderBy('volume')
       .snapshots()
       .map(
         (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs

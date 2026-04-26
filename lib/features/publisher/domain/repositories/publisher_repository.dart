@@ -8,5 +8,4 @@ abstract class PublisherRepository {
   Future<void> addPublisher(PublisherEntity publisher);
   Future<void> editPublisher(PublisherEntity publisher);
   Future<void> removePublisher(String id);
-  Future<int> fetchCount();
 }

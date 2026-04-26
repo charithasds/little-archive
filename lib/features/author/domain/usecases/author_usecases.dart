@@ -34,13 +34,6 @@ class WatchAuthorsUseCase {
   Stream<List<AuthorEntity>> call() => repository.watchAuthors();
 }
 
-class FetchAuthorCountUseCase {
-  const FetchAuthorCountUseCase(this.repository);
-  final AuthorRepository repository;
-
-  Future<int> call() => repository.fetchCount();
-}
-
 class AddAuthorUseCase {
   const AddAuthorUseCase(this.repository);
   final AuthorRepository repository;
@@ -77,10 +70,6 @@ FetchAuthorByIdUseCase fetchAuthorByIdUseCase(Ref ref) =>
 @riverpod
 WatchAuthorsUseCase watchAuthorsUseCase(Ref ref) =>
     WatchAuthorsUseCase(ref.watch(authorRepositoryProvider));
-
-@riverpod
-FetchAuthorCountUseCase fetchAuthorCountUseCase(Ref ref) =>
-    FetchAuthorCountUseCase(ref.watch(authorRepositoryProvider));
 
 @riverpod
 AddAuthorUseCase addAuthorUseCase(Ref ref) => AddAuthorUseCase(ref.watch(authorRepositoryProvider));

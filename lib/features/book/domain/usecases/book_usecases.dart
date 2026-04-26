@@ -39,13 +39,6 @@ class WatchBooksUseCase {
   Stream<List<BookEntity>> call() => repository.watchBooks();
 }
 
-class FetchBookCountUseCase {
-  const FetchBookCountUseCase(this.repository);
-  final BookRepository repository;
-
-  Future<int> call() => repository.fetchCount();
-}
-
 class AddBookUseCase {
   const AddBookUseCase(this.repository);
   final BookRepository repository;
@@ -118,10 +111,6 @@ FetchBookByIdUseCase fetchBookByIdUseCase(Ref ref) =>
 @riverpod
 WatchBooksUseCase watchBooksUseCase(Ref ref) =>
     WatchBooksUseCase(ref.watch(bookRepositoryProvider));
-
-@riverpod
-FetchBookCountUseCase fetchBookCountUseCase(Ref ref) =>
-    FetchBookCountUseCase(ref.watch(bookRepositoryProvider));
 
 @riverpod
 AddBookUseCase addBookUseCase(Ref ref) => AddBookUseCase(ref.watch(bookRepositoryProvider));

@@ -8,5 +8,4 @@ abstract class ReaderRepository {
   Future<void> addReader(ReaderEntity reader);
   Future<void> editReader(ReaderEntity reader);
   Future<void> removeReader(String id);
-  Future<int> fetchCount();
 }

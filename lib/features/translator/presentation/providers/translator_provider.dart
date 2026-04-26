@@ -19,18 +19,7 @@ Stream<List<TranslatorEntity>> translatorsStream(Ref ref) {
 }
 
 @riverpod
-Future<int> translatorCount(Ref ref) async {
-  final FetchTranslatorCountUseCase fetchTranslatorCount = ref.watch(
-    fetchTranslatorCountUseCaseProvider,
-  );
-  final String? userId = ref.watch(currentUidProvider);
-
-  if (userId == null) {
-    return 0;
-  }
-
-  return fetchTranslatorCount();
-}
+int? translatorCount(Ref ref) => ref.watch(translatorsStreamProvider).value?.length;
 
 @riverpod
 Future<String?> translatorName(Ref ref, String id) async {

@@ -86,9 +86,6 @@ class SequenceRepositoryImpl implements SequenceRepository {
   }
 
   @override
-  Future<int> fetchCount() => remoteDataSource.fetchSequenceCount();
-
-  @override
   String generateVolumeId() => remoteDataSource.generateSequenceVolumeId();
 
   @override

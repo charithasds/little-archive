@@ -16,7 +16,6 @@ abstract class TranslatorRemoteDataSource {
   Future<void> addTranslator(TranslatorModel translator);
   Future<void> editTranslator(TranslatorModel translator);
   Future<void> removeTranslator(String id);
-  Future<int> fetchCount();
 }
 
 class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
@@ -34,7 +33,7 @@ class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
   @override
   Future<List<TranslatorModel>> fetchTranslators() async {
     final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(_firestore.collection(_collectionPath));
+        .safeGetDocs(_firestore.collection(_collectionPath).orderBy('name'));
 
     return docs
         .map(
@@ -60,6 +59,7 @@ class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
   @override
   Stream<List<TranslatorModel>> watchTranslators() => _firestore
       .collection(_collectionPath)
+      .orderBy('name')
       .snapshots()
       .map(
         (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
@@ -89,15 +89,6 @@ class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
   Future<void> removeTranslator(String id) async {
     await firestoreService.requireConnectivity();
     await _firestore.collection(_collectionPath).doc(id).delete();
-  }
-
-  @override
-  Future<int> fetchCount() async {
-    final AggregateQuerySnapshot snapshot = await _firestore
-        .collection(_collectionPath)
-        .count()
-        .get();
-    return snapshot.count ?? 0;
   }
 }
 

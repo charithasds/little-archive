@@ -92,9 +92,6 @@ class AuthorRepositoryImpl implements AuthorRepository {
 
     await remoteDataSource.removeAuthor(id);
   }
-
-  @override
-  Future<int> fetchCount() => remoteDataSource.fetchCount();
 }
 
 @riverpod

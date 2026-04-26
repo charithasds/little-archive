@@ -92,9 +92,6 @@ class PublisherRepositoryImpl implements PublisherRepository {
 
     await remoteDataSource.removePublisher(id);
   }
-
-  @override
-  Future<int> fetchCount() => remoteDataSource.fetchCount();
 }
 
 @riverpod

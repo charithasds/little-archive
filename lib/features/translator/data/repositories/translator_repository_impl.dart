@@ -95,9 +95,6 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
 
     await remoteDataSource.removeTranslator(id);
   }
-
-  @override
-  Future<int> fetchCount() => remoteDataSource.fetchCount();
 }
 
 @riverpod

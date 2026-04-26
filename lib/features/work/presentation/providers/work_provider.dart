@@ -19,13 +19,4 @@ Stream<List<WorkEntity>> worksStream(Ref ref) {
 }
 
 @riverpod
-Future<int> workCount(Ref ref) async {
-  final FetchWorkCountUseCase fetchWorkCount = ref.watch(fetchWorkCountUseCaseProvider);
-  final String? userId = ref.watch(currentUidProvider);
-
-  if (userId == null) {
-    return 0;
-  }
-
-  return fetchWorkCount();
-}
+int? workCount(Ref ref) => ref.watch(worksStreamProvider).value?.length;

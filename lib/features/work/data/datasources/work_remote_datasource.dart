@@ -16,7 +16,6 @@ abstract class WorkRemoteDataSource {
   Future<void> addWork(WorkModel work);
   Future<void> editWork(WorkModel work);
   Future<void> removeWork(String id);
-  Future<int> fetchCount();
 }
 
 class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
@@ -34,7 +33,7 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
   @override
   Future<List<WorkModel>> fetchWorks() async {
     final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(_firestore.collection(_collectionPath));
+        .safeGetDocs(_firestore.collection(_collectionPath).orderBy('title'));
 
     return docs
         .map(
@@ -60,6 +59,7 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
   @override
   Stream<List<WorkModel>> watchWorks() => _firestore
       .collection(_collectionPath)
+      .orderBy('title')
       .snapshots()
       .map(
         (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
@@ -89,15 +89,6 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
   Future<void> removeWork(String id) async {
     await firestoreService.requireConnectivity();
     await _firestore.collection(_collectionPath).doc(id).delete();
-  }
-
-  @override
-  Future<int> fetchCount() async {
-    final AggregateQuerySnapshot snapshot = await _firestore
-        .collection(_collectionPath)
-        .count()
-        .get();
-    return snapshot.count ?? 0;
   }
 }
 

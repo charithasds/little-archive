@@ -88,9 +88,6 @@ class ReaderRepositoryImpl implements ReaderRepository {
 
     await remoteDataSource.removeReader(id);
   }
-
-  @override
-  Future<int> fetchCount() => remoteDataSource.fetchCount();
 }
 
 @riverpod

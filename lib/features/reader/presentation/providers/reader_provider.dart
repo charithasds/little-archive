@@ -19,13 +19,4 @@ Stream<List<ReaderEntity>> readersStream(Ref ref) {
 }
 
 @riverpod
-Future<int> readerCount(Ref ref) async {
-  final FetchReaderCountUseCase fetchReaderCount = ref.watch(fetchReaderCountUseCaseProvider);
-  final String? userId = ref.watch(currentUidProvider);
-
-  if (userId == null) {
-    return 0;
-  }
-
-  return fetchReaderCount();
-}
+int? readerCount(Ref ref) => ref.watch(readersStreamProvider).value?.length;

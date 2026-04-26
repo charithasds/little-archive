@@ -34,13 +34,6 @@ class WatchReadersUseCase {
   Stream<List<ReaderEntity>> call() => repository.watchReaders();
 }
 
-class FetchReaderCountUseCase {
-  const FetchReaderCountUseCase(this.repository);
-  final ReaderRepository repository;
-
-  Future<int> call() => repository.fetchCount();
-}
-
 class AddReaderUseCase {
   const AddReaderUseCase(this.repository);
   final ReaderRepository repository;
@@ -77,10 +70,6 @@ FetchReaderByIdUseCase fetchReaderByIdUseCase(Ref ref) =>
 @riverpod
 WatchReadersUseCase watchReadersUseCase(Ref ref) =>
     WatchReadersUseCase(ref.watch(readerRepositoryProvider));
-
-@riverpod
-FetchReaderCountUseCase fetchReaderCountUseCase(Ref ref) =>
-    FetchReaderCountUseCase(ref.watch(readerRepositoryProvider));
 
 @riverpod
 AddReaderUseCase addReaderUseCase(Ref ref) => AddReaderUseCase(ref.watch(readerRepositoryProvider));

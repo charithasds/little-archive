@@ -23,7 +23,6 @@ abstract class BookRemoteDataSource {
   Future<void> addBook(BookModel book);
   Future<void> editBook(BookModel book);
   Future<void> removeBook(String id);
-  Future<int> fetchCount();
   Future<Map<String, dynamic>> scanBookCover(Uint8List imageBytes);
 }
 
@@ -42,7 +41,7 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
   @override
   Future<List<BookModel>> fetchBooks() async {
     final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(_firestore.collection(_collectionPath));
+        .safeGetDocs(_firestore.collection(_collectionPath).orderBy('title'));
 
     return docs
         .map(
@@ -68,6 +67,7 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
   @override
   Stream<List<BookModel>> watchBooks() => _firestore
       .collection(_collectionPath)
+      .orderBy('title')
       .snapshots()
       .map(
         (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
@@ -97,15 +97,6 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
   Future<void> removeBook(String id) async {
     await firestoreService.requireConnectivity();
     await _firestore.collection(_collectionPath).doc(id).delete();
-  }
-
-  @override
-  Future<int> fetchCount() async {
-    final AggregateQuerySnapshot snapshot = await _firestore
-        .collection(_collectionPath)
-        .count()
-        .get();
-    return snapshot.count ?? 0;
   }
 
   @override
