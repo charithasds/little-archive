@@ -6,10 +6,6 @@ import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-import '../../../../features/author/domain/entities/author_entity.dart';
-import '../../../../features/author/presentation/providers/author_provider.dart';
-import '../../../../features/translator/domain/entities/translator_entity.dart';
-import '../../../../features/translator/presentation/providers/translator_provider.dart';
 import '../../domain/entities/book_entity.dart';
 import '../../domain/usecases/book_usecases.dart';
 import '../providers/book_provider.dart';
@@ -57,9 +53,6 @@ class BookListPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AsyncValue<List<BookEntity>> booksAsync = ref.watch(booksStreamProvider);
-    final List<AuthorEntity> authors = ref.watch(authorsStreamProvider).value ?? <AuthorEntity>[];
-    final List<TranslatorEntity> translators =
-        ref.watch(translatorsStreamProvider).value ?? <TranslatorEntity>[];
 
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
@@ -102,25 +95,8 @@ class BookListPage extends ConsumerWidget {
                   itemCount: books.length,
                   itemBuilder: (BuildContext context, int index) {
                     final BookEntity book = books[index];
-                    String? creatorName;
-                    if (book.isTranslation) {
-                      if (book.translatorIds.isNotEmpty) {
-                        creatorName = translators
-                            .where((TranslatorEntity t) => t.id == book.translatorIds.first)
-                            .firstOrNull
-                            ?.name;
-                      }
-                    } else {
-                      if (book.authorIds.isNotEmpty) {
-                        creatorName = authors
-                            .where((AuthorEntity a) => a.id == book.authorIds.first)
-                            .firstOrNull
-                            ?.name;
-                      }
-                    }
                     return BookListTile(
                       book: book,
-                      firstCreatorName: creatorName,
                       onTap: () => context.go('/books/${book.id}'),
                       onEdit: () => context.push('/books/add', extra: book),
                       onRemove: () => _handleRemove(context, ref, book.id),
@@ -139,25 +115,8 @@ class BookListPage extends ConsumerWidget {
                   itemCount: books.length,
                   itemBuilder: (BuildContext context, int index) {
                     final BookEntity book = books[index];
-                    String? creatorName;
-                    if (book.isTranslation) {
-                      if (book.translatorIds.isNotEmpty) {
-                        creatorName = translators
-                            .where((TranslatorEntity t) => t.id == book.translatorIds.first)
-                            .firstOrNull
-                            ?.name;
-                      }
-                    } else {
-                      if (book.authorIds.isNotEmpty) {
-                        creatorName = authors
-                            .where((AuthorEntity a) => a.id == book.authorIds.first)
-                            .firstOrNull
-                            ?.name;
-                      }
-                    }
                     return BookListTile(
                       book: book,
-                      firstCreatorName: creatorName,
                       onTap: () => context.go('/books/${book.id}'),
                       onEdit: () => context.push('/books/add', extra: book),
                       onRemove: () => _handleRemove(context, ref, book.id),

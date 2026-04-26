@@ -99,10 +99,10 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
               child: Container(
                 width: 120,
                 height: 120,
-                decoration: Images.getPickerDecoration(theme),
+                decoration: Images.getPickerDecoration(theme, shape: ImageShape.square),
                 child: Icon(
                   Icons.layers_rounded,
-                  size: 56,
+                  size: 48,
                   color: Images.getPickerIconColor(theme),
                 ),
               ),

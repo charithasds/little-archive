@@ -31,13 +31,12 @@ class UpsertAuthorState {
     bool? isLoading,
     Nullable<String?>? error,
     Nullable<String?>? pickedBase64Image,
-  }) =>
-      UpsertAuthorState(
-        existingAuthor: existingAuthor != null ? existingAuthor.value : this.existingAuthor,
-        isLoading: isLoading ?? this.isLoading,
-        error: error != null ? error.value : this.error,
-        pickedBase64Image: pickedBase64Image != null ? pickedBase64Image.value : this.pickedBase64Image,
-      );
+  }) => UpsertAuthorState(
+    existingAuthor: existingAuthor != null ? existingAuthor.value : this.existingAuthor,
+    isLoading: isLoading ?? this.isLoading,
+    error: error != null ? error.value : this.error,
+    pickedBase64Image: pickedBase64Image != null ? pickedBase64Image.value : this.pickedBase64Image,
+  );
 }
 
 @riverpod
@@ -46,10 +45,7 @@ class UpsertAuthorController extends _$UpsertAuthorController {
   UpsertAuthorState build() => const UpsertAuthorState();
 
   void initializeWith(AuthorEntity? author) {
-    state = UpsertAuthorState(
-      existingAuthor: author,
-      pickedBase64Image: author?.image,
-    );
+    state = UpsertAuthorState(existingAuthor: author, pickedBase64Image: author?.image);
   }
 
   Future<void> pickImage() async {
@@ -77,7 +73,10 @@ class UpsertAuthorController extends _$UpsertAuthorController {
     final UserEntity? user = ref.read(authStateProvider).value;
 
     if (user == null) {
-      state = state.copyWith(isLoading: false, error: const Nullable<String?>('User not authenticated'));
+      state = state.copyWith(
+        isLoading: false,
+        error: const Nullable<String?>('User not authenticated'),
+      );
       return null;
     }
 

@@ -78,14 +78,16 @@ class FormTextField extends ConsumerWidget {
       maxLength: maxLength,
       buildCounter: maxLength == null
           ? null
-          : (BuildContext context, {required int currentLength, required int? maxLength, required bool isFocused}) {
+          : (
+              BuildContext context, {
+              required int currentLength,
+              required int? maxLength,
+              required bool isFocused,
+            }) {
               if (currentLength < (maxLength! * 0.95)) {
                 return null;
               }
-              return Text(
-                '$currentLength / $maxLength',
-                style: theme.textTheme.bodySmall,
-              );
+              return Text('$currentLength / $maxLength', style: theme.textTheme.bodySmall);
             },
       maxLines: maxLines,
       inputFormatters: inputFormatters,

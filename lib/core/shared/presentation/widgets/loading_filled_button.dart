@@ -26,19 +26,13 @@ class LoadingFilledButton extends StatelessWidget {
           ? SizedBox(
               width: 20,
               height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: theme.colorScheme.onPrimary,
-              ),
+              child: CircularProgressIndicator(strokeWidth: 2, color: theme.colorScheme.onPrimary),
             )
           : Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                if (icon != null) ...<Widget>[
-                  Icon(icon, size: 20),
-                  const SizedBox(width: 8),
-                ],
+                if (icon != null) ...<Widget>[Icon(icon, size: 20), const SizedBox(width: 8)],
                 Text(label),
               ],
             ),

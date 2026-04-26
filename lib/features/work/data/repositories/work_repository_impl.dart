@@ -36,7 +36,6 @@ class WorkRepositoryImpl implements WorkRepository {
         isTranslation: work.isTranslation,
         language: work.language,
         genre: work.genre,
-        noOfPages: work.noOfPages,
         originalTitle: work.originalTitle,
         originalLanguage: work.originalLanguage,
         notes: work.notes,
@@ -70,7 +69,6 @@ class WorkRepositoryImpl implements WorkRepository {
         isTranslation: work.isTranslation,
         language: work.language,
         genre: work.genre,
-        noOfPages: work.noOfPages,
         originalTitle: work.originalTitle,
         originalLanguage: work.originalLanguage,
         notes: work.notes,
@@ -112,6 +110,9 @@ class WorkRepositoryImpl implements WorkRepository {
 
     await remoteDataSource.removeWork(id);
   }
+
+  @override
+  Future<int> fetchCount() => remoteDataSource.fetchCount();
 }
 
 @riverpod

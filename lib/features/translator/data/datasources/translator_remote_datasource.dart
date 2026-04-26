@@ -10,13 +10,13 @@ part 'translator_remote_datasource.g.dart';
 
 abstract class TranslatorRemoteDataSource {
   String generateId();
-
   Future<List<TranslatorModel>> fetchTranslators();
   Future<TranslatorModel?> fetchTranslatorById(String id);
   Stream<List<TranslatorModel>> watchTranslators();
   Future<void> addTranslator(TranslatorModel translator);
   Future<void> editTranslator(TranslatorModel translator);
   Future<void> removeTranslator(String id);
+  Future<int> fetchCount();
 }
 
 class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
@@ -33,8 +33,8 @@ class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
 
   @override
   Future<List<TranslatorModel>> fetchTranslators() async {
-    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
-        await firestoreService.safeGetDocs(_firestore.collection(_collectionPath));
+    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
+        .safeGetDocs(_firestore.collection(_collectionPath));
 
     return docs
         .map(
@@ -46,8 +46,9 @@ class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
 
   @override
   Future<TranslatorModel?> fetchTranslatorById(String id) async {
-    final DocumentSnapshot<Map<String, dynamic>>? doc =
-        await firestoreService.safeGetDoc(_firestore.collection(_collectionPath).doc(id));
+    final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
+      _firestore.collection(_collectionPath).doc(id),
+    );
 
     if (doc == null || !doc.exists) {
       return null;
@@ -88,6 +89,15 @@ class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
   Future<void> removeTranslator(String id) async {
     await firestoreService.requireConnectivity();
     await _firestore.collection(_collectionPath).doc(id).delete();
+  }
+
+  @override
+  Future<int> fetchCount() async {
+    final AggregateQuerySnapshot snapshot = await _firestore
+        .collection(_collectionPath)
+        .count()
+        .get();
+    return snapshot.count ?? 0;
   }
 }
 

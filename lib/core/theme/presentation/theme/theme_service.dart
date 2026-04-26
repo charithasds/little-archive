@@ -95,11 +95,7 @@ class ThemeService {
       foregroundColor: _n10,
       surfaceTintColor: _p40,
       scrolledUnderElevation: 2,
-      titleTextStyle: GoogleFonts.cabin(
-        fontSize: 22,
-        fontWeight: FontWeight.w600,
-        color: _n10,
-      ),
+      titleTextStyle: GoogleFonts.cabin(fontSize: 22, fontWeight: FontWeight.w600, color: _n10),
     ),
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
       backgroundColor: _p90,
@@ -164,10 +160,7 @@ class ThemeService {
   ThemeData get darkTheme => ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
-    textTheme: _textTheme.apply(
-      bodyColor: _n90,
-      displayColor: _n90,
-    ),
+    textTheme: _textTheme.apply(bodyColor: _n90, displayColor: _n90),
     colorScheme: const ColorScheme.dark(
       primary: _p80,
       onPrimary: _p20,
@@ -210,11 +203,7 @@ class ThemeService {
       foregroundColor: _n90,
       surfaceTintColor: _p80,
       scrolledUnderElevation: 2,
-      titleTextStyle: GoogleFonts.cabin(
-        fontSize: 22,
-        fontWeight: FontWeight.w600,
-        color: _n90,
-      ),
+      titleTextStyle: GoogleFonts.cabin(fontSize: 22, fontWeight: FontWeight.w600, color: _n90),
     ),
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
       backgroundColor: _p30,

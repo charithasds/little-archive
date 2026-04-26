@@ -32,14 +32,13 @@ class SequenceVolumeEntity extends Equatable {
     Nullable<String?>? workId,
     DateTime? createdDate,
     DateTime? lastUpdated,
-  }) =>
-      SequenceVolumeEntity(
-        id: id ?? this.id,
-        volume: volume ?? this.volume,
-        sequenceId: sequenceId ?? this.sequenceId,
-        bookId: bookId != null ? bookId.value : this.bookId,
-        workId: workId != null ? workId.value : this.workId,
-        createdDate: createdDate ?? this.createdDate,
-        lastUpdated: lastUpdated ?? this.lastUpdated,
-      );
+  }) => SequenceVolumeEntity(
+    id: id ?? this.id,
+    volume: volume ?? this.volume,
+    sequenceId: sequenceId ?? this.sequenceId,
+    bookId: bookId != null ? bookId.value : this.bookId,
+    workId: workId != null ? workId.value : this.workId,
+    createdDate: createdDate ?? this.createdDate,
+    lastUpdated: lastUpdated ?? this.lastUpdated,
+  );
 }

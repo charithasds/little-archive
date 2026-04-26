@@ -49,7 +49,6 @@ import '../../../work/presentation/providers/work_provider.dart';
 import '../../../work/presentation/widgets/add_work_bottom_sheet.dart';
 import '../../domain/entities/book_entity.dart';
 import '../../domain/entities/scanned_book_entity.dart';
-import '../providers/book_scanner_controller.dart';
 import '../providers/upsert_book_controller.dart';
 import '../widgets/scanned_book_approval_dialog.dart';
 
@@ -96,11 +95,8 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
 
   bool _isEditingInitialized = false;
 
-  // Whether this book is connected to works (locks compilationType).
   bool get _hasConnectedWorks =>
       widget.existingBook != null && widget.existingBook!.workIds.isNotEmpty;
-
-  // ── Compilation-type field visibility helpers ─────────────────────────────
 
   bool get _showAuthorIds =>
       _compilationType == CompilationType.standalone ||
@@ -124,13 +120,12 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
 
   bool get _showWorkIds =>
       _compilationType == CompilationType.anthology ||
-      _compilationType == CompilationType.collection;
+      _compilationType == CompilationType.collection ||
+      _compilationType == CompilationType.omnibus;
 
   bool get _showSequenceVolumeIds =>
       _compilationType == CompilationType.standalone ||
       _compilationType == CompilationType.collection;
-
-  // ── Collection-status field visibility helpers ────────────────────────────
 
   bool get _showCollectedDate =>
       _collectionStatus == CollectionStatus.collected ||
@@ -142,13 +137,9 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
 
   bool get _showReaderId => _collectionStatus == CollectionStatus.lended;
 
-  // ── Reading-status field visibility helpers ───────────────────────────────
-
   bool get _showPausedPage => _readingStatus == ReadingStatus.paused;
 
   bool get _showCompletedDate => _readingStatus == ReadingStatus.completed;
-
-  // ── State-clearing on toggle ──────────────────────────────────────────────
 
   void _onCompilationTypeChanged(CompilationType v) {
     setState(() {
@@ -277,7 +268,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
     if (pickedFile != null) {
       final Uint8List imageBytes = await pickedFile.readAsBytes();
       ref.read(upsertBookControllerProvider.notifier).setCover(base64Encode(imageBytes));
-      await ref.read(bookScannerControllerProvider.notifier).scanBook(imageBytes);
+      await ref.read(upsertBookControllerProvider.notifier).scanBook(imageBytes);
     }
   }
 
@@ -325,13 +316,9 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
       if (isSuccess && mounted) {
         SnackBars.showSuccess(
           widget.existingBook != null ? 'Book updated successfully' : 'Book added successfully',
+          context: context,
         );
         context.pop();
-      } else if (!isSuccess && mounted) {
-        final UpsertBookState state = ref.read(upsertBookControllerProvider);
-        if (state.error != null) {
-          SnackBars.showError(state.error!);
-        }
       }
     }
   }
@@ -342,139 +329,162 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
     final ColorScheme colorScheme = theme.colorScheme;
     final UpsertBookState state = ref.watch(upsertBookControllerProvider);
 
-    ref.listen(bookScannerControllerProvider, (
-      AsyncValue<ScannedBookEntity?>? previous,
-      AsyncValue<ScannedBookEntity?> next,
+    ref.listen<String?>(upsertBookControllerProvider.select((UpsertBookState s) => s.error), (
+      String? previous,
+      String? next,
     ) {
-      if (next.hasValue && next.value != null && next.value != previous?.value) {
-        final ScannedBookEntity data = next.value!;
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          final ScannedBookApprovalResult? approvedData =
-              await showDialog<ScannedBookApprovalResult>(
-                context: context,
-                builder: (_) => ScannedBookApprovalDialog(
-                  scannedBook: data,
-                  existingAuthors: ref.read(authorsStreamProvider).value ?? <AuthorEntity>[],
-                  existingTranslators:
-                      ref.read(translatorsStreamProvider).value ?? <TranslatorEntity>[],
-                  existingPublishers:
-                      ref.read(publishersStreamProvider).value ?? <PublisherEntity>[],
-                ),
-              );
+      if (next != null && next != previous) {
+        SnackBars.showError(next, context: context);
+      }
+    });
 
-          if (approvedData == null || !mounted) {
+    ref.listen<ScannedBookEntity?>(
+      upsertBookControllerProvider.select((UpsertBookState s) => s.scanResult),
+      (ScannedBookEntity? previous, ScannedBookEntity? next) {
+        if (next != null && next != previous) {
+          final ScannedBookEntity data = next;
+
+          if (data.analysisError != null) {
+            SnackBars.showError(data.analysisError!, context: context);
+            ref.read(upsertBookControllerProvider.notifier).clearScanResult();
             return;
           }
 
-          // Create new entities if requested
-          for (final String name in approvedData.newAuthorNames) {
-            final String newId = ref.read(generateAuthorIdUseCaseProvider)();
-            final AuthorEntity newAuthor = AuthorEntity(
-              id: newId,
-              name: name,
-              bookIds: const <String>[],
-              workIds: const <String>[],
-              createdDate: DateTime.now(),
-              lastUpdated: DateTime.now(),
-            );
-            await ref.read(addAuthorUseCaseProvider)(newAuthor);
-            approvedData.selectedAuthors.add(newAuthor);
-          }
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            final ScannedBookApprovalResult? approvedData =
+                await showDialog<ScannedBookApprovalResult>(
+                  context: context,
+                  builder: (_) => ScannedBookApprovalDialog(
+                    scannedBook: data,
+                    existingAuthors: ref.read(authorsStreamProvider).value ?? <AuthorEntity>[],
+                    existingTranslators:
+                        ref.read(translatorsStreamProvider).value ?? <TranslatorEntity>[],
+                    existingPublishers:
+                        ref.read(publishersStreamProvider).value ?? <PublisherEntity>[],
+                  ),
+                );
 
-          for (final String name in approvedData.newTranslatorNames) {
-            final String newId = ref.read(generateTranslatorIdUseCaseProvider)();
-            final TranslatorEntity newTranslator = TranslatorEntity(
-              id: newId,
-              name: name,
-              bookIds: const <String>[],
-              workIds: const <String>[],
-              createdDate: DateTime.now(),
-              lastUpdated: DateTime.now(),
-            );
-            await ref.read(addTranslatorUseCaseProvider)(newTranslator);
-            approvedData.selectedTranslators.add(newTranslator);
-          }
-
-          PublisherEntity? finalPublisher = approvedData.selectedPublisher;
-          if (approvedData.newPublisherName != null) {
-            final String newId = ref.read(generatePublisherIdUseCaseProvider)();
-            finalPublisher = PublisherEntity(
-              id: newId,
-              name: approvedData.newPublisherName!,
-              bookIds: const <String>[],
-              createdDate: DateTime.now(),
-              lastUpdated: DateTime.now(),
-            );
-            await ref.read(addPublisherUseCaseProvider)(finalPublisher);
-          }
-
-          setState(() {
-            _titleController.clear();
-            _isbnController.clear();
-            _noOfPagesController.clear();
-            _originalTitleController.clear();
-            _pausedPageController.clear();
-            _notesController.clear();
-
-            if (!_hasConnectedWorks) {
-              _compilationType = CompilationType.standalone;
-            }
-            _language = Language.sinhala;
-            _genre = null;
-            _collectionStatus = CollectionStatus.collected;
-            _readingStatus = ReadingStatus.notStarted;
-            _originalLanguage = OriginalLanguage.english;
-            _isTranslation = false;
-
-            _publishedDate = null;
-            _collectedDate = null;
-            _lendedDate = null;
-            _dueDate = null;
-            _completedDate = null;
-
-            _selectedAuthors = List<AuthorEntity>.from(approvedData.selectedAuthors);
-            _selectedTranslators = List<TranslatorEntity>.from(approvedData.selectedTranslators);
-            _selectedPublisher = finalPublisher;
-            _selectedReader = null;
-            _selectedSequences = <SequenceEntity, String>{};
-            _selectedWorks = <WorkEntity>[];
-
-            final BookEntity b = approvedData.book;
-            if (b.title.isNotEmpty) {
-              _titleController.text = b.title;
-            }
-            if (b.isbn != null) {
-              _isbnController.text = b.isbn!;
-            }
-            if (b.noOfPages != null) {
-              _noOfPagesController.text = b.noOfPages.toString();
-            }
-            if (b.originalTitle != null) {
-              _originalTitleController.text = b.originalTitle!;
+            if (approvedData == null || !mounted) {
+              return;
             }
 
-            _isTranslation = b.isTranslation;
-            if (b.language != null) {
-              _language = b.language;
+            for (final ScannedNameEntity sn in approvedData.newAuthors) {
+              final String newId = ref.read(generateAuthorIdUseCaseProvider)();
+              final AuthorEntity newAuthor = AuthorEntity(
+                id: newId,
+                name: sn.name,
+                otherName: sn.otherName,
+                bookIds: const <String>[],
+                workIds: const <String>[],
+                createdDate: DateTime.now(),
+                lastUpdated: DateTime.now(),
+              );
+              await ref.read(addAuthorUseCaseProvider)(newAuthor);
+              approvedData.selectedAuthors.add(newAuthor);
             }
-            if (b.originalLanguage != null) {
-              _originalLanguage = b.originalLanguage;
+
+            for (final ScannedNameEntity sn in approvedData.newTranslators) {
+              final String newId = ref.read(generateTranslatorIdUseCaseProvider)();
+              final TranslatorEntity newTranslator = TranslatorEntity(
+                id: newId,
+                name: sn.name,
+                otherName: sn.otherName,
+                bookIds: const <String>[],
+                workIds: const <String>[],
+                createdDate: DateTime.now(),
+                lastUpdated: DateTime.now(),
+              );
+              await ref.read(addTranslatorUseCaseProvider)(newTranslator);
+              approvedData.selectedTranslators.add(newTranslator);
             }
-            if (b.genre != null) {
-              _genre = b.genre;
+
+            PublisherEntity? finalPublisher = approvedData.selectedPublisher;
+            if (approvedData.newPublisher != null) {
+              final String newId = ref.read(generatePublisherIdUseCaseProvider)();
+              finalPublisher = PublisherEntity(
+                id: newId,
+                name: approvedData.newPublisher!.name,
+                otherName: approvedData.newPublisher!.otherName,
+                bookIds: const <String>[],
+                createdDate: DateTime.now(),
+                lastUpdated: DateTime.now(),
+              );
+              await ref.read(addPublisherUseCaseProvider)(finalPublisher);
             }
-            if (b.publishedDate != null) {
-              _publishedDate = b.publishedDate;
-            }
+
+            setState(() {
+              _titleController.clear();
+              _isbnController.clear();
+              _noOfPagesController.clear();
+              _originalTitleController.clear();
+              _pausedPageController.clear();
+              _notesController.clear();
+
+              if (!_hasConnectedWorks) {
+                _compilationType = CompilationType.standalone;
+              }
+              _language = Language.sinhala;
+              _genre = null;
+              _collectionStatus = CollectionStatus.collected;
+              _readingStatus = ReadingStatus.notStarted;
+              _originalLanguage = OriginalLanguage.english;
+              _isTranslation = false;
+
+              _publishedDate = null;
+              _collectedDate = null;
+              _lendedDate = null;
+              _dueDate = null;
+              _completedDate = null;
+
+              _selectedAuthors = List<AuthorEntity>.from(approvedData.selectedAuthors);
+              _selectedTranslators = List<TranslatorEntity>.from(approvedData.selectedTranslators);
+              _selectedPublisher = finalPublisher;
+              _selectedReader = null;
+              _selectedSequences = <SequenceEntity, String>{};
+              _selectedWorks = <WorkEntity>[];
+
+              final BookEntity b = approvedData.book;
+              if (b.title.isNotEmpty) {
+                _titleController.text = b.title;
+              }
+              if (b.isbn != null) {
+                _isbnController.text = b.isbn!;
+              }
+              if (b.noOfPages != null) {
+                _noOfPagesController.text = b.noOfPages.toString();
+              }
+              if (b.originalTitle != null) {
+                _originalTitleController.text = b.originalTitle!;
+              }
+
+              _isTranslation = b.isTranslation;
+              if (b.language != null) {
+                _language = b.language;
+              }
+              if (b.originalLanguage != null) {
+                _originalLanguage = b.originalLanguage;
+              }
+              if (b.genre != null) {
+                _genre = b.genre;
+              }
+              if (b.publishedDate != null) {
+                _publishedDate = b.publishedDate;
+              }
+            });
+            ref.read(upsertBookControllerProvider.notifier).clearScanResult();
+            SnackBars.showSuccess('Approved scan data applied.');
           });
-          SnackBars.showSuccess('Approved scan data applied.');
-        });
+        }
+      },
+    );
+
+    ref.listen<String?>(upsertBookControllerProvider.select((UpsertBookState s) => s.error), (
+      String? previous,
+      String? next,
+    ) {
+      if (next != null && next != previous) {
+        SnackBars.showError(next);
       }
-      next.when(
-        data: (_) {},
-        error: (Object e, _) => SnackBars.showError('Failed to scan book: $e'),
-        loading: () {},
-      );
     });
 
     final AsyncValue<List<AuthorEntity>> authorsAsync = ref.watch(authorsStreamProvider);
@@ -569,19 +579,19 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              // ── Cover header ─────────────────────────────────────────────
               Center(
                 child: GestureDetector(
                   onTap: () => ref.read(upsertBookControllerProvider.notifier).pickImage(),
                   child: Container(
-                    width: 120,
-                    height: 120,
+                    width: 140,
+                    height: 140 / Images.bookAspectRatio,
                     decoration: Images.getPickerDecoration(
                       theme,
+                      shape: ImageShape.rectangle,
                       image: state.pickedBase64Image != null
                           ? DecorationImage(
                               image: Images.getImageProvider(state.pickedBase64Image),
-                              fit: BoxFit.cover,
+                              fit: BoxFit.contain,
                             )
                           : null,
                     ),
@@ -608,15 +618,19 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       label: Text(state.pickedBase64Image == null ? 'Add Cover' : 'Change Cover'),
                     ),
                     TextButton.icon(
-                      onPressed: ref.watch(bookScannerControllerProvider).isLoading ? null : _scanBook,
-                      icon: ref.watch(bookScannerControllerProvider).isLoading
+                      onPressed: state.isScanning ? null : _scanBook,
+                      icon: state.isScanning
                           ? const SizedBox(
                               width: 16,
                               height: 16,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.document_scanner_rounded),
-                      label: const Text('Auto-fill with Gemini'),
+                      label: Text(
+                        state.pickedBase64Image == null
+                            ? 'Add Cover + Auto-fill from Gemini'
+                            : 'Change Cover + Auto-fill from Gemini',
+                      ),
                     ),
                     if (state.pickedBase64Image != null)
                       TextButton.icon(
@@ -630,10 +644,8 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                 ),
               ),
               const SizedBox(height: 24),
-
-              // 1. Details
               FormSection(
-                title: 'Details',
+                title: 'Primary Info',
                 icon: Icons.info_outline_rounded,
                 children: <Widget>[
                   FormTextField(
@@ -660,15 +672,52 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                           },
                     isNullable: false,
                   ),
+                  if (_showAuthorIds) ...<Widget>[
+                    const SizedBox(height: 16),
+                    SearchMultiPickerField<AuthorEntity>(
+                      label: 'Authors',
+                      prefixIcon: Icons.person_rounded,
+                      selectedItems: _selectedAuthors,
+                      itemsProvider: authorsStreamProvider,
+                      itemLabel: (AuthorEntity a) => a.name,
+                      itemKey: (AuthorEntity a) => a.id,
+                      onChanged: (List<AuthorEntity> l) => setState(() => _selectedAuthors = l),
+                      onAdd: () async => showModalBottomSheet<AuthorEntity>(
+                        context: context,
+                        isScrollControlled: true,
+                        useSafeArea: true,
+                        builder: (_) => const AddAuthorBottomSheet(),
+                      ),
+                    ),
+                  ],
+                  if (_showLanguage) ...<Widget>[
+                    const SizedBox(height: 16),
+                    FormDropdownField<Language>(
+                      value: _language,
+                      label: 'Language',
+                      prefixIcon: Icons.language_rounded,
+                      items: Language.values,
+                      itemLabel: (Language e) => e.clientValue,
+                      onChanged: (Language? v) => setState(() => _language = v),
+                    ),
+                  ],
                 ],
               ),
-
-              // 2. Translation
-              if (_showTranslatorIds || _showOriginalTitle)
+              if (_showTranslatorIds || _showOriginalTitle || _showOriginalLanguage)
                 FormSection(
-                  title: 'Translation',
+                  title: 'Translation Info',
                   icon: Icons.translate_rounded,
                   children: <Widget>[
+                    if (_showOriginalTitle) ...<Widget>[
+                      FormTextField(
+                        controller: _originalTitleController,
+                        label: 'Original Title',
+                        hint: 'Book Original Title',
+                        prefixIcon: Icons.translate_rounded,
+                        maxLength: 200,
+                      ),
+                      if (_showTranslatorIds || _showOriginalLanguage) const SizedBox(height: 16),
+                    ],
                     if (_showTranslatorIds) ...<Widget>[
                       SearchMultiPickerField<TranslatorEntity>(
                         label: 'Translators',
@@ -686,69 +735,22 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                           builder: (_) => const AddTranslatorBottomSheet(),
                         ),
                       ),
-                      if (_showOriginalTitle) const SizedBox(height: 16),
+                      if (_showOriginalLanguage) const SizedBox(height: 16),
                     ],
-                    if (_showOriginalTitle)
-                      FormTextField(
-                        controller: _originalTitleController,
-                        label: 'Original Title',
-                        hint: 'Book Original Title',
-                        prefixIcon: Icons.translate_rounded,
-                        maxLength: 200,
+                    if (_showOriginalLanguage)
+                      FormDropdownField<OriginalLanguage>(
+                        value: _originalLanguage,
+                        label: 'Original Language',
+                        prefixIcon: Icons.language_rounded,
+                        items: OriginalLanguage.values,
+                        itemLabel: (OriginalLanguage e) => e.clientValue,
+                        onChanged: (OriginalLanguage? v) => setState(() => _originalLanguage = v),
                       ),
                   ],
                 ),
-
-              // 3. Primary Info
-              FormSection(
-                title: 'Primary Info',
-                icon: Icons.person_outline_rounded,
-                children: <Widget>[
-                  if (_showAuthorIds) ...<Widget>[
-                    SearchMultiPickerField<AuthorEntity>(
-                      label: 'Authors',
-                      prefixIcon: Icons.person_rounded,
-                      selectedItems: _selectedAuthors,
-                      itemsProvider: authorsStreamProvider,
-                      itemLabel: (AuthorEntity a) => a.name,
-                      itemKey: (AuthorEntity a) => a.id,
-                      onChanged: (List<AuthorEntity> l) => setState(() => _selectedAuthors = l),
-                      onAdd: () async => showModalBottomSheet<AuthorEntity>(
-                        context: context,
-                        isScrollControlled: true,
-                        useSafeArea: true,
-                        builder: (_) => const AddAuthorBottomSheet(),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  if (_showLanguage) ...<Widget>[
-                    FormDropdownField<Language>(
-                      value: _language,
-                      label: 'Language',
-                      prefixIcon: Icons.language_rounded,
-                      items: Language.values,
-                      itemLabel: (Language e) => e.clientValue,
-                      onChanged: (Language? v) => setState(() => _language = v),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  if (_showOriginalLanguage)
-                    FormDropdownField<OriginalLanguage>(
-                      value: _originalLanguage,
-                      label: 'Original Language',
-                      prefixIcon: Icons.language_rounded,
-                      items: OriginalLanguage.values,
-                      itemLabel: (OriginalLanguage e) => e.clientValue,
-                      onChanged: (OriginalLanguage? v) => setState(() => _originalLanguage = v),
-                    ),
-                ],
-              ),
-
-              // 4. Series & References
               if (_showSequenceVolumeIds || _showWorkIds)
                 FormSection(
-                  title: 'Series & References',
+                  title: 'Reference Info',
                   icon: Icons.layers_outlined,
                   children: <Widget>[
                     if (_showSequenceVolumeIds) ...<Widget>[
@@ -836,10 +838,8 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       ),
                   ],
                 ),
-
-              // 5. Collection
               FormSection(
-                title: 'Collection',
+                title: 'Collection Info',
                 icon: Icons.inventory_2_outlined,
                 children: <Widget>[
                   FormDropdownField<CollectionStatus>(
@@ -866,11 +866,9 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                   ],
                 ],
               ),
-
-              // 6. Lending
               if (_showReaderId || _showLendedDate || _showDueDate)
                 FormSection(
-                  title: 'Lending',
+                  title: 'Lending Info',
                   icon: Icons.handshake_outlined,
                   children: <Widget>[
                     if (_showReaderId) ...<Widget>[
@@ -912,12 +910,11 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       ),
                   ],
                 ),
-
-              // 7. Reading Progress
               FormSection(
                 title: 'Reading Progress',
                 icon: Icons.auto_stories_outlined,
                 children: <Widget>[
+                  const SizedBox(height: 16),
                   FormDropdownField<ReadingStatus>(
                     value: _readingStatus,
                     label: 'Reading Status',
@@ -936,6 +933,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                     FormTextField(
                       controller: _pausedPageController,
                       label: 'Paused Page',
+                      hint: 'e.g. 27',
                       prefixIcon: Icons.bookmark_border_rounded,
                       keyboardType: TextInputType.number,
                       validator: Validators.validatePositiveNumber,
@@ -950,43 +948,12 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       icon: Icons.check_circle_outline_rounded,
                     ),
                   ],
-                  const SizedBox(height: 16),
-                  FormTextField(
-                    controller: _noOfPagesController,
-                    label: 'Number of Pages',
-                    hint: 'e.g. 153',
-                    prefixIcon: Icons.numbers_rounded,
-                    keyboardType: TextInputType.number,
-                    validator: Validators.validatePositiveNumber,
-                  ),
                 ],
               ),
-
-              // 8. Publication Metadata
               FormSection(
-                title: 'Publication Metadata',
+                title: 'Publication Info',
                 icon: Icons.hub_outlined,
                 children: <Widget>[
-                  if (_showGenre) ...<Widget>[
-                    FormDropdownField<Genre>(
-                      value: _genre,
-                      label: 'Genre',
-                      prefixIcon: Icons.theater_comedy_rounded,
-                      items: Genre.values,
-                      itemLabel: (Genre e) => e.clientValue,
-                      onChanged: (Genre? v) => setState(() => _genre = v),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  FormTextField(
-                    controller: _isbnController,
-                    label: 'ISBN',
-                    hint: 'e.g. ISBN10 or ISBN13',
-                    prefixIcon: Icons.qr_code_rounded,
-                    maxLength: 13,
-                    validator: Validators.validateIsbn,
-                  ),
-                  const SizedBox(height: 16),
                   SearchPickerField<PublisherEntity>(
                     label: 'Publisher',
                     prefixIcon: Icons.business_rounded,
@@ -1008,10 +975,37 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                     onDateSelected: (DateTime d) => setState(() => _publishedDate = d),
                     icon: Icons.public_rounded,
                   ),
+                  const SizedBox(height: 16),
+                  FormTextField(
+                    controller: _noOfPagesController,
+                    label: 'Number of Pages',
+                    hint: 'e.g. 153',
+                    prefixIcon: Icons.numbers_rounded,
+                    keyboardType: TextInputType.number,
+                    validator: Validators.validatePositiveNumber,
+                  ),
+                  if (_showGenre) ...<Widget>[
+                    const SizedBox(height: 16),
+                    FormDropdownField<Genre>(
+                      value: _genre,
+                      label: 'Genre',
+                      prefixIcon: Icons.theater_comedy_rounded,
+                      items: Genre.values,
+                      itemLabel: (Genre e) => e.clientValue,
+                      onChanged: (Genre? v) => setState(() => _genre = v),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  FormTextField(
+                    controller: _isbnController,
+                    label: 'ISBN',
+                    hint: 'e.g. ISBN10 or ISBN13',
+                    prefixIcon: Icons.qr_code_rounded,
+                    maxLength: 13,
+                    validator: Validators.validateIsbn,
+                  ),
                 ],
               ),
-
-              // 9. Additional Information
               FormSection(
                 title: 'Additional Information',
                 icon: Icons.notes_rounded,
@@ -1026,9 +1020,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 16),
-
               FilledButton.icon(
                 onPressed: state.isLoading ? null : _save,
                 icon: state.isLoading
@@ -1048,7 +1040,6 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                 ),
                 style: Buttons.getPrimaryFilledButtonStyle(theme),
               ),
-
               const SizedBox(height: 24),
             ],
           ),

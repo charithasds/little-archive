@@ -10,13 +10,13 @@ part 'publisher_remote_datasource.g.dart';
 
 abstract class PublisherRemoteDataSource {
   String generateId();
-
   Future<List<PublisherModel>> fetchPublishers();
   Future<PublisherModel?> fetchPublisherById(String id);
   Stream<List<PublisherModel>> watchPublishers();
   Future<void> addPublisher(PublisherModel publisher);
   Future<void> editPublisher(PublisherModel publisher);
   Future<void> removePublisher(String id);
+  Future<int> fetchCount();
 }
 
 class PublisherRemoteDataSourceImpl implements PublisherRemoteDataSource {
@@ -33,8 +33,8 @@ class PublisherRemoteDataSourceImpl implements PublisherRemoteDataSource {
 
   @override
   Future<List<PublisherModel>> fetchPublishers() async {
-    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
-        await firestoreService.safeGetDocs(_firestore.collection(_collectionPath));
+    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
+        .safeGetDocs(_firestore.collection(_collectionPath));
 
     return docs
         .map(
@@ -46,8 +46,9 @@ class PublisherRemoteDataSourceImpl implements PublisherRemoteDataSource {
 
   @override
   Future<PublisherModel?> fetchPublisherById(String id) async {
-    final DocumentSnapshot<Map<String, dynamic>>? doc =
-        await firestoreService.safeGetDoc(_firestore.collection(_collectionPath).doc(id));
+    final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
+      _firestore.collection(_collectionPath).doc(id),
+    );
 
     if (doc == null || !doc.exists) {
       return null;
@@ -88,6 +89,15 @@ class PublisherRemoteDataSourceImpl implements PublisherRemoteDataSource {
   Future<void> removePublisher(String id) async {
     await firestoreService.requireConnectivity();
     await _firestore.collection(_collectionPath).doc(id).delete();
+  }
+
+  @override
+  Future<int> fetchCount() async {
+    final AggregateQuerySnapshot snapshot = await _firestore
+        .collection(_collectionPath)
+        .count()
+        .get();
+    return snapshot.count ?? 0;
   }
 }
 

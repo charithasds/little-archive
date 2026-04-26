@@ -10,6 +10,7 @@ abstract class SequenceRepository {
   Future<void> addSequence(SequenceEntity sequence);
   Future<void> editSequence(SequenceEntity sequence);
   Future<void> removeSequence(String id);
+  Future<int> fetchCount();
 
   String generateVolumeId();
 

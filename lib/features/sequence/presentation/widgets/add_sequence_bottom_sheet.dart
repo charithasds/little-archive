@@ -36,10 +36,9 @@ class _AddSequenceBottomSheetState extends ConsumerState<AddSequenceBottomSheet>
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
-      final SequenceEntity? savedSequence =
-          await ref.read(upsertSequenceControllerProvider.notifier).saveSequence(
-            name: _nameController.text.trim(),
-          );
+      final SequenceEntity? savedSequence = await ref
+          .read(upsertSequenceControllerProvider.notifier)
+          .saveSequence(name: _nameController.text.trim());
 
       if (mounted) {
         if (savedSequence != null) {

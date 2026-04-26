@@ -46,8 +46,8 @@ class SnackBars {
   }
 
   static ColorScheme _colorScheme(BuildContext? context) {
-    final BuildContext? effectiveContext = messengerKey.currentContext ??
-        (context != null && context.mounted ? context : null);
+    final BuildContext? effectiveContext =
+        messengerKey.currentContext ?? (context != null && context.mounted ? context : null);
 
     if (effectiveContext == null) {
       return const ColorScheme.light();

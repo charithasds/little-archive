@@ -17,3 +17,24 @@ Stream<List<TranslatorEntity>> translatorsStream(Ref ref) {
 
   return watchTranslators();
 }
+
+@riverpod
+Future<int> translatorCount(Ref ref) async {
+  final FetchTranslatorCountUseCase fetchTranslatorCount = ref.watch(
+    fetchTranslatorCountUseCaseProvider,
+  );
+  final String? userId = ref.watch(currentUidProvider);
+
+  if (userId == null) {
+    return 0;
+  }
+
+  return fetchTranslatorCount();
+}
+
+@riverpod
+Future<String?> translatorName(Ref ref, String id) async {
+  final FetchTranslatorByIdUseCase fetchTranslator = ref.watch(fetchTranslatorByIdUseCaseProvider);
+  final TranslatorEntity? translator = await fetchTranslator(id);
+  return translator?.name;
+}

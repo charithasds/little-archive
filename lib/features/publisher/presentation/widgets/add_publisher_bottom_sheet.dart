@@ -36,10 +36,9 @@ class _AddPublisherBottomSheetState extends ConsumerState<AddPublisherBottomShee
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
-      final PublisherEntity? savedPublisher =
-          await ref.read(upsertPublisherControllerProvider.notifier).savePublisher(
-            name: _nameController.text.trim(),
-          );
+      final PublisherEntity? savedPublisher = await ref
+          .read(upsertPublisherControllerProvider.notifier)
+          .savePublisher(name: _nameController.text.trim());
 
       if (mounted) {
         if (savedPublisher != null) {

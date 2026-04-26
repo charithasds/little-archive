@@ -36,10 +36,9 @@ class _AddTranslatorBottomSheetState extends ConsumerState<AddTranslatorBottomSh
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
-      final TranslatorEntity? savedTranslator =
-          await ref.read(upsertTranslatorControllerProvider.notifier).saveTranslator(
-            name: _nameController.text.trim(),
-          );
+      final TranslatorEntity? savedTranslator = await ref
+          .read(upsertTranslatorControllerProvider.notifier)
+          .saveTranslator(name: _nameController.text.trim());
 
       if (mounted) {
         if (savedTranslator != null) {

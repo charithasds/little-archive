@@ -42,12 +42,19 @@ class PublisherListTile extends ConsumerWidget {
             children: <Widget>[
               Hero(
                 tag: 'publisher_${publisher.id}',
-                child: CircleAvatar(
-                  radius: 32,
-                  backgroundColor: Images.getAvatarBackgroundColor(theme),
-                  backgroundImage: publisher.logo != null && publisher.logo!.isNotEmpty
-                      ? Images.getImageProvider(publisher.logo)
-                      : null,
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    color: Images.getAvatarBackgroundColor(theme),
+                    image: publisher.logo != null && publisher.logo!.isNotEmpty
+                        ? DecorationImage(
+                            image: Images.getImageProvider(publisher.logo),
+                            fit: BoxFit.contain,
+                          )
+                        : null,
+                  ),
                   child: publisher.logo == null || publisher.logo!.isEmpty
                       ? Icon(
                           Icons.business_rounded,

@@ -1,9 +1,12 @@
+import 'dart:typed_data';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/domain/usecases/sequence_usecases.dart';
 import '../../data/repositories/book_repository_impl.dart';
 import '../entities/book_entity.dart';
+import '../entities/scanned_book_entity.dart';
 import '../repositories/book_repository.dart';
 
 part 'book_usecases.g.dart';
@@ -36,6 +39,13 @@ class WatchBooksUseCase {
   Stream<List<BookEntity>> call() => repository.watchBooks();
 }
 
+class FetchBookCountUseCase {
+  const FetchBookCountUseCase(this.repository);
+  final BookRepository repository;
+
+  Future<int> call() => repository.fetchCount();
+}
+
 class AddBookUseCase {
   const AddBookUseCase(this.repository);
   final BookRepository repository;
@@ -58,10 +68,7 @@ class RemoveBookUseCase {
 }
 
 class UpsertBookUseCase {
-  const UpsertBookUseCase({
-    required this.bookRepository,
-    required this.syncSequenceVolumesUseCase,
-  });
+  const UpsertBookUseCase({required this.bookRepository, required this.syncSequenceVolumesUseCase});
 
   final BookRepository bookRepository;
   final SyncBookSequenceVolumesUseCase syncSequenceVolumesUseCase;
@@ -89,6 +96,13 @@ class UpsertBookUseCase {
   }
 }
 
+class ScanBookUseCase {
+  const ScanBookUseCase(this.repository);
+  final BookRepository repository;
+
+  Future<ScannedBookEntity> call(Uint8List imageBytes) => repository.scanBookCover(imageBytes);
+}
+
 @riverpod
 GenerateBookIdUseCase generateBookIdUseCase(Ref ref) =>
     GenerateBookIdUseCase(ref.watch(bookRepositoryProvider));
@@ -106,6 +120,10 @@ WatchBooksUseCase watchBooksUseCase(Ref ref) =>
     WatchBooksUseCase(ref.watch(bookRepositoryProvider));
 
 @riverpod
+FetchBookCountUseCase fetchBookCountUseCase(Ref ref) =>
+    FetchBookCountUseCase(ref.watch(bookRepositoryProvider));
+
+@riverpod
 AddBookUseCase addBookUseCase(Ref ref) => AddBookUseCase(ref.watch(bookRepositoryProvider));
 
 @riverpod
@@ -120,3 +138,6 @@ UpsertBookUseCase upsertBookUseCase(Ref ref) => UpsertBookUseCase(
   bookRepository: ref.watch(bookRepositoryProvider),
   syncSequenceVolumesUseCase: ref.watch(syncBookSequenceVolumesUseCaseProvider),
 );
+
+@riverpod
+ScanBookUseCase scanBookUseCase(Ref ref) => ScanBookUseCase(ref.watch(bookRepositoryProvider));

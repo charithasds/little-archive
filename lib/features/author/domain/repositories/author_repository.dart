@@ -8,4 +8,5 @@ abstract class AuthorRepository {
   Future<void> addAuthor(AuthorEntity author);
   Future<void> editAuthor(AuthorEntity author);
   Future<void> removeAuthor(String id);
+  Future<int> fetchCount();
 }

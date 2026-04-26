@@ -16,6 +16,7 @@ abstract class AuthorRemoteDataSource {
   Future<void> addAuthor(AuthorModel author);
   Future<void> editAuthor(AuthorModel author);
   Future<void> removeAuthor(String id);
+  Future<int> fetchCount();
 }
 
 class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
@@ -32,8 +33,8 @@ class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
 
   @override
   Future<List<AuthorModel>> fetchAuthors() async {
-    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
-        await firestoreService.safeGetDocs(_firestore.collection(_collectionPath));
+    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
+        .safeGetDocs(_firestore.collection(_collectionPath));
 
     return docs
         .map(
@@ -45,8 +46,9 @@ class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
 
   @override
   Future<AuthorModel?> fetchAuthorById(String id) async {
-    final DocumentSnapshot<Map<String, dynamic>>? doc =
-        await firestoreService.safeGetDoc(_firestore.collection(_collectionPath).doc(id));
+    final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
+      _firestore.collection(_collectionPath).doc(id),
+    );
 
     if (doc == null || !doc.exists) {
       return null;
@@ -80,16 +82,22 @@ class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
   @override
   Future<void> editAuthor(AuthorModel author) async {
     await firestoreService.requireConnectivity();
-    await _firestore
-        .collection(_collectionPath)
-        .doc(author.id)
-        .update(author.toMap());
+    await _firestore.collection(_collectionPath).doc(author.id).update(author.toMap());
   }
 
   @override
   Future<void> removeAuthor(String id) async {
     await firestoreService.requireConnectivity();
     await _firestore.collection(_collectionPath).doc(id).delete();
+  }
+
+  @override
+  Future<int> fetchCount() async {
+    final AggregateQuerySnapshot snapshot = await _firestore
+        .collection(_collectionPath)
+        .count()
+        .get();
+    return snapshot.count ?? 0;
   }
 }
 

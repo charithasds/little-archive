@@ -42,12 +42,19 @@ class ReaderListTile extends ConsumerWidget {
             children: <Widget>[
               Hero(
                 tag: 'reader_${reader.id}',
-                child: CircleAvatar(
-                  radius: 32,
-                  backgroundColor: Images.getAvatarBackgroundColor(theme),
-                  backgroundImage: reader.image != null && reader.image!.isNotEmpty
-                      ? Images.getImageProvider(reader.image)
-                      : null,
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Images.getAvatarBackgroundColor(theme),
+                    image: reader.image != null && reader.image!.isNotEmpty
+                        ? DecorationImage(
+                            image: Images.getImageProvider(reader.image),
+                            fit: BoxFit.contain,
+                          )
+                        : null,
+                  ),
                   child: reader.image == null || reader.image!.isEmpty
                       ? Icon(Icons.face_rounded, color: Images.getAvatarIconColor(theme), size: 32)
                       : null,

@@ -1,15 +1,24 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 
+enum ImageShape { circle, square, rectangle }
+
 class Images {
   Images._();
 
-  static BoxDecoration getPickerDecoration(ThemeData theme, {DecorationImage? image}) {
+  static const double bookAspectRatio = 3 / 4;
+
+  static BoxDecoration getPickerDecoration(
+    ThemeData theme, {
+    DecorationImage? image,
+    ImageShape shape = ImageShape.circle,
+  }) {
     final ColorScheme colorScheme = theme.colorScheme;
     final bool hasImage = image != null;
 
     return BoxDecoration(
-      shape: BoxShape.circle,
+      shape: shape == ImageShape.circle ? BoxShape.circle : BoxShape.rectangle,
+      borderRadius: shape == ImageShape.circle ? null : BorderRadius.circular(24),
       color: theme.brightness == Brightness.dark
           ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.2)
           : colorScheme.primaryContainer.withValues(alpha: 0.3),
@@ -53,20 +62,19 @@ class Images {
 
   static Widget getImage(
     String? imageSource, {
-    BoxFit fit = BoxFit.cover,
+    BoxFit fit = BoxFit.contain,
     Widget Function(BuildContext, Object, StackTrace?)? errorBuilder,
     String fallbackAsset = 'assets/icon/app_icon.png',
     double? width,
     double? height,
-  }) =>
-      Image(
-        image: getImageProvider(imageSource, fallbackAsset: fallbackAsset),
-        fit: fit,
-        width: width,
-        height: height,
-        errorBuilder:
-            errorBuilder ??
-            (BuildContext context, Object error, StackTrace? stackTrace) =>
-                Image.asset(fallbackAsset, fit: fit, width: width, height: height),
-      );
+  }) => Image(
+    image: getImageProvider(imageSource, fallbackAsset: fallbackAsset),
+    fit: fit,
+    width: width,
+    height: height,
+    errorBuilder:
+        errorBuilder ??
+        (BuildContext context, Object error, StackTrace? stackTrace) =>
+            Image.asset(fallbackAsset, fit: fit, width: width, height: height),
+  );
 }

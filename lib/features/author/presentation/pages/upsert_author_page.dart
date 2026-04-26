@@ -109,7 +109,7 @@ class _UpsertAuthorPageState extends ConsumerState<UpsertAuthorPage> {
                     image: state.pickedBase64Image != null
                         ? DecorationImage(
                             image: Images.getImageProvider(state.pickedBase64Image),
-                            fit: BoxFit.cover,
+                            fit: BoxFit.contain,
                           )
                         : null,
                   ),
@@ -170,7 +170,7 @@ class _UpsertAuthorPageState extends ConsumerState<UpsertAuthorPage> {
             ),
 
             FormSection(
-              title: 'Online Presence',
+              title: 'Contact',
               icon: Icons.public_rounded,
               children: <Widget>[
                 FormTextField(

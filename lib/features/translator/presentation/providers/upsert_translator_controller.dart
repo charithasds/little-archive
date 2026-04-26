@@ -31,13 +31,14 @@ class UpsertTranslatorState {
     bool? isLoading,
     Nullable<String?>? error,
     Nullable<String?>? pickedBase64Image,
-  }) =>
-      UpsertTranslatorState(
-        existingTranslator: existingTranslator != null ? existingTranslator.value : this.existingTranslator,
-        isLoading: isLoading ?? this.isLoading,
-        error: error != null ? error.value : this.error,
-        pickedBase64Image: pickedBase64Image != null ? pickedBase64Image.value : this.pickedBase64Image,
-      );
+  }) => UpsertTranslatorState(
+    existingTranslator: existingTranslator != null
+        ? existingTranslator.value
+        : this.existingTranslator,
+    isLoading: isLoading ?? this.isLoading,
+    error: error != null ? error.value : this.error,
+    pickedBase64Image: pickedBase64Image != null ? pickedBase64Image.value : this.pickedBase64Image,
+  );
 }
 
 @riverpod
@@ -77,7 +78,10 @@ class UpsertTranslatorController extends _$UpsertTranslatorController {
     final UserEntity? user = ref.read(authStateProvider).value;
 
     if (user == null) {
-      state = state.copyWith(isLoading: false, error: const Nullable<String?>('User not authenticated'));
+      state = state.copyWith(
+        isLoading: false,
+        error: const Nullable<String?>('User not authenticated'),
+      );
       return null;
     }
 
@@ -120,7 +124,10 @@ class UpsertTranslatorController extends _$UpsertTranslatorController {
       state = state.copyWith(isLoading: false, error: Nullable<String?>(e.message));
       return null;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: Nullable<String?>('Error saving translator: $e'));
+      state = state.copyWith(
+        isLoading: false,
+        error: Nullable<String?>('Error saving translator: $e'),
+      );
       return null;
     }
   }

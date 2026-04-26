@@ -42,9 +42,13 @@ class SequenceListTile extends ConsumerWidget {
             children: <Widget>[
               Hero(
                 tag: 'sequence_${sequence.id}',
-                child: CircleAvatar(
-                  radius: 32,
-                  backgroundColor: Images.getAvatarBackgroundColor(theme),
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    color: Images.getAvatarBackgroundColor(theme),
+                  ),
                   child: Icon(
                     Icons.layers_rounded,
                     color: Images.getAvatarIconColor(theme),

@@ -35,6 +35,13 @@ class WatchSequencesUseCase {
   Stream<List<SequenceEntity>> call() => repository.watchSequences();
 }
 
+class FetchSequenceCountUseCase {
+  const FetchSequenceCountUseCase(this.repository);
+  final SequenceRepository repository;
+
+  Future<int> call() => repository.fetchCount();
+}
+
 class AddSequenceUseCase {
   const AddSequenceUseCase(this.repository);
   final SequenceRepository repository;
@@ -220,6 +227,10 @@ FetchSequenceByIdUseCase fetchSequenceByIdUseCase(Ref ref) =>
 @riverpod
 WatchSequencesUseCase watchSequencesUseCase(Ref ref) =>
     WatchSequencesUseCase(ref.watch(sequenceRepositoryProvider));
+
+@riverpod
+FetchSequenceCountUseCase fetchSequenceCountUseCase(Ref ref) =>
+    FetchSequenceCountUseCase(ref.watch(sequenceRepositoryProvider));
 
 @riverpod
 AddSequenceUseCase addSequenceUseCase(Ref ref) =>

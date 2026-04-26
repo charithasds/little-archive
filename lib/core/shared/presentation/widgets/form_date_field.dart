@@ -48,11 +48,7 @@ class FormDateField extends ConsumerWidget {
       onTap: () => _selectDate(context),
       borderRadius: BorderRadius.circular(16),
       child: InputDecorator(
-        decoration: buildFormDecoration(
-          colorScheme,
-          labelText: label,
-          prefixIcon: icon,
-        ),
+        decoration: buildFormDecoration(colorScheme, labelText: label, prefixIcon: icon),
         isEmpty: value == null,
         child: Row(
           children: <Widget>[

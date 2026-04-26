@@ -9,4 +9,5 @@ abstract class TranslatorRepository {
   Future<void> addTranslator(TranslatorEntity translator);
   Future<void> editTranslator(TranslatorEntity translator);
   Future<void> removeTranslator(String id);
+  Future<int> fetchCount();
 }

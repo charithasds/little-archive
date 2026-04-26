@@ -43,12 +43,19 @@ class AuthorListTile extends ConsumerWidget {
             children: <Widget>[
               Hero(
                 tag: 'author_${author.id}',
-                child: CircleAvatar(
-                  radius: 32,
-                  backgroundColor: Images.getAvatarBackgroundColor(theme),
-                  backgroundImage: author.image != null && author.image!.isNotEmpty
-                      ? Images.getImageProvider(author.image)
-                      : null,
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Images.getAvatarBackgroundColor(theme),
+                    image: author.image != null && author.image!.isNotEmpty
+                        ? DecorationImage(
+                            image: Images.getImageProvider(author.image),
+                            fit: BoxFit.contain,
+                          )
+                        : null,
+                  ),
                   child: author.image == null || author.image!.isEmpty
                       ? Icon(
                           Icons.person_rounded,

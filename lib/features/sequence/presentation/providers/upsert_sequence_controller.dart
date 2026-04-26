@@ -10,11 +10,7 @@ import '../../domain/usecases/sequence_usecases.dart';
 part 'upsert_sequence_controller.g.dart';
 
 class UpsertSequenceState {
-  const UpsertSequenceState({
-    this.existingSequence,
-    this.isLoading = false,
-    this.error,
-  });
+  const UpsertSequenceState({this.existingSequence, this.isLoading = false, this.error});
 
   final SequenceEntity? existingSequence;
   final bool isLoading;
@@ -24,12 +20,11 @@ class UpsertSequenceState {
     Nullable<SequenceEntity?>? existingSequence,
     bool? isLoading,
     Nullable<String?>? error,
-  }) =>
-      UpsertSequenceState(
-        existingSequence: existingSequence != null ? existingSequence.value : this.existingSequence,
-        isLoading: isLoading ?? this.isLoading,
-        error: error != null ? error.value : this.error,
-      );
+  }) => UpsertSequenceState(
+    existingSequence: existingSequence != null ? existingSequence.value : this.existingSequence,
+    isLoading: isLoading ?? this.isLoading,
+    error: error != null ? error.value : this.error,
+  );
 }
 
 @riverpod
@@ -51,7 +46,10 @@ class UpsertSequenceController extends _$UpsertSequenceController {
     final UserEntity? user = ref.read(authStateProvider).value;
 
     if (user == null) {
-      state = state.copyWith(isLoading: false, error: const Nullable<String?>('User not authenticated'));
+      state = state.copyWith(
+        isLoading: false,
+        error: const Nullable<String?>('User not authenticated'),
+      );
       return null;
     }
 
@@ -89,7 +87,10 @@ class UpsertSequenceController extends _$UpsertSequenceController {
       state = state.copyWith(isLoading: false, error: Nullable<String?>(e.message));
       return null;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: Nullable<String?>('Error saving sequence: $e'));
+      state = state.copyWith(
+        isLoading: false,
+        error: Nullable<String?>('Error saving sequence: $e'),
+      );
       return null;
     }
   }

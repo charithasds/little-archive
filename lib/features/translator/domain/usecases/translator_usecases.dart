@@ -34,6 +34,13 @@ class WatchTranslatorsUseCase {
   Stream<List<TranslatorEntity>> call() => repository.watchTranslators();
 }
 
+class FetchTranslatorCountUseCase {
+  const FetchTranslatorCountUseCase(this.repository);
+  final TranslatorRepository repository;
+
+  Future<int> call() => repository.fetchCount();
+}
+
 class AddTranslatorUseCase {
   const AddTranslatorUseCase(this.repository);
   final TranslatorRepository repository;
@@ -70,6 +77,10 @@ FetchTranslatorByIdUseCase fetchTranslatorByIdUseCase(Ref ref) =>
 @riverpod
 WatchTranslatorsUseCase watchTranslatorsUseCase(Ref ref) =>
     WatchTranslatorsUseCase(ref.watch(translatorRepositoryProvider));
+
+@riverpod
+FetchTranslatorCountUseCase fetchTranslatorCountUseCase(Ref ref) =>
+    FetchTranslatorCountUseCase(ref.watch(translatorRepositoryProvider));
 
 @riverpod
 AddTranslatorUseCase addTranslatorUseCase(Ref ref) =>

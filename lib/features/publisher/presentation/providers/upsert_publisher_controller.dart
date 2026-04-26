@@ -31,13 +31,12 @@ class UpsertPublisherState {
     bool? isLoading,
     Nullable<String?>? error,
     Nullable<String?>? pickedBase64Logo,
-  }) =>
-      UpsertPublisherState(
-        existingPublisher: existingPublisher != null ? existingPublisher.value : this.existingPublisher,
-        isLoading: isLoading ?? this.isLoading,
-        error: error != null ? error.value : this.error,
-        pickedBase64Logo: pickedBase64Logo != null ? pickedBase64Logo.value : this.pickedBase64Logo,
-      );
+  }) => UpsertPublisherState(
+    existingPublisher: existingPublisher != null ? existingPublisher.value : this.existingPublisher,
+    isLoading: isLoading ?? this.isLoading,
+    error: error != null ? error.value : this.error,
+    pickedBase64Logo: pickedBase64Logo != null ? pickedBase64Logo.value : this.pickedBase64Logo,
+  );
 }
 
 @riverpod
@@ -46,10 +45,7 @@ class UpsertPublisherController extends _$UpsertPublisherController {
   UpsertPublisherState build() => const UpsertPublisherState();
 
   void initializeWith(PublisherEntity? publisher) {
-    state = UpsertPublisherState(
-      existingPublisher: publisher,
-      pickedBase64Logo: publisher?.logo,
-    );
+    state = UpsertPublisherState(existingPublisher: publisher, pickedBase64Logo: publisher?.logo);
   }
 
   Future<void> pickImage() async {
@@ -79,7 +75,10 @@ class UpsertPublisherController extends _$UpsertPublisherController {
     final UserEntity? user = ref.read(authStateProvider).value;
 
     if (user == null) {
-      state = state.copyWith(isLoading: false, error: const Nullable<String?>('User not authenticated'));
+      state = state.copyWith(
+        isLoading: false,
+        error: const Nullable<String?>('User not authenticated'),
+      );
       return null;
     }
 
@@ -125,7 +124,10 @@ class UpsertPublisherController extends _$UpsertPublisherController {
       state = state.copyWith(isLoading: false, error: Nullable<String?>(e.message));
       return null;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: Nullable<String?>('Error saving publisher: $e'));
+      state = state.copyWith(
+        isLoading: false,
+        error: Nullable<String?>('Error saving publisher: $e'),
+      );
       return null;
     }
   }

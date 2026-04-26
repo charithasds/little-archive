@@ -17,7 +17,7 @@ class SequenceRepositoryImpl implements SequenceRepository {
   final RelationshipSyncService relationshipSyncService;
 
   @override
-  String generateId() => remoteDataSource.generateId();
+  String generateId() => remoteDataSource.generateSequenceId();
 
   @override
   Future<List<SequenceEntity>> fetchSequences() => remoteDataSource.fetchSequences();
@@ -86,7 +86,10 @@ class SequenceRepositoryImpl implements SequenceRepository {
   }
 
   @override
-  String generateVolumeId() => remoteDataSource.generateVolumeId();
+  Future<int> fetchCount() => remoteDataSource.fetchSequenceCount();
+
+  @override
+  String generateVolumeId() => remoteDataSource.generateSequenceVolumeId();
 
   @override
   Future<List<SequenceVolumeEntity>> fetchSequenceVolumes(String sequenceId) =>

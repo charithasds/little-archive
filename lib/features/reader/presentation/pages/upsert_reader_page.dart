@@ -107,15 +107,16 @@ class _UpsertReaderPageState extends ConsumerState<UpsertReaderPage> {
                   height: 120,
                   decoration: Images.getPickerDecoration(
                     theme,
+                    shape: ImageShape.square,
                     image: state.pickedBase64Image != null
                         ? DecorationImage(
                             image: Images.getImageProvider(state.pickedBase64Image),
-                            fit: BoxFit.cover,
+                            fit: BoxFit.contain,
                           )
                         : null,
                   ),
                   child: state.pickedBase64Image == null
-                      ? Icon(Icons.face_rounded, size: 56, color: Images.getPickerIconColor(theme))
+                      ? Icon(Icons.face_rounded, size: 48, color: Images.getPickerIconColor(theme))
                       : null,
                 ),
               ),
@@ -142,7 +143,6 @@ class _UpsertReaderPageState extends ConsumerState<UpsertReaderPage> {
               ),
             ),
             const SizedBox(height: 24),
-
 
             FormSection(
               title: 'Identity',

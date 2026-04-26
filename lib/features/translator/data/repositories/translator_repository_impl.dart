@@ -95,13 +95,14 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
 
     await remoteDataSource.removeTranslator(id);
   }
+
+  @override
+  Future<int> fetchCount() => remoteDataSource.fetchCount();
 }
 
 @riverpod
 TranslatorRepository translatorRepository(Ref ref) {
-  final TranslatorRemoteDataSource remoteDataSource = ref.watch(
-    translatorRemoteDataSourceProvider,
-  );
+  final TranslatorRemoteDataSource remoteDataSource = ref.watch(translatorRemoteDataSourceProvider);
   final RelationshipSyncService relationshipSyncService = ref.watch(
     relationshipSyncServiceProvider,
   );

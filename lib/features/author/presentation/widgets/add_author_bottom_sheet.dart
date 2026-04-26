@@ -36,10 +36,9 @@ class _AddAuthorBottomSheetState extends ConsumerState<AddAuthorBottomSheet> {
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
-      final AuthorEntity? savedAuthor =
-          await ref.read(upsertAuthorControllerProvider.notifier).saveAuthor(
-            name: _nameController.text.trim(),
-          );
+      final AuthorEntity? savedAuthor = await ref
+          .read(upsertAuthorControllerProvider.notifier)
+          .saveAuthor(name: _nameController.text.trim());
 
       if (mounted) {
         if (savedAuthor != null) {

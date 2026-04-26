@@ -115,14 +115,18 @@ class ExpressivePageLayout extends ConsumerWidget {
                         Text(
                           title,
                           textAlign: TextAlign.center,
-                          style: titleStyle ?? tokens.titleStyle?.copyWith(color: colorScheme.onSurface),
+                          style:
+                              titleStyle ??
+                              tokens.titleStyle?.copyWith(color: colorScheme.onSurface),
                         ),
                         const SizedBox(height: 8),
 
                         Text(
                           description,
                           textAlign: TextAlign.center,
-                          style: descriptionStyle ?? tokens.descriptionStyle?.copyWith(color: descriptionColor),
+                          style:
+                              descriptionStyle ??
+                              tokens.descriptionStyle?.copyWith(color: descriptionColor),
                         ),
 
                         const Spacer(flex: 2),

@@ -47,7 +47,6 @@ class UpsertWorkController extends _$UpsertWorkController {
     required bool isTranslation,
     Language? language,
     Genre? genre,
-    int? noOfPages,
     String? originalTitle,
     OriginalLanguage? originalLanguage,
     String? notes,
@@ -79,7 +78,6 @@ class UpsertWorkController extends _$UpsertWorkController {
               isTranslation: isTranslation,
               language: Nullable<Language?>(language),
               genre: Nullable<Genre?>(genre),
-              noOfPages: Nullable<int?>(noOfPages),
               originalTitle: Nullable<String?>(
                 originalTitle?.isEmpty ?? true ? null : originalTitle,
               ),
@@ -98,7 +96,6 @@ class UpsertWorkController extends _$UpsertWorkController {
               isTranslation: isTranslation,
               language: language,
               genre: genre,
-              noOfPages: noOfPages,
               originalTitle: isTranslation ? originalTitle : null,
               originalLanguage: isTranslation ? originalLanguage : null,
               notes: notes,

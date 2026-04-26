@@ -43,12 +43,19 @@ class TranslatorListTile extends ConsumerWidget {
             children: <Widget>[
               Hero(
                 tag: 'translator_${translator.id}',
-                child: CircleAvatar(
-                  radius: 32,
-                  backgroundColor: Images.getAvatarBackgroundColor(theme),
-                  backgroundImage: translator.image != null && translator.image!.isNotEmpty
-                      ? Images.getImageProvider(translator.image)
-                      : null,
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Images.getAvatarBackgroundColor(theme),
+                    image: translator.image != null && translator.image!.isNotEmpty
+                        ? DecorationImage(
+                            image: Images.getImageProvider(translator.image),
+                            fit: BoxFit.contain,
+                          )
+                        : null,
+                  ),
                   child: translator.image == null || translator.image!.isEmpty
                       ? Icon(
                           Icons.translate_rounded,

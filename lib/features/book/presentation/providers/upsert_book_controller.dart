@@ -16,6 +16,7 @@ import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../domain/entities/book_entity.dart';
+import '../../domain/entities/scanned_book_entity.dart';
 import '../../domain/usecases/book_usecases.dart';
 
 part 'upsert_book_controller.g.dart';
@@ -24,25 +25,33 @@ class UpsertBookState {
   const UpsertBookState({
     this.existingBook,
     this.isLoading = false,
+    this.isScanning = false,
     this.error,
     this.pickedBase64Image,
+    this.scanResult,
   });
 
   final BookEntity? existingBook;
   final bool isLoading;
+  final bool isScanning;
   final String? error;
   final String? pickedBase64Image;
+  final ScannedBookEntity? scanResult;
 
   UpsertBookState copyWith({
     Nullable<BookEntity?>? existingBook,
     bool? isLoading,
+    bool? isScanning,
     Nullable<String?>? error,
     Nullable<String?>? pickedBase64Image,
+    Nullable<ScannedBookEntity?>? scanResult,
   }) => UpsertBookState(
     existingBook: existingBook != null ? existingBook.value : this.existingBook,
     isLoading: isLoading ?? this.isLoading,
+    isScanning: isScanning ?? this.isScanning,
     error: error != null ? error.value : this.error,
     pickedBase64Image: pickedBase64Image != null ? pickedBase64Image.value : this.pickedBase64Image,
+    scanResult: scanResult != null ? scanResult.value : this.scanResult,
   );
 }
 
@@ -71,6 +80,27 @@ class UpsertBookController extends _$UpsertBookController {
 
   void clearCover() {
     state = state.copyWith(pickedBase64Image: const Nullable<String?>(null));
+  }
+
+  Future<void> scanBook(Uint8List imageBytes) async {
+    state = state.copyWith(
+      isScanning: true,
+      error: const Nullable<String?>(null),
+      scanResult: const Nullable<ScannedBookEntity?>(null),
+    );
+
+    try {
+      final ScanBookUseCase useCase = ref.read(scanBookUseCaseProvider);
+      final ScannedBookEntity result = await useCase.call(imageBytes);
+
+      state = state.copyWith(isScanning: false, scanResult: Nullable<ScannedBookEntity?>(result));
+    } catch (e) {
+      state = state.copyWith(isScanning: false, error: Nullable<String?>('Scan failed: $e'));
+    }
+  }
+
+  void clearScanResult() {
+    state = state.copyWith(scanResult: const Nullable<ScannedBookEntity?>(null));
   }
 
   Future<BookEntity?> saveBook({

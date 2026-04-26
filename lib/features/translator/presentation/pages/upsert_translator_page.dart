@@ -111,7 +111,7 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
                     image: state.pickedBase64Image != null
                         ? DecorationImage(
                             image: Images.getImageProvider(state.pickedBase64Image),
-                            fit: BoxFit.cover,
+                            fit: BoxFit.contain,
                           )
                         : null,
                   ),
@@ -149,7 +149,6 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
             ),
             const SizedBox(height: 24),
 
-
             FormSection(
               title: 'Identity',
               icon: Icons.person_outline_rounded,
@@ -174,7 +173,7 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
             ),
 
             FormSection(
-              title: 'Online Presence',
+              title: 'Contact',
               icon: Icons.public_rounded,
               children: <Widget>[
                 FormTextField(

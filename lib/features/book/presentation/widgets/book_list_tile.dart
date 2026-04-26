@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/shared/domain/enums/compilation_type.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
+import '../../../author/presentation/providers/author_provider.dart';
+import '../../../translator/presentation/providers/translator_provider.dart';
 import '../../domain/entities/book_entity.dart';
 
 class BookListTile extends ConsumerWidget {
@@ -13,14 +15,12 @@ class BookListTile extends ConsumerWidget {
     required this.onTap,
     required this.onEdit,
     required this.onRemove,
-    this.firstCreatorName,
   });
 
   final BookEntity book;
   final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onRemove;
-  final String? firstCreatorName;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,17 +30,31 @@ class BookListTile extends ConsumerWidget {
     final List<String> creatorIds = book.isTranslation ? book.translatorIds : book.authorIds;
     final String creatorLabel = book.isTranslation ? 'Translator' : 'Author';
     final int additionalCount = creatorIds.length > 1 ? creatorIds.length - 1 : 0;
-    String creatorText;
 
+    String? firstCreatorName;
+    if (creatorIds.isNotEmpty) {
+      if (book.isTranslation) {
+        firstCreatorName = ref
+            .watch<AsyncValue<String?>>(translatorNameProvider(creatorIds.first))
+            .value;
+      } else {
+        firstCreatorName = ref
+            .watch<AsyncValue<String?>>(authorNameProvider(creatorIds.first))
+            .value;
+      }
+    }
+
+    String creatorText;
     if (book.compilationType == CompilationType.standalone ||
         book.compilationType == CompilationType.collection ||
         (book.compilationType == CompilationType.anthology && book.isTranslation)) {
-      if (firstCreatorName != null && firstCreatorName!.isNotEmpty) {
-        creatorText = firstCreatorName!;
-
+      if (firstCreatorName != null && firstCreatorName.isNotEmpty) {
+        creatorText = firstCreatorName;
         if (additionalCount > 0) {
           creatorText += ' + $additionalCount';
         }
+      } else if (creatorIds.isNotEmpty) {
+        creatorText = 'Loading...';
       } else {
         creatorText = 'No ${creatorLabel}s';
       }
@@ -65,14 +79,21 @@ class BookListTile extends ConsumerWidget {
             children: <Widget>[
               Hero(
                 tag: 'book_${book.id}',
-                child: CircleAvatar(
-                  radius: 32,
-                  backgroundColor: Images.getAvatarBackgroundColor(theme),
-                  backgroundImage: book.cover != null && book.cover!.isNotEmpty
-                      ? Images.getImageProvider(book.cover)
-                      : null,
+                child: Container(
+                  width: 54,
+                  height: 54 / Images.bookAspectRatio,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: Images.getAvatarBackgroundColor(theme),
+                    image: book.cover != null && book.cover!.isNotEmpty
+                        ? DecorationImage(
+                            image: Images.getImageProvider(book.cover),
+                            fit: BoxFit.contain,
+                          )
+                        : null,
+                  ),
                   child: book.cover == null || book.cover!.isEmpty
-                      ? Icon(Icons.book_rounded, color: Images.getAvatarIconColor(theme), size: 32)
+                      ? Icon(Icons.book_rounded, color: Images.getAvatarIconColor(theme), size: 28)
                       : null,
                 ),
               ),

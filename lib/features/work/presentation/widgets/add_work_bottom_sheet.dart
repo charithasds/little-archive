@@ -39,7 +39,9 @@ class _AddWorkBottomSheetState extends ConsumerState<AddWorkBottomSheet> {
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
-      final WorkEntity? savedWork = await ref.read(upsertWorkControllerProvider.notifier).saveWork(
+      final WorkEntity? savedWork = await ref
+          .read(upsertWorkControllerProvider.notifier)
+          .saveWork(
             title: _titleController.text.trim(),
             contentCategory: _contentCategory,
             isTranslation: false,

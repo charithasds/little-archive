@@ -36,10 +36,9 @@ class _AddReaderBottomSheetState extends ConsumerState<AddReaderBottomSheet> {
 
   Future<void> _save() async {
     if (_formKey.currentState!.validate()) {
-      final ReaderEntity? savedReader =
-          await ref.read(upsertReaderControllerProvider.notifier).saveReader(
-            name: _nameController.text.trim(),
-          );
+      final ReaderEntity? savedReader = await ref
+          .read(upsertReaderControllerProvider.notifier)
+          .saveReader(name: _nameController.text.trim());
 
       if (mounted) {
         if (savedReader != null) {

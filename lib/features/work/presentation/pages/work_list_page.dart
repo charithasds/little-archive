@@ -6,12 +6,6 @@ import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-import '../../../../features/author/domain/entities/author_entity.dart';
-import '../../../../features/author/presentation/providers/author_provider.dart';
-import '../../../../features/translator/domain/entities/translator_entity.dart';
-import '../../../../features/translator/presentation/providers/translator_provider.dart';
-import '../../../book/domain/entities/book_entity.dart';
-import '../../../book/presentation/providers/book_provider.dart';
 import '../../domain/entities/work_entity.dart';
 import '../../domain/usecases/work_usecases.dart';
 import '../providers/work_provider.dart';
@@ -59,10 +53,6 @@ class WorkListPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AsyncValue<List<WorkEntity>> worksAsync = ref.watch(worksStreamProvider);
-    final List<AuthorEntity> authors = ref.watch(authorsStreamProvider).value ?? <AuthorEntity>[];
-    final List<TranslatorEntity> translators =
-        ref.watch(translatorsStreamProvider).value ?? <TranslatorEntity>[];
-    final List<BookEntity> books = ref.watch(booksStreamProvider).value ?? <BookEntity>[];
 
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
@@ -105,31 +95,8 @@ class WorkListPage extends ConsumerWidget {
                   itemCount: works.length,
                   itemBuilder: (BuildContext context, int index) {
                     final WorkEntity work = works[index];
-                    String? creatorName;
-                    if (work.isTranslation) {
-                      if (work.translatorIds.isNotEmpty) {
-                        creatorName = translators
-                            .where((TranslatorEntity t) => t.id == work.translatorIds.first)
-                            .firstOrNull
-                            ?.name;
-                      }
-                    } else {
-                      if (work.authorIds.isNotEmpty) {
-                        creatorName = authors
-                            .where((AuthorEntity a) => a.id == work.authorIds.first)
-                            .firstOrNull
-                            ?.name;
-                      }
-                    }
-
-                    final String? bookCover = work.bookId != null
-                        ? books.where((BookEntity b) => b.id == work.bookId).firstOrNull?.cover
-                        : null;
-
                     return WorkListTile(
                       work: work,
-                      firstCreatorName: creatorName,
-                      bookCover: bookCover,
                       onTap: () => context.go('/works/${work.id}'),
                       onEdit: () => context.push('/works/add', extra: work),
                       onRemove: () => _handleRemove(context, ref, work.id),
@@ -148,31 +115,8 @@ class WorkListPage extends ConsumerWidget {
                   itemCount: works.length,
                   itemBuilder: (BuildContext context, int index) {
                     final WorkEntity work = works[index];
-                    String? creatorName;
-                    if (work.isTranslation) {
-                      if (work.translatorIds.isNotEmpty) {
-                        creatorName = translators
-                            .where((TranslatorEntity t) => t.id == work.translatorIds.first)
-                            .firstOrNull
-                            ?.name;
-                      }
-                    } else {
-                      if (work.authorIds.isNotEmpty) {
-                        creatorName = authors
-                            .where((AuthorEntity a) => a.id == work.authorIds.first)
-                            .firstOrNull
-                            ?.name;
-                      }
-                    }
-
-                    final String? bookCover = work.bookId != null
-                        ? books.where((BookEntity b) => b.id == work.bookId).firstOrNull?.cover
-                        : null;
-
                     return WorkListTile(
                       work: work,
-                      firstCreatorName: creatorName,
-                      bookCover: bookCover,
                       onTap: () => context.go('/works/${work.id}'),
                       onEdit: () => context.push('/works/add', extra: work),
                       onRemove: () => _handleRemove(context, ref, work.id),

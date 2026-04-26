@@ -10,15 +10,17 @@ import '../models/sequence_volume_model.dart';
 part 'sequence_remote_datasource.g.dart';
 
 abstract class SequenceRemoteDataSource {
-  String generateId();
+  String generateSequenceId();
+  String generateSequenceVolumeId();
+
   Future<List<SequenceModel>> fetchSequences();
   Future<SequenceModel?> fetchSequenceById(String id);
   Stream<List<SequenceModel>> watchSequences();
   Future<void> addSequence(SequenceModel sequence);
   Future<void> editSequence(SequenceModel sequence);
   Future<void> removeSequence(String id);
+  Future<int> fetchSequenceCount();
 
-  String generateVolumeId();
   Future<List<SequenceVolumeModel>> fetchSequenceVolumes(String sequenceId);
   Future<SequenceVolumeModel?> fetchSequenceVolumeById(String id);
   Future<List<SequenceVolumeModel>> fetchSequenceVolumesByBookId(String bookId);
@@ -36,16 +38,19 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   final String userId;
 
   FirebaseFirestore get _firestore => firestoreService.firebaseFirestore;
-  String get _collectionPath => 'users/$userId/sequences';
-  String get _volumesCollectionPath => 'users/$userId/sequence_volumes';
+  String get _sequencesPath => 'users/$userId/sequences';
+  String get _volumesPath => 'users/$userId/sequence_volumes';
 
   @override
-  String generateId() => firestoreService.generateId('sequences');
+  String generateSequenceId() => firestoreService.generateId('sequences');
+
+  @override
+  String generateSequenceVolumeId() => firestoreService.generateId('sequence_volumes');
 
   @override
   Future<List<SequenceModel>> fetchSequences() async {
     final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(_firestore.collection(_collectionPath));
+        .safeGetDocs(_firestore.collection(_sequencesPath));
 
     return docs
         .map(
@@ -58,7 +63,7 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   @override
   Future<SequenceModel?> fetchSequenceById(String id) async {
     final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
-      _firestore.collection(_collectionPath).doc(id),
+      _firestore.collection(_sequencesPath).doc(id),
     );
 
     if (doc == null || !doc.exists) {
@@ -70,7 +75,7 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
 
   @override
   Stream<List<SequenceModel>> watchSequences() => _firestore
-      .collection(_collectionPath)
+      .collection(_sequencesPath)
       .snapshots()
       .map(
         (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
@@ -85,7 +90,7 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   Future<void> addSequence(SequenceModel sequence) async {
     await firestoreService.requireConnectivity();
     await _firestore
-        .collection(_collectionPath)
+        .collection(_sequencesPath)
         .doc(sequence.id.isEmpty ? null : sequence.id)
         .set(sequence.toMap());
   }
@@ -93,23 +98,29 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   @override
   Future<void> editSequence(SequenceModel sequence) async {
     await firestoreService.requireConnectivity();
-    await _firestore.collection(_collectionPath).doc(sequence.id).update(sequence.toMap());
+    await _firestore.collection(_sequencesPath).doc(sequence.id).update(sequence.toMap());
   }
 
   @override
   Future<void> removeSequence(String id) async {
     await firestoreService.requireConnectivity();
-    await _firestore.collection(_collectionPath).doc(id).delete();
+    await _firestore.collection(_sequencesPath).doc(id).delete();
   }
 
   @override
-  String generateVolumeId() => firestoreService.generateId('sequence_volumes');
+  Future<int> fetchSequenceCount() async {
+    final AggregateQuerySnapshot snapshot = await _firestore
+        .collection(_sequencesPath)
+        .count()
+        .get();
+    return snapshot.count ?? 0;
+  }
 
   @override
   Future<List<SequenceVolumeModel>> fetchSequenceVolumes(String sequenceId) async {
     final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
         .safeGetDocs(
-          _firestore.collection(_volumesCollectionPath).where('sequenceId', isEqualTo: sequenceId),
+          _firestore.collection(_volumesPath).where('sequenceId', isEqualTo: sequenceId),
         );
 
     return docs
@@ -123,7 +134,7 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   @override
   Future<SequenceVolumeModel?> fetchSequenceVolumeById(String id) async {
     final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
-      _firestore.collection(_volumesCollectionPath).doc(id),
+      _firestore.collection(_volumesPath).doc(id),
     );
 
     if (doc == null || !doc.exists) {
@@ -136,9 +147,7 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   @override
   Future<List<SequenceVolumeModel>> fetchSequenceVolumesByBookId(String bookId) async {
     final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(
-          _firestore.collection(_volumesCollectionPath).where('bookId', isEqualTo: bookId),
-        );
+        .safeGetDocs(_firestore.collection(_volumesPath).where('bookId', isEqualTo: bookId));
 
     return docs
         .map(
@@ -151,9 +160,7 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   @override
   Future<List<SequenceVolumeModel>> fetchSequenceVolumesByWorkId(String workId) async {
     final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(
-          _firestore.collection(_volumesCollectionPath).where('workId', isEqualTo: workId),
-        );
+        .safeGetDocs(_firestore.collection(_volumesPath).where('workId', isEqualTo: workId));
 
     return docs
         .map(
@@ -165,7 +172,7 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
 
   @override
   Stream<List<SequenceVolumeModel>> watchSequenceVolumes(String sequenceId) => _firestore
-      .collection(_volumesCollectionPath)
+      .collection(_volumesPath)
       .where('sequenceId', isEqualTo: sequenceId)
       .snapshots()
       .map(
@@ -181,7 +188,7 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   Future<void> addSequenceVolume(SequenceVolumeModel volume) async {
     await firestoreService.requireConnectivity();
     await _firestore
-        .collection(_volumesCollectionPath)
+        .collection(_volumesPath)
         .doc(volume.id.isEmpty ? null : volume.id)
         .set(volume.toMap());
   }
@@ -189,13 +196,13 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   @override
   Future<void> editSequenceVolume(SequenceVolumeModel volume) async {
     await firestoreService.requireConnectivity();
-    await _firestore.collection(_volumesCollectionPath).doc(volume.id).update(volume.toMap());
+    await _firestore.collection(_volumesPath).doc(volume.id).update(volume.toMap());
   }
 
   @override
   Future<void> removeSequenceVolume(String id) async {
     await firestoreService.requireConnectivity();
-    await _firestore.collection(_volumesCollectionPath).doc(id).delete();
+    await _firestore.collection(_volumesPath).doc(id).delete();
   }
 }
 

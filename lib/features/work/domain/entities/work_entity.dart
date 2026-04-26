@@ -14,7 +14,6 @@ class WorkEntity extends Equatable {
     required this.isTranslation,
     this.language,
     this.genre,
-    this.noOfPages,
     this.originalTitle,
     this.originalLanguage,
     this.notes,
@@ -32,7 +31,6 @@ class WorkEntity extends Equatable {
   final bool isTranslation;
   final Language? language;
   final Genre? genre;
-  final int? noOfPages;
   final String? originalTitle;
   final OriginalLanguage? originalLanguage;
   final String? notes;
@@ -53,7 +51,6 @@ class WorkEntity extends Equatable {
     bool? isTranslation,
     Nullable<Language?>? language,
     Nullable<Genre?>? genre,
-    Nullable<int?>? noOfPages,
     Nullable<String?>? originalTitle,
     Nullable<OriginalLanguage?>? originalLanguage,
     Nullable<String?>? notes,
@@ -63,23 +60,21 @@ class WorkEntity extends Equatable {
     Nullable<String?>? bookId,
     DateTime? createdDate,
     DateTime? lastUpdated,
-  }) =>
-      WorkEntity(
-        id: id ?? this.id,
-        title: title ?? this.title,
-        contentCategory: contentCategory ?? this.contentCategory,
-        isTranslation: isTranslation ?? this.isTranslation,
-        language: language != null ? language.value : this.language,
-        genre: genre != null ? genre.value : this.genre,
-        noOfPages: noOfPages != null ? noOfPages.value : this.noOfPages,
-        originalTitle: originalTitle != null ? originalTitle.value : this.originalTitle,
-        originalLanguage: originalLanguage != null ? originalLanguage.value : this.originalLanguage,
-        notes: notes != null ? notes.value : this.notes,
-        authorIds: authorIds ?? this.authorIds,
-        translatorIds: translatorIds ?? this.translatorIds,
-        sequenceVolumeIds: sequenceVolumeIds ?? this.sequenceVolumeIds,
-        bookId: bookId != null ? bookId.value : this.bookId,
-        createdDate: createdDate ?? this.createdDate,
-        lastUpdated: lastUpdated ?? this.lastUpdated,
-      );
+  }) => WorkEntity(
+    id: id ?? this.id,
+    title: title ?? this.title,
+    contentCategory: contentCategory ?? this.contentCategory,
+    isTranslation: isTranslation ?? this.isTranslation,
+    language: language != null ? language.value : this.language,
+    genre: genre != null ? genre.value : this.genre,
+    originalTitle: originalTitle != null ? originalTitle.value : this.originalTitle,
+    originalLanguage: originalLanguage != null ? originalLanguage.value : this.originalLanguage,
+    notes: notes != null ? notes.value : this.notes,
+    authorIds: authorIds ?? this.authorIds,
+    translatorIds: translatorIds ?? this.translatorIds,
+    sequenceVolumeIds: sequenceVolumeIds ?? this.sequenceVolumeIds,
+    bookId: bookId != null ? bookId.value : this.bookId,
+    createdDate: createdDate ?? this.createdDate,
+    lastUpdated: lastUpdated ?? this.lastUpdated,
+  );
 }

@@ -2,19 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../author/domain/entities/author_entity.dart';
 import '../../../author/presentation/providers/author_provider.dart';
-import '../../../book/domain/entities/book_entity.dart';
 import '../../../book/presentation/providers/book_provider.dart';
-import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
-import '../../../reader/domain/entities/reader_entity.dart';
 import '../../../reader/presentation/providers/reader_provider.dart';
-import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
-import '../../../translator/domain/entities/translator_entity.dart';
 import '../../../translator/presentation/providers/translator_provider.dart';
-import '../../../work/domain/entities/work_entity.dart';
 import '../../../work/presentation/providers/work_provider.dart';
 import 'dashboard_card.dart';
 
@@ -23,25 +16,21 @@ class Dashboard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final AsyncValue<List<BookEntity>> booksAsync = ref.watch(booksStreamProvider);
-    final AsyncValue<List<WorkEntity>> worksAsync = ref.watch(worksStreamProvider);
-    final AsyncValue<List<AuthorEntity>> authorsAsync = ref.watch(authorsStreamProvider);
-    final AsyncValue<List<TranslatorEntity>> translatorsAsync = ref.watch(
-      translatorsStreamProvider,
-    );
-    final AsyncValue<List<PublisherEntity>> publishersAsync = ref.watch(
-      publishersStreamProvider,
-    );
-    final AsyncValue<List<SequenceEntity>> sequencesAsync = ref.watch(sequencesStreamProvider);
-    final AsyncValue<List<ReaderEntity>> readersAsync = ref.watch(readersStreamProvider);
+    final AsyncValue<int> bookCountAsync = ref.watch(bookCountProvider);
+    final AsyncValue<int> workCountAsync = ref.watch(workCountProvider);
+    final AsyncValue<int> authorCountAsync = ref.watch(authorCountProvider);
+    final AsyncValue<int> translatorCountAsync = ref.watch(translatorCountProvider);
+    final AsyncValue<int> publisherCountAsync = ref.watch(publisherCountProvider);
+    final AsyncValue<int> sequenceCountAsync = ref.watch(sequenceCountProvider);
+    final AsyncValue<int> readerCountAsync = ref.watch(readerCountProvider);
 
-    final int? bookCount = _count(booksAsync);
-    final int? workCount = _count(worksAsync);
-    final int? authorCount = _count(authorsAsync);
-    final int? translatorCount = _count(translatorsAsync);
-    final int? publisherCount = _count(publishersAsync);
-    final int? sequenceCount = _count(sequencesAsync);
-    final int? readerCount = _count(readersAsync);
+    final int? bookCount = bookCountAsync.value;
+    final int? workCount = workCountAsync.value;
+    final int? authorCount = authorCountAsync.value;
+    final int? translatorCount = translatorCountAsync.value;
+    final int? publisherCount = publisherCountAsync.value;
+    final int? sequenceCount = sequenceCountAsync.value;
+    final int? readerCount = readerCountAsync.value;
 
     final List<_CardDef> cards = <_CardDef>[
       _CardDef(
@@ -115,12 +104,6 @@ class Dashboard extends ConsumerWidget {
       ],
     );
   }
-
-  static int? _count(AsyncValue<List<Object?>> asyncValue) => asyncValue.when(
-    data: (List<Object?> d) => d.length,
-    loading: () => null,
-    error: (Object _, StackTrace _) => 0,
-  );
 
   static String _label(int? count, String singular) {
     if (count == null) {

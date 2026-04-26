@@ -23,6 +23,7 @@ import '../../../../features/sequence/domain/entities/sequence_entity.dart';
 import '../../../../features/sequence/presentation/pages/sequence_detail_page.dart';
 import '../../../../features/sequence/presentation/pages/sequence_list_page.dart';
 import '../../../../features/sequence/presentation/pages/upsert_sequence_page.dart';
+import '../../../../features/settings/presentation/pages/settings_page.dart';
 import '../../../../features/translator/domain/entities/translator_entity.dart';
 import '../../../../features/translator/presentation/pages/translator_detail_page.dart';
 import '../../../../features/translator/presentation/pages/translator_list_page.dart';
@@ -196,6 +197,11 @@ class RouterService {
               },
             ),
           ],
+        ),
+
+        GoRoute(
+          path: 'settings',
+          builder: (BuildContext context, GoRouterState state) => const SettingsPage(),
         ),
       ],
     ),

@@ -114,10 +114,11 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
                   height: 120,
                   decoration: Images.getPickerDecoration(
                     theme,
+                    shape: ImageShape.square,
                     image: state.pickedBase64Logo != null
                         ? DecorationImage(
                             image: Images.getImageProvider(state.pickedBase64Logo),
-                            fit: BoxFit.cover,
+                            fit: BoxFit.contain,
                           )
                         : null,
                   ),
@@ -154,7 +155,6 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
               ),
             ),
             const SizedBox(height: 24),
-
 
             FormSection(
               title: 'Identity',

@@ -10,13 +10,13 @@ part 'work_remote_datasource.g.dart';
 
 abstract class WorkRemoteDataSource {
   String generateId();
-
   Future<List<WorkModel>> fetchWorks();
   Future<WorkModel?> fetchWorkById(String id);
   Stream<List<WorkModel>> watchWorks();
   Future<void> addWork(WorkModel work);
   Future<void> editWork(WorkModel work);
   Future<void> removeWork(String id);
+  Future<int> fetchCount();
 }
 
 class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
@@ -33,8 +33,8 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
 
   @override
   Future<List<WorkModel>> fetchWorks() async {
-    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs =
-        await firestoreService.safeGetDocs(_firestore.collection(_collectionPath));
+    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
+        .safeGetDocs(_firestore.collection(_collectionPath));
 
     return docs
         .map(
@@ -46,8 +46,9 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
 
   @override
   Future<WorkModel?> fetchWorkById(String id) async {
-    final DocumentSnapshot<Map<String, dynamic>>? doc =
-        await firestoreService.safeGetDoc(_firestore.collection(_collectionPath).doc(id));
+    final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
+      _firestore.collection(_collectionPath).doc(id),
+    );
 
     if (doc == null || !doc.exists) {
       return null;
@@ -88,6 +89,15 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
   Future<void> removeWork(String id) async {
     await firestoreService.requireConnectivity();
     await _firestore.collection(_collectionPath).doc(id).delete();
+  }
+
+  @override
+  Future<int> fetchCount() async {
+    final AggregateQuerySnapshot snapshot = await _firestore
+        .collection(_collectionPath)
+        .count()
+        .get();
+    return snapshot.count ?? 0;
   }
 }
 

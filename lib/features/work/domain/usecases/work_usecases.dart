@@ -36,6 +36,13 @@ class WatchWorksUseCase {
   Stream<List<WorkEntity>> call() => repository.watchWorks();
 }
 
+class FetchWorkCountUseCase {
+  const FetchWorkCountUseCase(this.repository);
+  final WorkRepository repository;
+
+  Future<int> call() => repository.fetchCount();
+}
+
 class AddWorkUseCase {
   const AddWorkUseCase(this.repository);
   final WorkRepository repository;
@@ -58,10 +65,7 @@ class RemoveWorkUseCase {
 }
 
 class UpsertWorkUseCase {
-  const UpsertWorkUseCase({
-    required this.workRepository,
-    required this.syncSequenceVolumesUseCase,
-  });
+  const UpsertWorkUseCase({required this.workRepository, required this.syncSequenceVolumesUseCase});
 
   final WorkRepository workRepository;
   final SyncWorkSequenceVolumesUseCase syncSequenceVolumesUseCase;
@@ -104,6 +108,10 @@ FetchWorkByIdUseCase fetchWorkByIdUseCase(Ref ref) =>
 @riverpod
 WatchWorksUseCase watchWorksUseCase(Ref ref) =>
     WatchWorksUseCase(ref.watch(workRepositoryProvider));
+
+@riverpod
+FetchWorkCountUseCase fetchWorkCountUseCase(Ref ref) =>
+    FetchWorkCountUseCase(ref.watch(workRepositoryProvider));
 
 @riverpod
 AddWorkUseCase addWorkUseCase(Ref ref) => AddWorkUseCase(ref.watch(workRepositoryProvider));

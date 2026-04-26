@@ -59,10 +59,7 @@ class DashboardCard extends ConsumerWidget {
                 SizedBox(
                   width: 24,
                   height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    color: cs.primary,
-                  ),
+                  child: CircularProgressIndicator(strokeWidth: 2.5, color: cs.primary),
                 ),
               const SizedBox(height: 4),
               Text(

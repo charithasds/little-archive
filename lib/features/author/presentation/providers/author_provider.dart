@@ -17,3 +17,22 @@ Stream<List<AuthorEntity>> authorsStream(Ref ref) {
 
   return watchAuthors();
 }
+
+@riverpod
+Future<int> authorCount(Ref ref) async {
+  final FetchAuthorCountUseCase fetchAuthorCount = ref.watch(fetchAuthorCountUseCaseProvider);
+  final String? userId = ref.watch(currentUidProvider);
+
+  if (userId == null) {
+    return 0;
+  }
+
+  return fetchAuthorCount();
+}
+
+@riverpod
+Future<String?> authorName(Ref ref, String id) async {
+  final FetchAuthorByIdUseCase fetchAuthor = ref.watch(fetchAuthorByIdUseCaseProvider);
+  final AuthorEntity? author = await fetchAuthor(id);
+  return author?.name;
+}

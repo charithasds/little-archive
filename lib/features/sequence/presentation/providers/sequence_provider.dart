@@ -20,6 +20,18 @@ Stream<List<SequenceEntity>> sequencesStream(Ref ref) {
 }
 
 @riverpod
+Future<int> sequenceCount(Ref ref) async {
+  final FetchSequenceCountUseCase fetchSequenceCount = ref.watch(fetchSequenceCountUseCaseProvider);
+  final String? userId = ref.watch(currentUidProvider);
+
+  if (userId == null) {
+    return 0;
+  }
+
+  return fetchSequenceCount();
+}
+
+@riverpod
 Stream<List<SequenceVolumeEntity>> sequenceVolumesStream(Ref ref, String sequenceId) {
   final WatchSequenceVolumesUseCase watchVolumes = ref.watch(watchSequenceVolumesUseCaseProvider);
   final String? userId = ref.watch(currentUidProvider);
