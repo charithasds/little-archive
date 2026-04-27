@@ -20,3 +20,14 @@ Stream<List<PublisherEntity>> publishersStream(Ref ref) {
 
 @riverpod
 int? publisherCount(Ref ref) => ref.watch(publishersStreamProvider).value?.length;
+
+@riverpod
+Future<PublisherEntity?> publisher(Ref ref, String id) async {
+  final List<PublisherEntity> publishers = await ref.watch(publishersStreamProvider.future);
+
+  try {
+    return publishers.firstWhere((PublisherEntity p) => p.id == id);
+  } catch (_) {
+    return null;
+  }
+}

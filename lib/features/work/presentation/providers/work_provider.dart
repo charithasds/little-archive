@@ -20,3 +20,14 @@ Stream<List<WorkEntity>> worksStream(Ref ref) {
 
 @riverpod
 int? workCount(Ref ref) => ref.watch(worksStreamProvider).value?.length;
+
+@riverpod
+Future<WorkEntity?> work(Ref ref, String id) async {
+  final List<WorkEntity> works = await ref.watch(worksStreamProvider.future);
+
+  try {
+    return works.firstWhere((WorkEntity w) => w.id == id);
+  } catch (_) {
+    return null;
+  }
+}

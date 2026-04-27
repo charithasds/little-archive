@@ -111,7 +111,9 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   Future<List<SequenceVolumeModel>> fetchSequenceVolumes(String sequenceId) async {
     final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
         .safeGetDocs(
-          _firestore.collection(_volumesPath).where('sequenceId', isEqualTo: sequenceId).orderBy('volume'),
+          _firestore
+              .collection(_volumesPath)
+              .where('sequenceId', isEqualTo: sequenceId),
         );
 
     return docs
@@ -165,7 +167,6 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   Stream<List<SequenceVolumeModel>> watchSequenceVolumes(String sequenceId) => _firestore
       .collection(_volumesPath)
       .where('sequenceId', isEqualTo: sequenceId)
-      .orderBy('volume')
       .snapshots()
       .map(
         (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs

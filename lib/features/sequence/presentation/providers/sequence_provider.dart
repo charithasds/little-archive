@@ -23,6 +23,25 @@ Stream<List<SequenceEntity>> sequencesStream(Ref ref) {
 int? sequenceCount(Ref ref) => ref.watch(sequencesStreamProvider).value?.length;
 
 @riverpod
+Future<SequenceEntity?> sequence(Ref ref, String id) async {
+  final List<SequenceEntity> sequences = await ref.watch(sequencesStreamProvider.future);
+
+  try {
+    return sequences.firstWhere((SequenceEntity s) => s.id == id);
+  } catch (_) {
+    return null;
+  }
+}
+
+@riverpod
+Future<SequenceVolumeEntity?> sequenceVolume(Ref ref, String id) async {
+  final FetchSequenceVolumeByIdUseCase fetchVolume = ref.watch(
+    fetchSequenceVolumeByIdUseCaseProvider,
+  );
+  return fetchVolume(id);
+}
+
+@riverpod
 Stream<List<SequenceVolumeEntity>> sequenceVolumesStream(Ref ref, String sequenceId) {
   final WatchSequenceVolumesUseCase watchVolumes = ref.watch(watchSequenceVolumesUseCaseProvider);
   final String? userId = ref.watch(currentUidProvider);

@@ -12,13 +12,15 @@ class BookListTile extends ConsumerWidget {
   const BookListTile({
     super.key,
     required this.book,
-    required this.onTap,
+    this.onTap,
+    this.onInfo,
     required this.onEdit,
     required this.onRemove,
   });
 
   final BookEntity book;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+  final VoidCallback? onInfo;
   final VoidCallback onEdit;
   final VoidCallback onRemove;
 
@@ -34,13 +36,9 @@ class BookListTile extends ConsumerWidget {
     String? firstCreatorName;
     if (creatorIds.isNotEmpty) {
       if (book.isTranslation) {
-        firstCreatorName = ref
-            .watch<AsyncValue<String?>>(translatorNameProvider(creatorIds.first))
-            .value;
+        firstCreatorName = ref.watch(translatorProvider(creatorIds.first)).value?.name;
       } else {
-        firstCreatorName = ref
-            .watch<AsyncValue<String?>>(authorNameProvider(creatorIds.first))
-            .value;
+        firstCreatorName = ref.watch(authorProvider(creatorIds.first)).value?.name;
       }
     }
 
@@ -72,7 +70,7 @@ class BookListTile extends ConsumerWidget {
       color: colorScheme.primaryContainer.withValues(alpha: 0.2),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: InkWell(
-        onTap: onTap,
+        onTap: onTap ?? onInfo,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -136,6 +134,12 @@ class BookListTile extends ConsumerWidget {
               ),
               Column(
                 children: <Widget>[
+                  if (onInfo != null)
+                    IconButton(
+                      icon: Icon(Icons.info_outline_rounded, color: colorScheme.primary),
+                      onPressed: onInfo,
+                      tooltip: 'Info',
+                    ),
                   IconButton(
                     icon: Icon(Icons.edit_note_rounded, color: colorScheme.primary),
                     onPressed: onEdit,

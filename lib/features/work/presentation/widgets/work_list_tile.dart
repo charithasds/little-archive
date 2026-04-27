@@ -12,13 +12,15 @@ class WorkListTile extends ConsumerWidget {
   const WorkListTile({
     super.key,
     required this.work,
-    required this.onTap,
+    this.onTap,
+    this.onInfo,
     required this.onEdit,
     required this.onRemove,
   });
 
   final WorkEntity work;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+  final VoidCallback? onInfo;
   final VoidCallback onEdit;
   final VoidCallback onRemove;
 
@@ -34,18 +36,14 @@ class WorkListTile extends ConsumerWidget {
     String? firstCreatorName;
     if (creatorIds.isNotEmpty) {
       if (work.isTranslation) {
-        firstCreatorName = ref
-            .watch<AsyncValue<String?>>(translatorNameProvider(creatorIds.first))
-            .value;
+        firstCreatorName = ref.watch(translatorProvider(creatorIds.first)).value?.name;
       } else {
-        firstCreatorName = ref
-            .watch<AsyncValue<String?>>(authorNameProvider(creatorIds.first))
-            .value;
+        firstCreatorName = ref.watch(authorProvider(creatorIds.first)).value?.name;
       }
     }
 
     final String? bookCover = work.bookId != null
-        ? ref.watch<AsyncValue<String?>>(bookCoverProvider(work.bookId!)).value
+        ? ref.watch(bookProvider(work.bookId!)).value?.cover
         : null;
 
     String creatorText;
@@ -70,7 +68,7 @@ class WorkListTile extends ConsumerWidget {
       color: colorScheme.primaryContainer.withValues(alpha: 0.2),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: InkWell(
-        onTap: onTap,
+        onTap: onTap ?? onInfo,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -138,6 +136,12 @@ class WorkListTile extends ConsumerWidget {
               ),
               Column(
                 children: <Widget>[
+                  if (onInfo != null)
+                    IconButton(
+                      icon: Icon(Icons.info_outline_rounded, color: colorScheme.primary),
+                      onPressed: onInfo,
+                      tooltip: 'Info',
+                    ),
                   IconButton(
                     icon: Icon(Icons.edit_note_rounded, color: colorScheme.primary),
                     onPressed: onEdit,

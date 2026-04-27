@@ -22,8 +22,12 @@ Stream<List<BookEntity>> booksStream(Ref ref) {
 int? bookCount(Ref ref) => ref.watch(booksStreamProvider).value?.length;
 
 @riverpod
-Future<String?> bookCover(Ref ref, String id) async {
-  final FetchBookByIdUseCase fetchBook = ref.watch(fetchBookByIdUseCaseProvider);
-  final BookEntity? book = await fetchBook(id);
-  return book?.cover;
+Future<BookEntity?> book(Ref ref, String id) async {
+  final List<BookEntity> books = await ref.watch(booksStreamProvider.future);
+
+  try {
+    return books.firstWhere((BookEntity b) => b.id == id);
+  } catch (_) {
+    return null;
+  }
 }

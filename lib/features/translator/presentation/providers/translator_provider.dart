@@ -22,8 +22,12 @@ Stream<List<TranslatorEntity>> translatorsStream(Ref ref) {
 int? translatorCount(Ref ref) => ref.watch(translatorsStreamProvider).value?.length;
 
 @riverpod
-Future<String?> translatorName(Ref ref, String id) async {
-  final FetchTranslatorByIdUseCase fetchTranslator = ref.watch(fetchTranslatorByIdUseCaseProvider);
-  final TranslatorEntity? translator = await fetchTranslator(id);
-  return translator?.name;
+Future<TranslatorEntity?> translator(Ref ref, String id) async {
+  final List<TranslatorEntity> translators = await ref.watch(translatorsStreamProvider.future);
+
+  try {
+    return translators.firstWhere((TranslatorEntity t) => t.id == id);
+  } catch (_) {
+    return null;
+  }
 }

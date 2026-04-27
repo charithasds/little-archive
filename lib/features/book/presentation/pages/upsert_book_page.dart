@@ -94,6 +94,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
   List<WorkEntity> _selectedWorks = <WorkEntity>[];
 
   bool _isEditingInitialized = false;
+  bool _useAiScan = false;
 
   bool get _hasConnectedWorks =>
       widget.existingBook != null && widget.existingBook!.workIds.isNotEmpty;
@@ -269,6 +270,14 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
       final Uint8List imageBytes = await pickedFile.readAsBytes();
       ref.read(upsertBookControllerProvider.notifier).setCover(base64Encode(imageBytes));
       await ref.read(upsertBookControllerProvider.notifier).scanBook(imageBytes);
+    }
+  }
+
+  Future<void> _handleCoverAction() async {
+    if (_useAiScan) {
+      await _scanBook();
+    } else {
+      await ref.read(upsertBookControllerProvider.notifier).pickImage();
     }
   }
 
@@ -605,41 +614,62 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
               Center(
-                child: Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  alignment: WrapAlignment.center,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    TextButton.icon(
-                      onPressed: () => ref.read(upsertBookControllerProvider.notifier).pickImage(),
-                      icon: const Icon(Icons.camera_rounded),
-                      label: Text(state.pickedBase64Image == null ? 'Add Cover' : 'Change Cover'),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: <Widget>[
+                        TextButton.icon(
+                          onPressed: state.isScanning ? null : _handleCoverAction,
+                          icon: state.isScanning
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(Icons.add_photo_alternate_rounded),
+                          label:
+                              Text(state.pickedBase64Image == null ? 'Add Cover' : 'Change Cover'),
+                        ),
+                        if (state.pickedBase64Image != null)
+                          TextButton.icon(
+                            onPressed: () =>
+                                ref.read(upsertBookControllerProvider.notifier).clearCover(),
+                            icon: const Icon(Icons.delete_rounded),
+                            label: const Text('Remove'),
+                            style: TextButton.styleFrom(foregroundColor: colorScheme.error),
+                          ),
+                      ],
                     ),
-                    TextButton.icon(
-                      onPressed: state.isScanning ? null : _scanBook,
-                      icon: state.isScanning
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.document_scanner_rounded),
-                      label: Text(
-                        state.pickedBase64Image == null
-                            ? 'Add Cover + Auto-fill from Gemini'
-                            : 'Change Cover + Auto-fill from Gemini',
-                      ),
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text(
+                          'Auto-fill from Gemini',
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Transform.scale(
+                          scale: 0.8,
+                          child: Switch(
+                            value: _useAiScan,
+                            onChanged: (bool v) => setState(() => _useAiScan = v),
+                            activeTrackColor: colorScheme.primaryContainer,
+                            activeColor: colorScheme.primary,
+                          ),
+                        ),
+                      ],
                     ),
-                    if (state.pickedBase64Image != null)
-                      TextButton.icon(
-                        onPressed: () =>
-                            ref.read(upsertBookControllerProvider.notifier).clearCover(),
-                        icon: const Icon(Icons.delete_rounded),
-                        label: const Text('Remove Cover'),
-                        style: TextButton.styleFrom(foregroundColor: colorScheme.error),
-                      ),
                   ],
                 ),
               ),
