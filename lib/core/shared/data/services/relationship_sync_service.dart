@@ -32,11 +32,12 @@ class RelationshipSyncService {
     List<String> oldWorkIds = const <String>[],
     String? oldPublisherId,
     String? oldReaderId,
+    WriteBatch? batch,
   }) async {
-    final WriteBatch batch = _firestore.batch();
+    final WriteBatch b = batch ?? _firestore.batch();
 
     await _syncEntityRelationship(
-      batch: batch,
+      batch: b,
       collection: 'authors',
       fieldName: 'bookIds',
       entityId: bookId,
@@ -45,7 +46,7 @@ class RelationshipSyncService {
     );
 
     await _syncEntityRelationship(
-      batch: batch,
+      batch: b,
       collection: 'translators',
       fieldName: 'bookIds',
       entityId: bookId,
@@ -54,7 +55,7 @@ class RelationshipSyncService {
     );
 
     await _syncEntityRelationship(
-      batch: batch,
+      batch: b,
       collection: 'works',
       fieldName: 'bookId',
       entityId: bookId,
@@ -64,7 +65,7 @@ class RelationshipSyncService {
     );
 
     await _syncEntityRelationship(
-      batch: batch,
+      batch: b,
       collection: 'sequence_volumes',
       fieldName: 'bookId',
       entityId: bookId,
@@ -74,7 +75,7 @@ class RelationshipSyncService {
     );
 
     await _syncSingleEntityRelationship(
-      batch: batch,
+      batch: b,
       collection: 'publishers',
       fieldName: 'bookIds',
       entityId: bookId,
@@ -83,7 +84,7 @@ class RelationshipSyncService {
     );
 
     await _syncSingleEntityRelationship(
-      batch: batch,
+      batch: b,
       collection: 'readers',
       fieldName: 'bookIds',
       entityId: bookId,
@@ -91,7 +92,9 @@ class RelationshipSyncService {
       oldId: oldReaderId,
     );
 
-    await batch.commit();
+    if (batch == null) {
+      await b.commit();
+    }
   }
 
   Future<void> syncWorkRelationships({
@@ -104,11 +107,12 @@ class RelationshipSyncService {
     List<String> oldTranslatorIds = const <String>[],
     List<String> oldSequenceVolumeIds = const <String>[],
     String? oldBookId,
+    WriteBatch? batch,
   }) async {
-    final WriteBatch batch = _firestore.batch();
+    final WriteBatch b = batch ?? _firestore.batch();
 
     await _syncEntityRelationship(
-      batch: batch,
+      batch: b,
       collection: 'authors',
       fieldName: 'workIds',
       entityId: workId,
@@ -117,7 +121,7 @@ class RelationshipSyncService {
     );
 
     await _syncEntityRelationship(
-      batch: batch,
+      batch: b,
       collection: 'translators',
       fieldName: 'workIds',
       entityId: workId,
@@ -126,7 +130,7 @@ class RelationshipSyncService {
     );
 
     await _syncSingleEntityRelationship(
-      batch: batch,
+      batch: b,
       collection: 'books',
       fieldName: 'workIds',
       entityId: workId,
@@ -135,7 +139,7 @@ class RelationshipSyncService {
     );
 
     await _syncEntityRelationship(
-      batch: batch,
+      batch: b,
       collection: 'sequence_volumes',
       fieldName: 'workId',
       entityId: workId,
@@ -144,7 +148,9 @@ class RelationshipSyncService {
       isSingleSync: true,
     );
 
-    await batch.commit();
+    if (batch == null) {
+      await b.commit();
+    }
   }
 
   Future<void> syncAuthorRelationships({
@@ -153,11 +159,12 @@ class RelationshipSyncService {
     required List<String> newWorkIds,
     List<String> oldBookIds = const <String>[],
     List<String> oldWorkIds = const <String>[],
+    WriteBatch? batch,
   }) async {
-    final WriteBatch batch = _firestore.batch();
+    final WriteBatch b = batch ?? _firestore.batch();
 
     await _syncEntityRelationship(
-      batch: batch,
+      batch: b,
       collection: 'books',
       fieldName: 'authorIds',
       entityId: authorId,
@@ -166,7 +173,7 @@ class RelationshipSyncService {
     );
 
     await _syncEntityRelationship(
-      batch: batch,
+      batch: b,
       collection: 'works',
       fieldName: 'authorIds',
       entityId: authorId,
@@ -174,7 +181,9 @@ class RelationshipSyncService {
       oldIds: oldWorkIds,
     );
 
-    await batch.commit();
+    if (batch == null) {
+      await b.commit();
+    }
   }
 
   Future<void> syncTranslatorRelationships({
@@ -183,11 +192,12 @@ class RelationshipSyncService {
     required List<String> newWorkIds,
     List<String> oldBookIds = const <String>[],
     List<String> oldWorkIds = const <String>[],
+    WriteBatch? batch,
   }) async {
-    final WriteBatch batch = _firestore.batch();
+    final WriteBatch b = batch ?? _firestore.batch();
 
     await _syncEntityRelationship(
-      batch: batch,
+      batch: b,
       collection: 'books',
       fieldName: 'translatorIds',
       entityId: translatorId,
@@ -196,7 +206,7 @@ class RelationshipSyncService {
     );
 
     await _syncEntityRelationship(
-      batch: batch,
+      batch: b,
       collection: 'works',
       fieldName: 'translatorIds',
       entityId: translatorId,
@@ -204,18 +214,21 @@ class RelationshipSyncService {
       oldIds: oldWorkIds,
     );
 
-    await batch.commit();
+    if (batch == null) {
+      await b.commit();
+    }
   }
 
   Future<void> syncPublisherRelationships({
     required String publisherId,
     required List<String> newBookIds,
     List<String> oldBookIds = const <String>[],
+    WriteBatch? batch,
   }) async {
-    final WriteBatch batch = _firestore.batch();
+    final WriteBatch b = batch ?? _firestore.batch();
 
     await _syncEntityRelationship(
-      batch: batch,
+      batch: b,
       collection: 'books',
       fieldName: 'publisherId',
       entityId: publisherId,
@@ -224,18 +237,21 @@ class RelationshipSyncService {
       isSingleSync: true,
     );
 
-    await batch.commit();
+    if (batch == null) {
+      await b.commit();
+    }
   }
 
   Future<void> syncReaderRelationships({
     required String readerId,
     required List<String> newBookIds,
     List<String> oldBookIds = const <String>[],
+    WriteBatch? batch,
   }) async {
-    final WriteBatch batch = _firestore.batch();
+    final WriteBatch b = batch ?? _firestore.batch();
 
     await _syncEntityRelationship(
-      batch: batch,
+      batch: b,
       collection: 'books',
       fieldName: 'readerId',
       entityId: readerId,
@@ -244,18 +260,21 @@ class RelationshipSyncService {
       isSingleSync: true,
     );
 
-    await batch.commit();
+    if (batch == null) {
+      await b.commit();
+    }
   }
 
   Future<void> syncSequenceRelationships({
     required String sequenceId,
     required List<String> newSequenceVolumeIds,
     List<String> oldSequenceVolumeIds = const <String>[],
+    WriteBatch? batch,
   }) async {
-    final WriteBatch batch = _firestore.batch();
+    final WriteBatch b = batch ?? _firestore.batch();
 
     await _syncEntityRelationship(
-      batch: batch,
+      batch: b,
       collection: 'sequence_volumes',
       fieldName: 'sequenceId',
       entityId: sequenceId,
@@ -264,22 +283,25 @@ class RelationshipSyncService {
       isSingleSync: true,
     );
 
-    await batch.commit();
+    if (batch == null) {
+      await b.commit();
+    }
   }
 
   Future<void> syncSequenceVolumeRelationships({
     required String volumeId,
-    required String newSequenceId,
-    String? newBookId,
-    String? newWorkId,
+    String? newSequenceId,
     String? oldSequenceId,
+    String? newBookId,
     String? oldBookId,
+    String? newWorkId,
     String? oldWorkId,
+    WriteBatch? batch,
   }) async {
-    final WriteBatch batch = _firestore.batch();
+    final WriteBatch b = batch ?? _firestore.batch();
 
     await _syncSingleEntityRelationship(
-      batch: batch,
+      batch: b,
       collection: 'sequences',
       fieldName: 'sequenceVolumeIds',
       entityId: volumeId,
@@ -288,7 +310,7 @@ class RelationshipSyncService {
     );
 
     await _syncSingleEntityRelationship(
-      batch: batch,
+      batch: b,
       collection: 'books',
       fieldName: 'sequenceVolumeIds',
       entityId: volumeId,
@@ -297,7 +319,7 @@ class RelationshipSyncService {
     );
 
     await _syncSingleEntityRelationship(
-      batch: batch,
+      batch: b,
       collection: 'works',
       fieldName: 'sequenceVolumeIds',
       entityId: volumeId,
@@ -305,7 +327,9 @@ class RelationshipSyncService {
       oldId: oldWorkId,
     );
 
-    await batch.commit();
+    if (batch == null) {
+      await b.commit();
+    }
   }
 
   Future<void> removeBookRelationships({
@@ -316,18 +340,19 @@ class RelationshipSyncService {
     required List<String> workIds,
     String? publisherId,
     String? readerId,
+    WriteBatch? batch,
   }) async {
-    final WriteBatch batch = _firestore.batch();
+    final WriteBatch b = batch ?? _firestore.batch();
 
     for (final String authorId in authorIds) {
-      batch.set(_firestore.collection(_collectionPath('authors')).doc(authorId), <String, dynamic>{
+      b.set(_firestore.collection(_collectionPath('authors')).doc(authorId), <String, dynamic>{
         'bookIds': FieldValue.arrayRemove(<dynamic>[bookId]),
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }
 
     for (final String translatorId in translatorIds) {
-      batch.set(
+      b.set(
         _firestore.collection(_collectionPath('translators')).doc(translatorId),
         <String, dynamic>{
           'bookIds': FieldValue.arrayRemove(<dynamic>[bookId]),
@@ -338,14 +363,14 @@ class RelationshipSyncService {
     }
 
     for (final String workId in workIds) {
-      batch.set(_firestore.collection(_collectionPath('works')).doc(workId), <String, dynamic>{
+      b.set(_firestore.collection(_collectionPath('works')).doc(workId), <String, dynamic>{
         'bookId': null,
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }
 
     for (final String volumeId in sequenceVolumeIds) {
-      batch.set(
+      b.set(
         _firestore.collection(_collectionPath('sequence_volumes')).doc(volumeId),
         <String, dynamic>{'bookId': null, 'lastUpdated': FieldValue.serverTimestamp()},
         SetOptions(merge: true),
@@ -353,7 +378,7 @@ class RelationshipSyncService {
     }
 
     if (publisherId != null) {
-      batch.set(
+      b.set(
         _firestore.collection(_collectionPath('publishers')).doc(publisherId),
         <String, dynamic>{
           'bookIds': FieldValue.arrayRemove(<dynamic>[bookId]),
@@ -364,13 +389,15 @@ class RelationshipSyncService {
     }
 
     if (readerId != null) {
-      batch.set(_firestore.collection(_collectionPath('readers')).doc(readerId), <String, dynamic>{
+      b.set(_firestore.collection(_collectionPath('readers')).doc(readerId), <String, dynamic>{
         'bookIds': FieldValue.arrayRemove(<dynamic>[bookId]),
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }
 
-    await batch.commit();
+    if (batch == null) {
+      await b.commit();
+    }
   }
 
   Future<void> removeWorkRelationships({
@@ -379,18 +406,19 @@ class RelationshipSyncService {
     required List<String> translatorIds,
     required List<String> sequenceVolumeIds,
     String? bookId,
+    WriteBatch? batch,
   }) async {
-    final WriteBatch batch = _firestore.batch();
+    final WriteBatch b = batch ?? _firestore.batch();
 
     for (final String authorId in authorIds) {
-      batch.set(_firestore.collection(_collectionPath('authors')).doc(authorId), <String, dynamic>{
+      b.set(_firestore.collection(_collectionPath('authors')).doc(authorId), <String, dynamic>{
         'workIds': FieldValue.arrayRemove(<dynamic>[workId]),
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }
 
     for (final String translatorId in translatorIds) {
-      batch.set(
+      b.set(
         _firestore.collection(_collectionPath('translators')).doc(translatorId),
         <String, dynamic>{
           'workIds': FieldValue.arrayRemove(<dynamic>[workId]),
@@ -401,118 +429,135 @@ class RelationshipSyncService {
     }
 
     if (bookId != null && bookId.isNotEmpty) {
-      batch.set(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
+      b.set(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
         'workIds': FieldValue.arrayRemove(<dynamic>[workId]),
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }
 
     for (final String volumeId in sequenceVolumeIds) {
-      batch.set(
+      b.set(
         _firestore.collection(_collectionPath('sequence_volumes')).doc(volumeId),
         <String, dynamic>{'workId': null, 'lastUpdated': FieldValue.serverTimestamp()},
         SetOptions(merge: true),
       );
     }
 
-    await batch.commit();
+    if (batch == null) {
+      await b.commit();
+    }
   }
 
   Future<void> removeAuthorRelationships({
     required String authorId,
     required List<String> bookIds,
     required List<String> workIds,
+    WriteBatch? batch,
   }) async {
-    final WriteBatch batch = _firestore.batch();
+    final WriteBatch b = batch ?? _firestore.batch();
 
     for (final String bookId in bookIds) {
-      batch.set(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
+      b.set(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
         'authorIds': FieldValue.arrayRemove(<dynamic>[authorId]),
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }
 
     for (final String workId in workIds) {
-      batch.set(_firestore.collection(_collectionPath('works')).doc(workId), <String, dynamic>{
+      b.set(_firestore.collection(_collectionPath('works')).doc(workId), <String, dynamic>{
         'authorIds': FieldValue.arrayRemove(<dynamic>[authorId]),
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }
 
-    await batch.commit();
+    if (batch == null) {
+      await b.commit();
+    }
   }
 
   Future<void> removeTranslatorRelationships({
     required String translatorId,
     required List<String> bookIds,
     required List<String> workIds,
+    WriteBatch? batch,
   }) async {
-    final WriteBatch batch = _firestore.batch();
+    final WriteBatch b = batch ?? _firestore.batch();
 
     for (final String bookId in bookIds) {
-      batch.set(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
+      b.set(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
         'translatorIds': FieldValue.arrayRemove(<dynamic>[translatorId]),
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }
 
     for (final String workId in workIds) {
-      batch.set(_firestore.collection(_collectionPath('works')).doc(workId), <String, dynamic>{
+      b.set(_firestore.collection(_collectionPath('works')).doc(workId), <String, dynamic>{
         'translatorIds': FieldValue.arrayRemove(<dynamic>[translatorId]),
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }
 
-    await batch.commit();
+    if (batch == null) {
+      await b.commit();
+    }
   }
 
   Future<void> removePublisherRelationships({
     required String publisherId,
     required List<String> bookIds,
+    WriteBatch? batch,
   }) async {
-    final WriteBatch batch = _firestore.batch();
+    final WriteBatch b = batch ?? _firestore.batch();
 
     for (final String bookId in bookIds) {
-      batch.set(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
+      b.set(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
         'publisherId': null,
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }
 
-    await batch.commit();
+    if (batch == null) {
+      await b.commit();
+    }
   }
 
   Future<void> removeReaderRelationships({
     required String readerId,
     required List<String> bookIds,
+    WriteBatch? batch,
   }) async {
-    final WriteBatch batch = _firestore.batch();
+    final WriteBatch b = batch ?? _firestore.batch();
 
     for (final String bookId in bookIds) {
-      batch.set(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
+      b.set(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
         'readerId': null,
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }
 
-    await batch.commit();
+    if (batch == null) {
+      await b.commit();
+    }
   }
 
   Future<void> removeSequenceRelationships({
     required String sequenceId,
     required List<String> sequenceVolumeIds,
+    WriteBatch? batch,
   }) async {
-    final WriteBatch batch = _firestore.batch();
+    final WriteBatch b = batch ?? _firestore.batch();
 
     for (final String volumeId in sequenceVolumeIds) {
-      batch.set(
+      b.set(
         _firestore.collection(_collectionPath('sequence_volumes')).doc(volumeId),
         <String, dynamic>{'sequenceId': '', 'lastUpdated': FieldValue.serverTimestamp()},
         SetOptions(merge: true),
       );
     }
 
-    await batch.commit();
+    if (batch == null) {
+      await b.commit();
+    }
   }
 
   Future<void> removeSequenceVolumeRelationships({
@@ -520,33 +565,32 @@ class RelationshipSyncService {
     required String sequenceId,
     String? bookId,
     String? workId,
+    WriteBatch? batch,
   }) async {
-    final WriteBatch batch = _firestore.batch();
+    final WriteBatch b = batch ?? _firestore.batch();
 
-    batch.set(
-      _firestore.collection(_collectionPath('sequences')).doc(sequenceId),
-      <String, dynamic>{
-        'sequenceVolumeIds': FieldValue.arrayRemove(<dynamic>[volumeId]),
-        'lastUpdated': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+    b.set(_firestore.collection(_collectionPath('sequences')).doc(sequenceId), <String, dynamic>{
+      'sequenceVolumeIds': FieldValue.arrayRemove(<dynamic>[volumeId]),
+      'lastUpdated': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
 
     if (bookId != null && bookId.isNotEmpty) {
-      batch.set(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
+      b.set(_firestore.collection(_collectionPath('books')).doc(bookId), <String, dynamic>{
         'sequenceVolumeIds': FieldValue.arrayRemove(<dynamic>[volumeId]),
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }
 
     if (workId != null && workId.isNotEmpty) {
-      batch.set(_firestore.collection(_collectionPath('works')).doc(workId), <String, dynamic>{
+      b.set(_firestore.collection(_collectionPath('works')).doc(workId), <String, dynamic>{
         'sequenceVolumeIds': FieldValue.arrayRemove(<dynamic>[volumeId]),
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }
 
-    await batch.commit();
+    if (batch == null) {
+      await b.commit();
+    }
   }
 
   Future<void> _syncEntityRelationship({

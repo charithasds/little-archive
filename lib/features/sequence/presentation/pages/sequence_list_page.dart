@@ -5,9 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
+import '../../../../core/shared/presentation/widgets/list_page_states.dart';
+import '../../../../core/shared/presentation/widgets/pagination_controls.dart';
+import '../../../../core/shared/presentation/widgets/search_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/sequence_entity.dart';
 import '../../domain/usecases/sequence_usecases.dart';
+import '../providers/sequence_list_controller.dart';
 import '../providers/sequence_provider.dart';
 import '../widgets/sequence_list_tile.dart';
 
@@ -57,92 +61,97 @@ class SequenceListPage extends ConsumerWidget {
     final ColorScheme colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Sequences'), centerTitle: true),
+      backgroundColor: colorScheme.surface,
+      appBar: AppBar(
+        title: const Text('Sequences'),
+        centerTitle: true,
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
+        surfaceTintColor: colorScheme.primary,
+        scrolledUnderElevation: 1,
+      ),
       body: sequencesAsync.when(
-        data: (List<SequenceEntity> sequences) {
-          if (sequences.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Icon(
-                    Icons.layers_rounded,
-                    size: 80,
-                    color: colorScheme.primary.withValues(alpha: 0.5),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No Sequences Yet',
-                    style: theme.textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Tap the button below to add your first sequence',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
+        data: (_) {
+          final SequenceListState state = ref.watch(sequenceListControllerProvider);
+          final List<SequenceEntity> sequences = state.displayedSequences;
+
+          if (sequences.isEmpty && state.searchQuery.isEmpty) {
+            return const ListEmptyState(
+              icon: Icons.format_list_numbered_rounded,
+              title: 'No Sequences Yet',
+              subtitle: 'Tap the button below to add your first sequence.',
             );
           }
-          return LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              if (constraints.maxWidth < 600) {
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemCount: sequences.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    final SequenceEntity sequence = sequences[index];
-                    return SequenceListTile(
-                      sequence: sequence,
-                      onTap: () => context.go('/sequences/${sequence.id}'),
-                      onEdit: () => context.push('/sequences/add', extra: sequence),
-                      onRemove: () => _handleRemove(context, ref, sequence.id),
-                    );
-                  },
-                );
-              } else {
-                return GridView.builder(
-                  padding: const EdgeInsets.all(24),
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 600,
-                    mainAxisExtent: 140,
-                    crossAxisSpacing: 24,
-                    mainAxisSpacing: 24,
-                  ),
-                  itemCount: sequences.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    final SequenceEntity sequence = sequences[index];
-                    return SequenceListTile(
-                      sequence: sequence,
-                      onTap: () => context.go('/sequences/${sequence.id}'),
-                      onEdit: () => context.push('/sequences/add', extra: sequence),
-                      onRemove: () => _handleRemove(context, ref, sequence.id),
-                    );
-                  },
-                );
-              }
-            },
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (Object err, StackTrace stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+
+          return Column(
             children: <Widget>[
-              Icon(Icons.error_rounded, size: 64, color: colorScheme.error),
-              const SizedBox(height: 16),
-              Text('Something went wrong', style: theme.textTheme.titleLarge),
-              const SizedBox(height: 8),
-              Text(
-                '$err',
-                style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-                textAlign: TextAlign.center,
+              SearchField(
+                hintText: 'Search sequences by name...',
+                onChanged: (String query) =>
+                    ref.read(sequenceListControllerProvider.notifier).setSearchQuery(query),
+              ),
+              if (sequences.isEmpty)
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      'No sequences match your search.',
+                      style: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
+                    ),
+                  ),
+                )
+              else
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (BuildContext context, BoxConstraints constraints) {
+                      if (constraints.maxWidth < 600) {
+                        return ListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          itemCount: sequences.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final SequenceEntity sequence = sequences[index];
+                            return SequenceListTile(
+                              sequence: sequence,
+                              onTap: () => context.go('/sequences/${sequence.id}'),
+                              onEdit: () => context.push('/sequences/add', extra: sequence),
+                              onRemove: () => _handleRemove(context, ref, sequence.id),
+                            );
+                          },
+                        );
+                      } else {
+                        return GridView.builder(
+                          padding: const EdgeInsets.all(24),
+                          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                            maxCrossAxisExtent: 600,
+                            mainAxisExtent: 140,
+                            crossAxisSpacing: 24,
+                            mainAxisSpacing: 24,
+                          ),
+                          itemCount: sequences.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final SequenceEntity sequence = sequences[index];
+                            return SequenceListTile(
+                              sequence: sequence,
+                              onTap: () => context.go('/sequences/${sequence.id}'),
+                              onEdit: () => context.push('/sequences/add', extra: sequence),
+                              onRemove: () => _handleRemove(context, ref, sequence.id),
+                            );
+                          },
+                        );
+                      }
+                    },
+                  ),
+                ),
+              PaginationControls(
+                currentPage: state.currentPage,
+                totalPages: state.totalPages,
+                onPageChanged: (int page) =>
+                    ref.read(sequenceListControllerProvider.notifier).setPage(page),
               ),
             ],
-          ),
-        ),
+          );
+        },
+        loading: () => const ListLoadingState(),
+        error: (Object err, StackTrace stack) => ListErrorState(error: err),
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),

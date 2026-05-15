@@ -16,8 +16,8 @@ abstract class SequenceRemoteDataSource {
   Future<List<SequenceModel>> fetchSequences();
   Future<SequenceModel?> fetchSequenceById(String id);
   Stream<List<SequenceModel>> watchSequences();
-  Future<void> addSequence(SequenceModel sequence);
-  Future<void> editSequence(SequenceModel sequence);
+  Future<void> addSequence(SequenceModel sequence, {WriteBatch? batch});
+  Future<void> editSequence(SequenceModel sequence, {WriteBatch? batch});
   Future<void> removeSequence(String id);
 
   Future<List<SequenceVolumeModel>> fetchSequenceVolumes(String sequenceId);
@@ -25,9 +25,9 @@ abstract class SequenceRemoteDataSource {
   Future<List<SequenceVolumeModel>> fetchSequenceVolumesByBookId(String bookId);
   Future<List<SequenceVolumeModel>> fetchSequenceVolumesByWorkId(String workId);
   Stream<List<SequenceVolumeModel>> watchSequenceVolumes(String sequenceId);
-  Future<void> addSequenceVolume(SequenceVolumeModel volume);
-  Future<void> editSequenceVolume(SequenceVolumeModel volume);
-  Future<void> removeSequenceVolume(String id);
+  Future<void> addSequenceVolume(SequenceVolumeModel volume, {WriteBatch? batch});
+  Future<void> editSequenceVolume(SequenceVolumeModel volume, {WriteBatch? batch});
+  Future<void> removeSequenceVolume(String id, {WriteBatch? batch});
 }
 
 class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
@@ -87,18 +87,33 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
       );
 
   @override
-  Future<void> addSequence(SequenceModel sequence) async {
-    await firestoreService.requireConnectivity();
-    await _firestore
+  Future<void> addSequence(SequenceModel sequence, {WriteBatch? batch}) async {
+    final DocumentReference<Map<String, dynamic>> docRef = _firestore
         .collection(_sequencesPath)
-        .doc(sequence.id.isEmpty ? null : sequence.id)
-        .set(sequence.toMap());
+        .doc(sequence.id.isEmpty ? null : sequence.id);
+
+    if (batch != null) {
+      batch.set(docRef, sequence.toMap());
+      return;
+    }
+
+    await firestoreService.requireConnectivity();
+    await docRef.set(sequence.toMap());
   }
 
   @override
-  Future<void> editSequence(SequenceModel sequence) async {
+  Future<void> editSequence(SequenceModel sequence, {WriteBatch? batch}) async {
+    final DocumentReference<Map<String, dynamic>> docRef = _firestore
+        .collection(_sequencesPath)
+        .doc(sequence.id);
+
+    if (batch != null) {
+      batch.update(docRef, sequence.toMap());
+      return;
+    }
+
     await firestoreService.requireConnectivity();
-    await _firestore.collection(_sequencesPath).doc(sequence.id).update(sequence.toMap());
+    await docRef.update(sequence.toMap());
   }
 
   @override
@@ -111,9 +126,7 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   Future<List<SequenceVolumeModel>> fetchSequenceVolumes(String sequenceId) async {
     final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
         .safeGetDocs(
-          _firestore
-              .collection(_volumesPath)
-              .where('sequenceId', isEqualTo: sequenceId),
+          _firestore.collection(_volumesPath).where('sequenceId', isEqualTo: sequenceId),
         );
 
     return docs
@@ -178,24 +191,48 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
       );
 
   @override
-  Future<void> addSequenceVolume(SequenceVolumeModel volume) async {
-    await firestoreService.requireConnectivity();
-    await _firestore
+  Future<void> addSequenceVolume(SequenceVolumeModel volume, {WriteBatch? batch}) async {
+    final DocumentReference<Map<String, dynamic>> docRef = _firestore
         .collection(_volumesPath)
-        .doc(volume.id.isEmpty ? null : volume.id)
-        .set(volume.toMap());
+        .doc(volume.id.isEmpty ? null : volume.id);
+
+    if (batch != null) {
+      batch.set(docRef, volume.toMap());
+      return;
+    }
+
+    await firestoreService.requireConnectivity();
+    await docRef.set(volume.toMap());
   }
 
   @override
-  Future<void> editSequenceVolume(SequenceVolumeModel volume) async {
+  Future<void> editSequenceVolume(SequenceVolumeModel volume, {WriteBatch? batch}) async {
+    final DocumentReference<Map<String, dynamic>> docRef = _firestore
+        .collection(_volumesPath)
+        .doc(volume.id);
+
+    if (batch != null) {
+      batch.update(docRef, volume.toMap());
+      return;
+    }
+
     await firestoreService.requireConnectivity();
-    await _firestore.collection(_volumesPath).doc(volume.id).update(volume.toMap());
+    await docRef.update(volume.toMap());
   }
 
   @override
-  Future<void> removeSequenceVolume(String id) async {
+  Future<void> removeSequenceVolume(String id, {WriteBatch? batch}) async {
+    final DocumentReference<Map<String, dynamic>> docRef = _firestore
+        .collection(_volumesPath)
+        .doc(id);
+
+    if (batch != null) {
+      batch.delete(docRef);
+      return;
+    }
+
     await firestoreService.requireConnectivity();
-    await _firestore.collection(_volumesPath).doc(id).delete();
+    await docRef.delete();
   }
 }
 

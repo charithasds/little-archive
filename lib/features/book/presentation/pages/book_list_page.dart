@@ -5,9 +5,12 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
+import '../../../../core/shared/presentation/widgets/list_page_states.dart';
+import '../../../../core/shared/presentation/widgets/search_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/book_entity.dart';
 import '../../domain/usecases/book_usecases.dart';
+import '../providers/book_list_controller.dart';
 import '../providers/book_provider.dart';
 import '../widgets/book_list_tile.dart';
 
@@ -58,92 +61,91 @@ class BookListPage extends ConsumerWidget {
     final ColorScheme colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Books'), centerTitle: true),
+      backgroundColor: colorScheme.surface,
+      appBar: AppBar(
+        title: const Text('Books'),
+        centerTitle: true,
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
+        surfaceTintColor: colorScheme.primary,
+        scrolledUnderElevation: 1,
+      ),
       body: booksAsync.when(
-        data: (List<BookEntity> books) {
-          if (books.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Icon(
-                    Icons.book_rounded,
-                    size: 80,
-                    color: colorScheme.primary.withValues(alpha: 0.5),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No Books Yet',
-                    style: theme.textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Tap the button below to add your first book',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
+        data: (_) {
+          final BookListState state = ref.watch(bookListControllerProvider);
+          final List<BookEntity> books = state.displayedBooks;
+
+          if (books.isEmpty && state.searchQuery.isEmpty) {
+            return const ListEmptyState(
+              icon: Icons.book_rounded,
+              title: 'No Books Yet',
+              subtitle: 'Tap the button below to add your first book.',
             );
           }
-          return LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              if (constraints.maxWidth < 600) {
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemCount: books.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    final BookEntity book = books[index];
-                    return BookListTile(
-                      book: book,
-                      onTap: () => context.go('/books/${book.id}'),
-                      onEdit: () => context.push('/books/add', extra: book),
-                      onRemove: () => _handleRemove(context, ref, book.id),
-                    );
-                  },
-                );
-              } else {
-                return GridView.builder(
-                  padding: const EdgeInsets.all(24),
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 600,
-                    mainAxisExtent: 160,
-                    crossAxisSpacing: 24,
-                    mainAxisSpacing: 24,
+
+          return Column(
+            children: <Widget>[
+              SearchField(
+                hintText: 'Search books by title, author, genre...',
+                onChanged: (String query) =>
+                    ref.read(bookListControllerProvider.notifier).setSearchQuery(query),
+              ),
+              if (books.isEmpty)
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      'No books match your search.',
+                      style: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
+                    ),
                   ),
-                  itemCount: books.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    final BookEntity book = books[index];
-                    return BookListTile(
-                      book: book,
-                      onTap: () => context.go('/books/${book.id}'),
-                      onEdit: () => context.push('/books/add', extra: book),
-                      onRemove: () => _handleRemove(context, ref, book.id),
-                    );
-                  },
-                );
-              }
-            },
+                )
+              else
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (BuildContext context, BoxConstraints constraints) {
+                      if (constraints.maxWidth < 600) {
+                        return ListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          itemCount: books.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final BookEntity book = books[index];
+                            return BookListTile(
+                              book: book,
+                              onTap: () => context.go('/books/${book.id}'),
+                              onEdit: () => context.push('/books/add', extra: book),
+                              onRemove: () => _handleRemove(context, ref, book.id),
+                            );
+                          },
+                        );
+                      } else {
+                        return GridView.builder(
+                          padding: const EdgeInsets.all(24),
+                          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                            maxCrossAxisExtent: 600,
+                            mainAxisExtent: 160,
+                            crossAxisSpacing: 24,
+                            mainAxisSpacing: 24,
+                          ),
+                          itemCount: books.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final BookEntity book = books[index];
+                            return BookListTile(
+                              book: book,
+                              onTap: () => context.go('/books/${book.id}'),
+                              onEdit: () => context.push('/books/add', extra: book),
+                              onRemove: () => _handleRemove(context, ref, book.id),
+                            );
+                          },
+                        );
+                      }
+                    },
+                  ),
+                ),
+            ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (Object err, StackTrace stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Icon(Icons.error_rounded, size: 64, color: colorScheme.error),
-              const SizedBox(height: 16),
-              Text('Something went wrong', style: theme.textTheme.titleLarge),
-              const SizedBox(height: 8),
-              Text(
-                '$err',
-                style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
+        loading: () => const ListLoadingState(),
+        error: (Object err, StackTrace stack) => ListErrorState(error: err),
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),

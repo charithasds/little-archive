@@ -31,3 +31,32 @@ Future<AuthorEntity?> author(Ref ref, String id) async {
     return null;
   }
 }
+
+// ── Author missing-info provider ─────────────────────────────────────────
+
+@riverpod
+List<({String label, int count})>? authorsMissingInfo(Ref ref) {
+  final List<AuthorEntity>? authors = ref.watch(authorsStreamProvider).value;
+  if (authors == null) {
+    return null;
+  }
+
+  int countWhere(bool Function(AuthorEntity) test) => authors.where(test).length;
+
+  return <({String label, int count})>[
+    (
+      label: 'No Photo',
+      count: countWhere((AuthorEntity a) => a.image == null || a.image!.trim().isEmpty),
+    ),
+    (
+      label: 'No Alt. Name',
+      count: countWhere((AuthorEntity a) => a.otherName == null || a.otherName!.trim().isEmpty),
+    ),
+    (
+      label: 'No Website',
+      count: countWhere((AuthorEntity a) => a.website == null || a.website!.trim().isEmpty),
+    ),
+    (label: 'No Books', count: countWhere((AuthorEntity a) => a.bookIds.isEmpty)),
+    (label: 'No Works', count: countWhere((AuthorEntity a) => a.workIds.isEmpty)),
+  ];
+}

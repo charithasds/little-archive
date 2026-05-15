@@ -65,8 +65,13 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
   bool _isEditingInitialized = false;
 
   bool get _showOriginalTitle => _isTranslation;
-  bool get _showOriginalLanguage => _isTranslation;
-  bool get _showTranslatorIds => _isTranslation;
+  bool get _showOriginalLanguage => _isTranslation && _showAuthorFields;
+
+  bool get _showLanguageField => _showAuthorFields;
+
+  bool get _showAuthorFields => true;
+
+  bool get _showTranslatorIds => _isTranslation && _showAuthorFields;
 
   void _onIsTranslationChanged(bool v) {
     setState(() {
@@ -103,6 +108,51 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
     });
   }
 
+  void _onBookChanged(BookEntity? b) {
+    setState(() {
+      _selectedBook = b;
+      if (b != null && b.isTranslation) {
+        _isTranslation = true;
+      }
+    });
+  }
+
+  void _fillFromBook() {
+    if (_selectedBook == null) {
+      return;
+    }
+
+    final BookEntity b = _selectedBook!;
+    final AsyncValue<List<AuthorEntity>> authorsAsync = ref.read(authorsStreamProvider);
+    final AsyncValue<List<TranslatorEntity>> translatorsAsync = ref.read(
+      translatorsStreamProvider,
+    );
+
+    setState(() {
+      if (authorsAsync.hasValue) {
+        _selectedAuthors = authorsAsync.value!
+            .where((AuthorEntity a) => b.authorIds.contains(a.id))
+            .toList();
+      }
+      if (translatorsAsync.hasValue) {
+        _selectedTranslators = translatorsAsync.value!
+            .where((TranslatorEntity t) => b.translatorIds.contains(t.id))
+            .toList();
+      }
+      if (b.language != null) {
+        _language = b.language;
+      }
+      if (b.originalLanguage != null) {
+        _originalLanguage = b.originalLanguage;
+      }
+      if (b.isTranslation) {
+        _isTranslation = true;
+      }
+    });
+
+    SnackBars.showSuccess('Details copied from book', context: context);
+  }
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -120,12 +170,14 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
             title: _titleController.text.trim(),
             contentCategory: _contentCategory,
             isTranslation: _isTranslation,
-            language: _language,
+            language: _showLanguageField ? _language : null,
             genre: _genre,
             originalTitle: _showOriginalTitle ? _originalTitleController.text : null,
             originalLanguage: _showOriginalLanguage ? _originalLanguage : null,
             notes: _notesController.text,
-            authorIds: _selectedAuthors.map((AuthorEntity e) => e.id).toList(),
+            authorIds: _showAuthorFields
+                ? _selectedAuthors.map((AuthorEntity e) => e.id).toList()
+                : <String>[],
             translatorIds: _showTranslatorIds
                 ? _selectedTranslators.map((TranslatorEntity e) => e.id).toList()
                 : <String>[],
@@ -162,13 +214,9 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
       translatorsStreamProvider,
     );
 
-    final List<BookEntity> anthologyOrCollectionBooks =
+    final List<BookEntity> multiWorkBooks =
         booksAsync.value
-            ?.where(
-              (BookEntity b) =>
-                  b.compilationType == CompilationType.anthology ||
-                  b.compilationType == CompilationType.collection,
-            )
+            ?.where((BookEntity b) => b.compilationType == CompilationType.multiple)
             .toList() ??
         <BookEntity>[];
 
@@ -206,7 +254,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
             _selectedTranslators = translatorsAsync.value!
                 .where((TranslatorEntity t) => work.translatorIds.contains(t.id))
                 .toList();
-            _selectedBook = anthologyOrCollectionBooks
+            _selectedBook = multiWorkBooks
                 .where((BookEntity b) => b.id == work.bookId)
                 .firstOrNull;
             _selectedSequences = selectedSequences;
@@ -217,9 +265,14 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
     }
 
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
         title: Text(widget.existingWork != null ? 'Edit Work' : 'Add Work'),
         centerTitle: true,
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
+        surfaceTintColor: colorScheme.primary,
+        scrolledUnderElevation: 1,
         actions: <Widget>[
           Padding(
             padding: const EdgeInsets.only(right: 16),
@@ -229,7 +282,9 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                 const SizedBox(width: 8),
                 Switch(
                   value: _isTranslation,
-                  onChanged: _onIsTranslationChanged,
+                  onChanged: (_selectedBook?.isTranslation ?? false)
+                      ? null
+                      : _onIsTranslationChanged,
                   inactiveThumbColor: colorScheme.onSurfaceVariant,
                   inactiveTrackColor: colorScheme.surfaceContainerHighest,
                   trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
@@ -242,7 +297,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
       body: Form(
         key: _formKey,
         child: state.isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(child: CircularProgressIndicator(strokeWidth: 3, color: colorScheme.primary))
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
                 child: Column(
@@ -299,31 +354,37 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                           isNullable: false,
                         ),
                         const SizedBox(height: 16),
-                        SearchMultiPickerField<AuthorEntity>(
-                          label: 'Authors',
-                          prefixIcon: Icons.person_rounded,
-                          selectedItems: _selectedAuthors,
-                          itemsProvider: authorsStreamProvider,
-                          itemLabel: (AuthorEntity a) => a.name,
-                          itemKey: (AuthorEntity a) => a.id,
-                          onChanged: (List<AuthorEntity> l) => setState(() => _selectedAuthors = l),
-                          onAdd: () async => showModalBottomSheet<AuthorEntity>(
-                            context: context,
-                            isScrollControlled: true,
-                            useSafeArea: true,
-                            builder: (_) => const AddAuthorBottomSheet(),
+                        if (_showAuthorFields) ...<Widget>[
+                          SearchMultiPickerField<AuthorEntity>(
+                            label: 'Authors',
+                            prefixIcon: Icons.person_rounded,
+                            selectedItems: _selectedAuthors,
+                            itemsProvider: authorsStreamProvider,
+                            itemLabel: (AuthorEntity a) => a.name,
+                            itemKey: (AuthorEntity a) => a.id,
+                            onChanged: (List<AuthorEntity> l) =>
+                                setState(() => _selectedAuthors = l),
+                            onAdd: () async => showModalBottomSheet<AuthorEntity>(
+                              context: context,
+                              isScrollControlled: true,
+                              useSafeArea: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (_) => const AddAuthorBottomSheet(),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        FormDropdownField<Language>(
-                          value: _language,
-                          label: 'Language',
-                          prefixIcon: Icons.language_rounded,
-                          items: Language.values,
-                          itemLabel: (Language e) => e.clientValue,
-                          onChanged: (Language? v) => setState(() => _language = v),
-                        ),
-                        const SizedBox(height: 16),
+                          const SizedBox(height: 16),
+                        ],
+                        if (_showLanguageField) ...<Widget>[
+                          FormDropdownField<Language>(
+                            value: _language,
+                            label: 'Language',
+                            prefixIcon: Icons.language_rounded,
+                            items: Language.values,
+                            itemLabel: (Language e) => e.clientValue,
+                            onChanged: (Language? v) => setState(() => _language = v),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
                         FormDropdownField<Genre>(
                           value: _genre,
                           label: 'Genre',
@@ -364,6 +425,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                                 context: context,
                                 isScrollControlled: true,
                                 useSafeArea: true,
+                                backgroundColor: Colors.transparent,
                                 builder: (_) => const AddTranslatorBottomSheet(),
                               ),
                             ),
@@ -446,6 +508,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                             context: context,
                             isScrollControlled: true,
                             useSafeArea: true,
+                            backgroundColor: Colors.transparent,
                             builder: (_) => const AddSequenceBottomSheet(),
                           ),
                         ),
@@ -458,25 +521,35 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                           itemLabel: (BookEntity b) => b.title,
                           filterItems: (List<BookEntity> books) => books
                               .where(
-                                (BookEntity b) =>
-                                    b.compilationType == CompilationType.anthology ||
-                                    b.compilationType == CompilationType.collection,
+                                (BookEntity b) => b.compilationType == CompilationType.multiple,
                               )
                               .toList(),
-                          onChanged: (BookEntity? b) => setState(() => _selectedBook = b),
+                          onChanged: _onBookChanged,
                           onAdd: () async => showModalBottomSheet<BookEntity>(
                             context: context,
                             isScrollControlled: true,
                             useSafeArea: true,
+                            backgroundColor: Colors.transparent,
                             builder: (_) => const AddBookBottomSheet(
-                              allowedTypes: <CompilationType>[
-                                CompilationType.collection,
-                                CompilationType.anthology,
-                                CompilationType.omnibus,
-                              ],
+                              allowedTypes: <CompilationType>[CompilationType.multiple],
                             ),
                           ),
                         ),
+                        if (_selectedBook != null) ...<Widget>[
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton.icon(
+                              onPressed: _fillFromBook,
+                              icon: const Icon(Icons.copy_rounded, size: 18),
+                              label: const Text('Fill from Book'),
+                              style: TextButton.styleFrom(
+                                visualDensity: VisualDensity.compact,
+                                textStyle: theme.textTheme.labelMedium,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                     FormSection(

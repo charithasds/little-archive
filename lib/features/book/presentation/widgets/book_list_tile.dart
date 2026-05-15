@@ -14,15 +14,15 @@ class BookListTile extends ConsumerWidget {
     required this.book,
     this.onTap,
     this.onInfo,
-    required this.onEdit,
-    required this.onRemove,
+    this.onEdit,
+    this.onRemove,
   });
 
   final BookEntity book;
   final VoidCallback? onTap;
   final VoidCallback? onInfo;
-  final VoidCallback onEdit;
-  final VoidCallback onRemove;
+  final VoidCallback? onEdit;
+  final VoidCallback? onRemove;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -43,19 +43,17 @@ class BookListTile extends ConsumerWidget {
     }
 
     String creatorText;
-    if (book.compilationType == CompilationType.standalone ||
-        book.compilationType == CompilationType.collection ||
-        (book.compilationType == CompilationType.anthology && book.isTranslation)) {
+    if (creatorIds.isNotEmpty) {
       if (firstCreatorName != null && firstCreatorName.isNotEmpty) {
         creatorText = firstCreatorName;
         if (additionalCount > 0) {
           creatorText += ' + $additionalCount';
         }
-      } else if (creatorIds.isNotEmpty) {
-        creatorText = 'Loading...';
       } else {
-        creatorText = 'No ${creatorLabel}s';
+        creatorText = 'Loading...';
       }
+    } else if (book.compilationType == CompilationType.single) {
+      creatorText = 'No ${creatorLabel}s';
     } else {
       creatorText = 'Various ${creatorLabel}s';
     }
@@ -75,25 +73,22 @@ class BookListTile extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: <Widget>[
-              Hero(
-                tag: 'book_${book.id}',
-                child: Container(
-                  width: 54,
-                  height: 54 / Images.bookAspectRatio,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: Images.getAvatarBackgroundColor(theme),
-                    image: book.cover != null && book.cover!.isNotEmpty
-                        ? DecorationImage(
-                            image: Images.getImageProvider(book.cover),
-                            fit: BoxFit.contain,
-                          )
-                        : null,
-                  ),
-                  child: book.cover == null || book.cover!.isEmpty
-                      ? Icon(Icons.book_rounded, color: Images.getAvatarIconColor(theme), size: 28)
+              Container(
+                width: 54,
+                height: 54 / Images.bookAspectRatio,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: Images.getAvatarBackgroundColor(theme),
+                  image: book.cover != null && book.cover!.isNotEmpty
+                      ? DecorationImage(
+                          image: Images.getImageProvider(book.cover),
+                          fit: BoxFit.contain,
+                        )
                       : null,
                 ),
+                child: book.cover == null || book.cover!.isEmpty
+                    ? Icon(Icons.book_rounded, color: Images.getAvatarIconColor(theme), size: 28)
+                    : null,
               ),
               const SizedBox(width: 20),
               Expanded(
@@ -140,16 +135,18 @@ class BookListTile extends ConsumerWidget {
                       onPressed: onInfo,
                       tooltip: 'Info',
                     ),
-                  IconButton(
-                    icon: Icon(Icons.edit_note_rounded, color: colorScheme.primary),
-                    onPressed: onEdit,
-                    tooltip: 'Edit',
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.delete_rounded, color: colorScheme.error),
-                    onPressed: onRemove,
-                    tooltip: 'Remove',
-                  ),
+                  if (onEdit != null)
+                    IconButton(
+                      icon: Icon(Icons.edit_note_rounded, color: colorScheme.primary),
+                      onPressed: onEdit,
+                      tooltip: 'Edit',
+                    ),
+                  if (onRemove != null)
+                    IconButton(
+                      icon: Icon(Icons.delete_rounded, color: colorScheme.error),
+                      onPressed: onRemove,
+                      tooltip: 'Remove',
+                    ),
                 ],
               ),
             ],

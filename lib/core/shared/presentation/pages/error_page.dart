@@ -27,9 +27,7 @@ class ErrorPage extends ConsumerWidget {
         textAlign: TextAlign.center,
         maxLines: 4,
         overflow: TextOverflow.ellipsis,
-        style: theme.textTheme.bodyMedium?.copyWith(
-          color: colorScheme.error.withValues(alpha: 0.7),
-        ),
+        style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
       ),
     );
   }

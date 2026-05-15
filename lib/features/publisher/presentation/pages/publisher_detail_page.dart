@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/utils/external_launcher.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/detail_widgets.dart';
 import '../../../../core/shared/presentation/widgets/info_dialogs.dart';
+import '../../../../core/shared/presentation/widgets/list_page_states.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../book/domain/entities/book_entity.dart';
 import '../../../book/presentation/providers/book_provider.dart';
@@ -66,7 +68,13 @@ class PublisherDetailPage extends ConsumerWidget {
     return publisherAsync.when(
       data: (PublisherEntity? publisher) {
         if (publisher == null) {
-          return const Scaffold(body: Center(child: Text('Publisher not found')));
+          return const Scaffold(
+            body: ListEmptyState(
+              icon: Icons.business_rounded,
+              title: 'Publisher Not Found',
+              subtitle: 'This publisher may have been removed.',
+            ),
+          );
         }
 
         final AsyncValue<List<BookEntity>> booksAsync = ref.watch(booksStreamProvider);
@@ -84,14 +92,21 @@ class PublisherDetailPage extends ConsumerWidget {
             slivers: <Widget>[
               SliverAppBar.large(
                 title: Text(publisher.name),
+                backgroundColor: theme.colorScheme.surface,
+                foregroundColor: theme.colorScheme.onSurface,
+                surfaceTintColor: theme.colorScheme.primary,
+                scrolledUnderElevation: 1,
                 actions: <Widget>[
                   IconButton(
                     icon: const Icon(Icons.edit_note_rounded),
-                    onPressed: () => context.push('/publishers/add', extra: publisher),
+                    onPressed: () async {
+                      await context.push('/publishers/add', extra: publisher);
+                      ref.invalidate(publisherProvider(publisherId));
+                    },
                     tooltip: 'Edit',
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete_rounded),
+                    icon: const Icon(Icons.delete_outline_rounded),
                     onPressed: () => _handleRemove(context, ref, publisher.id),
                     tooltip: 'Remove',
                   ),
@@ -100,30 +115,33 @@ class PublisherDetailPage extends ConsumerWidget {
               ),
               SliverToBoxAdapter(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
                     const SizedBox(height: 16),
-                    Hero(
-                      tag: 'publisher_${publisher.id}',
-                      child: Container(
-                        width: 240,
-                        height: 240,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Images.getAvatarBackgroundColor(theme),
-                          image: publisher.logo != null && publisher.logo!.isNotEmpty
-                              ? DecorationImage(
-                                  image: Images.getImageProvider(publisher.logo),
-                                  fit: BoxFit.contain,
+                    Center(
+                      child: Hero(
+                        tag: 'publisher_${publisher.id}',
+                        child: Container(
+                          width: 240,
+                          height: 240,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Images.getAvatarBackgroundColor(theme),
+                            image: publisher.logo != null && publisher.logo!.isNotEmpty
+                                ? DecorationImage(
+                                    image: Images.getImageProvider(publisher.logo),
+                                    fit: BoxFit.contain,
+                                  )
+                                : null,
+                          ),
+                          child: publisher.logo == null || publisher.logo!.isEmpty
+                              ? Icon(
+                                  Icons.business_rounded,
+                                  color: Images.getAvatarIconColor(theme),
+                                  size: 120,
                                 )
                               : null,
                         ),
-                        child: publisher.logo == null || publisher.logo!.isEmpty
-                            ? Icon(
-                                Icons.business_rounded,
-                                color: Images.getAvatarIconColor(theme),
-                                size: 120,
-                              )
-                            : null,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -136,29 +154,42 @@ class PublisherDetailPage extends ConsumerWidget {
                             value: publisher.otherName!,
                             icon: Icons.badge_rounded,
                           ),
+                        DetailTile(
+                          label: 'Books Published',
+                          value: '${publisherBooks.length} books',
+                          icon: Icons.book_rounded,
+                        ),
                         if (publisher.website != null && publisher.website!.isNotEmpty)
                           DetailTile(
                             label: 'Website',
                             value: publisher.website!,
                             icon: Icons.language_rounded,
+                            trailingIcon: Icons.open_in_new_rounded,
+                            onTap: () => ExternalLauncher.launchBrowser(publisher.website!),
                           ),
                         if (publisher.email != null && publisher.email!.isNotEmpty)
                           DetailTile(
                             label: 'Email',
                             value: publisher.email!,
                             icon: Icons.email_rounded,
+                            trailingIcon: Icons.open_in_new_rounded,
+                            onTap: () => ExternalLauncher.launchEmail(publisher.email!),
                           ),
                         if (publisher.facebook != null && publisher.facebook!.isNotEmpty)
                           DetailTile(
                             label: 'Facebook',
                             value: publisher.facebook!,
                             icon: Icons.facebook_rounded,
+                            trailingIcon: Icons.open_in_new_rounded,
+                            onTap: () => ExternalLauncher.launchBrowser(publisher.facebook!),
                           ),
                         if (publisher.phoneNumber != null && publisher.phoneNumber!.isNotEmpty)
                           DetailTile(
                             label: 'Phone Number',
                             value: publisher.phoneNumber!,
                             icon: Icons.phone_rounded,
+                            trailingIcon: Icons.open_in_new_rounded,
+                            onTap: () => ExternalLauncher.launchPhone(publisher.phoneNumber!),
                           ),
                         DetailTile(
                           label: 'Created',
@@ -180,8 +211,6 @@ class PublisherDetailPage extends ConsumerWidget {
                             (BookEntity book) => BookListTile(
                               book: book,
                               onInfo: () => EntityQuickInfoDialog.show(context, book.id, 'book'),
-                              onEdit: () => context.push('/books/add', extra: book),
-                              onRemove: () {},
                             ),
                           )
                           .toList(),
@@ -194,8 +223,8 @@ class PublisherDetailPage extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (Object err, StackTrace stack) => Scaffold(body: Center(child: Text('Error: $err'))),
+      loading: () => const Scaffold(body: ListLoadingState()),
+      error: (Object err, StackTrace stack) => Scaffold(body: ListErrorState(error: err)),
     );
   }
 }

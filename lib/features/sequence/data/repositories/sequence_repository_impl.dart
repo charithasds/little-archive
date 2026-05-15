@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
@@ -29,7 +30,8 @@ class SequenceRepositoryImpl implements SequenceRepository {
   Stream<List<SequenceEntity>> watchSequences() => remoteDataSource.watchSequences();
 
   @override
-  Future<void> addSequence(SequenceEntity sequence) async {
+  Future<void> addSequence(SequenceEntity sequence, {dynamic batch}) async {
+    final WriteBatch? b = batch is WriteBatch ? batch : null;
     await remoteDataSource.addSequence(
       SequenceModel(
         id: sequence.id,
@@ -40,16 +42,19 @@ class SequenceRepositoryImpl implements SequenceRepository {
         createdDate: sequence.createdDate,
         lastUpdated: sequence.lastUpdated,
       ),
+      batch: b,
     );
 
     await relationshipSyncService.syncSequenceRelationships(
       sequenceId: sequence.id,
       newSequenceVolumeIds: sequence.sequenceVolumeIds,
+      batch: b,
     );
   }
 
   @override
-  Future<void> editSequence(SequenceEntity sequence) async {
+  Future<void> editSequence(SequenceEntity sequence, {dynamic batch}) async {
+    final WriteBatch? b = batch is WriteBatch ? batch : null;
     final SequenceModel? existingSequence = await remoteDataSource.fetchSequenceById(sequence.id);
 
     await remoteDataSource.editSequence(
@@ -62,12 +67,14 @@ class SequenceRepositoryImpl implements SequenceRepository {
         createdDate: sequence.createdDate,
         lastUpdated: sequence.lastUpdated,
       ),
+      batch: b,
     );
 
     await relationshipSyncService.syncSequenceRelationships(
       sequenceId: sequence.id,
       newSequenceVolumeIds: sequence.sequenceVolumeIds,
       oldSequenceVolumeIds: existingSequence?.sequenceVolumeIds ?? <String>[],
+      batch: b,
     );
   }
 
@@ -109,7 +116,8 @@ class SequenceRepositoryImpl implements SequenceRepository {
       remoteDataSource.watchSequenceVolumes(sequenceId);
 
   @override
-  Future<void> addSequenceVolume(SequenceVolumeEntity volume) async {
+  Future<void> addSequenceVolume(SequenceVolumeEntity volume, {dynamic batch}) async {
+    final WriteBatch? b = batch is WriteBatch ? batch : null;
     await remoteDataSource.addSequenceVolume(
       SequenceVolumeModel(
         id: volume.id,
@@ -120,6 +128,7 @@ class SequenceRepositoryImpl implements SequenceRepository {
         createdDate: volume.createdDate,
         lastUpdated: volume.lastUpdated,
       ),
+      batch: b,
     );
 
     await relationshipSyncService.syncSequenceVolumeRelationships(
@@ -127,11 +136,13 @@ class SequenceRepositoryImpl implements SequenceRepository {
       newSequenceId: volume.sequenceId,
       newBookId: volume.bookId,
       newWorkId: volume.workId,
+      batch: b,
     );
   }
 
   @override
-  Future<void> editSequenceVolume(SequenceVolumeEntity volume) async {
+  Future<void> editSequenceVolume(SequenceVolumeEntity volume, {dynamic batch}) async {
+    final WriteBatch? b = batch is WriteBatch ? batch : null;
     final SequenceVolumeModel? existingVolume = await remoteDataSource.fetchSequenceVolumeById(
       volume.id,
     );
@@ -146,6 +157,7 @@ class SequenceRepositoryImpl implements SequenceRepository {
         createdDate: volume.createdDate,
         lastUpdated: volume.lastUpdated,
       ),
+      batch: b,
     );
 
     await relationshipSyncService.syncSequenceVolumeRelationships(
@@ -156,11 +168,13 @@ class SequenceRepositoryImpl implements SequenceRepository {
       oldSequenceId: existingVolume?.sequenceId,
       oldBookId: existingVolume?.bookId,
       oldWorkId: existingVolume?.workId,
+      batch: b,
     );
   }
 
   @override
-  Future<void> removeSequenceVolume(String id) async {
+  Future<void> removeSequenceVolume(String id, {dynamic batch}) async {
+    final WriteBatch? b = batch is WriteBatch ? batch : null;
     final SequenceVolumeModel? existingVolume = await remoteDataSource.fetchSequenceVolumeById(id);
 
     if (existingVolume != null) {
@@ -169,10 +183,11 @@ class SequenceRepositoryImpl implements SequenceRepository {
         sequenceId: existingVolume.sequenceId,
         bookId: existingVolume.bookId,
         workId: existingVolume.workId,
+        batch: b,
       );
     }
 
-    await remoteDataSource.removeSequenceVolume(id);
+    await remoteDataSource.removeSequenceVolume(id, batch: b);
   }
 }
 

@@ -12,7 +12,9 @@ import '../../domain/entities/work_entity.dart';
 import '../providers/upsert_work_controller.dart';
 
 class AddWorkBottomSheet extends ConsumerStatefulWidget {
-  const AddWorkBottomSheet({super.key});
+  const AddWorkBottomSheet({super.key, this.isTranslation = false});
+
+  final bool isTranslation;
 
   @override
   ConsumerState<AddWorkBottomSheet> createState() => _AddWorkBottomSheetState();
@@ -44,7 +46,7 @@ class _AddWorkBottomSheetState extends ConsumerState<AddWorkBottomSheet> {
           .saveWork(
             title: _titleController.text.trim(),
             contentCategory: _contentCategory,
-            isTranslation: false,
+            isTranslation: widget.isTranslation,
           );
 
       if (mounted) {
@@ -96,7 +98,7 @@ class _AddWorkBottomSheetState extends ConsumerState<AddWorkBottomSheet> {
               prefixIcon: Icons.topic_rounded,
               items: ContentCategory.values,
               value: _contentCategory,
-              itemLabel: (ContentCategory c) => c.name.toUpperCase(),
+              itemLabel: (ContentCategory c) => c.clientValue,
               onChanged: (ContentCategory? category) {
                 if (category != null) {
                   setState(() => _contentCategory = category);

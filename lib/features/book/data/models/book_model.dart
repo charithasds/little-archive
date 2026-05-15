@@ -43,9 +43,9 @@ class BookModel extends BookEntity {
   factory BookModel.fromMap(Map<String, dynamic> map, String documentId) => BookModel(
     id: documentId,
     title: (map['title'] as String?) ?? '',
-    compilationType:
-        CompilationType.values.asNameMap()[map['compilationType'] as String?] ??
-        CompilationType.standalone,
+    compilationType: CompilationType.values.byName(
+      map['compilationType'] as String? ?? CompilationType.single.name,
+    ),
     isTranslation: (map['isTranslation'] as bool?) ?? false,
     cover: map['cover'] as String?,
     language: Language.values.asNameMap()[map['language'] as String?],

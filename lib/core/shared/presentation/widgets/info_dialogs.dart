@@ -99,6 +99,8 @@ class EntityQuickInfoDialog extends ConsumerWidget {
     }
 
     return AlertDialog(
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Text(title),
       content: SingleChildScrollView(child: SizedBox(width: 450, child: content)),
       actions: <Widget>[
@@ -111,9 +113,15 @@ class EntityQuickInfoDialog extends ConsumerWidget {
 class _Loading extends StatelessWidget {
   const _Loading();
   @override
-  Widget build(BuildContext context) => const Center(
-    child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()),
-  );
+  Widget build(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: CircularProgressIndicator(strokeWidth: 3, color: cs.primary),
+      ),
+    );
+  }
 }
 
 class _AuthorInfo extends StatelessWidget {
@@ -129,10 +137,28 @@ class _AuthorInfo extends StatelessWidget {
       children: <Widget>[
         _Avatar(image: author!.image, icon: Icons.person_rounded),
         const SizedBox(height: 16),
-        Text(author!.name, style: Theme.of(context).textTheme.titleLarge),
+        Text(
+          author!.name,
+          style: Theme.of(context).textTheme.titleLarge,
+          textAlign: TextAlign.center,
+        ),
         if (author!.otherName != null && author!.otherName!.isNotEmpty)
-          Text(author!.otherName!, style: Theme.of(context).textTheme.bodyMedium),
+          Text(
+            author!.otherName!,
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
         const Divider(height: 32),
+        DetailTile(
+          label: 'Books Count',
+          value: '${author!.bookIds.length} books',
+          icon: Icons.book_rounded,
+        ),
+        DetailTile(
+          label: 'Works Count',
+          value: '${author!.workIds.length} works',
+          icon: Icons.article_rounded,
+        ),
         _Metadata(created: author!.createdDate, updated: author!.lastUpdated),
       ],
     );
@@ -152,10 +178,28 @@ class _TranslatorInfo extends StatelessWidget {
       children: <Widget>[
         _Avatar(image: translator!.image, icon: Icons.translate_rounded),
         const SizedBox(height: 16),
-        Text(translator!.name, style: Theme.of(context).textTheme.titleLarge),
+        Text(
+          translator!.name,
+          style: Theme.of(context).textTheme.titleLarge,
+          textAlign: TextAlign.center,
+        ),
         if (translator!.otherName != null && translator!.otherName!.isNotEmpty)
-          Text(translator!.otherName!, style: Theme.of(context).textTheme.bodyMedium),
+          Text(
+            translator!.otherName!,
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
         const Divider(height: 32),
+        DetailTile(
+          label: 'Books Count',
+          value: '${translator!.bookIds.length} books',
+          icon: Icons.book_rounded,
+        ),
+        DetailTile(
+          label: 'Works Count',
+          value: '${translator!.workIds.length} works',
+          icon: Icons.article_rounded,
+        ),
         _Metadata(created: translator!.createdDate, updated: translator!.lastUpdated),
       ],
     );
@@ -175,10 +219,23 @@ class _ReaderInfo extends StatelessWidget {
       children: <Widget>[
         _Avatar(image: reader!.image, icon: Icons.chrome_reader_mode_rounded),
         const SizedBox(height: 16),
-        Text(reader!.name, style: Theme.of(context).textTheme.titleLarge),
+        Text(
+          reader!.name,
+          style: Theme.of(context).textTheme.titleLarge,
+          textAlign: TextAlign.center,
+        ),
         if (reader!.otherName != null && reader!.otherName!.isNotEmpty)
-          Text(reader!.otherName!, style: Theme.of(context).textTheme.bodyMedium),
+          Text(
+            reader!.otherName!,
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
         const Divider(height: 32),
+        DetailTile(
+          label: 'Books Lended',
+          value: '${reader!.bookIds.length} books',
+          icon: Icons.book_rounded,
+        ),
         _Metadata(created: reader!.createdDate, updated: reader!.lastUpdated),
       ],
     );
@@ -198,10 +255,23 @@ class _PublisherInfo extends StatelessWidget {
       children: <Widget>[
         _Avatar(image: publisher!.logo, icon: Icons.business_rounded),
         const SizedBox(height: 16),
-        Text(publisher!.name, style: Theme.of(context).textTheme.titleLarge),
+        Text(
+          publisher!.name,
+          style: Theme.of(context).textTheme.titleLarge,
+          textAlign: TextAlign.center,
+        ),
         if (publisher!.otherName != null && publisher!.otherName!.isNotEmpty)
-          Text(publisher!.otherName!, style: Theme.of(context).textTheme.bodyMedium),
+          Text(
+            publisher!.otherName!,
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
         const Divider(height: 32),
+        DetailTile(
+          label: 'Books Published',
+          value: '${publisher!.bookIds.length} books',
+          icon: Icons.book_rounded,
+        ),
         _Metadata(created: publisher!.createdDate, updated: publisher!.lastUpdated),
       ],
     );
@@ -245,7 +315,18 @@ class _WorkInfo extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Icon(Icons.article_rounded, size: 80, color: Theme.of(context).colorScheme.primary),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Icon(
+            Icons.article_rounded,
+            size: 48,
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+          ),
+        ),
         const SizedBox(height: 16),
         Text(
           work!.title,
@@ -271,7 +352,18 @@ class _SequenceInfo extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Icon(Icons.layers_rounded, size: 80, color: Theme.of(context).colorScheme.primary),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Icon(
+            Icons.layers_rounded,
+            size: 48,
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+          ),
+        ),
         const SizedBox(height: 16),
         Text(
           sequence!.name,
@@ -279,8 +371,17 @@ class _SequenceInfo extends StatelessWidget {
           textAlign: TextAlign.center,
         ),
         if (sequence!.otherName != null && sequence!.otherName!.isNotEmpty)
-          Text(sequence!.otherName!, style: Theme.of(context).textTheme.bodyMedium),
+          Text(
+            sequence!.otherName!,
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
         const Divider(height: 32),
+        DetailTile(
+          label: 'Volumes Count',
+          value: '${sequence!.sequenceVolumeIds.length} volumes',
+          icon: Icons.layers_rounded,
+        ),
         _Metadata(created: sequence!.createdDate, updated: sequence!.lastUpdated),
       ],
     );

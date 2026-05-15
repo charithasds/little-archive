@@ -6,11 +6,14 @@ import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/detail_widgets.dart';
 import '../../../../core/shared/presentation/widgets/info_dialogs.dart';
+import '../../../../core/shared/presentation/widgets/list_page_states.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../book/domain/entities/book_entity.dart';
 import '../../../book/presentation/providers/book_provider.dart';
+import '../../../book/presentation/widgets/book_list_tile.dart';
 import '../../../work/domain/entities/work_entity.dart';
 import '../../../work/presentation/providers/work_provider.dart';
+import '../../../work/presentation/widgets/work_list_tile.dart';
 import '../../domain/entities/sequence_entity.dart';
 import '../../domain/entities/sequence_volume_entity.dart';
 import '../../domain/usecases/sequence_usecases.dart';
@@ -68,7 +71,13 @@ class SequenceDetailPage extends ConsumerWidget {
     return sequenceAsync.when(
       data: (SequenceEntity? sequence) {
         if (sequence == null) {
-          return const Scaffold(body: Center(child: Text('Sequence not found')));
+          return const Scaffold(
+            body: ListEmptyState(
+              icon: Icons.layers_rounded,
+              title: 'Sequence Not Found',
+              subtitle: 'This sequence may have been removed.',
+            ),
+          );
         }
 
         final AsyncValue<List<SequenceVolumeEntity>> volumesAsync = ref.watch(
@@ -91,14 +100,21 @@ class SequenceDetailPage extends ConsumerWidget {
             slivers: <Widget>[
               SliverAppBar.large(
                 title: Text(sequence.name),
+                backgroundColor: theme.colorScheme.surface,
+                foregroundColor: theme.colorScheme.onSurface,
+                surfaceTintColor: theme.colorScheme.primary,
+                scrolledUnderElevation: 1,
                 actions: <Widget>[
                   IconButton(
                     icon: const Icon(Icons.edit_note_rounded),
-                    onPressed: () => context.push('/sequences/add', extra: sequence),
+                    onPressed: () async {
+                      await context.push('/sequences/add', extra: sequence);
+                      ref.invalidate(sequenceProvider(sequenceId));
+                    },
                     tooltip: 'Edit',
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete_rounded),
+                    icon: const Icon(Icons.delete_outline_rounded),
                     onPressed: () => _handleRemove(context, ref, sequence.id),
                     tooltip: 'Remove',
                   ),
@@ -107,12 +123,22 @@ class SequenceDetailPage extends ConsumerWidget {
               ),
               SliverToBoxAdapter(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
                     const SizedBox(height: 16),
-                    Icon(
-                      Icons.layers_rounded,
-                      size: 200,
-                      color: colorScheme.primary.withValues(alpha: 0.5),
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(28),
+                        ),
+                        child: Icon(
+                          Icons.layers_rounded,
+                          size: 52,
+                          color: colorScheme.onPrimaryContainer,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 24),
                     DetailSection(
@@ -125,47 +151,58 @@ class SequenceDetailPage extends ConsumerWidget {
                             icon: Icons.badge_rounded,
                           ),
                         DetailTile(
-                          label: 'Total Volumes',
-                          value: sequence.sequenceVolumeIds.length.toString(),
-                          icon: Icons.numbers_rounded,
+                          label: 'Volumes Count',
+                          value: '${sequence.sequenceVolumeIds.length} volumes',
+                          icon: Icons.layers_rounded,
                         ),
                       ],
                     ),
                     DetailSection(
                       title: 'VOLUMES',
                       children: sortedVolumes.map((SequenceVolumeEntity volume) {
-                        String title = 'Not Collected';
-                        IconData icon = Icons.help_outline_rounded;
-                        VoidCallback? onTap;
+                        final String volumeLabel = volume.volume.isEmpty
+                            ? '??'
+                            : 'Volume #${volume.volume}';
 
                         if (volume.bookId != null && volume.bookId!.isNotEmpty) {
-                          final AsyncValue<BookEntity?> bookAsync = ref.watch(bookProvider(volume.bookId!));
-                          title = bookAsync.when(
-                            data: (BookEntity? book) => book?.title ?? 'Unknown Book',
-                            loading: () => 'Loading...',
-                            error: (_, _) => 'Error loading book',
+                          final AsyncValue<List<BookEntity>> booksAsync = ref.watch(
+                            booksStreamProvider,
                           );
-                          icon = Icons.book_rounded;
-                          onTap = () => EntityQuickInfoDialog.show(context, volume.bookId!, 'book');
+                          final BookEntity? book = booksAsync.value
+                              ?.where((BookEntity b) => b.id == volume.bookId)
+                              .firstOrNull;
+
+                          if (book != null) {
+                            return BookListTile(
+                              book: book.copyWith(title: '$volumeLabel: ${book.title}'),
+                              onInfo: () => EntityQuickInfoDialog.show(context, book.id, 'book'),
+                            );
+                          }
                         } else if (volume.workId != null && volume.workId!.isNotEmpty) {
-                          final AsyncValue<WorkEntity?> workAsync = ref.watch(workProvider(volume.workId!));
-                          title = workAsync.when(
-                            data: (WorkEntity? work) => work?.title ?? 'Unknown Work',
-                            loading: () => 'Loading...',
-                            error: (_, _) => 'Error loading work',
+                          final AsyncValue<List<WorkEntity>> worksAsync = ref.watch(
+                            worksStreamProvider,
                           );
-                          icon = Icons.article_rounded;
-                          onTap = () => EntityQuickInfoDialog.show(context, volume.workId!, 'work');
+                          final WorkEntity? work = worksAsync.value
+                              ?.where((WorkEntity w) => w.id == volume.workId)
+                              .firstOrNull;
+
+                          if (work != null) {
+                            return WorkListTile(
+                              work: work.copyWith(title: '$volumeLabel: ${work.title}'),
+                              onInfo: () => EntityQuickInfoDialog.show(context, work.id, 'work'),
+                            );
+                          }
                         }
 
-                        final String volumeLabel =
-                            volume.volume.isEmpty ? 'Unknown Volume' : 'Volume ${volume.volume}';
+                        // Fallback for missing/loading entities
+                        final String volumeFullLabel = volume.volume.isEmpty
+                            ? 'Unknown Volume'
+                            : 'Volume ${volume.volume}';
 
                         return DetailTile(
-                          label: volumeLabel,
-                          value: title,
-                          icon: icon,
-                          onInfo: onTap,
+                          label: volumeFullLabel,
+                          value: 'Not Collected / Loading...',
+                          icon: Icons.help_outline_rounded,
                         );
                       }).toList(),
                     ),
@@ -175,7 +212,7 @@ class SequenceDetailPage extends ConsumerWidget {
                         showDivider: false,
                         children: <Widget>[
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                            padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
                             child: Text(
                               sequence.notes!,
                               style: theme.textTheme.bodyMedium?.copyWith(
@@ -192,10 +229,12 @@ class SequenceDetailPage extends ConsumerWidget {
                         DetailTile(
                           label: 'Created',
                           value: DetailTile.formatDate(sequence.createdDate),
+                          icon: Icons.calendar_today_rounded,
                         ),
                         DetailTile(
                           label: 'Last Updated',
                           value: DetailTile.formatDate(sequence.lastUpdated),
+                          icon: Icons.update_rounded,
                         ),
                       ],
                     ),
@@ -207,8 +246,8 @@ class SequenceDetailPage extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (Object err, StackTrace stack) => Scaffold(body: Center(child: Text('Error: $err'))),
+      loading: () => const Scaffold(body: ListLoadingState()),
+      error: (Object err, StackTrace stack) => Scaffold(body: ListErrorState(error: err)),
     );
   }
 }

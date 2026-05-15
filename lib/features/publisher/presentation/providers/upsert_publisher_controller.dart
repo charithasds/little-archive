@@ -8,6 +8,7 @@ import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
+import '../../../../core/shared/presentation/utils/images.dart';
 import '../../domain/entities/publisher_entity.dart';
 import '../../domain/usecases/publisher_usecases.dart';
 
@@ -85,7 +86,7 @@ class UpsertPublisherController extends _$UpsertPublisherController {
     final PublisherEntity? existingPublisher = state.existingPublisher;
     final String generatedId = ref.read(generatePublisherIdUseCaseProvider)();
 
-    final PublisherEntity publisherToSave = existingPublisher != null
+    PublisherEntity publisherToSave = existingPublisher != null
         ? existingPublisher.copyWith(
             name: name,
             otherName: Nullable<String?>(otherName?.isEmpty ?? true ? null : otherName),
@@ -112,9 +113,29 @@ class UpsertPublisherController extends _$UpsertPublisherController {
 
     try {
       if (existingPublisher != null) {
-        await ref.read(editPublisherUseCaseProvider)(publisherToSave);
+        try {
+          await ref.read(editPublisherUseCaseProvider)(publisherToSave);
+        } catch (e) {
+          if (e.toString().contains('longer than 1048487 bytes')) {
+            final String? compressedLogo = Images.ensureFitsFirestore(state.pickedBase64Logo);
+            publisherToSave = publisherToSave.copyWith(logo: Nullable<String?>(compressedLogo));
+            await ref.read(editPublisherUseCaseProvider)(publisherToSave);
+          } else {
+            rethrow;
+          }
+        }
       } else {
-        await ref.read(addPublisherUseCaseProvider)(publisherToSave);
+        try {
+          await ref.read(addPublisherUseCaseProvider)(publisherToSave);
+        } catch (e) {
+          if (e.toString().contains('longer than 1048487 bytes')) {
+            final String? compressedLogo = Images.ensureFitsFirestore(state.pickedBase64Logo);
+            publisherToSave = publisherToSave.copyWith(logo: Nullable<String?>(compressedLogo));
+            await ref.read(addPublisherUseCaseProvider)(publisherToSave);
+          } else {
+            rethrow;
+          }
+        }
       }
 
       state = state.copyWith(isLoading: false);

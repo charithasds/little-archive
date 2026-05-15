@@ -71,7 +71,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
   final TextEditingController _pausedPageController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
 
-  CompilationType _compilationType = CompilationType.standalone;
+  CompilationType _compilationType = CompilationType.single;
   Language? _language = Language.sinhala;
   Genre? _genre;
   CollectionStatus _collectionStatus = CollectionStatus.collected;
@@ -94,39 +94,20 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
   List<WorkEntity> _selectedWorks = <WorkEntity>[];
 
   bool _isEditingInitialized = false;
-  bool _useAiScan = false;
+  bool _useAiScan = true;
+  bool _applyToWorks = false;
 
   bool get _hasConnectedWorks =>
       widget.existingBook != null && widget.existingBook!.workIds.isNotEmpty;
 
-  bool get _showAuthorIds =>
-      _compilationType == CompilationType.standalone ||
-      _compilationType == CompilationType.collection;
-
-  bool get _showGenre => _compilationType == CompilationType.standalone;
-
-  bool get _showLanguage => _compilationType == CompilationType.standalone;
-
-  bool get _showOriginalTitle =>
-      _isTranslation &&
-      (_compilationType == CompilationType.standalone ||
-          _compilationType == CompilationType.collection);
-
+  bool get _showAuthorIds => true;
+  bool get _showGenre => _compilationType == CompilationType.single;
+  bool get _showLanguage => true;
+  bool get _showOriginalTitle => _isTranslation;
   bool get _showOriginalLanguage => _showOriginalTitle;
-
-  bool get _showTranslatorIds =>
-      _isTranslation &&
-      (_compilationType == CompilationType.standalone ||
-          _compilationType == CompilationType.collection);
-
-  bool get _showWorkIds =>
-      _compilationType == CompilationType.anthology ||
-      _compilationType == CompilationType.collection ||
-      _compilationType == CompilationType.omnibus;
-
-  bool get _showSequenceVolumeIds =>
-      _compilationType == CompilationType.standalone ||
-      _compilationType == CompilationType.collection;
+  bool get _showTranslatorIds => _isTranslation;
+  bool get _showWorkIds => _compilationType == CompilationType.multiple;
+  bool get _showSequenceVolumeIds => _compilationType == CompilationType.single;
 
   bool get _showCollectedDate =>
       _collectionStatus == CollectionStatus.collected ||
@@ -146,23 +127,8 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
     setState(() {
       _compilationType = v;
 
-      if (!_showAuthorIds) {
-        _selectedAuthors = <AuthorEntity>[];
-      }
       if (!_showGenre) {
         _genre = null;
-      }
-      if (!_showLanguage) {
-        _language = null;
-      }
-      if (!_showOriginalTitle) {
-        _originalTitleController.clear();
-      }
-      if (!_showOriginalLanguage) {
-        _originalLanguage = null;
-      }
-      if (!_showTranslatorIds) {
-        _selectedTranslators = <TranslatorEntity>[];
       }
       if (!_showWorkIds) {
         _selectedWorks = <WorkEntity>[];
@@ -318,6 +284,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                 : <SequenceEntity, String>{},
             publisherId: _selectedPublisher?.id,
             readerId: _showReaderId ? _selectedReader?.id : null,
+            applyToWorks: _applyToWorks,
           );
 
       final bool isSuccess = savedBook != null;
@@ -430,7 +397,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
               _notesController.clear();
 
               if (!_hasConnectedWorks) {
-                _compilationType = CompilationType.standalone;
+                _compilationType = CompilationType.single;
               }
               _language = Language.sinhala;
               _genre = null;
@@ -486,15 +453,6 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
         }
       },
     );
-
-    ref.listen<String?>(upsertBookControllerProvider.select((UpsertBookState s) => s.error), (
-      String? previous,
-      String? next,
-    ) {
-      if (next != null && next != previous) {
-        SnackBars.showError(next);
-      }
-    });
 
     final AsyncValue<List<AuthorEntity>> authorsAsync = ref.watch(authorsStreamProvider);
     final AsyncValue<List<TranslatorEntity>> translatorsAsync = ref.watch(
@@ -559,9 +517,14 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
     }
 
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
         title: Text(widget.existingBook != null ? 'Edit Book' : 'Add Book'),
         centerTitle: true,
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
+        surfaceTintColor: colorScheme.primary,
+        scrolledUnderElevation: 1,
         actions: <Widget>[
           Padding(
             padding: const EdgeInsets.only(right: 16),
@@ -590,7 +553,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
             children: <Widget>[
               Center(
                 child: GestureDetector(
-                  onTap: () => ref.read(upsertBookControllerProvider.notifier).pickImage(),
+                  onTap: () => _handleCoverAction(),
                   child: Container(
                     width: 140,
                     height: 140 / Images.bookAspectRatio,
@@ -633,10 +596,20 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                                   child: CircularProgressIndicator(strokeWidth: 2),
                                 )
                               : const Icon(Icons.add_photo_alternate_rounded),
-                          label:
-                              Text(state.pickedBase64Image == null ? 'Add Cover' : 'Change Cover'),
+                          label: Text(
+                            state.pickedBase64Image == null ? 'Add Cover' : 'Change Cover',
+                          ),
                         ),
-                        if (state.pickedBase64Image != null)
+                        if (state.pickedBase64Image != null) ...<Widget>[
+                          if (_useAiScan)
+                            TextButton.icon(
+                              onPressed: state.isScanning
+                                  ? null
+                                  : () =>
+                                        ref.read(upsertBookControllerProvider.notifier).retryScan(),
+                              icon: const Icon(Icons.auto_awesome_rounded),
+                              label: const Text('Retry Scan'),
+                            ),
                           TextButton.icon(
                             onPressed: () =>
                                 ref.read(upsertBookControllerProvider.notifier).clearCover(),
@@ -644,6 +617,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                             label: const Text('Remove'),
                             style: TextButton.styleFrom(foregroundColor: colorScheme.error),
                           ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -693,13 +667,38 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                     prefixIcon: Icons.collections_bookmark_rounded,
                     items: CompilationType.values,
                     itemLabel: (CompilationType e) => e.clientValue,
-                    onChanged: _hasConnectedWorks
-                        ? null
-                        : (CompilationType? v) {
-                            if (v != null) {
-                              _onCompilationTypeChanged(v);
-                            }
-                          },
+                    onChanged: (CompilationType? v) async {
+                      if (v != null && v != _compilationType) {
+                        if (_compilationType == CompilationType.multiple &&
+                            v == CompilationType.single &&
+                            _selectedWorks.isNotEmpty) {
+                          final bool? confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (BuildContext context) => AlertDialog(
+                              title: const Text('Change to Single?'),
+                              content: const Text(
+                                'Changing to Single will unlink all currently connected works. Are you sure you want to proceed?',
+                              ),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('Unlink & Proceed'),
+                                ),
+                              ],
+                            ),
+                          );
+
+                          if (confirm != true) {
+                            return;
+                          }
+                        }
+                        _onCompilationTypeChanged(v);
+                      }
+                    },
                     isNullable: false,
                   ),
                   if (_showAuthorIds) ...<Widget>[
@@ -716,6 +715,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                         context: context,
                         isScrollControlled: true,
                         useSafeArea: true,
+                        backgroundColor: Colors.transparent,
                         builder: (_) => const AddAuthorBottomSheet(),
                       ),
                     ),
@@ -729,6 +729,25 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       items: Language.values,
                       itemLabel: (Language e) => e.clientValue,
                       onChanged: (Language? v) => setState(() => _language = v),
+                    ),
+                  ],
+                  if (_showWorkIds && _selectedWorks.isNotEmpty) ...<Widget>[
+                    const SizedBox(height: 16),
+                    SwitchListTile.adaptive(
+                      value: _applyToWorks,
+                      onChanged: (bool v) => setState(() => _applyToWorks = v),
+                      title: Text(
+                        'Apply book details to all connected works',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                      subtitle: Text(
+                        'Authors, Translators, and Language will be copied',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      contentPadding: EdgeInsets.zero,
+                      secondary: Icon(Icons.sync_rounded, color: colorScheme.primary),
                     ),
                   ],
                 ],
@@ -762,6 +781,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                           context: context,
                           isScrollControlled: true,
                           useSafeArea: true,
+                          backgroundColor: Colors.transparent,
                           builder: (_) => const AddTranslatorBottomSheet(),
                         ),
                       ),
@@ -845,6 +865,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                           context: context,
                           isScrollControlled: true,
                           useSafeArea: true,
+                          backgroundColor: Colors.transparent,
                           builder: (_) => const AddSequenceBottomSheet(),
                         ),
                       ),
@@ -863,7 +884,8 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                           context: context,
                           isScrollControlled: true,
                           useSafeArea: true,
-                          builder: (_) => const AddWorkBottomSheet(),
+                          backgroundColor: Colors.transparent,
+                          builder: (_) => AddWorkBottomSheet(isTranslation: _isTranslation),
                         ),
                       ),
                   ],
@@ -913,6 +935,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                           context: context,
                           isScrollControlled: true,
                           useSafeArea: true,
+                          backgroundColor: Colors.transparent,
                           builder: (_) => const AddReaderBottomSheet(),
                         ),
                       ),
@@ -995,6 +1018,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       context: context,
                       isScrollControlled: true,
                       useSafeArea: true,
+                      backgroundColor: Colors.transparent,
                       builder: (_) => const AddPublisherBottomSheet(),
                     ),
                   ),

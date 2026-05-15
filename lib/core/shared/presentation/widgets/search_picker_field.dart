@@ -72,10 +72,15 @@ class _SearchPickerFieldState<T> extends ConsumerState<SearchPickerField<T>> {
   }
 
   void _showPicker(BuildContext context) {
+    final ColorScheme cs = Theme.of(context).colorScheme;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      backgroundColor: cs.surfaceContainerLow,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
       builder: (BuildContext context) => _PickerSheet<T>(
         label: widget.label,
         itemsProvider: widget.itemsProvider,
@@ -201,7 +206,12 @@ class _PickerSheetState<T> extends ConsumerState<_PickerSheet<T>> {
                     .toList();
 
                 if (filtered.isEmpty) {
-                  return const Center(child: Text('No results found'));
+                  return Center(
+                    child: Text(
+                      'No results found',
+                      style: TextStyle(color: colorScheme.onSurfaceVariant),
+                    ),
+                  );
                 }
 
                 return ListView.builder(
@@ -222,8 +232,16 @@ class _PickerSheetState<T> extends ConsumerState<_PickerSheet<T>> {
                   },
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (Object e, StackTrace s) => Center(child: Text('Error: $e')),
+              loading: () => Center(
+                child: CircularProgressIndicator(strokeWidth: 3, color: colorScheme.primary),
+              ),
+              error: (Object e, StackTrace s) => Center(
+                child: Text(
+                  'Error: $e',
+                  style: TextStyle(color: colorScheme.error),
+                  textAlign: TextAlign.center,
+                ),
+              ),
             ),
           ),
         ],

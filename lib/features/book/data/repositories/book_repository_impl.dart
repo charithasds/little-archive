@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
@@ -34,7 +35,8 @@ class BookRepositoryImpl implements BookRepository {
   Stream<List<BookEntity>> watchBooks() => remoteDataSource.watchBooks();
 
   @override
-  Future<void> addBook(BookEntity book) async {
+  Future<void> addBook(BookEntity book, {dynamic batch}) async {
+    final WriteBatch? b = batch is WriteBatch ? batch : null;
     await remoteDataSource.addBook(
       BookModel(
         id: book.id,
@@ -66,6 +68,7 @@ class BookRepositoryImpl implements BookRepository {
         lastUpdated: book.lastUpdated,
         cover: book.cover,
       ),
+      batch: b,
     );
 
     await relationshipSyncService.syncBookRelationships(
@@ -76,11 +79,13 @@ class BookRepositoryImpl implements BookRepository {
       newWorkIds: book.workIds,
       newPublisherId: book.publisherId,
       newReaderId: book.readerId,
+      batch: b,
     );
   }
 
   @override
-  Future<void> editBook(BookEntity book) async {
+  Future<void> editBook(BookEntity book, {dynamic batch}) async {
+    final WriteBatch? b = batch is WriteBatch ? batch : null;
     final BookModel? existingBook = await remoteDataSource.fetchBookById(book.id);
 
     await remoteDataSource.editBook(
@@ -114,6 +119,7 @@ class BookRepositoryImpl implements BookRepository {
         lastUpdated: book.lastUpdated,
         cover: book.cover,
       ),
+      batch: b,
     );
 
     await relationshipSyncService.syncBookRelationships(
@@ -130,6 +136,7 @@ class BookRepositoryImpl implements BookRepository {
       oldWorkIds: existingBook?.workIds ?? <String>[],
       oldPublisherId: existingBook?.publisherId,
       oldReaderId: existingBook?.readerId,
+      batch: b,
     );
   }
 
@@ -252,7 +259,7 @@ class BookRepositoryImpl implements BookRepository {
     final BookEntity bookEntity = BookEntity(
       id: '',
       title: title,
-      compilationType: CompilationType.standalone,
+      compilationType: CompilationType.single,
       isTranslation: isTranslation,
       language: language,
       originalTitle: originalTitle,

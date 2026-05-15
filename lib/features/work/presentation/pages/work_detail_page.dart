@@ -2,14 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/shared/domain/enums/language.dart';
+import '../../../../core/shared/domain/enums/original_language.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/detail_widgets.dart';
 import '../../../../core/shared/presentation/widgets/info_dialogs.dart';
+import '../../../../core/shared/presentation/widgets/list_page_states.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../author/presentation/providers/author_provider.dart';
 import '../../../book/domain/entities/book_entity.dart';
 import '../../../book/presentation/providers/book_provider.dart';
+import '../../../book/presentation/widgets/book_list_tile.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/domain/entities/sequence_volume_entity.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
@@ -70,22 +75,46 @@ class WorkDetailPage extends ConsumerWidget {
     return workAsync.when(
       data: (WorkEntity? work) {
         if (work == null) {
-          return const Scaffold(body: Center(child: Text('Work not found')));
+          return const Scaffold(
+            body: ListEmptyState(
+              icon: Icons.article_rounded,
+              title: 'Work Not Found',
+              subtitle: 'This work may have been removed.',
+            ),
+          );
         }
+
+        final AsyncValue<BookEntity?> bookAsync = work.bookId != null
+            ? ref.watch(bookProvider(work.bookId!))
+            : const AsyncValue<BookEntity?>.data(null);
+
+        final List<String> authorsToDisplay = work.authorIds;
+        final List<String> translatorsToDisplay = work.translatorIds;
+
+        final Language? languageToDisplay = work.language;
+        final OriginalLanguage? originalLanguageToDisplay = work.originalLanguage;
+        final bool isTranslationToDisplay = work.isTranslation;
 
         return Scaffold(
           body: CustomScrollView(
             slivers: <Widget>[
               SliverAppBar.large(
                 title: Text(work.title),
+                backgroundColor: theme.colorScheme.surface,
+                foregroundColor: theme.colorScheme.onSurface,
+                surfaceTintColor: theme.colorScheme.primary,
+                scrolledUnderElevation: 1,
                 actions: <Widget>[
                   IconButton(
                     icon: const Icon(Icons.edit_note_rounded),
-                    onPressed: () => context.push('/works/add', extra: work),
+                    onPressed: () async {
+                      await context.push('/works/add', extra: work);
+                      ref.invalidate(workProvider(workId));
+                    },
                     tooltip: 'Edit',
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete_rounded),
+                    icon: const Icon(Icons.delete_outline_rounded),
                     onPressed: () => _handleRemove(context, ref, work.id),
                     tooltip: 'Remove',
                   ),
@@ -94,12 +123,75 @@ class WorkDetailPage extends ConsumerWidget {
               ),
               SliverToBoxAdapter(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
                     const SizedBox(height: 16),
-                    Icon(
-                      Icons.article_rounded,
-                      size: 200,
-                      color: colorScheme.primary.withValues(alpha: 0.5),
+                    Center(
+                      child: work.bookId != null
+                          ? bookAsync.when(
+                              data: (BookEntity? book) {
+                                final String? cover = book?.cover;
+                                return Material(
+                                  type: MaterialType.transparency,
+                                  child: Container(
+                                    width: 200,
+                                    height: 200 / Images.bookAspectRatio,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(16),
+                                      color: Images.getAvatarBackgroundColor(theme),
+                                      image: cover != null && cover.isNotEmpty
+                                          ? DecorationImage(
+                                              image: Images.getImageProvider(cover),
+                                              fit: BoxFit.contain,
+                                            )
+                                          : null,
+                                      boxShadow: <BoxShadow>[
+                                        BoxShadow(
+                                          color: Colors.black.withValues(alpha: 0.1),
+                                          blurRadius: 20,
+                                          offset: const Offset(0, 10),
+                                        ),
+                                      ],
+                                    ),
+                                    child: cover == null || cover.isEmpty
+                                        ? Icon(
+                                            Icons.article_rounded,
+                                            size: 52,
+                                            color: Images.getAvatarIconColor(theme),
+                                          )
+                                        : null,
+                                  ),
+                                );
+                              },
+                              loading: () => const SizedBox(
+                                height: 200 / Images.bookAspectRatio,
+                                child: Center(child: CircularProgressIndicator()),
+                              ),
+                              error: (_, _) => Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primaryContainer,
+                                  borderRadius: BorderRadius.circular(28),
+                                ),
+                                child: Icon(
+                                  Icons.article_rounded,
+                                  size: 52,
+                                  color: colorScheme.onPrimaryContainer,
+                                ),
+                              ),
+                            )
+                          : Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(28),
+                              ),
+                              child: Icon(
+                                Icons.article_rounded,
+                                size: 52,
+                                color: colorScheme.onPrimaryContainer,
+                              ),
+                            ),
                     ),
                     const SizedBox(height: 24),
                     DetailSection(
@@ -107,40 +199,38 @@ class WorkDetailPage extends ConsumerWidget {
                       children: <Widget>[
                         DetailTile(
                           label: 'Authors',
-                          value: work.authorIds.isEmpty
+                          value: authorsToDisplay.isEmpty
                               ? 'No Authors'
-                              : work.authorIds
-                                    .map(
-                                      (String id) =>
-                                          ref.watch(authorProvider(id)).value?.name ?? 'Loading...',
-                                    )
+                              : authorsToDisplay
+                                    .map((String id) => ref.watch(authorProvider(id)).value?.name)
+                                    .where((String? n) => n != null)
                                     .join(', '),
                           icon: Icons.person_rounded,
-                          onInfo: work.authorIds.length == 1
+                          onInfo: authorsToDisplay.length == 1
                               ? () => EntityQuickInfoDialog.show(
                                   context,
-                                  work.authorIds.first,
+                                  authorsToDisplay.first,
                                   'author',
                                 )
                               : null,
                         ),
-                        if (work.isTranslation)
+                        if (isTranslationToDisplay)
                           DetailTile(
                             label: 'Translators',
-                            value: work.translatorIds.isEmpty
+                            value: translatorsToDisplay.isEmpty
                                 ? 'No Translators'
-                                : work.translatorIds
+                                : translatorsToDisplay
                                       .map(
                                         (String id) =>
-                                            ref.watch(translatorProvider(id)).value?.name ??
-                                            'Loading...',
+                                            ref.watch(translatorProvider(id)).value?.name,
                                       )
+                                      .where((String? n) => n != null)
                                       .join(', '),
                             icon: Icons.translate_rounded,
-                            onInfo: work.translatorIds.length == 1
+                            onInfo: translatorsToDisplay.length == 1
                                 ? () => EntityQuickInfoDialog.show(
                                     context,
-                                    work.translatorIds.first,
+                                    translatorsToDisplay.first,
                                     'translator',
                                   )
                                 : null,
@@ -162,11 +252,17 @@ class WorkDetailPage extends ConsumerWidget {
                             value: work.genre!.clientValue,
                             icon: Icons.style_rounded,
                           ),
-                        if (work.language != null)
+                        if (languageToDisplay != null)
                           DetailTile(
                             label: 'Language',
-                            value: work.language!.clientValue,
+                            value: languageToDisplay.clientValue,
                             icon: Icons.language_rounded,
+                          ),
+                        if (isTranslationToDisplay && originalLanguageToDisplay != null)
+                          DetailTile(
+                            label: 'Original Language',
+                            value: originalLanguageToDisplay.clientValue,
+                            icon: Icons.translate_rounded,
                           ),
                       ],
                     ),
@@ -174,17 +270,18 @@ class WorkDetailPage extends ConsumerWidget {
                       DetailSection(
                         title: 'BOOK',
                         children: <Widget>[
-                          DetailTile(
-                            label: 'Collected in',
-                            value: ref
-                                .watch(bookProvider(work.bookId!))
-                                .when(
-                                  data: (BookEntity? book) => book?.title ?? 'Unknown Book',
-                                  loading: () => 'Loading...',
-                                  error: (_, _) => 'Error',
-                                ),
-                            icon: Icons.book_rounded,
-                            onInfo: () => EntityQuickInfoDialog.show(context, work.bookId!, 'book'),
+                          bookAsync.when(
+                            data: (BookEntity? book) {
+                              if (book == null) {
+                                return const SizedBox.shrink();
+                              }
+                              return BookListTile(
+                                book: book,
+                                onInfo: () => EntityQuickInfoDialog.show(context, book.id, 'book'),
+                              );
+                            },
+                            loading: () => const Center(child: CircularProgressIndicator()),
+                            error: (_, _) => const Text('Error loading book'),
                           ),
                         ],
                       ),
@@ -217,7 +314,7 @@ class WorkDetailPage extends ConsumerWidget {
                         showDivider: false,
                         children: <Widget>[
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                            padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
                             child: Text(
                               work.notes!,
                               style: theme.textTheme.bodyMedium?.copyWith(
@@ -234,10 +331,12 @@ class WorkDetailPage extends ConsumerWidget {
                         DetailTile(
                           label: 'Created',
                           value: DetailTile.formatDate(work.createdDate),
+                          icon: Icons.calendar_today_rounded,
                         ),
                         DetailTile(
                           label: 'Last Updated',
                           value: DetailTile.formatDate(work.lastUpdated),
+                          icon: Icons.update_rounded,
                         ),
                       ],
                     ),
@@ -249,8 +348,8 @@ class WorkDetailPage extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (Object err, StackTrace stack) => Scaffold(body: Center(child: Text('Error: $err'))),
+      loading: () => const Scaffold(body: ListLoadingState()),
+      error: (Object err, StackTrace stack) => Scaffold(body: ListErrorState(error: err)),
     );
   }
 }

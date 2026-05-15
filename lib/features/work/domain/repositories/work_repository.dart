@@ -6,7 +6,7 @@ abstract class WorkRepository {
   Future<List<WorkEntity>> fetchWorks();
   Future<WorkEntity?> fetchWorkById(String id);
   Stream<List<WorkEntity>> watchWorks();
-  Future<void> addWork(WorkEntity work);
-  Future<void> editWork(WorkEntity work);
+  Future<void> addWork(WorkEntity work, {dynamic batch});
+  Future<void> editWork(WorkEntity work, {dynamic batch});
   Future<void> removeWork(String id);
 }

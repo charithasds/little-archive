@@ -10,6 +10,15 @@ import '../widgets/dashboard.dart';
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
+  /// Returns the first word of displayName, or null if unavailable.
+  static String? _firstName(UserEntity? user) {
+    final String? name = user?.displayName?.trim();
+    if (name == null || name.isEmpty) {
+      return null;
+    }
+    return name.split(' ').first;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = ref.watch(activeThemeDataProvider);
@@ -23,7 +32,7 @@ class HomePage extends ConsumerWidget {
         backgroundColor: cs.surface,
         foregroundColor: cs.onSurface,
         surfaceTintColor: cs.primary,
-        centerTitle: true,
+        centerTitle: false,
         actions: <Widget>[
           PopupMenuButton<String>(
             icon: user?.photoUrl != null && user!.photoUrl!.isNotEmpty
@@ -69,7 +78,7 @@ class HomePage extends ConsumerWidget {
           const SizedBox(width: 8),
         ],
       ),
-      body: const Dashboard(),
+      body: Dashboard(firstName: _firstName(user)),
     );
   }
 }

@@ -31,3 +31,32 @@ Future<TranslatorEntity?> translator(Ref ref, String id) async {
     return null;
   }
 }
+
+// ── Translator missing-info provider ────────────────────────────────────
+
+@riverpod
+List<({String label, int count})>? translatorsMissingInfo(Ref ref) {
+  final List<TranslatorEntity>? translators = ref.watch(translatorsStreamProvider).value;
+  if (translators == null) {
+    return null;
+  }
+
+  int countWhere(bool Function(TranslatorEntity) test) => translators.where(test).length;
+
+  return <({String label, int count})>[
+    (
+      label: 'No Photo',
+      count: countWhere((TranslatorEntity t) => t.image == null || t.image!.trim().isEmpty),
+    ),
+    (
+      label: 'No Alt. Name',
+      count: countWhere((TranslatorEntity t) => t.otherName == null || t.otherName!.trim().isEmpty),
+    ),
+    (
+      label: 'No Website',
+      count: countWhere((TranslatorEntity t) => t.website == null || t.website!.trim().isEmpty),
+    ),
+    (label: 'No Books', count: countWhere((TranslatorEntity t) => t.bookIds.isEmpty)),
+    (label: 'No Works', count: countWhere((TranslatorEntity t) => t.workIds.isEmpty)),
+  ];
+}

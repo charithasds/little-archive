@@ -8,6 +8,7 @@ import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
+import '../../../../core/shared/presentation/utils/images.dart';
 import '../../domain/entities/author_entity.dart';
 import '../../domain/usecases/author_usecases.dart';
 
@@ -83,7 +84,7 @@ class UpsertAuthorController extends _$UpsertAuthorController {
     final AuthorEntity? existingAuthor = state.existingAuthor;
     final String generatedId = ref.read(generateAuthorIdUseCaseProvider)();
 
-    final AuthorEntity authorToSave = existingAuthor != null
+    AuthorEntity authorToSave = existingAuthor != null
         ? existingAuthor.copyWith(
             name: name,
             otherName: Nullable<String?>(otherName?.isEmpty ?? true ? null : otherName),
@@ -107,9 +108,29 @@ class UpsertAuthorController extends _$UpsertAuthorController {
 
     try {
       if (existingAuthor != null) {
-        await ref.read(editAuthorUseCaseProvider)(authorToSave);
+        try {
+          await ref.read(editAuthorUseCaseProvider)(authorToSave);
+        } catch (e) {
+          if (e.toString().contains('longer than 1048487 bytes')) {
+            final String? compressedImage = Images.ensureFitsFirestore(state.pickedBase64Image);
+            authorToSave = authorToSave.copyWith(image: Nullable<String?>(compressedImage));
+            await ref.read(editAuthorUseCaseProvider)(authorToSave);
+          } else {
+            rethrow;
+          }
+        }
       } else {
-        await ref.read(addAuthorUseCaseProvider)(authorToSave);
+        try {
+          await ref.read(addAuthorUseCaseProvider)(authorToSave);
+        } catch (e) {
+          if (e.toString().contains('longer than 1048487 bytes')) {
+            final String? compressedImage = Images.ensureFitsFirestore(state.pickedBase64Image);
+            authorToSave = authorToSave.copyWith(image: Nullable<String?>(compressedImage));
+            await ref.read(addAuthorUseCaseProvider)(authorToSave);
+          } else {
+            rethrow;
+          }
+        }
       }
 
       state = state.copyWith(isLoading: false);

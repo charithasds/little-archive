@@ -5,9 +5,12 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
+import '../../../../core/shared/presentation/widgets/list_page_states.dart';
+import '../../../../core/shared/presentation/widgets/search_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/translator_entity.dart';
 import '../../domain/usecases/translator_usecases.dart';
+import '../providers/translator_list_controller.dart';
 import '../providers/translator_provider.dart';
 import '../widgets/translator_list_tile.dart';
 
@@ -60,92 +63,91 @@ class TranslatorListPage extends ConsumerWidget {
     final ColorScheme colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Translators'), centerTitle: true),
+      backgroundColor: colorScheme.surface,
+      appBar: AppBar(
+        title: const Text('Translators'),
+        centerTitle: true,
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
+        surfaceTintColor: colorScheme.primary,
+        scrolledUnderElevation: 1,
+      ),
       body: translatorsAsync.when(
-        data: (List<TranslatorEntity> translators) {
-          if (translators.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Icon(
-                    Icons.translate_rounded,
-                    size: 80,
-                    color: colorScheme.primary.withValues(alpha: 0.5),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No Translators Yet',
-                    style: theme.textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Tap the button below to add your first translator',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
+        data: (_) {
+          final TranslatorListState state = ref.watch(translatorListControllerProvider);
+          final List<TranslatorEntity> translators = state.displayedTranslators;
+
+          if (translators.isEmpty && state.searchQuery.isEmpty) {
+            return const ListEmptyState(
+              icon: Icons.translate_rounded,
+              title: 'No Translators Yet',
+              subtitle: 'Tap the button below to add your first translator.',
             );
           }
-          return LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              if (constraints.maxWidth < 600) {
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemCount: translators.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    final TranslatorEntity translator = translators[index];
-                    return TranslatorListTile(
-                      translator: translator,
-                      onTap: () => context.go('/translators/${translator.id}'),
-                      onEdit: () => context.push('/translators/add', extra: translator),
-                      onRemove: () => _handleRemove(context, ref, translator.id),
-                    );
-                  },
-                );
-              } else {
-                return GridView.builder(
-                  padding: const EdgeInsets.all(24),
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 600,
-                    mainAxisExtent: 140,
-                    crossAxisSpacing: 24,
-                    mainAxisSpacing: 24,
+
+          return Column(
+            children: <Widget>[
+              SearchField(
+                hintText: 'Search translators by name, website...',
+                onChanged: (String query) =>
+                    ref.read(translatorListControllerProvider.notifier).setSearchQuery(query),
+              ),
+              if (translators.isEmpty)
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      'No translators match your search.',
+                      style: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
+                    ),
                   ),
-                  itemCount: translators.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    final TranslatorEntity translator = translators[index];
-                    return TranslatorListTile(
-                      translator: translator,
-                      onTap: () => context.go('/translators/${translator.id}'),
-                      onEdit: () => context.push('/translators/add', extra: translator),
-                      onRemove: () => _handleRemove(context, ref, translator.id),
-                    );
-                  },
-                );
-              }
-            },
+                )
+              else
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (BuildContext context, BoxConstraints constraints) {
+                      if (constraints.maxWidth < 600) {
+                        return ListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          itemCount: translators.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final TranslatorEntity translator = translators[index];
+                            return TranslatorListTile(
+                              translator: translator,
+                              onTap: () => context.go('/translators/${translator.id}'),
+                              onEdit: () => context.push('/translators/add', extra: translator),
+                              onRemove: () => _handleRemove(context, ref, translator.id),
+                            );
+                          },
+                        );
+                      } else {
+                        return GridView.builder(
+                          padding: const EdgeInsets.all(24),
+                          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                            maxCrossAxisExtent: 600,
+                            mainAxisExtent: 140,
+                            crossAxisSpacing: 24,
+                            mainAxisSpacing: 24,
+                          ),
+                          itemCount: translators.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final TranslatorEntity translator = translators[index];
+                            return TranslatorListTile(
+                              translator: translator,
+                              onTap: () => context.go('/translators/${translator.id}'),
+                              onEdit: () => context.push('/translators/add', extra: translator),
+                              onRemove: () => _handleRemove(context, ref, translator.id),
+                            );
+                          },
+                        );
+                      }
+                    },
+                  ),
+                ),
+            ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (Object err, StackTrace stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Icon(Icons.error_rounded, size: 64, color: colorScheme.error),
-              const SizedBox(height: 16),
-              Text('Something went wrong', style: theme.textTheme.titleLarge),
-              const SizedBox(height: 8),
-              Text(
-                '$err',
-                style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
+        loading: () => const ListLoadingState(),
+        error: (Object err, StackTrace stack) => ListErrorState(error: err),
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),

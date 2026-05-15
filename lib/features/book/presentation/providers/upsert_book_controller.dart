@@ -14,6 +14,7 @@ import '../../../../core/shared/domain/enums/original_language.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
+import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../domain/entities/book_entity.dart';
 import '../../domain/entities/scanned_book_entity.dart';
@@ -65,12 +66,19 @@ class UpsertBookController extends _$UpsertBookController {
   }
 
   Future<void> pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
-    if (pickedFile != null) {
-      final Uint8List bytes = await pickedFile.readAsBytes();
-      state = state.copyWith(pickedBase64Image: Nullable<String?>(base64Encode(bytes)));
+      if (pickedFile != null) {
+        final Uint8List bytes = await pickedFile.readAsBytes();
+        state = state.copyWith(
+          pickedBase64Image: Nullable<String?>(base64Encode(bytes)),
+          error: const Nullable<String?>(null),
+        );
+      }
+    } catch (e) {
+      state = state.copyWith(error: Nullable<String?>('Failed to pick image: $e'));
     }
   }
 
@@ -103,6 +111,26 @@ class UpsertBookController extends _$UpsertBookController {
     state = state.copyWith(scanResult: const Nullable<ScannedBookEntity?>(null));
   }
 
+  Future<void> retryScan() async {
+    final String? base64Image = state.pickedBase64Image;
+    if (base64Image == null || base64Image.isEmpty) {
+      return;
+    }
+
+    state = state.copyWith(
+      isScanning: true,
+      error: const Nullable<String?>(null),
+      scanResult: const Nullable<ScannedBookEntity?>(null),
+    );
+
+    try {
+      final Uint8List bytes = base64Decode(base64Image);
+      await scanBook(bytes);
+    } catch (e) {
+      state = state.copyWith(isScanning: false, error: Nullable<String?>('Retry failed: $e'));
+    }
+  }
+
   Future<BookEntity?> saveBook({
     required String title,
     required CompilationType compilationType,
@@ -128,6 +156,7 @@ class UpsertBookController extends _$UpsertBookController {
     Map<SequenceEntity, String> sequenceEntries = const <SequenceEntity, String>{},
     String? publisherId,
     String? readerId,
+    bool applyToWorks = false,
   }) async {
     state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
@@ -145,7 +174,7 @@ class UpsertBookController extends _$UpsertBookController {
     try {
       final BookEntity? existingBook = state.existingBook;
       final String bookId = existingBook?.id ?? ref.read(generateBookIdUseCaseProvider)();
-      final BookEntity bookToSave = existingBook != null
+      BookEntity bookToSave = existingBook != null
           ? existingBook.copyWith(
               title: title,
               compilationType: compilationType,
@@ -207,11 +236,28 @@ class UpsertBookController extends _$UpsertBookController {
               lastUpdated: DateTime.now(),
             );
 
-      final BookEntity savedBook = await ref.read(upsertBookUseCaseProvider)(
-        book: bookToSave,
-        sequenceEntries: sequenceEntries,
-        isEdit: existingBook != null,
-      );
+      BookEntity savedBook;
+      try {
+        savedBook = await ref.read(upsertBookUseCaseProvider)(
+          book: bookToSave,
+          sequenceEntries: sequenceEntries,
+          isEdit: existingBook != null,
+          applyToWorks: applyToWorks,
+        );
+      } catch (e) {
+        if (e.toString().contains('longer than 1048487 bytes')) {
+          final String? compressedCover = Images.ensureFitsFirestore(state.pickedBase64Image);
+          bookToSave = bookToSave.copyWith(cover: Nullable<String?>(compressedCover));
+
+          savedBook = await ref.read(upsertBookUseCaseProvider)(
+            book: bookToSave,
+            sequenceEntries: sequenceEntries,
+            isEdit: existingBook != null,
+          );
+        } else {
+          rethrow;
+        }
+      }
 
       state = state.copyWith(isLoading: false);
 

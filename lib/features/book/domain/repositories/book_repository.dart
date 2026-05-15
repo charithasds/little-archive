@@ -8,8 +8,8 @@ abstract class BookRepository {
   Future<List<BookEntity>> fetchBooks();
   Future<BookEntity?> fetchBookById(String id);
   Stream<List<BookEntity>> watchBooks();
-  Future<void> addBook(BookEntity book);
-  Future<void> editBook(BookEntity book);
+  Future<void> addBook(BookEntity book, {dynamic batch});
+  Future<void> editBook(BookEntity book, {dynamic batch});
   Future<void> removeBook(String id);
   Future<ScannedBookEntity> scanBookCover(Uint8List imageBytes);
 }

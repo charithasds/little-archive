@@ -8,6 +8,7 @@ import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/detail_widgets.dart';
 import '../../../../core/shared/presentation/widgets/info_dialogs.dart';
+import '../../../../core/shared/presentation/widgets/list_page_states.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../author/presentation/providers/author_provider.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
@@ -77,7 +78,13 @@ class BookDetailPage extends ConsumerWidget {
     return bookAsync.when(
       data: (BookEntity? book) {
         if (book == null) {
-          return const Scaffold(body: Center(child: Text('Book not found')));
+          return const Scaffold(
+            body: ListEmptyState(
+              icon: Icons.book_rounded,
+              title: 'Book Not Found',
+              subtitle: 'This book may have been removed.',
+            ),
+          );
         }
 
         final AsyncValue<List<WorkEntity>> worksAsync = ref.watch(worksStreamProvider);
@@ -95,14 +102,21 @@ class BookDetailPage extends ConsumerWidget {
             slivers: <Widget>[
               SliverAppBar.large(
                 title: Text(book.title),
+                backgroundColor: theme.colorScheme.surface,
+                foregroundColor: theme.colorScheme.onSurface,
+                surfaceTintColor: theme.colorScheme.primary,
+                scrolledUnderElevation: 1,
                 actions: <Widget>[
                   IconButton(
                     icon: const Icon(Icons.edit_note_rounded),
-                    onPressed: () => context.push('/books/add', extra: book),
+                    onPressed: () async {
+                      await context.push('/books/add', extra: book);
+                      ref.invalidate(bookProvider(bookId));
+                    },
                     tooltip: 'Edit',
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete_rounded),
+                    icon: const Icon(Icons.delete_outline_rounded),
                     onPressed: () => _handleRemove(context, ref, book.id),
                     tooltip: 'Remove',
                   ),
@@ -111,10 +125,10 @@ class BookDetailPage extends ConsumerWidget {
               ),
               SliverToBoxAdapter(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
                     const SizedBox(height: 16),
-                    Hero(
-                      tag: 'book_${book.id}',
+                    Center(
                       child: Container(
                         width: 280,
                         height: 280 / Images.bookAspectRatio,
@@ -160,7 +174,11 @@ class BookDetailPage extends ConsumerWidget {
                                     .join(', '),
                           icon: Icons.person_rounded,
                           onInfo: book.authorIds.length == 1
-                              ? () => EntityQuickInfoDialog.show(context, book.authorIds.first, 'author')
+                              ? () => EntityQuickInfoDialog.show(
+                                  context,
+                                  book.authorIds.first,
+                                  'author',
+                                )
                               : null,
                         ),
                         if (book.isTranslation)
@@ -177,7 +195,11 @@ class BookDetailPage extends ConsumerWidget {
                                       .join(', '),
                             icon: Icons.translate_rounded,
                             onInfo: book.translatorIds.length == 1
-                                ? () => EntityQuickInfoDialog.show(context, book.translatorIds.first, 'translator')
+                                ? () => EntityQuickInfoDialog.show(
+                                    context,
+                                    book.translatorIds.first,
+                                    'translator',
+                                  )
                                 : null,
                           ),
                         if (book.originalTitle != null && book.originalTitle!.isNotEmpty)
@@ -185,6 +207,18 @@ class BookDetailPage extends ConsumerWidget {
                             label: 'Original Title',
                             value: book.originalTitle!,
                             icon: Icons.title_rounded,
+                          ),
+                        if (book.language != null)
+                          DetailTile(
+                            label: 'Language',
+                            value: book.language!.clientValue,
+                            icon: Icons.language_rounded,
+                          ),
+                        if (book.isTranslation && book.originalLanguage != null)
+                          DetailTile(
+                            label: 'Original Language',
+                            value: book.originalLanguage!.clientValue,
+                            icon: Icons.translate_rounded,
                           ),
                         if (book.publisherId != null)
                           DetailTile(
@@ -197,11 +231,8 @@ class BookDetailPage extends ConsumerWidget {
                                   error: (_, _) => 'Error',
                                 ),
                             icon: Icons.business_rounded,
-                            onInfo: () => EntityQuickInfoDialog.show(
-                              context,
-                              book.publisherId!,
-                              'publisher',
-                            ),
+                            onInfo: () =>
+                                EntityQuickInfoDialog.show(context, book.publisherId!, 'publisher'),
                           ),
                         if (book.readerId != null)
                           DetailTile(
@@ -214,11 +245,8 @@ class BookDetailPage extends ConsumerWidget {
                                   error: (_, _) => 'Error',
                                 ),
                             icon: Icons.chrome_reader_mode_rounded,
-                            onInfo: () => EntityQuickInfoDialog.show(
-                              context,
-                              book.readerId!,
-                              'reader',
-                            ),
+                            onInfo: () =>
+                                EntityQuickInfoDialog.show(context, book.readerId!, 'reader'),
                           ),
                         if (book.isbn != null && book.isbn!.isNotEmpty)
                           DetailTile(label: 'ISBN', value: book.isbn!, icon: Icons.qr_code_rounded),
@@ -260,11 +288,8 @@ class BookDetailPage extends ConsumerWidget {
                             label: sequenceName,
                             value: 'Volume ${volume.volume}',
                             icon: Icons.layers_rounded,
-                            onInfo: () => EntityQuickInfoDialog.show(
-                              context,
-                              volume.sequenceId,
-                              'sequence',
-                            ),
+                            onInfo: () =>
+                                EntityQuickInfoDialog.show(context, volume.sequenceId, 'sequence'),
                           );
                         }).toList(),
                       ),
@@ -276,8 +301,6 @@ class BookDetailPage extends ConsumerWidget {
                             (WorkEntity work) => WorkListTile(
                               work: work,
                               onInfo: () => EntityQuickInfoDialog.show(context, work.id, 'work'),
-                              onEdit: () => context.push('/works/add', extra: work),
-                              onRemove: () {},
                             ),
                           )
                           .toList(),
@@ -288,7 +311,7 @@ class BookDetailPage extends ConsumerWidget {
                         showDivider: false,
                         children: <Widget>[
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                            padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
                             child: Text(
                               book.notes!,
                               style: theme.textTheme.bodyMedium?.copyWith(
@@ -305,10 +328,12 @@ class BookDetailPage extends ConsumerWidget {
                         DetailTile(
                           label: 'Created',
                           value: DetailTile.formatDate(book.createdDate),
+                          icon: Icons.calendar_today_rounded,
                         ),
                         DetailTile(
                           label: 'Last Updated',
                           value: DetailTile.formatDate(book.lastUpdated),
+                          icon: Icons.update_rounded,
                         ),
                       ],
                     ),
@@ -320,8 +345,8 @@ class BookDetailPage extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (Object err, StackTrace stack) => Scaffold(body: Center(child: Text('Error: $err'))),
+      loading: () => const Scaffold(body: ListLoadingState()),
+      error: (Object err, StackTrace stack) => Scaffold(body: ListErrorState(error: err)),
     );
   }
 }

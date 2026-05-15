@@ -131,6 +131,7 @@ class SyncBookSequenceVolumesUseCase {
     required String bookId,
     required Map<SequenceEntity, String> entries,
     bool isEdit = false,
+    dynamic batch,
   }) async {
     if (isEdit) {
       final List<SequenceVolumeEntity> oldVolumes = await repository.fetchSequenceVolumesByBookId(
@@ -138,7 +139,7 @@ class SyncBookSequenceVolumesUseCase {
       );
 
       for (final SequenceVolumeEntity vol in oldVolumes) {
-        await repository.removeSequenceVolume(vol.id);
+        await repository.removeSequenceVolume(vol.id, batch: batch);
       }
     }
 
@@ -155,6 +156,7 @@ class SyncBookSequenceVolumesUseCase {
           createdDate: DateTime.now(),
           lastUpdated: DateTime.now(),
         ),
+        batch: batch,
       );
 
       volumeIds.add(id);
@@ -172,6 +174,7 @@ class SyncWorkSequenceVolumesUseCase {
     required String workId,
     required Map<SequenceEntity, String> entries,
     bool isEdit = false,
+    dynamic batch,
   }) async {
     if (isEdit) {
       final List<SequenceVolumeEntity> oldVolumes = await repository.fetchSequenceVolumesByWorkId(
@@ -179,7 +182,7 @@ class SyncWorkSequenceVolumesUseCase {
       );
 
       for (final SequenceVolumeEntity vol in oldVolumes) {
-        await repository.removeSequenceVolume(vol.id);
+        await repository.removeSequenceVolume(vol.id, batch: batch);
       }
     }
 
@@ -196,6 +199,7 @@ class SyncWorkSequenceVolumesUseCase {
           createdDate: DateTime.now(),
           lastUpdated: DateTime.now(),
         ),
+        batch: batch,
       );
 
       volumeIds.add(id);

@@ -21,7 +21,7 @@ class LoginPage extends ConsumerWidget {
         color: colorScheme.onSurface,
       ),
       descriptionStyle: theme.textTheme.headlineSmall?.copyWith(
-        color: colorScheme.onSurface.withValues(alpha: 0.6),
+        color: colorScheme.onSurfaceVariant,
       ),
       iconHeight: 240,
       content: const GoogleSignInButton(),
@@ -29,7 +29,7 @@ class LoginPage extends ConsumerWidget {
         'Keep your library in sync across all your devices.',
         textAlign: TextAlign.center,
         style: theme.textTheme.titleMedium?.copyWith(
-          color: colorScheme.onSurface.withValues(alpha: 0.4),
+          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
         ),
       ),
     );

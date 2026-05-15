@@ -7,8 +7,8 @@ abstract class SequenceRepository {
   Future<List<SequenceEntity>> fetchSequences();
   Future<SequenceEntity?> fetchSequenceById(String id);
   Stream<List<SequenceEntity>> watchSequences();
-  Future<void> addSequence(SequenceEntity sequence);
-  Future<void> editSequence(SequenceEntity sequence);
+  Future<void> addSequence(SequenceEntity sequence, {dynamic batch});
+  Future<void> editSequence(SequenceEntity sequence, {dynamic batch});
   Future<void> removeSequence(String id);
 
   String generateVolumeId();
@@ -18,7 +18,7 @@ abstract class SequenceRepository {
   Future<List<SequenceVolumeEntity>> fetchSequenceVolumesByBookId(String bookId);
   Future<List<SequenceVolumeEntity>> fetchSequenceVolumesByWorkId(String workId);
   Stream<List<SequenceVolumeEntity>> watchSequenceVolumes(String sequenceId);
-  Future<void> addSequenceVolume(SequenceVolumeEntity volume);
-  Future<void> editSequenceVolume(SequenceVolumeEntity volume);
-  Future<void> removeSequenceVolume(String id);
+  Future<void> addSequenceVolume(SequenceVolumeEntity volume, {dynamic batch});
+  Future<void> editSequenceVolume(SequenceVolumeEntity volume, {dynamic batch});
+  Future<void> removeSequenceVolume(String id, {dynamic batch});
 }

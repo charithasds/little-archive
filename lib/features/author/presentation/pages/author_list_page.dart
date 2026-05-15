@@ -5,9 +5,12 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
+import '../../../../core/shared/presentation/widgets/list_page_states.dart';
+import '../../../../core/shared/presentation/widgets/search_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/author_entity.dart';
 import '../../domain/usecases/author_usecases.dart';
+import '../providers/author_list_controller.dart';
 import '../providers/author_provider.dart';
 import '../widgets/author_list_tile.dart';
 
@@ -58,92 +61,91 @@ class AuthorListPage extends ConsumerWidget {
     final ColorScheme colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Authors'), centerTitle: true),
+      backgroundColor: colorScheme.surface,
+      appBar: AppBar(
+        title: const Text('Authors'),
+        centerTitle: true,
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
+        surfaceTintColor: colorScheme.primary,
+        scrolledUnderElevation: 1,
+      ),
       body: authorsAsync.when(
-        data: (List<AuthorEntity> authors) {
-          if (authors.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Icon(
-                    Icons.person_rounded,
-                    size: 80,
-                    color: colorScheme.primary.withValues(alpha: 0.5),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No Authors Yet',
-                    style: theme.textTheme.headlineSmall?.copyWith(color: colorScheme.onSurface),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Tap the button below to add your first author',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ),
+        data: (_) {
+          final AuthorListState state = ref.watch(authorListControllerProvider);
+          final List<AuthorEntity> authors = state.displayedAuthors;
+
+          if (authors.isEmpty && state.searchQuery.isEmpty) {
+            return const ListEmptyState(
+              icon: Icons.person_rounded,
+              title: 'No Authors Yet',
+              subtitle: 'Tap the button below to add your first author.',
             );
           }
-          return LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              if (constraints.maxWidth < 600) {
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemCount: authors.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    final AuthorEntity author = authors[index];
-                    return AuthorListTile(
-                      author: author,
-                      onTap: () => context.go('/authors/${author.id}'),
-                      onEdit: () => context.push('/authors/add', extra: author),
-                      onRemove: () => _handleRemove(context, ref, author.id),
-                    );
-                  },
-                );
-              } else {
-                return GridView.builder(
-                  padding: const EdgeInsets.all(24),
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 600,
-                    mainAxisExtent: 140,
-                    crossAxisSpacing: 24,
-                    mainAxisSpacing: 24,
+
+          return Column(
+            children: <Widget>[
+              SearchField(
+                hintText: 'Search authors by name, website...',
+                onChanged: (String query) =>
+                    ref.read(authorListControllerProvider.notifier).setSearchQuery(query),
+              ),
+              if (authors.isEmpty)
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      'No authors match your search.',
+                      style: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
+                    ),
                   ),
-                  itemCount: authors.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    final AuthorEntity author = authors[index];
-                    return AuthorListTile(
-                      author: author,
-                      onTap: () => context.go('/authors/${author.id}'),
-                      onEdit: () => context.push('/authors/add', extra: author),
-                      onRemove: () => _handleRemove(context, ref, author.id),
-                    );
-                  },
-                );
-              }
-            },
+                )
+              else
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (BuildContext context, BoxConstraints constraints) {
+                      if (constraints.maxWidth < 600) {
+                        return ListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          itemCount: authors.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final AuthorEntity author = authors[index];
+                            return AuthorListTile(
+                              author: author,
+                              onTap: () => context.go('/authors/${author.id}'),
+                              onEdit: () => context.push('/authors/add', extra: author),
+                              onRemove: () => _handleRemove(context, ref, author.id),
+                            );
+                          },
+                        );
+                      } else {
+                        return GridView.builder(
+                          padding: const EdgeInsets.all(24),
+                          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                            maxCrossAxisExtent: 600,
+                            mainAxisExtent: 140,
+                            crossAxisSpacing: 24,
+                            mainAxisSpacing: 24,
+                          ),
+                          itemCount: authors.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final AuthorEntity author = authors[index];
+                            return AuthorListTile(
+                              author: author,
+                              onTap: () => context.go('/authors/${author.id}'),
+                              onEdit: () => context.push('/authors/add', extra: author),
+                              onRemove: () => _handleRemove(context, ref, author.id),
+                            );
+                          },
+                        );
+                      }
+                    },
+                  ),
+                ),
+            ],
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (Object err, StackTrace stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Icon(Icons.error_rounded, size: 64, color: colorScheme.error),
-              const SizedBox(height: 16),
-              Text('Something went wrong', style: theme.textTheme.titleLarge),
-              const SizedBox(height: 8),
-              Text(
-                '$err',
-                style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
+        loading: () => const ListLoadingState(),
+        error: (Object err, StackTrace stack) => ListErrorState(error: err),
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),

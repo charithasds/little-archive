@@ -20,8 +20,8 @@ abstract class BookRemoteDataSource {
   Future<List<BookModel>> fetchBooks();
   Future<BookModel?> fetchBookById(String id);
   Stream<List<BookModel>> watchBooks();
-  Future<void> addBook(BookModel book);
-  Future<void> editBook(BookModel book);
+  Future<void> addBook(BookModel book, {WriteBatch? batch});
+  Future<void> editBook(BookModel book, {WriteBatch? batch});
   Future<void> removeBook(String id);
   Future<Map<String, dynamic>> scanBookCover(Uint8List imageBytes);
 }
@@ -79,18 +79,33 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
       );
 
   @override
-  Future<void> addBook(BookModel book) async {
-    await firestoreService.requireConnectivity();
-    await _firestore
+  Future<void> addBook(BookModel book, {WriteBatch? batch}) async {
+    final DocumentReference<Map<String, dynamic>> docRef = _firestore
         .collection(_collectionPath)
-        .doc(book.id.isEmpty ? null : book.id)
-        .set(book.toMap());
+        .doc(book.id.isEmpty ? null : book.id);
+
+    if (batch != null) {
+      batch.set(docRef, book.toMap());
+      return;
+    }
+
+    await firestoreService.requireConnectivity();
+    await docRef.set(book.toMap());
   }
 
   @override
-  Future<void> editBook(BookModel book) async {
+  Future<void> editBook(BookModel book, {WriteBatch? batch}) async {
+    final DocumentReference<Map<String, dynamic>> docRef = _firestore
+        .collection(_collectionPath)
+        .doc(book.id);
+
+    if (batch != null) {
+      batch.update(docRef, book.toMap());
+      return;
+    }
+
     await firestoreService.requireConnectivity();
-    await _firestore.collection(_collectionPath).doc(book.id).update(book.toMap());
+    await docRef.update(book.toMap());
   }
 
   @override

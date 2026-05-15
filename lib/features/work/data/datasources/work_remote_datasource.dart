@@ -13,8 +13,8 @@ abstract class WorkRemoteDataSource {
   Future<List<WorkModel>> fetchWorks();
   Future<WorkModel?> fetchWorkById(String id);
   Stream<List<WorkModel>> watchWorks();
-  Future<void> addWork(WorkModel work);
-  Future<void> editWork(WorkModel work);
+  Future<void> addWork(WorkModel work, {WriteBatch? batch});
+  Future<void> editWork(WorkModel work, {WriteBatch? batch});
   Future<void> removeWork(String id);
 }
 
@@ -71,18 +71,33 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
       );
 
   @override
-  Future<void> addWork(WorkModel work) async {
-    await firestoreService.requireConnectivity();
-    await _firestore
+  Future<void> addWork(WorkModel work, {WriteBatch? batch}) async {
+    final DocumentReference<Map<String, dynamic>> docRef = _firestore
         .collection(_collectionPath)
-        .doc(work.id.isEmpty ? null : work.id)
-        .set(work.toMap());
+        .doc(work.id.isEmpty ? null : work.id);
+
+    if (batch != null) {
+      batch.set(docRef, work.toMap());
+      return;
+    }
+
+    await firestoreService.requireConnectivity();
+    await docRef.set(work.toMap());
   }
 
   @override
-  Future<void> editWork(WorkModel work) async {
+  Future<void> editWork(WorkModel work, {WriteBatch? batch}) async {
+    final DocumentReference<Map<String, dynamic>> docRef = _firestore
+        .collection(_collectionPath)
+        .doc(work.id);
+
+    if (batch != null) {
+      batch.update(docRef, work.toMap());
+      return;
+    }
+
     await firestoreService.requireConnectivity();
-    await _firestore.collection(_collectionPath).doc(work.id).update(work.toMap());
+    await docRef.update(work.toMap());
   }
 
   @override

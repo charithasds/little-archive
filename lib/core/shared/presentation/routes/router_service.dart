@@ -10,7 +10,10 @@ import '../../../../features/book/domain/entities/book_entity.dart';
 import '../../../../features/book/presentation/pages/book_detail_page.dart';
 import '../../../../features/book/presentation/pages/book_list_page.dart';
 import '../../../../features/book/presentation/pages/upsert_book_page.dart';
+import '../../../../features/home/presentation/pages/collection_status_page.dart';
+import '../../../../features/home/presentation/pages/data_quality_page.dart';
 import '../../../../features/home/presentation/pages/home_page.dart';
+import '../../../../features/home/presentation/pages/reading_status_page.dart';
 import '../../../../features/publisher/domain/entities/publisher_entity.dart';
 import '../../../../features/publisher/presentation/pages/publisher_detail_page.dart';
 import '../../../../features/publisher/presentation/pages/publisher_list_page.dart';
@@ -202,6 +205,21 @@ class RouterService {
         GoRoute(
           path: 'settings',
           builder: (BuildContext context, GoRouterState state) => const SettingsPage(),
+        ),
+
+        GoRoute(
+          path: 'collection-status',
+          builder: (BuildContext context, GoRouterState state) => const CollectionStatusPage(),
+        ),
+
+        GoRoute(
+          path: 'reading-status',
+          builder: (BuildContext context, GoRouterState state) => const ReadingStatusPage(),
+        ),
+
+        GoRoute(
+          path: 'data-quality',
+          builder: (BuildContext context, GoRouterState state) => const DataQualityPage(),
         ),
       ],
     ),

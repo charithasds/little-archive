@@ -33,6 +33,26 @@ Future<SequenceEntity?> sequence(Ref ref, String id) async {
   }
 }
 
+// ── Sequence missing-info provider ───────────────────────────────────
+
+@riverpod
+List<({String label, int count})>? sequencesMissingInfo(Ref ref) {
+  final List<SequenceEntity>? sequences = ref.watch(sequencesStreamProvider).value;
+  if (sequences == null) {
+    return null;
+  }
+
+  int countWhere(bool Function(SequenceEntity) test) => sequences.where(test).length;
+
+  return <({String label, int count})>[
+    (
+      label: 'No Alt. Name',
+      count: countWhere((SequenceEntity s) => s.otherName == null || s.otherName!.trim().isEmpty),
+    ),
+    (label: 'No Volumes', count: countWhere((SequenceEntity s) => s.sequenceVolumeIds.isEmpty)),
+  ];
+}
+
 @riverpod
 Future<SequenceVolumeEntity?> sequenceVolume(Ref ref, String id) async {
   final FetchSequenceVolumeByIdUseCase fetchVolume = ref.watch(

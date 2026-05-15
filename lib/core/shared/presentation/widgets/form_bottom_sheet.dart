@@ -13,40 +13,44 @@ class FormBottomSheet extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colorScheme = theme.colorScheme;
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Center(
-              child: Container(
-                width: 32,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: colorScheme.outlineVariant,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text(
-                    title,
-                    style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+    return Material(
+      color: colorScheme.surfaceContainerLow,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+      child: Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Center(
+                child: Container(
+                  width: 32,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: colorScheme.outlineVariant,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.close_rounded)),
-              ],
-            ),
-            const SizedBox(height: 16),
-            child,
-            if (actions != null) ...<Widget>[const SizedBox(height: 24), ...actions!],
-          ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.close_rounded)),
+                ],
+              ),
+              const SizedBox(height: 16),
+              child,
+              if (actions != null) ...<Widget>[const SizedBox(height: 24), ...actions!],
+            ],
+          ),
         ),
       ),
     );

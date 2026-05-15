@@ -8,6 +8,7 @@ import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
+import '../../../../core/shared/presentation/utils/images.dart';
 import '../../domain/entities/reader_entity.dart';
 import '../../domain/usecases/reader_usecases.dart';
 
@@ -84,7 +85,7 @@ class UpsertReaderController extends _$UpsertReaderController {
     final ReaderEntity? existingReader = state.existingReader;
     final String generatedId = ref.read(generateReaderIdUseCaseProvider)();
 
-    final ReaderEntity readerToSave = existingReader != null
+    ReaderEntity readerToSave = existingReader != null
         ? existingReader.copyWith(
             name: name,
             otherName: Nullable<String?>(otherName?.isEmpty ?? true ? null : otherName),
@@ -109,9 +110,29 @@ class UpsertReaderController extends _$UpsertReaderController {
 
     try {
       if (existingReader != null) {
-        await ref.read(editReaderUseCaseProvider)(readerToSave);
+        try {
+          await ref.read(editReaderUseCaseProvider)(readerToSave);
+        } catch (e) {
+          if (e.toString().contains('longer than 1048487 bytes')) {
+            final String? compressedImage = Images.ensureFitsFirestore(state.pickedBase64Image);
+            readerToSave = readerToSave.copyWith(image: Nullable<String?>(compressedImage));
+            await ref.read(editReaderUseCaseProvider)(readerToSave);
+          } else {
+            rethrow;
+          }
+        }
       } else {
-        await ref.read(addReaderUseCaseProvider)(readerToSave);
+        try {
+          await ref.read(addReaderUseCaseProvider)(readerToSave);
+        } catch (e) {
+          if (e.toString().contains('longer than 1048487 bytes')) {
+            final String? compressedImage = Images.ensureFitsFirestore(state.pickedBase64Image);
+            readerToSave = readerToSave.copyWith(image: Nullable<String?>(compressedImage));
+            await ref.read(addReaderUseCaseProvider)(readerToSave);
+          } else {
+            rethrow;
+          }
+        }
       }
 
       state = state.copyWith(isLoading: false);

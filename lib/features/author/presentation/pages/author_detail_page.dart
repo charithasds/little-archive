@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/utils/external_launcher.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/detail_widgets.dart';
 import '../../../../core/shared/presentation/widgets/info_dialogs.dart';
+import '../../../../core/shared/presentation/widgets/list_page_states.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../book/domain/entities/book_entity.dart';
 import '../../../book/presentation/providers/book_provider.dart';
@@ -69,7 +71,13 @@ class AuthorDetailPage extends ConsumerWidget {
     return authorAsync.when(
       data: (AuthorEntity? author) {
         if (author == null) {
-          return const Scaffold(body: Center(child: Text('Author not found')));
+          return const Scaffold(
+            body: ListEmptyState(
+              icon: Icons.person_rounded,
+              title: 'Author Not Found',
+              subtitle: 'This author may have been removed.',
+            ),
+          );
         }
 
         final AsyncValue<List<BookEntity>> booksAsync = ref.watch(booksStreamProvider);
@@ -98,14 +106,21 @@ class AuthorDetailPage extends ConsumerWidget {
             slivers: <Widget>[
               SliverAppBar.large(
                 title: Text(author.name),
+                backgroundColor: theme.colorScheme.surface,
+                foregroundColor: theme.colorScheme.onSurface,
+                surfaceTintColor: theme.colorScheme.primary,
+                scrolledUnderElevation: 1,
                 actions: <Widget>[
                   IconButton(
                     icon: const Icon(Icons.edit_note_rounded),
-                    onPressed: () => context.push('/authors/add', extra: author),
+                    onPressed: () async {
+                      await context.push('/authors/add', extra: author);
+                      ref.invalidate(authorProvider(authorId));
+                    },
                     tooltip: 'Edit',
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete_rounded),
+                    icon: const Icon(Icons.delete_outline_rounded),
                     onPressed: () => _handleRemove(context, ref, author.id),
                     tooltip: 'Remove',
                   ),
@@ -114,30 +129,33 @@ class AuthorDetailPage extends ConsumerWidget {
               ),
               SliverToBoxAdapter(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
                     const SizedBox(height: 16),
-                    Hero(
-                      tag: 'author_${author.id}',
-                      child: Container(
-                        width: 240,
-                        height: 240,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Images.getAvatarBackgroundColor(theme),
-                          image: author.image != null && author.image!.isNotEmpty
-                              ? DecorationImage(
-                                  image: Images.getImageProvider(author.image),
-                                  fit: BoxFit.contain,
+                    Center(
+                      child: Hero(
+                        tag: 'author_${author.id}',
+                        child: Container(
+                          width: 240,
+                          height: 240,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Images.getAvatarBackgroundColor(theme),
+                            image: author.image != null && author.image!.isNotEmpty
+                                ? DecorationImage(
+                                    image: Images.getImageProvider(author.image),
+                                    fit: BoxFit.contain,
+                                  )
+                                : null,
+                          ),
+                          child: author.image == null || author.image!.isEmpty
+                              ? Icon(
+                                  Icons.person_rounded,
+                                  color: Images.getAvatarIconColor(theme),
+                                  size: 120,
                                 )
                               : null,
                         ),
-                        child: author.image == null || author.image!.isEmpty
-                            ? Icon(
-                                Icons.person_rounded,
-                                color: Images.getAvatarIconColor(theme),
-                                size: 120,
-                              )
-                            : null,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -150,19 +168,31 @@ class AuthorDetailPage extends ConsumerWidget {
                             value: author.otherName!,
                             icon: Icons.badge_rounded,
                           ),
+                        DetailTile(
+                          label: 'Books Count',
+                          value: '${authorBooks.length} books',
+                          icon: Icons.book_rounded,
+                        ),
+                        DetailTile(
+                          label: 'Works Count',
+                          value: '${authorWorks.length} works',
+                          icon: Icons.article_rounded,
+                        ),
                         if (author.website != null && author.website!.isNotEmpty)
                           DetailTile(
                             label: 'Website',
                             value: author.website!,
                             icon: Icons.language_rounded,
-                            onTap: () {}, // Link opening could be added
+                            trailingIcon: Icons.open_in_new_rounded,
+                            onTap: () => ExternalLauncher.launchBrowser(author.website!),
                           ),
                         if (author.facebook != null && author.facebook!.isNotEmpty)
                           DetailTile(
                             label: 'Facebook',
                             value: author.facebook!,
                             icon: Icons.facebook_rounded,
-                            onTap: () {},
+                            trailingIcon: Icons.open_in_new_rounded,
+                            onTap: () => ExternalLauncher.launchBrowser(author.facebook!),
                           ),
                         DetailTile(
                           label: 'Created',
@@ -184,8 +214,6 @@ class AuthorDetailPage extends ConsumerWidget {
                             (BookEntity book) => BookListTile(
                               book: book,
                               onInfo: () => EntityQuickInfoDialog.show(context, book.id, 'book'),
-                              onEdit: () => context.push('/books/add', extra: book),
-                              onRemove: () {},
                             ),
                           )
                           .toList(),
@@ -198,8 +226,6 @@ class AuthorDetailPage extends ConsumerWidget {
                             (WorkEntity work) => WorkListTile(
                               work: work,
                               onInfo: () => EntityQuickInfoDialog.show(context, work.id, 'work'),
-                              onEdit: () => context.push('/works/add', extra: work),
-                              onRemove: () {},
                             ),
                           )
                           .toList(),
@@ -212,8 +238,8 @@ class AuthorDetailPage extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (Object err, StackTrace stack) => Scaffold(body: Center(child: Text('Error: $err'))),
+      loading: () => const Scaffold(body: ListLoadingState()),
+      error: (Object err, StackTrace stack) => Scaffold(body: ListErrorState(error: err)),
     );
   }
 }

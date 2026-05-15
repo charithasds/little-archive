@@ -29,10 +29,10 @@ class DetailSection extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
           child: Text(
             title,
-            style: theme.textTheme.titleSmall?.copyWith(
+            style: theme.textTheme.labelMedium?.copyWith(
               color: colorScheme.primary,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.2,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.4,
             ),
           ),
         ),
@@ -55,6 +55,7 @@ class DetailTile extends StatelessWidget {
     this.icon,
     this.onTap,
     this.onInfo,
+    this.trailingIcon,
   });
 
   final String label;
@@ -62,6 +63,7 @@ class DetailTile extends StatelessWidget {
   final IconData? icon;
   final VoidCallback? onTap;
   final VoidCallback? onInfo;
+  final IconData? trailingIcon;
 
   static String formatDate(DateTime date) {
     final DateFormat formatter = DateFormat('MMM d, yyyy, HH:mm:ss');
@@ -78,45 +80,62 @@ class DetailTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final ColorScheme colorScheme = theme.colorScheme;
+    final ColorScheme cs = theme.colorScheme;
 
-    return InkWell(
-      onTap: onInfo ?? onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            if (icon != null) ...<Widget>[
-              Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
-              const SizedBox(width: 16),
-            ],
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    label,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+    final bool isInteractive = onTap != null || onInfo != null;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: isInteractive ? (onInfo ?? onTap) : null,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          child: Row(
+            children: <Widget>[
+              if (icon != null) ...<Widget>[
+                Icon(icon, size: 20, color: cs.onSurfaceVariant),
+                const SizedBox(width: 16),
+              ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      label,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: cs.onSurfaceVariant,
+                        letterSpacing: 0.4,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    value,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: colorScheme.onSurface,
-                      fontWeight: FontWeight.w500,
+                    const SizedBox(height: 2),
+                    Text(
+                      value,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: isInteractive ? cs.primary : cs.onSurface,
+                        fontWeight: isInteractive ? FontWeight.w600 : FontWeight.w400,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            if (onInfo != null)
-              Icon(Icons.info_outline_rounded, size: 20, color: colorScheme.primary)
-            else if (onTap != null)
-              Icon(Icons.chevron_right_rounded, size: 20, color: colorScheme.onSurfaceVariant),
-          ],
+              if (trailingIcon != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Icon(trailingIcon, size: 18, color: cs.primary),
+                )
+              else if (onInfo != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Icon(Icons.info_outline_rounded, size: 18, color: cs.primary),
+                )
+              else if (onTap != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Icon(Icons.chevron_right_rounded, size: 18, color: cs.onSurfaceVariant),
+                ),
+            ],
+          ),
         ),
       ),
     );

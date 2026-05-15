@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
@@ -27,7 +28,8 @@ class WorkRepositoryImpl implements WorkRepository {
   Stream<List<WorkEntity>> watchWorks() => remoteDataSource.watchWorks();
 
   @override
-  Future<void> addWork(WorkEntity work) async {
+  Future<void> addWork(WorkEntity work, {dynamic batch}) async {
+    final WriteBatch? b = batch is WriteBatch ? batch : null;
     await remoteDataSource.addWork(
       WorkModel(
         id: work.id,
@@ -46,6 +48,7 @@ class WorkRepositoryImpl implements WorkRepository {
         createdDate: work.createdDate,
         lastUpdated: work.lastUpdated,
       ),
+      batch: b,
     );
 
     await relationshipSyncService.syncWorkRelationships(
@@ -54,11 +57,13 @@ class WorkRepositoryImpl implements WorkRepository {
       newTranslatorIds: work.translatorIds,
       newSequenceVolumeIds: work.sequenceVolumeIds,
       newBookId: work.bookId,
+      batch: b,
     );
   }
 
   @override
-  Future<void> editWork(WorkEntity work) async {
+  Future<void> editWork(WorkEntity work, {dynamic batch}) async {
+    final WriteBatch? b = batch is WriteBatch ? batch : null;
     final WorkModel? existingWork = await remoteDataSource.fetchWorkById(work.id);
 
     await remoteDataSource.editWork(
@@ -79,6 +84,7 @@ class WorkRepositoryImpl implements WorkRepository {
         createdDate: work.createdDate,
         lastUpdated: work.lastUpdated,
       ),
+      batch: b,
     );
 
     await relationshipSyncService.syncWorkRelationships(
@@ -91,6 +97,7 @@ class WorkRepositoryImpl implements WorkRepository {
       oldTranslatorIds: existingWork?.translatorIds ?? <String>[],
       oldSequenceVolumeIds: existingWork?.sequenceVolumeIds ?? <String>[],
       oldBookId: existingWork?.bookId,
+      batch: b,
     );
   }
 

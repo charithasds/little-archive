@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../core/shared/presentation/providers/firebase_provider.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/domain/usecases/sequence_usecases.dart';
 import '../../data/repositories/work_repository_impl.dart';
@@ -58,29 +60,38 @@ class RemoveWorkUseCase {
 }
 
 class UpsertWorkUseCase {
-  const UpsertWorkUseCase({required this.workRepository, required this.syncSequenceVolumesUseCase});
+  const UpsertWorkUseCase({
+    required this.firestore,
+    required this.workRepository,
+    required this.syncSequenceVolumesUseCase,
+  });
 
+  final FirebaseFirestore firestore;
   final WorkRepository workRepository;
   final SyncWorkSequenceVolumesUseCase syncSequenceVolumesUseCase;
-
   Future<WorkEntity> call({
     required WorkEntity work,
     required Map<SequenceEntity, String> sequenceEntries,
     required bool isEdit,
   }) async {
+    final WriteBatch batch = firestore.batch();
+
     final List<String> sequenceVolumeIds = await syncSequenceVolumesUseCase(
       workId: work.id,
       entries: sequenceEntries,
       isEdit: isEdit,
+      batch: batch,
     );
 
     final WorkEntity workToSave = work.copyWith(sequenceVolumeIds: sequenceVolumeIds);
 
     if (isEdit) {
-      await workRepository.editWork(workToSave);
+      await workRepository.editWork(workToSave, batch: batch);
     } else {
-      await workRepository.addWork(workToSave);
+      await workRepository.addWork(workToSave, batch: batch);
     }
+
+    await batch.commit();
 
     return workToSave;
   }
@@ -114,6 +125,7 @@ RemoveWorkUseCase removeWorkUseCase(Ref ref) =>
 
 @riverpod
 UpsertWorkUseCase upsertWorkUseCase(Ref ref) => UpsertWorkUseCase(
+  firestore: ref.watch(firebaseFirestoreProvider),
   workRepository: ref.watch(workRepositoryProvider),
   syncSequenceVolumesUseCase: ref.watch(syncWorkSequenceVolumesUseCaseProvider),
 );

@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/utils/external_launcher.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/detail_widgets.dart';
 import '../../../../core/shared/presentation/widgets/info_dialogs.dart';
+import '../../../../core/shared/presentation/widgets/list_page_states.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../book/domain/entities/book_entity.dart';
 import '../../../book/presentation/providers/book_provider.dart';
@@ -66,7 +68,13 @@ class ReaderDetailPage extends ConsumerWidget {
     return readerAsync.when(
       data: (ReaderEntity? reader) {
         if (reader == null) {
-          return const Scaffold(body: Center(child: Text('Reader not found')));
+          return const Scaffold(
+            body: ListEmptyState(
+              icon: Icons.chrome_reader_mode_rounded,
+              title: 'Reader Not Found',
+              subtitle: 'This reader may have been removed.',
+            ),
+          );
         }
 
         final AsyncValue<List<BookEntity>> booksAsync = ref.watch(booksStreamProvider);
@@ -84,14 +92,21 @@ class ReaderDetailPage extends ConsumerWidget {
             slivers: <Widget>[
               SliverAppBar.large(
                 title: Text(reader.name),
+                backgroundColor: theme.colorScheme.surface,
+                foregroundColor: theme.colorScheme.onSurface,
+                surfaceTintColor: theme.colorScheme.primary,
+                scrolledUnderElevation: 1,
                 actions: <Widget>[
                   IconButton(
                     icon: const Icon(Icons.edit_note_rounded),
-                    onPressed: () => context.push('/readers/add', extra: reader),
+                    onPressed: () async {
+                      await context.push('/readers/add', extra: reader);
+                      ref.invalidate(readerProvider(readerId));
+                    },
                     tooltip: 'Edit',
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete_rounded),
+                    icon: const Icon(Icons.delete_outline_rounded),
                     onPressed: () => _handleRemove(context, ref, reader.id),
                     tooltip: 'Remove',
                   ),
@@ -100,30 +115,33 @@ class ReaderDetailPage extends ConsumerWidget {
               ),
               SliverToBoxAdapter(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
                     const SizedBox(height: 16),
-                    Hero(
-                      tag: 'reader_${reader.id}',
-                      child: Container(
-                        width: 240,
-                        height: 240,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Images.getAvatarBackgroundColor(theme),
-                          image: reader.image != null && reader.image!.isNotEmpty
-                              ? DecorationImage(
-                                  image: Images.getImageProvider(reader.image),
-                                  fit: BoxFit.contain,
+                    Center(
+                      child: Hero(
+                        tag: 'reader_${reader.id}',
+                        child: Container(
+                          width: 240,
+                          height: 240,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Images.getAvatarBackgroundColor(theme),
+                            image: reader.image != null && reader.image!.isNotEmpty
+                                ? DecorationImage(
+                                    image: Images.getImageProvider(reader.image),
+                                    fit: BoxFit.contain,
+                                  )
+                                : null,
+                          ),
+                          child: reader.image == null || reader.image!.isEmpty
+                              ? Icon(
+                                  Icons.chrome_reader_mode_rounded,
+                                  color: Images.getAvatarIconColor(theme),
+                                  size: 120,
                                 )
                               : null,
                         ),
-                        child: reader.image == null || reader.image!.isEmpty
-                            ? Icon(
-                                Icons.chrome_reader_mode_rounded,
-                                color: Images.getAvatarIconColor(theme),
-                                size: 120,
-                              )
-                            : null,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -136,23 +154,34 @@ class ReaderDetailPage extends ConsumerWidget {
                             value: reader.otherName!,
                             icon: Icons.badge_rounded,
                           ),
+                        DetailTile(
+                          label: 'Books Lended',
+                          value: '${readerBooks.length} books',
+                          icon: Icons.book_rounded,
+                        ),
                         if (reader.email != null && reader.email!.isNotEmpty)
                           DetailTile(
                             label: 'Email',
                             value: reader.email!,
                             icon: Icons.email_rounded,
+                            trailingIcon: Icons.open_in_new_rounded,
+                            onTap: () => ExternalLauncher.launchEmail(reader.email!),
                           ),
                         if (reader.facebook != null && reader.facebook!.isNotEmpty)
                           DetailTile(
                             label: 'Facebook',
                             value: reader.facebook!,
                             icon: Icons.facebook_rounded,
+                            trailingIcon: Icons.open_in_new_rounded,
+                            onTap: () => ExternalLauncher.launchBrowser(reader.facebook!),
                           ),
                         if (reader.phoneNumber != null && reader.phoneNumber!.isNotEmpty)
                           DetailTile(
                             label: 'Phone Number',
                             value: reader.phoneNumber!,
                             icon: Icons.phone_rounded,
+                            trailingIcon: Icons.open_in_new_rounded,
+                            onTap: () => ExternalLauncher.launchPhone(reader.phoneNumber!),
                           ),
                         DetailTile(
                           label: 'Created',
@@ -174,8 +203,6 @@ class ReaderDetailPage extends ConsumerWidget {
                             (BookEntity book) => BookListTile(
                               book: book,
                               onInfo: () => EntityQuickInfoDialog.show(context, book.id, 'book'),
-                              onEdit: () => context.push('/books/add', extra: book),
-                              onRemove: () {},
                             ),
                           )
                           .toList(),
@@ -188,8 +215,8 @@ class ReaderDetailPage extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (Object err, StackTrace stack) => Scaffold(body: Center(child: Text('Error: $err'))),
+      loading: () => const Scaffold(body: ListLoadingState()),
+      error: (Object err, StackTrace stack) => Scaffold(body: ListErrorState(error: err)),
     );
   }
 }

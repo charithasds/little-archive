@@ -15,7 +15,7 @@ class LoadingPage extends ConsumerWidget {
     return ExpressivePageLayout(
       title: 'Little Archive',
       description: 'Your personal library companion',
-      content: const CircularProgressIndicator(),
+      content: CircularProgressIndicator(strokeWidth: 3, color: colorScheme.primary),
       secondaryContent: Text(
         'Preparing your library...',
         textAlign: TextAlign.center,
