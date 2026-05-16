@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
@@ -27,7 +28,7 @@ class PublisherRepositoryImpl implements PublisherRepository {
   Stream<List<PublisherEntity>> watchPublishers() => remoteDataSource.watchPublishers();
 
   @override
-  Future<void> addPublisher(PublisherEntity publisher) async {
+  Future<void> addPublisher(PublisherEntity publisher, {WriteBatch? batch}) async {
     await remoteDataSource.addPublisher(
       PublisherModel(
         id: publisher.id,
@@ -42,16 +43,18 @@ class PublisherRepositoryImpl implements PublisherRepository {
         createdDate: publisher.createdDate,
         lastUpdated: publisher.lastUpdated,
       ),
+      batch: batch,
     );
 
     await relationshipSyncService.syncPublisherRelationships(
       publisherId: publisher.id,
       newBookIds: publisher.bookIds,
+      batch: batch,
     );
   }
 
   @override
-  Future<void> editPublisher(PublisherEntity publisher) async {
+  Future<void> editPublisher(PublisherEntity publisher, {WriteBatch? batch}) async {
     final PublisherModel? existingPublisher = await remoteDataSource.fetchPublisherById(
       publisher.id,
     );
@@ -70,27 +73,30 @@ class PublisherRepositoryImpl implements PublisherRepository {
         createdDate: publisher.createdDate,
         lastUpdated: publisher.lastUpdated,
       ),
+      batch: batch,
     );
 
     await relationshipSyncService.syncPublisherRelationships(
       publisherId: publisher.id,
       newBookIds: publisher.bookIds,
       oldBookIds: existingPublisher?.bookIds ?? <String>[],
+      batch: batch,
     );
   }
 
   @override
-  Future<void> removePublisher(String id) async {
+  Future<void> removePublisher(String id, {WriteBatch? batch}) async {
     final PublisherModel? existingPublisher = await remoteDataSource.fetchPublisherById(id);
 
     if (existingPublisher != null) {
       await relationshipSyncService.removePublisherRelationships(
         publisherId: id,
         bookIds: existingPublisher.bookIds,
+        batch: batch,
       );
     }
 
-    await remoteDataSource.removePublisher(id);
+    await remoteDataSource.removePublisher(id, batch: batch);
   }
 }
 

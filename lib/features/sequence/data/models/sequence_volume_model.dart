@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../domain/entities/sequence_volume_entity.dart';
 
 class SequenceVolumeModel extends SequenceVolumeEntity {

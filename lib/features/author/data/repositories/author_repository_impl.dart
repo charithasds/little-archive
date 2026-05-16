@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
@@ -27,7 +28,7 @@ class AuthorRepositoryImpl implements AuthorRepository {
   Stream<List<AuthorEntity>> watchAuthors() => remoteDataSource.watchAuthors();
 
   @override
-  Future<void> addAuthor(AuthorEntity author) async {
+  Future<void> addAuthor(AuthorEntity author, {WriteBatch? batch}) async {
     await remoteDataSource.addAuthor(
       AuthorModel(
         id: author.id,
@@ -41,17 +42,19 @@ class AuthorRepositoryImpl implements AuthorRepository {
         createdDate: author.createdDate,
         lastUpdated: author.lastUpdated,
       ),
+      batch: batch,
     );
 
     await relationshipSyncService.syncAuthorRelationships(
       authorId: author.id,
       newBookIds: author.bookIds,
       newWorkIds: author.workIds,
+      batch: batch,
     );
   }
 
   @override
-  Future<void> editAuthor(AuthorEntity author) async {
+  Future<void> editAuthor(AuthorEntity author, {WriteBatch? batch}) async {
     final AuthorModel? existingAuthor = await remoteDataSource.fetchAuthorById(author.id);
 
     await remoteDataSource.editAuthor(
@@ -67,6 +70,7 @@ class AuthorRepositoryImpl implements AuthorRepository {
         createdDate: author.createdDate,
         lastUpdated: author.lastUpdated,
       ),
+      batch: batch,
     );
 
     await relationshipSyncService.syncAuthorRelationships(
@@ -75,11 +79,12 @@ class AuthorRepositoryImpl implements AuthorRepository {
       newWorkIds: author.workIds,
       oldBookIds: existingAuthor?.bookIds ?? <String>[],
       oldWorkIds: existingAuthor?.workIds ?? <String>[],
+      batch: batch,
     );
   }
 
   @override
-  Future<void> removeAuthor(String id) async {
+  Future<void> removeAuthor(String id, {WriteBatch? batch}) async {
     final AuthorModel? existingAuthor = await remoteDataSource.fetchAuthorById(id);
 
     if (existingAuthor != null) {
@@ -87,10 +92,11 @@ class AuthorRepositoryImpl implements AuthorRepository {
         authorId: id,
         bookIds: existingAuthor.bookIds,
         workIds: existingAuthor.workIds,
+        batch: batch,
       );
     }
 
-    await remoteDataSource.removeAuthor(id);
+    await remoteDataSource.removeAuthor(id, batch: batch);
   }
 }
 

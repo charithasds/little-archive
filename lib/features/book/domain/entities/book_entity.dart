@@ -22,11 +22,11 @@ class BookEntity extends Equatable {
     this.noOfPages,
     this.originalTitle,
     this.originalLanguage,
-    this.collectionStatus,
+    required this.collectionStatus,
     this.collectedDate,
     this.lendedDate,
     this.dueDate,
-    this.readingStatus,
+    required this.readingStatus,
     this.pausedPage,
     this.completedDate,
     this.notes,
@@ -52,11 +52,11 @@ class BookEntity extends Equatable {
   final int? noOfPages;
   final String? originalTitle;
   final OriginalLanguage? originalLanguage;
-  final CollectionStatus? collectionStatus;
+  final CollectionStatus collectionStatus;
   final DateTime? collectedDate;
   final DateTime? lendedDate;
   final DateTime? dueDate;
-  final ReadingStatus? readingStatus;
+  final ReadingStatus readingStatus;
   final int? pausedPage;
   final DateTime? completedDate;
   final String? notes;
@@ -85,11 +85,11 @@ class BookEntity extends Equatable {
     Nullable<int?>? noOfPages,
     Nullable<String?>? originalTitle,
     Nullable<OriginalLanguage?>? originalLanguage,
-    Nullable<CollectionStatus?>? collectionStatus,
+    CollectionStatus? collectionStatus,
     Nullable<DateTime?>? collectedDate,
     Nullable<DateTime?>? lendedDate,
     Nullable<DateTime?>? dueDate,
-    Nullable<ReadingStatus?>? readingStatus,
+    ReadingStatus? readingStatus,
     Nullable<int?>? pausedPage,
     Nullable<DateTime?>? completedDate,
     Nullable<String?>? notes,
@@ -114,11 +114,11 @@ class BookEntity extends Equatable {
     noOfPages: noOfPages != null ? noOfPages.value : this.noOfPages,
     originalTitle: originalTitle != null ? originalTitle.value : this.originalTitle,
     originalLanguage: originalLanguage != null ? originalLanguage.value : this.originalLanguage,
-    collectionStatus: collectionStatus != null ? collectionStatus.value : this.collectionStatus,
+    collectionStatus: collectionStatus ?? this.collectionStatus,
     collectedDate: collectedDate != null ? collectedDate.value : this.collectedDate,
     lendedDate: lendedDate != null ? lendedDate.value : this.lendedDate,
     dueDate: dueDate != null ? dueDate.value : this.dueDate,
-    readingStatus: readingStatus != null ? readingStatus.value : this.readingStatus,
+    readingStatus: readingStatus ?? this.readingStatus,
     pausedPage: pausedPage != null ? pausedPage.value : this.pausedPage,
     completedDate: completedDate != null ? completedDate.value : this.completedDate,
     notes: notes != null ? notes.value : this.notes,

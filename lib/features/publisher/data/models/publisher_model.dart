@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../domain/entities/publisher_entity.dart';
 
 class PublisherModel extends PublisherEntity {

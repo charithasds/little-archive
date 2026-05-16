@@ -4,6 +4,7 @@ import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/sequence_entity.dart';
 import '../../domain/entities/sequence_volume_entity.dart';
 import '../../domain/usecases/sequence_usecases.dart';
+import '../../domain/usecases/sequence_volume_usecases.dart';
 
 part 'sequence_provider.g.dart';
 

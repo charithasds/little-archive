@@ -1,16 +1,6 @@
 import 'package:equatable/equatable.dart';
-
-import 'book_entity.dart';
-
-class ScannedNameEntity extends Equatable {
-  const ScannedNameEntity({required this.name, this.otherName});
-
-  final String name;
-  final String? otherName;
-
-  @override
-  List<Object?> get props => <Object?>[name, otherName];
-}
+import '../book_entity.dart';
+import 'scanned_name_entity.dart';
 
 class ScannedBookEntity extends Equatable {
   const ScannedBookEntity({

@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:string_similarity/string_similarity.dart';
 
+import '../../../../core/shared/domain/enums/collection_status.dart';
+import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../../author/domain/entities/author_entity.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../../translator/domain/entities/translator_entity.dart';
 import '../../domain/entities/book_entity.dart';
-import '../../domain/entities/scanned_book_entity.dart';
+import '../../domain/entities/scan/scanned_book_entity.dart';
+import '../../domain/entities/scan/scanned_name_entity.dart';
 
 class ScannedBookApprovalResult {
   const ScannedBookApprovalResult({
@@ -428,6 +432,8 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
                   ? b.originalLanguage
                   : null,
               genre: (_approvals['genre'] ?? false) ? b.genre : null,
+              collectionStatus: CollectionStatus.collected,
+              readingStatus: ReadingStatus.notStarted,
               publishedDate: (_approvals['publishedDate'] ?? false) ? b.publishedDate : null,
               authorIds: b.authorIds,
               translatorIds: b.translatorIds,

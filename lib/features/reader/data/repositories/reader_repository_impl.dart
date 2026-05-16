@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
@@ -27,7 +28,7 @@ class ReaderRepositoryImpl implements ReaderRepository {
   Stream<List<ReaderEntity>> watchReaders() => remoteDataSource.watchReaders();
 
   @override
-  Future<void> addReader(ReaderEntity reader) async {
+  Future<void> addReader(ReaderEntity reader, {WriteBatch? batch}) async {
     await remoteDataSource.addReader(
       ReaderModel(
         id: reader.id,
@@ -41,16 +42,18 @@ class ReaderRepositoryImpl implements ReaderRepository {
         createdDate: reader.createdDate,
         lastUpdated: reader.lastUpdated,
       ),
+      batch: batch,
     );
 
     await relationshipSyncService.syncReaderRelationships(
       readerId: reader.id,
       newBookIds: reader.bookIds,
+      batch: batch,
     );
   }
 
   @override
-  Future<void> editReader(ReaderEntity reader) async {
+  Future<void> editReader(ReaderEntity reader, {WriteBatch? batch}) async {
     final ReaderModel? existingReader = await remoteDataSource.fetchReaderById(reader.id);
 
     await remoteDataSource.editReader(
@@ -66,27 +69,30 @@ class ReaderRepositoryImpl implements ReaderRepository {
         createdDate: reader.createdDate,
         lastUpdated: reader.lastUpdated,
       ),
+      batch: batch,
     );
 
     await relationshipSyncService.syncReaderRelationships(
       readerId: reader.id,
       newBookIds: reader.bookIds,
       oldBookIds: existingReader?.bookIds ?? <String>[],
+      batch: batch,
     );
   }
 
   @override
-  Future<void> removeReader(String id) async {
+  Future<void> removeReader(String id, {WriteBatch? batch}) async {
     final ReaderModel? existingReader = await remoteDataSource.fetchReaderById(id);
 
     if (existingReader != null) {
       await relationshipSyncService.removeReaderRelationships(
         readerId: id,
         bookIds: existingReader.bookIds,
+        batch: batch,
       );
     }
 
-    await remoteDataSource.removeReader(id);
+    await remoteDataSource.removeReader(id, batch: batch);
   }
 }
 

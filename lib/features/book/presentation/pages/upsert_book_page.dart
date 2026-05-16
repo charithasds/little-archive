@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -36,7 +37,7 @@ import '../../../reader/presentation/providers/reader_provider.dart';
 import '../../../reader/presentation/widgets/add_reader_bottom_sheet.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/domain/entities/sequence_volume_entity.dart';
-import '../../../sequence/domain/usecases/sequence_usecases.dart';
+import '../../../sequence/domain/usecases/sequence_volume_usecases.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
 import '../../../sequence/presentation/widgets/add_sequence_bottom_sheet.dart';
 import '../../../sequence/presentation/widgets/sequence_number_dialog.dart';
@@ -48,7 +49,8 @@ import '../../../work/domain/entities/work_entity.dart';
 import '../../../work/presentation/providers/work_provider.dart';
 import '../../../work/presentation/widgets/add_work_bottom_sheet.dart';
 import '../../domain/entities/book_entity.dart';
-import '../../domain/entities/scanned_book_entity.dart';
+import '../../domain/entities/scan/scanned_book_entity.dart';
+import '../../domain/entities/scan/scanned_name_entity.dart';
 import '../providers/upsert_book_controller.dart';
 import '../widgets/scanned_book_approval_dialog.dart';
 
@@ -201,8 +203,8 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
       _compilationType = book.compilationType;
       _language = book.language;
       _genre = book.genre;
-      _collectionStatus = book.collectionStatus ?? CollectionStatus.collected;
-      _readingStatus = book.readingStatus ?? ReadingStatus.notStarted;
+      _collectionStatus = book.collectionStatus;
+      _readingStatus = book.readingStatus;
       _originalLanguage = book.originalLanguage;
       _isTranslation = book.isTranslation;
       _publishedDate = book.publishedDate;

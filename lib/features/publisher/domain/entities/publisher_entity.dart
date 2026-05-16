@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+
 import '../../../../core/shared/domain/utils/nullable.dart';
 
 class PublisherEntity extends Equatable {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -24,7 +25,7 @@ import '../../../book/presentation/providers/book_provider.dart';
 import '../../../book/presentation/widgets/add_book_bottom_sheet.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/domain/entities/sequence_volume_entity.dart';
-import '../../../sequence/domain/usecases/sequence_usecases.dart';
+import '../../../sequence/domain/usecases/sequence_volume_usecases.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
 import '../../../sequence/presentation/widgets/add_sequence_bottom_sheet.dart';
 import '../../../sequence/presentation/widgets/sequence_number_dialog.dart';
@@ -124,9 +125,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
 
     final BookEntity b = _selectedBook!;
     final AsyncValue<List<AuthorEntity>> authorsAsync = ref.read(authorsStreamProvider);
-    final AsyncValue<List<TranslatorEntity>> translatorsAsync = ref.read(
-      translatorsStreamProvider,
-    );
+    final AsyncValue<List<TranslatorEntity>> translatorsAsync = ref.read(translatorsStreamProvider);
 
     setState(() {
       if (authorsAsync.hasValue) {
@@ -254,9 +253,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
             _selectedTranslators = translatorsAsync.value!
                 .where((TranslatorEntity t) => work.translatorIds.contains(t.id))
                 .toList();
-            _selectedBook = multiWorkBooks
-                .where((BookEntity b) => b.id == work.bookId)
-                .firstOrNull;
+            _selectedBook = multiWorkBooks.where((BookEntity b) => b.id == work.bookId).firstOrNull;
             _selectedSequences = selectedSequences;
             _isEditingInitialized = true;
           });

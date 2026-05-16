@@ -1,9 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/shared/presentation/providers/firebase_provider.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
-import '../../../sequence/domain/usecases/sequence_usecases.dart';
 import '../../data/repositories/work_repository_impl.dart';
 import '../entities/work_entity.dart';
 import '../repositories/work_repository.dart';
@@ -60,41 +58,23 @@ class RemoveWorkUseCase {
 }
 
 class UpsertWorkUseCase {
-  const UpsertWorkUseCase({
-    required this.firestore,
-    required this.workRepository,
-    required this.syncSequenceVolumesUseCase,
-  });
+  const UpsertWorkUseCase(this.repository);
+  final WorkRepository repository;
 
-  final FirebaseFirestore firestore;
-  final WorkRepository workRepository;
-  final SyncWorkSequenceVolumesUseCase syncSequenceVolumesUseCase;
   Future<WorkEntity> call({
     required WorkEntity work,
     required Map<SequenceEntity, String> sequenceEntries,
     required bool isEdit,
-  }) async {
-    final WriteBatch batch = firestore.batch();
-
-    final List<String> sequenceVolumeIds = await syncSequenceVolumesUseCase(
-      workId: work.id,
-      entries: sequenceEntries,
-      isEdit: isEdit,
-      batch: batch,
-    );
-
-    final WorkEntity workToSave = work.copyWith(sequenceVolumeIds: sequenceVolumeIds);
-
-    if (isEdit) {
-      await workRepository.editWork(workToSave, batch: batch);
-    } else {
-      await workRepository.addWork(workToSave, batch: batch);
-    }
-
-    await batch.commit();
-
-    return workToSave;
-  }
+    bool applyToBooks = false,
+    WriteBatch? batch,
+  }) =>
+      repository.upsertWork(
+        work,
+        sequenceEntries.map((SequenceEntity k, String v) => MapEntry<String, String>(k.id, v)),
+        isEdit,
+        applyToBooks,
+        batch: batch,
+      );
 }
 
 @riverpod
@@ -124,8 +104,5 @@ RemoveWorkUseCase removeWorkUseCase(Ref ref) =>
     RemoveWorkUseCase(ref.watch(workRepositoryProvider));
 
 @riverpod
-UpsertWorkUseCase upsertWorkUseCase(Ref ref) => UpsertWorkUseCase(
-  firestore: ref.watch(firebaseFirestoreProvider),
-  workRepository: ref.watch(workRepositoryProvider),
-  syncSequenceVolumesUseCase: ref.watch(syncWorkSequenceVolumesUseCaseProvider),
-);
+UpsertWorkUseCase upsertWorkUseCase(Ref ref) =>
+    UpsertWorkUseCase(ref.watch(workRepositoryProvider));

@@ -26,12 +26,11 @@ class BookListState {
     List<BookEntity>? displayedBooks,
     int? totalFiltered,
     String? searchQuery,
-  }) =>
-      BookListState(
-        displayedBooks: displayedBooks ?? this.displayedBooks,
-        totalFiltered: totalFiltered ?? this.totalFiltered,
-        searchQuery: searchQuery ?? this.searchQuery,
-      );
+  }) => BookListState(
+    displayedBooks: displayedBooks ?? this.displayedBooks,
+    totalFiltered: totalFiltered ?? this.totalFiltered,
+    searchQuery: searchQuery ?? this.searchQuery,
+  );
 }
 
 @riverpod
@@ -52,30 +51,42 @@ class BookListController extends _$BookListController {
 
   BookListState _calculateState(List<BookEntity> allBooks, String query) {
     // 1. Sort the source list (Case-insensitive)
-    final List<BookEntity> sortedBooks = List<BookEntity>.from(allBooks)
-      ..sort((BookEntity a, BookEntity b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+    final List<BookEntity> sortedBooks = List<BookEntity>.from(
+      allBooks,
+    )..sort((BookEntity a, BookEntity b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
 
     List<BookEntity> filtered = sortedBooks;
 
     if (query.isNotEmpty) {
       final String q = query.toLowerCase();
-      
+
       // Local helper to get names for IDs
       String getAuthorNames(List<String> ids) {
-        final List<AuthorEntity> authors = ref.read(authorsStreamProvider).value ?? <AuthorEntity>[];
-        return authors.where((AuthorEntity a) => ids.contains(a.id)).map((AuthorEntity a) => a.name).join(' ').toLowerCase();
+        final List<AuthorEntity> authors =
+            ref.read(authorsStreamProvider).value ?? <AuthorEntity>[];
+        return authors
+            .where((AuthorEntity a) => ids.contains(a.id))
+            .map((AuthorEntity a) => a.name)
+            .join(' ')
+            .toLowerCase();
       }
-      
+
       String getTranslatorNames(List<String> ids) {
-        final List<TranslatorEntity> translators = ref.read(translatorsStreamProvider).value ?? <TranslatorEntity>[];
-        return translators.where((TranslatorEntity t) => ids.contains(t.id)).map((TranslatorEntity t) => t.name).join(' ').toLowerCase();
+        final List<TranslatorEntity> translators =
+            ref.read(translatorsStreamProvider).value ?? <TranslatorEntity>[];
+        return translators
+            .where((TranslatorEntity t) => ids.contains(t.id))
+            .map((TranslatorEntity t) => t.name)
+            .join(' ')
+            .toLowerCase();
       }
 
       String getPublisherName(String? id) {
         if (id == null) {
           return '';
         }
-        final List<PublisherEntity> pubs = ref.read(publishersStreamProvider).value ?? <PublisherEntity>[];
+        final List<PublisherEntity> pubs =
+            ref.read(publishersStreamProvider).value ?? <PublisherEntity>[];
         final PublisherEntity? p = pubs.where((PublisherEntity p) => p.id == id).firstOrNull;
         return p?.name.toLowerCase() ?? '';
       }
@@ -86,7 +97,7 @@ class BookListController extends _$BookListController {
         final bool matchesIsbn = (b.isbn ?? '').toLowerCase().contains(q);
         final bool matchesGenre = (b.genre?.name ?? '').toLowerCase().contains(q);
         final bool matchesLanguage = (b.language?.name ?? '').toLowerCase().contains(q);
-        
+
         if (matchesTitle || matchesOrigTitle || matchesIsbn || matchesGenre || matchesLanguage) {
           return true;
         }

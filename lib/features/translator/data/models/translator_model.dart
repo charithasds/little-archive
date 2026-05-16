@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../domain/entities/translator_entity.dart';
 
 class TranslatorModel extends TranslatorEntity {

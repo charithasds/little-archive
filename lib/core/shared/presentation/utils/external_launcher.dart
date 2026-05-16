@@ -1,4 +1,5 @@
 import 'package:url_launcher/url_launcher.dart';
+
 import '../utils/snack_bars.dart';
 
 class ExternalLauncher {

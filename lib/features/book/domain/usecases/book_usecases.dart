@@ -3,19 +3,10 @@ import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/shared/domain/enums/compilation_type.dart';
-import '../../../../core/shared/domain/enums/language.dart';
-import '../../../../core/shared/domain/enums/original_language.dart';
-import '../../../../core/shared/domain/utils/nullable.dart';
-import '../../../../core/shared/presentation/providers/firebase_provider.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
-import '../../../sequence/domain/usecases/sequence_usecases.dart';
-import '../../../work/data/repositories/work_repository_impl.dart';
-import '../../../work/domain/entities/work_entity.dart';
-import '../../../work/domain/repositories/work_repository.dart';
 import '../../data/repositories/book_repository_impl.dart';
 import '../entities/book_entity.dart';
-import '../entities/scanned_book_entity.dart';
+import '../entities/scan/scanned_book_entity.dart';
 import '../repositories/book_repository.dart';
 
 part 'book_usecases.g.dart';
@@ -70,61 +61,22 @@ class RemoveBookUseCase {
 }
 
 class UpsertBookUseCase {
-  const UpsertBookUseCase({
-    required this.firestore,
-    required this.bookRepository,
-    required this.syncSequenceVolumesUseCase,
-    required this.workRepository,
-  });
+  const UpsertBookUseCase(this.repository);
+  final BookRepository repository;
 
-  final FirebaseFirestore firestore;
-  final BookRepository bookRepository;
-  final SyncBookSequenceVolumesUseCase syncSequenceVolumesUseCase;
-  final WorkRepository workRepository;
   Future<BookEntity> call({
     required BookEntity book,
     required Map<SequenceEntity, String> sequenceEntries,
     required bool isEdit,
     bool applyToWorks = false,
-  }) async {
-    final WriteBatch batch = firestore.batch();
-
-    final List<String> sequenceVolumeIds = await syncSequenceVolumesUseCase(
-      bookId: book.id,
-      entries: sequenceEntries,
-      isEdit: isEdit,
-      batch: batch,
-    );
-
-    final BookEntity bookToSave = book.copyWith(sequenceVolumeIds: sequenceVolumeIds);
-
-    if (isEdit) {
-      await bookRepository.editBook(bookToSave, batch: batch);
-    } else {
-      await bookRepository.addBook(bookToSave, batch: batch);
-    }
-
-    if (applyToWorks && bookToSave.compilationType == CompilationType.multiple) {
-      for (final String workId in bookToSave.workIds) {
-        final WorkEntity? work = await workRepository.fetchWorkById(workId);
-        if (work != null) {
-          final WorkEntity updatedWork = work.copyWith(
-            bookId: Nullable<String?>(bookToSave.id),
-            isTranslation: bookToSave.isTranslation,
-            authorIds: bookToSave.authorIds,
-            translatorIds: bookToSave.translatorIds,
-            language: Nullable<Language?>(bookToSave.language),
-            originalLanguage: Nullable<OriginalLanguage?>(bookToSave.originalLanguage),
-          );
-          await workRepository.editWork(updatedWork, batch: batch);
-        }
-      }
-    }
-
-    await batch.commit();
-
-    return bookToSave;
-  }
+    WriteBatch? batch,
+  }) => repository.upsertBook(
+    book,
+    sequenceEntries.map((SequenceEntity k, String v) => MapEntry<String, String>(k.id, v)),
+    isEdit,
+    applyToWorks,
+    batch: batch,
+  );
 }
 
 class ScanBookUseCase {
@@ -161,12 +113,8 @@ RemoveBookUseCase removeBookUseCase(Ref ref) =>
     RemoveBookUseCase(ref.watch(bookRepositoryProvider));
 
 @riverpod
-UpsertBookUseCase upsertBookUseCase(Ref ref) => UpsertBookUseCase(
-  firestore: ref.watch(firebaseFirestoreProvider),
-  bookRepository: ref.watch(bookRepositoryProvider),
-  syncSequenceVolumesUseCase: ref.watch(syncBookSequenceVolumesUseCaseProvider),
-  workRepository: ref.watch(workRepositoryProvider),
-);
+UpsertBookUseCase upsertBookUseCase(Ref ref) =>
+    UpsertBookUseCase(ref.watch(bookRepositoryProvider));
 
 @riverpod
 ScanBookUseCase scanBookUseCase(Ref ref) => ScanBookUseCase(ref.watch(bookRepositoryProvider));

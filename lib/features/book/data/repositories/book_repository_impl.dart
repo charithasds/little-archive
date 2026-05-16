@@ -4,12 +4,22 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
+import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/enums/compilation_type.dart';
-import '../../../../core/shared/domain/enums/genre.dart';
 import '../../../../core/shared/domain/enums/language.dart';
 import '../../../../core/shared/domain/enums/original_language.dart';
+import '../../../../core/shared/domain/enums/reading_status.dart';
+import '../../../../core/shared/domain/utils/nullable.dart';
+import '../../../../core/shared/domain/utils/string_extensions.dart';
+import '../../../../core/shared/presentation/providers/firebase_provider.dart';
+import '../../../sequence/data/repositories/sequence_volume_repository_impl.dart';
+import '../../../sequence/domain/repositories/sequence_volume_repository.dart';
+import '../../../work/data/repositories/work_repository_impl.dart';
+import '../../../work/domain/entities/work_entity.dart';
+import '../../../work/domain/repositories/work_repository.dart';
 import '../../domain/entities/book_entity.dart';
-import '../../domain/entities/scanned_book_entity.dart';
+import '../../domain/entities/scan/scanned_book_entity.dart';
+import '../../domain/entities/scan/scanned_name_entity.dart';
 import '../../domain/repositories/book_repository.dart';
 import '../datasources/book_remote_datasource.dart';
 import '../models/book_model.dart';
@@ -17,10 +27,19 @@ import '../models/book_model.dart';
 part 'book_repository_impl.g.dart';
 
 class BookRepositoryImpl implements BookRepository {
-  BookRepositoryImpl({required this.remoteDataSource, required this.relationshipSyncService});
+  BookRepositoryImpl({
+    required this.remoteDataSource,
+    required this.relationshipSyncService,
+    required this.firestore,
+    required this.sequenceVolumeRepository,
+    required this.workRepository,
+  });
 
   final BookRemoteDataSource remoteDataSource;
   final RelationshipSyncService relationshipSyncService;
+  final FirebaseFirestore firestore;
+  final SequenceVolumeRepository sequenceVolumeRepository;
+  final WorkRepository workRepository;
 
   @override
   String generateId() => remoteDataSource.generateId();
@@ -35,21 +54,21 @@ class BookRepositoryImpl implements BookRepository {
   Stream<List<BookEntity>> watchBooks() => remoteDataSource.watchBooks();
 
   @override
-  Future<void> addBook(BookEntity book, {dynamic batch}) async {
-    final WriteBatch? b = batch is WriteBatch ? batch : null;
+  Future<void> addBook(BookEntity book, {WriteBatch? batch}) async {
     await remoteDataSource.addBook(
       BookModel(
         id: book.id,
         title: book.title,
         compilationType: book.compilationType,
         isTranslation: book.isTranslation,
+        cover: book.cover,
         language: book.language,
-        originalTitle: book.originalTitle,
-        originalLanguage: book.originalLanguage,
+        genre: book.genre,
+        isbn: book.isbn,
         publishedDate: book.publishedDate,
         noOfPages: book.noOfPages,
-        isbn: book.isbn,
-        genre: book.genre,
+        originalTitle: book.originalTitle,
+        originalLanguage: book.originalLanguage,
         collectionStatus: book.collectionStatus,
         collectedDate: book.collectedDate,
         lendedDate: book.lendedDate,
@@ -60,15 +79,14 @@ class BookRepositoryImpl implements BookRepository {
         notes: book.notes,
         authorIds: book.authorIds,
         translatorIds: book.translatorIds,
-        workIds: book.workIds,
         sequenceVolumeIds: book.sequenceVolumeIds,
+        workIds: book.workIds,
         publisherId: book.publisherId,
         readerId: book.readerId,
         createdDate: book.createdDate,
         lastUpdated: book.lastUpdated,
-        cover: book.cover,
       ),
-      batch: b,
+      batch: batch,
     );
 
     await relationshipSyncService.syncBookRelationships(
@@ -79,13 +97,12 @@ class BookRepositoryImpl implements BookRepository {
       newWorkIds: book.workIds,
       newPublisherId: book.publisherId,
       newReaderId: book.readerId,
-      batch: b,
+      batch: batch,
     );
   }
 
   @override
-  Future<void> editBook(BookEntity book, {dynamic batch}) async {
-    final WriteBatch? b = batch is WriteBatch ? batch : null;
+  Future<void> editBook(BookEntity book, {WriteBatch? batch}) async {
     final BookModel? existingBook = await remoteDataSource.fetchBookById(book.id);
 
     await remoteDataSource.editBook(
@@ -94,13 +111,14 @@ class BookRepositoryImpl implements BookRepository {
         title: book.title,
         compilationType: book.compilationType,
         isTranslation: book.isTranslation,
+        cover: book.cover,
         language: book.language,
-        originalTitle: book.originalTitle,
-        originalLanguage: book.originalLanguage,
+        genre: book.genre,
+        isbn: book.isbn,
         publishedDate: book.publishedDate,
         noOfPages: book.noOfPages,
-        isbn: book.isbn,
-        genre: book.genre,
+        originalTitle: book.originalTitle,
+        originalLanguage: book.originalLanguage,
         collectionStatus: book.collectionStatus,
         collectedDate: book.collectedDate,
         lendedDate: book.lendedDate,
@@ -111,15 +129,14 @@ class BookRepositoryImpl implements BookRepository {
         notes: book.notes,
         authorIds: book.authorIds,
         translatorIds: book.translatorIds,
-        workIds: book.workIds,
         sequenceVolumeIds: book.sequenceVolumeIds,
+        workIds: book.workIds,
         publisherId: book.publisherId,
         readerId: book.readerId,
         createdDate: book.createdDate,
         lastUpdated: book.lastUpdated,
-        cover: book.cover,
       ),
-      batch: b,
+      batch: batch,
     );
 
     await relationshipSyncService.syncBookRelationships(
@@ -136,12 +153,12 @@ class BookRepositoryImpl implements BookRepository {
       oldWorkIds: existingBook?.workIds ?? <String>[],
       oldPublisherId: existingBook?.publisherId,
       oldReaderId: existingBook?.readerId,
-      batch: b,
+      batch: batch,
     );
   }
 
   @override
-  Future<void> removeBook(String id) async {
+  Future<void> removeBook(String id, {WriteBatch? batch}) async {
     final BookModel? existingBook = await remoteDataSource.fetchBookById(id);
 
     if (existingBook != null) {
@@ -153,110 +170,108 @@ class BookRepositoryImpl implements BookRepository {
         workIds: existingBook.workIds,
         publisherId: existingBook.publisherId,
         readerId: existingBook.readerId,
+        batch: batch,
       );
     }
 
-    await remoteDataSource.removeBook(id);
+    await remoteDataSource.removeBook(id, batch: batch);
   }
 
-  String _toTitleCase(String text) {
-    if (text.isEmpty) {
-      return text;
-    }
-    return text
-        .split(RegExp(r'\s+'))
-        .map((String word) {
-          if (word.isEmpty) {
-            return word;
-          }
-          if (word.length == 1) {
-            return word.toUpperCase();
-          }
-          return word[0].toUpperCase() + word.substring(1).toLowerCase();
-        })
-        .join(' ');
-  }
+  @override
+  Future<BookEntity> upsertBook(
+    BookEntity book,
+    Map<String, String> sequenceIdToVolume,
+    bool isEdit,
+    bool applyToWorks, {
+    WriteBatch? batch,
+  }) async {
+    final WriteBatch effectiveBatch = batch ?? firestore.batch();
+    final List<String> sequenceVolumeIds = await sequenceVolumeRepository.syncBookVolumes(
+      book.id,
+      sequenceIdToVolume,
+      isEdit,
+      batch: effectiveBatch,
+    );
+    final BookEntity bookToSave = book.copyWith(sequenceVolumeIds: sequenceVolumeIds);
 
-  String? _cleanDummyData(String? value) {
-    if (value == null) {
-      return null;
+    if (isEdit) {
+      await editBook(bookToSave, batch: effectiveBatch);
+    } else {
+      await addBook(bookToSave, batch: effectiveBatch);
     }
-    final String trimmed = value.trim();
-    final String upper = trimmed.toUpperCase();
-    if (upper == 'N/A' ||
-        upper == 'NA' ||
-        upper == 'UNKNOWN' ||
-        upper == 'NONE' ||
-        trimmed.isEmpty) {
-      return null;
+
+    if (applyToWorks && bookToSave.compilationType == CompilationType.multiple) {
+      for (final String workId in bookToSave.workIds) {
+        final WorkEntity? work = await workRepository.fetchWorkById(workId);
+
+        if (work != null) {
+          final WorkEntity updatedWork = work.copyWith(
+            bookId: Nullable<String?>(bookToSave.id),
+            isTranslation: bookToSave.isTranslation,
+            authorIds: bookToSave.authorIds,
+            translatorIds: bookToSave.translatorIds,
+            language: Nullable<Language?>(bookToSave.language),
+            originalLanguage: Nullable<OriginalLanguage?>(bookToSave.originalLanguage),
+          );
+
+          await workRepository.editWork(updatedWork, batch: effectiveBatch);
+        }
+      }
     }
-    return trimmed;
+
+    if (batch == null) {
+      await effectiveBatch.commit();
+    }
+
+    return bookToSave;
   }
 
   @override
   Future<ScannedBookEntity> scanBookCover(Uint8List imageBytes) async {
     final Map<String, dynamic> data = await remoteDataSource.scanBookCover(imageBytes);
-
     final String title = data['title'] as String? ?? '';
     final bool isTranslation = data['isTranslation'] as bool? ?? false;
     final String? languageStr = data['language'] as String?;
+    final Language? language;
     final String? originalTitle = data['originalTitle'] as String?;
     final String? originalLanguageStr = data['originalLanguage'] as String?;
-
+    final OriginalLanguage? originalLanguage;
     final List<dynamic> authorsRaw = data['authorNames'] as List<dynamic>? ?? <dynamic>[];
     final List<ScannedNameEntity> authors = authorsRaw.map((dynamic e) {
-      final Map<String, dynamic> m = e as Map<String, dynamic>;
-      final String name = m['name'] as String? ?? '';
-      final String? otherName = m['otherName'] as String?;
-      return ScannedNameEntity(
-        name: _toTitleCase(name),
-        otherName: otherName != null ? _toTitleCase(otherName) : null,
-      );
-    }).toList();
+      final Map<String, dynamic> map = e as Map<String, dynamic>;
+      final String name = map['name'] as String? ?? '';
+      final String? otherName = map['otherName'] as String?;
 
+      return ScannedNameEntity(name: name.toTitleCase(), otherName: otherName?.toTitleCase());
+    }).toList();
     final List<dynamic> translatorsRaw = data['translatorNames'] as List<dynamic>? ?? <dynamic>[];
     final List<ScannedNameEntity> translators = translatorsRaw.map((dynamic e) {
-      final Map<String, dynamic> m = e as Map<String, dynamic>;
-      final String name = m['name'] as String? ?? '';
-      final String? otherName = m['otherName'] as String?;
-      return ScannedNameEntity(
-        name: _toTitleCase(name),
-        otherName: otherName != null ? _toTitleCase(otherName) : null,
-      );
+      final Map<String, dynamic> map = e as Map<String, dynamic>;
+      final String name = map['name'] as String? ?? '';
+      final String? otherName = map['otherName'] as String?;
+
+      return ScannedNameEntity(name: name.toTitleCase(), otherName: otherName?.toTitleCase());
     }).toList();
-
-    ScannedNameEntity? publisher;
     final dynamic publisherRaw = data['publisher'];
-    if (publisherRaw != null && publisherRaw is Map<String, dynamic>) {
-      final String name = publisherRaw['name'] as String? ?? '';
-      final String? otherName = publisherRaw['otherName'] as String?;
-      publisher = ScannedNameEntity(
-        name: _toTitleCase(name),
-        otherName: otherName != null ? _toTitleCase(otherName) : null,
-      );
-    }
+    final ScannedNameEntity? publisher;
+    final String? isbn = (data['isbn'] as String?).cleanDummyData;
+    BookEntity bookEntity;
 
-    final String? isbn = _cleanDummyData(data['isbn'] as String?);
-    final String? genreStr = data['genre'] as String?;
-
-    Language? language;
     if (languageStr != null) {
       language = Language.values.where((Language e) => e.name == languageStr).firstOrNull;
+    } else {
+      language = null;
     }
 
-    OriginalLanguage? originalLanguage;
     if (originalLanguageStr != null) {
       originalLanguage = OriginalLanguage.values
           .where((OriginalLanguage e) => e.name == originalLanguageStr)
           .firstOrNull;
+    } else {
+      originalLanguage = null;
     }
 
-    Genre? genre;
-    if (genreStr != null) {
-      genre = Genre.values.where((Genre e) => e.name == genreStr).firstOrNull;
-    }
-
-    final BookEntity bookEntity = BookEntity(
+    bookEntity = BookEntity(
       id: '',
       title: title,
       compilationType: CompilationType.single,
@@ -264,8 +279,9 @@ class BookRepositoryImpl implements BookRepository {
       language: language,
       originalTitle: originalTitle,
       originalLanguage: originalLanguage,
+      collectionStatus: CollectionStatus.collected,
+      readingStatus: ReadingStatus.notStarted,
       isbn: isbn,
-      genre: genre,
       authorIds: const <String>[],
       translatorIds: const <String>[],
       workIds: const <String>[],
@@ -273,6 +289,15 @@ class BookRepositoryImpl implements BookRepository {
       createdDate: DateTime.now(),
       lastUpdated: DateTime.now(),
     );
+
+    if (publisherRaw != null && publisherRaw is Map<String, dynamic>) {
+      final String name = publisherRaw['name'] as String? ?? '';
+      final String? otherName = publisherRaw['otherName'] as String?;
+
+      publisher = ScannedNameEntity(name: name.toTitleCase(), otherName: otherName?.toTitleCase());
+    } else {
+      publisher = null;
+    }
 
     return ScannedBookEntity(
       book: bookEntity,
@@ -290,9 +315,17 @@ BookRepository bookRepository(Ref ref) {
   final RelationshipSyncService relationshipSyncService = ref.watch(
     relationshipSyncServiceProvider,
   );
+  final FirebaseFirestore firestore = ref.watch(firebaseFirestoreProvider);
+  final SequenceVolumeRepository sequenceVolumeRepository = ref.watch(
+    sequenceVolumeRepositoryProvider,
+  );
+  final WorkRepository workRepository = ref.watch(workRepositoryProvider);
 
   return BookRepositoryImpl(
     remoteDataSource: remoteDataSource,
     relationshipSyncService: relationshipSyncService,
+    firestore: firestore,
+    sequenceVolumeRepository: sequenceVolumeRepository,
+    workRepository: workRepository,
   );
 }

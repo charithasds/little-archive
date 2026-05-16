@@ -29,7 +29,8 @@ class SequenceListController extends _$SequenceListController {
 
   @override
   SequenceListState build() {
-    final List<SequenceEntity> allSequences = ref.watch(sequencesStreamProvider).value ?? <SequenceEntity>[];
+    final List<SequenceEntity> allSequences =
+        ref.watch(sequencesStreamProvider).value ?? <SequenceEntity>[];
     return _calculateState(allSequences, '', 1, _defaultPageSize);
   }
 
@@ -37,7 +38,8 @@ class SequenceListController extends _$SequenceListController {
     if (state.searchQuery == query) {
       return;
     }
-    final List<SequenceEntity> allSequences = ref.read(sequencesStreamProvider).value ?? <SequenceEntity>[];
+    final List<SequenceEntity> allSequences =
+        ref.read(sequencesStreamProvider).value ?? <SequenceEntity>[];
     state = _calculateState(allSequences, query, 1, state.pageSize);
   }
 
@@ -45,11 +47,17 @@ class SequenceListController extends _$SequenceListController {
     if (page < 1 || page > state.totalPages || page == state.currentPage) {
       return;
     }
-    final List<SequenceEntity> allSequences = ref.read(sequencesStreamProvider).value ?? <SequenceEntity>[];
+    final List<SequenceEntity> allSequences =
+        ref.read(sequencesStreamProvider).value ?? <SequenceEntity>[];
     state = _calculateState(allSequences, state.searchQuery, page, state.pageSize);
   }
 
-  SequenceListState _calculateState(List<SequenceEntity> allSequences, String query, int page, int pageSize) {
+  SequenceListState _calculateState(
+    List<SequenceEntity> allSequences,
+    String query,
+    int page,
+    int pageSize,
+  ) {
     List<SequenceEntity> filtered = allSequences;
 
     if (query.isNotEmpty) {
@@ -63,7 +71,7 @@ class SequenceListController extends _$SequenceListController {
 
     final int totalFiltered = filtered.length;
     final int safePage = page > (totalFiltered / pageSize).ceil() ? 1 : page;
-    
+
     final int startIndex = (safePage - 1) * pageSize;
     final List<SequenceEntity> paged = filtered.skip(startIndex).take(pageSize).toList();
 

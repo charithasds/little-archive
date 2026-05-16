@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 
 class SearchField extends StatefulWidget {
-  const SearchField({
-    required this.onChanged,
-    this.hintText = 'Search...',
-    super.key,
-  });
+  const SearchField({required this.onChanged, this.hintText = 'Search...', super.key});
 
   final ValueChanged<String> onChanged;
   final String hintText;

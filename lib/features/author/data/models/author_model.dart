@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../domain/entities/author_entity.dart';
 
 class AuthorModel extends AuthorEntity {

@@ -12,6 +12,10 @@ enum Genre {
     'Fantasy',
     'Speculative fiction involving magical elements, supernatural worlds, or mythology',
   ),
+  fiction(
+    'Fiction',
+    'Fictional narratives that explore human experiences, emotions, and societal themes through imagination',
+  ),
   historical(
     'Historical Fiction',
     'Narratives set in the past that capture the spirit and manners of a historical period',

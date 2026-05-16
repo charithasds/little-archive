@@ -13,9 +13,9 @@ abstract class PublisherRemoteDataSource {
   Future<List<PublisherModel>> fetchPublishers();
   Future<PublisherModel?> fetchPublisherById(String id);
   Stream<List<PublisherModel>> watchPublishers();
-  Future<void> addPublisher(PublisherModel publisher);
-  Future<void> editPublisher(PublisherModel publisher);
-  Future<void> removePublisher(String id);
+  Future<void> addPublisher(PublisherModel publisher, {WriteBatch? batch});
+  Future<void> editPublisher(PublisherModel publisher, {WriteBatch? batch});
+  Future<void> removePublisher(String id, {WriteBatch? batch});
 }
 
 class PublisherRemoteDataSourceImpl implements PublisherRemoteDataSource {
@@ -71,24 +71,48 @@ class PublisherRemoteDataSourceImpl implements PublisherRemoteDataSource {
       );
 
   @override
-  Future<void> addPublisher(PublisherModel publisher) async {
-    await firestoreService.requireConnectivity();
-    await _firestore
+  Future<void> addPublisher(PublisherModel publisher, {WriteBatch? batch}) async {
+    final DocumentReference<Map<String, dynamic>> docRef = _firestore
         .collection(_collectionPath)
-        .doc(publisher.id.isEmpty ? null : publisher.id)
-        .set(publisher.toMap());
+        .doc(publisher.id.isEmpty ? null : publisher.id);
+
+    if (batch != null) {
+      batch.set(docRef, publisher.toMap());
+      return;
+    }
+
+    await firestoreService.requireConnectivity();
+    await docRef.set(publisher.toMap());
   }
 
   @override
-  Future<void> editPublisher(PublisherModel publisher) async {
+  Future<void> editPublisher(PublisherModel publisher, {WriteBatch? batch}) async {
+    final DocumentReference<Map<String, dynamic>> docRef = _firestore
+        .collection(_collectionPath)
+        .doc(publisher.id);
+
+    if (batch != null) {
+      batch.update(docRef, publisher.toMap());
+      return;
+    }
+
     await firestoreService.requireConnectivity();
-    await _firestore.collection(_collectionPath).doc(publisher.id).update(publisher.toMap());
+    await docRef.update(publisher.toMap());
   }
 
   @override
-  Future<void> removePublisher(String id) async {
+  Future<void> removePublisher(String id, {WriteBatch? batch}) async {
+    final DocumentReference<Map<String, dynamic>> docRef = _firestore
+        .collection(_collectionPath)
+        .doc(id);
+
+    if (batch != null) {
+      batch.delete(docRef);
+      return;
+    }
+
     await firestoreService.requireConnectivity();
-    await _firestore.collection(_collectionPath).doc(id).delete();
+    await docRef.delete();
   }
 }
 

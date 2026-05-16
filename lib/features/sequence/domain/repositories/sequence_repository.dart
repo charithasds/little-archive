@@ -1,24 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../entities/sequence_entity.dart';
-import '../entities/sequence_volume_entity.dart';
 
 abstract class SequenceRepository {
   String generateId();
-
   Future<List<SequenceEntity>> fetchSequences();
   Future<SequenceEntity?> fetchSequenceById(String id);
   Stream<List<SequenceEntity>> watchSequences();
-  Future<void> addSequence(SequenceEntity sequence, {dynamic batch});
-  Future<void> editSequence(SequenceEntity sequence, {dynamic batch});
-  Future<void> removeSequence(String id);
-
-  String generateVolumeId();
-
-  Future<List<SequenceVolumeEntity>> fetchSequenceVolumes(String sequenceId);
-  Future<SequenceVolumeEntity?> fetchSequenceVolumeById(String id);
-  Future<List<SequenceVolumeEntity>> fetchSequenceVolumesByBookId(String bookId);
-  Future<List<SequenceVolumeEntity>> fetchSequenceVolumesByWorkId(String workId);
-  Stream<List<SequenceVolumeEntity>> watchSequenceVolumes(String sequenceId);
-  Future<void> addSequenceVolume(SequenceVolumeEntity volume, {dynamic batch});
-  Future<void> editSequenceVolume(SequenceVolumeEntity volume, {dynamic batch});
-  Future<void> removeSequenceVolume(String id, {dynamic batch});
+  Future<void> addSequence(SequenceEntity sequence, {WriteBatch? batch});
+  Future<void> editSequence(SequenceEntity sequence, {WriteBatch? batch});
+  Future<void> removeSequence(String id, {WriteBatch? batch});
 }

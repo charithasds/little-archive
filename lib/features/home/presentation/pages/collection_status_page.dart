@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -82,7 +83,9 @@ class _CollectionStatusPageState extends ConsumerState<CollectionStatusPage>
                             height: 12,
                             child: CircularProgressIndicator(
                               strokeWidth: 1.5,
-                              valueColor: AlwaysStoppedAnimation<Color>(successColor.withValues(alpha: 0.5)),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                successColor.withValues(alpha: 0.5),
+                              ),
                             ),
                           ),
                         )
@@ -181,7 +184,7 @@ class _CollectionBookTile extends ConsumerWidget {
         ? ref.watch(publisherProvider(book.publisherId!)).value?.name
         : null;
 
-    final CollectionStatus? status = book.collectionStatus;
+    final CollectionStatus status = book.collectionStatus;
 
     final bool isDark = theme.brightness == Brightness.dark;
     final Color successColor = isDark ? const Color(0xFFA5D6A7) : const Color(0xFF1B5E20);
@@ -239,7 +242,7 @@ class _CollectionBookTile extends ConsumerWidget {
     Color successColor,
     ThemeData theme,
     bool isLoading,
-    CollectionStatus? status,
+    CollectionStatus status,
   ) {
     final List<Widget> actions = <Widget>[];
     final BookStatusController ctrl = ref.read(bookStatusControllerProvider.notifier);
@@ -302,9 +305,6 @@ class _CollectionBookTile extends ConsumerWidget {
                 : () => ctrl.setCollectionStatus(book, CollectionStatus.announced),
           ),
         );
-
-      case null:
-        break;
     }
 
     return actions;

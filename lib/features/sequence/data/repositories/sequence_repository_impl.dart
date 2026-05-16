@@ -3,11 +3,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
 import '../../domain/entities/sequence_entity.dart';
-import '../../domain/entities/sequence_volume_entity.dart';
 import '../../domain/repositories/sequence_repository.dart';
 import '../datasources/sequence_remote_datasource.dart';
 import '../models/sequence_model.dart';
-import '../models/sequence_volume_model.dart';
 
 part 'sequence_repository_impl.g.dart';
 
@@ -18,7 +16,7 @@ class SequenceRepositoryImpl implements SequenceRepository {
   final RelationshipSyncService relationshipSyncService;
 
   @override
-  String generateId() => remoteDataSource.generateSequenceId();
+  String generateId() => remoteDataSource.generateId();
 
   @override
   Future<List<SequenceEntity>> fetchSequences() => remoteDataSource.fetchSequences();
@@ -30,8 +28,7 @@ class SequenceRepositoryImpl implements SequenceRepository {
   Stream<List<SequenceEntity>> watchSequences() => remoteDataSource.watchSequences();
 
   @override
-  Future<void> addSequence(SequenceEntity sequence, {dynamic batch}) async {
-    final WriteBatch? b = batch is WriteBatch ? batch : null;
+  Future<void> addSequence(SequenceEntity sequence, {WriteBatch? batch}) async {
     await remoteDataSource.addSequence(
       SequenceModel(
         id: sequence.id,
@@ -42,19 +39,18 @@ class SequenceRepositoryImpl implements SequenceRepository {
         createdDate: sequence.createdDate,
         lastUpdated: sequence.lastUpdated,
       ),
-      batch: b,
+      batch: batch,
     );
 
     await relationshipSyncService.syncSequenceRelationships(
       sequenceId: sequence.id,
       newSequenceVolumeIds: sequence.sequenceVolumeIds,
-      batch: b,
+      batch: batch,
     );
   }
 
   @override
-  Future<void> editSequence(SequenceEntity sequence, {dynamic batch}) async {
-    final WriteBatch? b = batch is WriteBatch ? batch : null;
+  Future<void> editSequence(SequenceEntity sequence, {WriteBatch? batch}) async {
     final SequenceModel? existingSequence = await remoteDataSource.fetchSequenceById(sequence.id);
 
     await remoteDataSource.editSequence(
@@ -67,127 +63,30 @@ class SequenceRepositoryImpl implements SequenceRepository {
         createdDate: sequence.createdDate,
         lastUpdated: sequence.lastUpdated,
       ),
-      batch: b,
+      batch: batch,
     );
 
     await relationshipSyncService.syncSequenceRelationships(
       sequenceId: sequence.id,
       newSequenceVolumeIds: sequence.sequenceVolumeIds,
       oldSequenceVolumeIds: existingSequence?.sequenceVolumeIds ?? <String>[],
-      batch: b,
+      batch: batch,
     );
   }
 
   @override
-  Future<void> removeSequence(String id) async {
+  Future<void> removeSequence(String id, {WriteBatch? batch}) async {
     final SequenceModel? existingSequence = await remoteDataSource.fetchSequenceById(id);
 
     if (existingSequence != null) {
       await relationshipSyncService.removeSequenceRelationships(
         sequenceId: id,
         sequenceVolumeIds: existingSequence.sequenceVolumeIds,
+        batch: batch,
       );
     }
 
-    await remoteDataSource.removeSequence(id);
-  }
-
-  @override
-  String generateVolumeId() => remoteDataSource.generateSequenceVolumeId();
-
-  @override
-  Future<List<SequenceVolumeEntity>> fetchSequenceVolumes(String sequenceId) =>
-      remoteDataSource.fetchSequenceVolumes(sequenceId);
-
-  @override
-  Future<SequenceVolumeEntity?> fetchSequenceVolumeById(String id) =>
-      remoteDataSource.fetchSequenceVolumeById(id);
-
-  @override
-  Future<List<SequenceVolumeEntity>> fetchSequenceVolumesByBookId(String bookId) =>
-      remoteDataSource.fetchSequenceVolumesByBookId(bookId);
-
-  @override
-  Future<List<SequenceVolumeEntity>> fetchSequenceVolumesByWorkId(String workId) =>
-      remoteDataSource.fetchSequenceVolumesByWorkId(workId);
-
-  @override
-  Stream<List<SequenceVolumeEntity>> watchSequenceVolumes(String sequenceId) =>
-      remoteDataSource.watchSequenceVolumes(sequenceId);
-
-  @override
-  Future<void> addSequenceVolume(SequenceVolumeEntity volume, {dynamic batch}) async {
-    final WriteBatch? b = batch is WriteBatch ? batch : null;
-    await remoteDataSource.addSequenceVolume(
-      SequenceVolumeModel(
-        id: volume.id,
-        volume: volume.volume,
-        sequenceId: volume.sequenceId,
-        bookId: volume.bookId,
-        workId: volume.workId,
-        createdDate: volume.createdDate,
-        lastUpdated: volume.lastUpdated,
-      ),
-      batch: b,
-    );
-
-    await relationshipSyncService.syncSequenceVolumeRelationships(
-      volumeId: volume.id,
-      newSequenceId: volume.sequenceId,
-      newBookId: volume.bookId,
-      newWorkId: volume.workId,
-      batch: b,
-    );
-  }
-
-  @override
-  Future<void> editSequenceVolume(SequenceVolumeEntity volume, {dynamic batch}) async {
-    final WriteBatch? b = batch is WriteBatch ? batch : null;
-    final SequenceVolumeModel? existingVolume = await remoteDataSource.fetchSequenceVolumeById(
-      volume.id,
-    );
-
-    await remoteDataSource.editSequenceVolume(
-      SequenceVolumeModel(
-        id: volume.id,
-        volume: volume.volume,
-        sequenceId: volume.sequenceId,
-        bookId: volume.bookId,
-        workId: volume.workId,
-        createdDate: volume.createdDate,
-        lastUpdated: volume.lastUpdated,
-      ),
-      batch: b,
-    );
-
-    await relationshipSyncService.syncSequenceVolumeRelationships(
-      volumeId: volume.id,
-      newSequenceId: volume.sequenceId,
-      newBookId: volume.bookId,
-      newWorkId: volume.workId,
-      oldSequenceId: existingVolume?.sequenceId,
-      oldBookId: existingVolume?.bookId,
-      oldWorkId: existingVolume?.workId,
-      batch: b,
-    );
-  }
-
-  @override
-  Future<void> removeSequenceVolume(String id, {dynamic batch}) async {
-    final WriteBatch? b = batch is WriteBatch ? batch : null;
-    final SequenceVolumeModel? existingVolume = await remoteDataSource.fetchSequenceVolumeById(id);
-
-    if (existingVolume != null) {
-      await relationshipSyncService.removeSequenceVolumeRelationships(
-        volumeId: id,
-        sequenceId: existingVolume.sequenceId,
-        bookId: existingVolume.bookId,
-        workId: existingVolume.workId,
-        batch: b,
-      );
-    }
-
-    await remoteDataSource.removeSequenceVolume(id, batch: b);
+    await remoteDataSource.removeSequence(id, batch: batch);
   }
 }
 

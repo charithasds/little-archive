@@ -7,8 +7,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
 import '../../../../core/shared/data/services/firestore_service.dart';
-import '../../../../core/shared/domain/enums/genre.dart';
-import '../../../../core/shared/domain/enums/language.dart' as local_lang;
+import '../../../../core/shared/domain/enums/language.dart';
 import '../../../../core/shared/domain/enums/original_language.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../models/book_model.dart';
@@ -22,7 +21,7 @@ abstract class BookRemoteDataSource {
   Stream<List<BookModel>> watchBooks();
   Future<void> addBook(BookModel book, {WriteBatch? batch});
   Future<void> editBook(BookModel book, {WriteBatch? batch});
-  Future<void> removeBook(String id);
+  Future<void> removeBook(String id, {WriteBatch? batch});
   Future<Map<String, dynamic>> scanBookCover(Uint8List imageBytes);
 }
 
@@ -36,7 +35,7 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
   String get _collectionPath => 'users/$userId/books';
 
   @override
-  String generateId() => _firestore.collection(_collectionPath).doc().id;
+  String generateId() => firestoreService.generateId('books');
 
   @override
   Future<List<BookModel>> fetchBooks() async {
@@ -109,9 +108,18 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
   }
 
   @override
-  Future<void> removeBook(String id) async {
+  Future<void> removeBook(String id, {WriteBatch? batch}) async {
+    final DocumentReference<Map<String, dynamic>> docRef = _firestore
+        .collection(_collectionPath)
+        .doc(id);
+
+    if (batch != null) {
+      batch.delete(docRef);
+      return;
+    }
+
     await firestoreService.requireConnectivity();
-    await _firestore.collection(_collectionPath).doc(id).delete();
+    await docRef.delete();
   }
 
   @override
@@ -124,9 +132,8 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
       '3. FORMATTING: All Names (Authors, Translators, Publishers) MUST use Title Case (e.g., "John Doe", not "JOHN DOE").\n'
       '4. NO DUMMY DATA: If fields like "isbn" are not clearly readable or appear as dummy text (like "N/A"), leave them as empty strings ("").\n'
       '5. LANGUAGE: For names (authorNames, translatorNames), provide them in the language they appear on the cover (e.g., Sinhala). If an English name is also present or commonly known for that person, provide it in the "otherName" field.\n'
-      '6. UNCERTAINTY: If the book is not recognized with high certainty (>99%), provide OCR text in the corresponding fields instead of metadata.',
+      '6. UNCERTAINTY: If the book is not recognized with high certainty (>95%), provide OCR text in the corresponding fields instead of metadata.',
     );
-
     final Schema nameSchema = Schema.object(
       properties: <String, Schema>{
         'name': Schema.string(description: 'The name as it appears on the cover in Title Case'),
@@ -136,7 +143,6 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
         ),
       },
     );
-
     final GenerativeModel model = FirebaseAI.googleAI().generativeModel(
       model: 'gemini-2.5-flash',
       generationConfig: GenerationConfig(
@@ -150,9 +156,7 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
             'title': Schema.string(),
             'isTranslation': Schema.boolean(),
             'language': Schema.enumString(
-              enumValues: local_lang.Language.values
-                  .map((local_lang.Language e) => e.name)
-                  .toList(),
+              enumValues: Language.values.map((Language e) => e.name).toList(),
             ),
             'originalTitle': Schema.string(nullable: true),
             'originalLanguage': Schema.enumString(
@@ -163,7 +167,6 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
             'translatorNames': Schema.array(items: nameSchema),
             'publisher': nameSchema,
             'isbn': Schema.string(),
-            'genre': Schema.enumString(enumValues: Genre.values.map((Genre e) => e.name).toList()),
           },
         ),
       ),

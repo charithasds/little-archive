@@ -1,5 +1,4 @@
 import 'package:firebase_core/firebase_core.dart';
-
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../firebase_options.dart';

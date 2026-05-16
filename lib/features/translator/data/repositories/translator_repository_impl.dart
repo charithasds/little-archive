@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
@@ -28,7 +29,7 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
   Stream<List<TranslatorEntity>> watchTranslators() => remoteDataSource.watchTranslators();
 
   @override
-  Future<void> addTranslator(TranslatorEntity translator) async {
+  Future<void> addTranslator(TranslatorEntity translator, {WriteBatch? batch}) async {
     await remoteDataSource.addTranslator(
       TranslatorModel(
         id: translator.id,
@@ -42,17 +43,19 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
         createdDate: translator.createdDate,
         lastUpdated: translator.lastUpdated,
       ),
+      batch: batch,
     );
 
     await relationshipSyncService.syncTranslatorRelationships(
       translatorId: translator.id,
       newBookIds: translator.bookIds,
       newWorkIds: translator.workIds,
+      batch: batch,
     );
   }
 
   @override
-  Future<void> editTranslator(TranslatorEntity translator) async {
+  Future<void> editTranslator(TranslatorEntity translator, {WriteBatch? batch}) async {
     final TranslatorModel? existingTranslator = await remoteDataSource.fetchTranslatorById(
       translator.id,
     );
@@ -70,6 +73,7 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
         createdDate: translator.createdDate,
         lastUpdated: translator.lastUpdated,
       ),
+      batch: batch,
     );
 
     await relationshipSyncService.syncTranslatorRelationships(
@@ -78,11 +82,12 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
       newWorkIds: translator.workIds,
       oldBookIds: existingTranslator?.bookIds ?? <String>[],
       oldWorkIds: existingTranslator?.workIds ?? <String>[],
+      batch: batch,
     );
   }
 
   @override
-  Future<void> removeTranslator(String id) async {
+  Future<void> removeTranslator(String id, {WriteBatch? batch}) async {
     final TranslatorModel? existingTranslator = await remoteDataSource.fetchTranslatorById(id);
 
     if (existingTranslator != null) {
@@ -90,10 +95,11 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
         translatorId: id,
         bookIds: existingTranslator.bookIds,
         workIds: existingTranslator.workIds,
+        batch: batch,
       );
     }
 
-    await remoteDataSource.removeTranslator(id);
+    await remoteDataSource.removeTranslator(id, batch: batch);
   }
 }
 

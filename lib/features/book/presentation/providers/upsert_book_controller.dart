@@ -17,7 +17,7 @@ import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../domain/entities/book_entity.dart';
-import '../../domain/entities/scanned_book_entity.dart';
+import '../../domain/entities/scan/scanned_book_entity.dart';
 import '../../domain/usecases/book_usecases.dart';
 
 part 'upsert_book_controller.g.dart';
@@ -189,11 +189,11 @@ class UpsertBookController extends _$UpsertBookController {
                 (originalTitle?.isEmpty ?? true) ? null : originalTitle,
               ),
               originalLanguage: Nullable<OriginalLanguage?>(originalLanguage),
-              collectionStatus: Nullable<CollectionStatus?>(collectionStatus),
+              collectionStatus: collectionStatus ?? existingBook.collectionStatus,
               collectedDate: Nullable<DateTime?>(collectedDate),
               lendedDate: Nullable<DateTime?>(lendedDate),
               dueDate: Nullable<DateTime?>(dueDate),
-              readingStatus: Nullable<ReadingStatus?>(readingStatus),
+              readingStatus: readingStatus ?? existingBook.readingStatus,
               pausedPage: Nullable<int?>(pausedPage),
               completedDate: Nullable<DateTime?>(completedDate),
               notes: Nullable<String?>((notes?.isEmpty ?? true) ? null : notes),
@@ -218,11 +218,11 @@ class UpsertBookController extends _$UpsertBookController {
               noOfPages: noOfPages,
               originalTitle: isTranslation ? originalTitle : null,
               originalLanguage: isTranslation ? originalLanguage : null,
-              collectionStatus: collectionStatus,
+              collectionStatus: collectionStatus ?? CollectionStatus.collected,
               collectedDate: collectedDate,
               lendedDate: lendedDate,
               dueDate: dueDate,
-              readingStatus: readingStatus,
+              readingStatus: readingStatus ?? ReadingStatus.notStarted,
               pausedPage: pausedPage,
               completedDate: completedDate,
               notes: notes,

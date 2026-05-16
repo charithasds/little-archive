@@ -21,7 +21,8 @@ class ReaderListState {
 class ReaderListController extends _$ReaderListController {
   @override
   ReaderListState build() {
-    final List<ReaderEntity> allReaders = ref.watch(readersStreamProvider).value ?? <ReaderEntity>[];
+    final List<ReaderEntity> allReaders =
+        ref.watch(readersStreamProvider).value ?? <ReaderEntity>[];
     return _calculateState(allReaders, '');
   }
 
@@ -36,7 +37,9 @@ class ReaderListController extends _$ReaderListController {
   ReaderListState _calculateState(List<ReaderEntity> allReaders, String query) {
     // Sort alphabetically (Case-insensitive)
     final List<ReaderEntity> sortedReaders = List<ReaderEntity>.from(allReaders)
-      ..sort((ReaderEntity a, ReaderEntity b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      ..sort(
+        (ReaderEntity a, ReaderEntity b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+      );
 
     List<ReaderEntity> filtered = sortedReaders;
 

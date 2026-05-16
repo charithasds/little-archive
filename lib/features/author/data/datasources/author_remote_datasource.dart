@@ -13,9 +13,9 @@ abstract class AuthorRemoteDataSource {
   Future<List<AuthorModel>> fetchAuthors();
   Future<AuthorModel?> fetchAuthorById(String id);
   Stream<List<AuthorModel>> watchAuthors();
-  Future<void> addAuthor(AuthorModel author);
-  Future<void> editAuthor(AuthorModel author);
-  Future<void> removeAuthor(String id);
+  Future<void> addAuthor(AuthorModel author, {WriteBatch? batch});
+  Future<void> editAuthor(AuthorModel author, {WriteBatch? batch});
+  Future<void> removeAuthor(String id, {WriteBatch? batch});
 }
 
 class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
@@ -71,24 +71,48 @@ class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
       );
 
   @override
-  Future<void> addAuthor(AuthorModel author) async {
-    await firestoreService.requireConnectivity();
-    await _firestore
+  Future<void> addAuthor(AuthorModel author, {WriteBatch? batch}) async {
+    final DocumentReference<Map<String, dynamic>> docRef = _firestore
         .collection(_collectionPath)
-        .doc(author.id.isEmpty ? null : author.id)
-        .set(author.toMap());
+        .doc(author.id.isEmpty ? null : author.id);
+
+    if (batch != null) {
+      batch.set(docRef, author.toMap());
+      return;
+    }
+
+    await firestoreService.requireConnectivity();
+    await docRef.set(author.toMap());
   }
 
   @override
-  Future<void> editAuthor(AuthorModel author) async {
+  Future<void> editAuthor(AuthorModel author, {WriteBatch? batch}) async {
+    final DocumentReference<Map<String, dynamic>> docRef = _firestore
+        .collection(_collectionPath)
+        .doc(author.id);
+
+    if (batch != null) {
+      batch.update(docRef, author.toMap());
+      return;
+    }
+
     await firestoreService.requireConnectivity();
-    await _firestore.collection(_collectionPath).doc(author.id).update(author.toMap());
+    await docRef.update(author.toMap());
   }
 
   @override
-  Future<void> removeAuthor(String id) async {
+  Future<void> removeAuthor(String id, {WriteBatch? batch}) async {
+    final DocumentReference<Map<String, dynamic>> docRef = _firestore
+        .collection(_collectionPath)
+        .doc(id);
+
+    if (batch != null) {
+      batch.delete(docRef);
+      return;
+    }
+
     await firestoreService.requireConnectivity();
-    await _firestore.collection(_collectionPath).doc(id).delete();
+    await docRef.delete();
   }
 }
 

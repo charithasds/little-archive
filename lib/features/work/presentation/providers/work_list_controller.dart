@@ -39,8 +39,9 @@ class WorkListController extends _$WorkListController {
 
   WorkListState _calculateState(List<WorkEntity> allWorks, String query) {
     // Sort alphabetically (Case-insensitive)
-    final List<WorkEntity> sortedWorks = List<WorkEntity>.from(allWorks)
-      ..sort((WorkEntity a, WorkEntity b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+    final List<WorkEntity> sortedWorks = List<WorkEntity>.from(
+      allWorks,
+    )..sort((WorkEntity a, WorkEntity b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
 
     List<WorkEntity> filtered = sortedWorks;
 
@@ -48,13 +49,23 @@ class WorkListController extends _$WorkListController {
       final String q = query.toLowerCase();
 
       String getAuthorNames(List<String> ids) {
-        final List<AuthorEntity> authors = ref.read(authorsStreamProvider).value ?? <AuthorEntity>[];
-        return authors.where((AuthorEntity a) => ids.contains(a.id)).map((AuthorEntity a) => a.name).join(' ').toLowerCase();
+        final List<AuthorEntity> authors =
+            ref.read(authorsStreamProvider).value ?? <AuthorEntity>[];
+        return authors
+            .where((AuthorEntity a) => ids.contains(a.id))
+            .map((AuthorEntity a) => a.name)
+            .join(' ')
+            .toLowerCase();
       }
 
       String getTranslatorNames(List<String> ids) {
-        final List<TranslatorEntity> translators = ref.read(translatorsStreamProvider).value ?? <TranslatorEntity>[];
-        return translators.where((TranslatorEntity t) => ids.contains(t.id)).map((TranslatorEntity t) => t.name).join(' ').toLowerCase();
+        final List<TranslatorEntity> translators =
+            ref.read(translatorsStreamProvider).value ?? <TranslatorEntity>[];
+        return translators
+            .where((TranslatorEntity t) => ids.contains(t.id))
+            .map((TranslatorEntity t) => t.name)
+            .join(' ')
+            .toLowerCase();
       }
 
       filtered = sortedWorks.where((WorkEntity w) {

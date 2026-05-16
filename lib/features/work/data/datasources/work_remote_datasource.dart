@@ -15,7 +15,7 @@ abstract class WorkRemoteDataSource {
   Stream<List<WorkModel>> watchWorks();
   Future<void> addWork(WorkModel work, {WriteBatch? batch});
   Future<void> editWork(WorkModel work, {WriteBatch? batch});
-  Future<void> removeWork(String id);
+  Future<void> removeWork(String id, {WriteBatch? batch});
 }
 
 class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
@@ -101,9 +101,18 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
   }
 
   @override
-  Future<void> removeWork(String id) async {
+  Future<void> removeWork(String id, {WriteBatch? batch}) async {
+    final DocumentReference<Map<String, dynamic>> docRef = _firestore
+        .collection(_collectionPath)
+        .doc(id);
+
+    if (batch != null) {
+      batch.delete(docRef);
+      return;
+    }
+
     await firestoreService.requireConnectivity();
-    await _firestore.collection(_collectionPath).doc(id).delete();
+    await docRef.delete();
   }
 }
 

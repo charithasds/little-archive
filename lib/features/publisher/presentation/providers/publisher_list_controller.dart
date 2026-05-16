@@ -21,7 +21,8 @@ class PublisherListState {
 class PublisherListController extends _$PublisherListController {
   @override
   PublisherListState build() {
-    final List<PublisherEntity> allPublishers = ref.watch(publishersStreamProvider).value ?? <PublisherEntity>[];
+    final List<PublisherEntity> allPublishers =
+        ref.watch(publishersStreamProvider).value ?? <PublisherEntity>[];
     return _calculateState(allPublishers, '');
   }
 
@@ -29,14 +30,18 @@ class PublisherListController extends _$PublisherListController {
     if (state.searchQuery == query) {
       return;
     }
-    final List<PublisherEntity> allPublishers = ref.read(publishersStreamProvider).value ?? <PublisherEntity>[];
+    final List<PublisherEntity> allPublishers =
+        ref.read(publishersStreamProvider).value ?? <PublisherEntity>[];
     state = _calculateState(allPublishers, query);
   }
 
   PublisherListState _calculateState(List<PublisherEntity> allPublishers, String query) {
     // Sort alphabetically (Case-insensitive)
     final List<PublisherEntity> sortedPublishers = List<PublisherEntity>.from(allPublishers)
-      ..sort((PublisherEntity a, PublisherEntity b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      ..sort(
+        (PublisherEntity a, PublisherEntity b) =>
+            a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+      );
 
     List<PublisherEntity> filtered = sortedPublishers;
 

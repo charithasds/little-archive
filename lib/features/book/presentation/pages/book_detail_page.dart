@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -265,7 +266,7 @@ class BookDetailPage extends ConsumerWidget {
                         DetailTile(
                           label: 'Status',
                           value:
-                              '${book.collectionStatus?.clientValue ?? 'Unknown'} • ${book.readingStatus?.clientValue ?? 'Unknown'}',
+                              '${book.collectionStatus.clientValue} • ${book.readingStatus.clientValue}',
                           icon: Icons.bookmark_rounded,
                         ),
                       ],

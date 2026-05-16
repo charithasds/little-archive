@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../domain/entities/reader_entity.dart';
 
 class ReaderModel extends ReaderEntity {

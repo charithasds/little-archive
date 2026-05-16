@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/shared/domain/enums/reading_status.dart';
@@ -161,7 +162,7 @@ class _ReadingBookTile extends ConsumerWidget {
         ? ref.watch(publisherProvider(book.publisherId!)).value?.name
         : null;
 
-    final ReadingStatus? status = book.readingStatus;
+    final ReadingStatus status = book.readingStatus;
 
     return Card(
       elevation: 0,
@@ -205,7 +206,7 @@ class _ReadingBookTile extends ConsumerWidget {
     );
   }
 
-  List<Widget> _buildActions(ColorScheme cs, WidgetRef ref, bool isLoading, ReadingStatus? status) {
+  List<Widget> _buildActions(ColorScheme cs, WidgetRef ref, bool isLoading, ReadingStatus status) {
     final List<Widget> actions = <Widget>[];
     final BookStatusController ctrl = ref.read(bookStatusControllerProvider.notifier);
 
@@ -281,16 +282,6 @@ class _ReadingBookTile extends ConsumerWidget {
             icon: Icons.refresh_rounded,
             color: cs.tertiary,
             onTap: isLoading ? null : () => ctrl.setReadingStatus(book, ReadingStatus.notStarted),
-          ),
-        );
-
-      case null:
-        actions.add(
-          _ActionChip(
-            label: 'Start Reading',
-            icon: Icons.play_arrow_rounded,
-            color: cs.tertiary,
-            onTap: isLoading ? null : () => ctrl.setReadingStatus(book, ReadingStatus.reading),
           ),
         );
     }

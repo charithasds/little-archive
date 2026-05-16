@@ -24,7 +24,7 @@ class BookStatusController extends _$BookStatusController {
     try {
       final EditBookUseCase editBook = ref.read(editBookUseCaseProvider);
       final BookEntity updated = book.copyWith(
-        collectionStatus: Nullable<CollectionStatus?>(status),
+        collectionStatus: status,
         // Set collectedDate when moving to collected
         collectedDate: status == CollectionStatus.collected
             ? Nullable<DateTime?>(collectedDate ?? book.collectedDate ?? DateTime.now())
@@ -52,7 +52,7 @@ class BookStatusController extends _$BookStatusController {
     try {
       final EditBookUseCase editBook = ref.read(editBookUseCaseProvider);
       final BookEntity updated = book.copyWith(
-        collectionStatus: const Nullable<CollectionStatus?>(CollectionStatus.lended),
+        collectionStatus: CollectionStatus.lended,
         lendedDate: Nullable<DateTime?>(lendedDate),
         dueDate: Nullable<DateTime?>(dueDate),
         readerId: Nullable<String?>(readerId),
@@ -71,7 +71,7 @@ class BookStatusController extends _$BookStatusController {
     try {
       final EditBookUseCase editBook = ref.read(editBookUseCaseProvider);
       final BookEntity updated = book.copyWith(
-        readingStatus: Nullable<ReadingStatus?>(status),
+        readingStatus: status,
         completedDate: status == ReadingStatus.completed
             ? Nullable<DateTime?>(book.completedDate ?? DateTime.now())
             : null,

@@ -13,9 +13,9 @@ abstract class TranslatorRemoteDataSource {
   Future<List<TranslatorModel>> fetchTranslators();
   Future<TranslatorModel?> fetchTranslatorById(String id);
   Stream<List<TranslatorModel>> watchTranslators();
-  Future<void> addTranslator(TranslatorModel translator);
-  Future<void> editTranslator(TranslatorModel translator);
-  Future<void> removeTranslator(String id);
+  Future<void> addTranslator(TranslatorModel translator, {WriteBatch? batch});
+  Future<void> editTranslator(TranslatorModel translator, {WriteBatch? batch});
+  Future<void> removeTranslator(String id, {WriteBatch? batch});
 }
 
 class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
@@ -71,24 +71,48 @@ class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
       );
 
   @override
-  Future<void> addTranslator(TranslatorModel translator) async {
-    await firestoreService.requireConnectivity();
-    await _firestore
+  Future<void> addTranslator(TranslatorModel translator, {WriteBatch? batch}) async {
+    final DocumentReference<Map<String, dynamic>> docRef = _firestore
         .collection(_collectionPath)
-        .doc(translator.id.isEmpty ? null : translator.id)
-        .set(translator.toMap());
+        .doc(translator.id.isEmpty ? null : translator.id);
+
+    if (batch != null) {
+      batch.set(docRef, translator.toMap());
+      return;
+    }
+
+    await firestoreService.requireConnectivity();
+    await docRef.set(translator.toMap());
   }
 
   @override
-  Future<void> editTranslator(TranslatorModel translator) async {
+  Future<void> editTranslator(TranslatorModel translator, {WriteBatch? batch}) async {
+    final DocumentReference<Map<String, dynamic>> docRef = _firestore
+        .collection(_collectionPath)
+        .doc(translator.id);
+
+    if (batch != null) {
+      batch.update(docRef, translator.toMap());
+      return;
+    }
+
     await firestoreService.requireConnectivity();
-    await _firestore.collection(_collectionPath).doc(translator.id).update(translator.toMap());
+    await docRef.update(translator.toMap());
   }
 
   @override
-  Future<void> removeTranslator(String id) async {
+  Future<void> removeTranslator(String id, {WriteBatch? batch}) async {
+    final DocumentReference<Map<String, dynamic>> docRef = _firestore
+        .collection(_collectionPath)
+        .doc(id);
+
+    if (batch != null) {
+      batch.delete(docRef);
+      return;
+    }
+
     await firestoreService.requireConnectivity();
-    await _firestore.collection(_collectionPath).doc(id).delete();
+    await docRef.delete();
   }
 }
 

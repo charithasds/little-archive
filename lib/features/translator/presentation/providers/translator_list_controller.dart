@@ -21,7 +21,8 @@ class TranslatorListState {
 class TranslatorListController extends _$TranslatorListController {
   @override
   TranslatorListState build() {
-    final List<TranslatorEntity> allTranslators = ref.watch(translatorsStreamProvider).value ?? <TranslatorEntity>[];
+    final List<TranslatorEntity> allTranslators =
+        ref.watch(translatorsStreamProvider).value ?? <TranslatorEntity>[];
     return _calculateState(allTranslators, '');
   }
 
@@ -29,14 +30,18 @@ class TranslatorListController extends _$TranslatorListController {
     if (state.searchQuery == query) {
       return;
     }
-    final List<TranslatorEntity> allTranslators = ref.read(translatorsStreamProvider).value ?? <TranslatorEntity>[];
+    final List<TranslatorEntity> allTranslators =
+        ref.read(translatorsStreamProvider).value ?? <TranslatorEntity>[];
     state = _calculateState(allTranslators, query);
   }
 
   TranslatorListState _calculateState(List<TranslatorEntity> allTranslators, String query) {
     // Sort alphabetically (Case-insensitive)
     final List<TranslatorEntity> sortedTranslators = List<TranslatorEntity>.from(allTranslators)
-      ..sort((TranslatorEntity a, TranslatorEntity b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      ..sort(
+        (TranslatorEntity a, TranslatorEntity b) =>
+            a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+      );
 
     List<TranslatorEntity> filtered = sortedTranslators;
 
