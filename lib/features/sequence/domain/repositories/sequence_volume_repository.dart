@@ -9,6 +9,7 @@ abstract class SequenceVolumeRepository {
   Future<List<SequenceVolumeEntity>> fetchSequenceVolumesByBookId(String bookId);
   Future<List<SequenceVolumeEntity>> fetchSequenceVolumesByWorkId(String workId);
   Stream<List<SequenceVolumeEntity>> watchSequenceVolumes(String sequenceId);
+  Stream<List<SequenceVolumeEntity>> watchAllSequenceVolumes();
   Future<void> addSequenceVolume(SequenceVolumeEntity volume, {WriteBatch? batch});
   Future<void> editSequenceVolume(SequenceVolumeEntity volume, {WriteBatch? batch});
   Future<void> removeSequenceVolume(String id, {WriteBatch? batch});

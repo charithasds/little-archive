@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-import '../../../book/domain/entities/book_entity.dart';
-import '../../../book/presentation/providers/book_provider.dart';
-import '../../../book/presentation/providers/book_status_controller.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
+import '../../domain/entities/book_entity.dart';
+import '../providers/book_provider.dart';
+import '../providers/book_status_controller.dart';
 
 class ReadingStatusPage extends ConsumerStatefulWidget {
   const ReadingStatusPage({super.key});

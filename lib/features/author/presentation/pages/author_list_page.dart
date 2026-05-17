@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/presentation/utils/buttons.dart';
-import '../../../../core/shared/presentation/utils/snack_bars.dart';
-import '../../../../core/shared/presentation/widgets/list_page_states.dart';
+import '../../../../core/shared/presentation/utils/dialogs.dart';
+import '../../../../core/shared/presentation/widgets/list_empty_state.dart';
+import '../../../../core/shared/presentation/widgets/list_error_state.dart';
+import '../../../../core/shared/presentation/widgets/list_loading_state.dart';
 import '../../../../core/shared/presentation/widgets/search_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/author_entity.dart';
@@ -15,49 +16,28 @@ import '../providers/author_list_controller.dart';
 import '../providers/author_provider.dart';
 import '../widgets/author_list_tile.dart';
 
-class AuthorListPage extends ConsumerWidget {
+class AuthorListPage extends ConsumerStatefulWidget {
   const AuthorListPage({super.key});
 
-  Future<void> _handleRemove(BuildContext context, WidgetRef ref, String authorId) async {
-    final ThemeData theme = ref.read(activeThemeDataProvider);
+  @override
+  ConsumerState<AuthorListPage> createState() => _AuthorListPageState();
+}
 
-    final bool? confirmed = await showDialog<bool>(
+class _AuthorListPageState extends ConsumerState<AuthorListPage> {
+  bool _isExtended = true;
+
+  Future<void> _handleRemove(String authorId, String authorName) async {
+    await AppDialogs.removeEntity(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        icon: Icon(Icons.warning_rounded, color: theme.colorScheme.error, size: 48),
-        title: const Text('Remove Author'),
-        content: const Text(
-          'Are you sure you want to remove this author? This action cannot be undone.',
-        ),
-        actions: <Widget>[
-          TextButton(onPressed: () => context.pop(false), child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () => context.pop(true),
-            style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.error),
-            child: const Text('Remove'),
-          ),
-        ],
-      ),
+      entityType: 'Author',
+      entityName: authorName,
+      onConfirm: () => ref.read(removeAuthorUseCaseProvider)(authorId),
     );
-
-    if (confirmed != true) {
-      return;
-    }
-
-    try {
-      await ref.read(removeAuthorUseCaseProvider)(authorId);
-      SnackBars.showSuccess('Author removed successfully');
-    } on NoConnectionException catch (e) {
-      SnackBars.showError(e.message);
-    } catch (e) {
-      SnackBars.showError('Removal failed: $e');
-    }
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final AsyncValue<List<AuthorEntity>> authorsAsync = ref.watch(authorsStreamProvider);
-
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
 
@@ -84,76 +64,94 @@ class AuthorListPage extends ConsumerWidget {
             );
           }
 
-          return Column(
-            children: <Widget>[
-              SearchField(
-                hintText: 'Search authors by name, website...',
-                onChanged: (String query) =>
-                    ref.read(authorListControllerProvider.notifier).setSearchQuery(query),
-              ),
-              if (authors.isEmpty)
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      'No authors match your search.',
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+          return NotificationListener<UserScrollNotification>(
+            onNotification: (UserScrollNotification notification) {
+              if (notification.direction == ScrollDirection.reverse) {
+                if (_isExtended) {
+                  setState(() => _isExtended = false);
+                }
+              } else if (notification.direction == ScrollDirection.forward) {
+                if (!_isExtended) {
+                  setState(() => _isExtended = true);
+                }
+              }
+
+              return true;
+            },
+            child: Column(
+              children: <Widget>[
+                SearchField(
+                  hintText: 'Search',
+                  onChanged: (String query) =>
+                      ref.read(authorListControllerProvider.notifier).setSearchQuery(query),
+                ),
+                if (authors.isEmpty)
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        'No authors match your search.',
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
+                  )
+                else
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (BuildContext context, BoxConstraints constraints) {
+                        if (constraints.maxWidth < 600) {
+                          return ListView.builder(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            itemCount: authors.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              final AuthorEntity author = authors[index];
+
+                              return AuthorListTile(
+                                author: author,
+                                onTap: () => context.go('/authors/${author.id}'),
+                                onEdit: () => context.push('/authors/upsert', extra: author),
+                                onRemove: () => _handleRemove(author.id, author.name),
+                              );
+                            },
+                          );
+                        } else {
+                          return GridView.builder(
+                            padding: const EdgeInsets.all(24),
+                            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent: 600,
+                              mainAxisExtent: 160,
+                              crossAxisSpacing: 24,
+                              mainAxisSpacing: 24,
+                            ),
+                            itemCount: authors.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              final AuthorEntity author = authors[index];
+
+                              return AuthorListTile(
+                                author: author,
+                                onTap: () => context.go('/authors/${author.id}'),
+                                onEdit: () => context.push('/authors/upsert', extra: author),
+                                onRemove: () => _handleRemove(author.id, author.name),
+                              );
+                            },
+                          );
+                        }
+                      },
+                    ),
                   ),
-                )
-              else
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (BuildContext context, BoxConstraints constraints) {
-                      if (constraints.maxWidth < 600) {
-                        return ListView.builder(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          itemCount: authors.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            final AuthorEntity author = authors[index];
-                            return AuthorListTile(
-                              author: author,
-                              onTap: () => context.go('/authors/${author.id}'),
-                              onEdit: () => context.push('/authors/add', extra: author),
-                              onRemove: () => _handleRemove(context, ref, author.id),
-                            );
-                          },
-                        );
-                      } else {
-                        return GridView.builder(
-                          padding: const EdgeInsets.all(24),
-                          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                            maxCrossAxisExtent: 600,
-                            mainAxisExtent: 140,
-                            crossAxisSpacing: 24,
-                            mainAxisSpacing: 24,
-                          ),
-                          itemCount: authors.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            final AuthorEntity author = authors[index];
-                            return AuthorListTile(
-                              author: author,
-                              onTap: () => context.go('/authors/${author.id}'),
-                              onEdit: () => context.push('/authors/add', extra: author),
-                              onRemove: () => _handleRemove(context, ref, author.id),
-                            );
-                          },
-                        );
-                      }
-                    },
-                  ),
-                ),
-            ],
+              ],
+            ),
           );
         },
         loading: () => const ListLoadingState(),
         error: (Object err, StackTrace stack) => ListErrorState(error: err),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        isExtended: _isExtended,
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
-        onPressed: () => context.go('/authors/add'),
+        onPressed: () => context.go('/authors/upsert'),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Author'),
       ),

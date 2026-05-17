@@ -67,14 +67,13 @@ class UpsertWorkUseCase {
     required bool isEdit,
     bool applyToBooks = false,
     WriteBatch? batch,
-  }) =>
-      repository.upsertWork(
-        work,
-        sequenceEntries.map((SequenceEntity k, String v) => MapEntry<String, String>(k.id, v)),
-        isEdit,
-        applyToBooks,
-        batch: batch,
-      );
+  }) => repository.upsertWork(
+    work,
+    sequenceEntries.map((SequenceEntity k, String v) => MapEntry<String, String>(k.id, v)),
+    isEdit,
+    applyToBooks,
+    batch: batch,
+  );
 }
 
 @riverpod

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/shared/presentation/utils/dialogs.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/form_section.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
@@ -9,45 +10,6 @@ import '../controllers/settings_controller.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});
-
-  /// Shared M3 Expressive confirmation dialog for destructive actions.
-  static Future<bool> _showDestructiveDialog(
-    BuildContext context, {
-    required String title,
-    required String content,
-    required String confirmLabel,
-    required ColorScheme cs,
-  }) async {
-    final bool? result = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext ctx) => AlertDialog(
-        icon: Icon(Icons.warning_rounded, color: cs.error, size: 40),
-        iconPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-        title: Text(title),
-        titleTextStyle: Theme.of(
-          ctx,
-        ).textTheme.titleLarge?.copyWith(color: cs.onSurface, fontWeight: FontWeight.w600),
-        content: Text(
-          content,
-          style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
-        ),
-        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        actions: <Widget>[
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: cs.error,
-              foregroundColor: cs.onError,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            child: Text(confirmLabel),
-          ),
-        ],
-      ),
-    );
-    return result ?? false;
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -142,13 +104,12 @@ class SettingsPage extends ConsumerWidget {
                         onTap: isClearing
                             ? null
                             : () async {
-                                final bool confirmed = await _showDestructiveDialog(
+                                final bool confirmed = await AppDialogs.showDestructiveDialog(
                                   context,
                                   title: 'Clear All Data?',
                                   content:
                                       'This will permanently delete all your books, authors, publishers, and other data. This action is irreversible.',
                                   confirmLabel: 'Clear Everything',
-                                  cs: colorScheme,
                                 );
                                 if (confirmed) {
                                   await ref
@@ -182,9 +143,17 @@ class SettingsPage extends ConsumerWidget {
                             color: colorScheme.onSurfaceVariant,
                           ),
                         ),
-                        onTap: () {
-                          // Feature: Implement delete account
-                          SnackBars.showInfo('Account deletion is not yet available.');
+                        onTap: () async {
+                          final bool confirmed = await AppDialogs.showDestructiveDialog(
+                            context,
+                            title: 'Delete Account?',
+                            content:
+                                'Are you sure you want to permanently delete your account? This action cannot be undone and all your data will be lost.',
+                            confirmLabel: 'Delete Permanently',
+                          );
+                          if (confirmed) {
+                            await ref.read(settingsControllerProvider.notifier).deleteAccount();
+                          }
                         },
                       ),
                     ],

@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/utils/dialogs.dart';
 import '../../../../core/shared/presentation/utils/external_launcher.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
-import '../../../../core/shared/presentation/utils/snack_bars.dart';
-import '../../../../core/shared/presentation/widgets/detail_widgets.dart';
-import '../../../../core/shared/presentation/widgets/info_dialogs.dart';
-import '../../../../core/shared/presentation/widgets/list_page_states.dart';
+import '../../../../core/shared/presentation/widgets/detail_section.dart';
+import '../../../../core/shared/presentation/widgets/detail_tile.dart';
+import '../../../../core/shared/presentation/widgets/list_empty_state.dart';
+import '../../../../core/shared/presentation/widgets/list_error_state.dart';
+import '../../../../core/shared/presentation/widgets/list_loading_state.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../book/domain/entities/book_entity.dart';
 import '../../../book/presentation/providers/book_provider.dart';
 import '../../../book/presentation/widgets/book_list_tile.dart';
+import '../../../book/presentation/widgets/book_quick_info_dialog.dart';
 import '../../domain/entities/publisher_entity.dart';
 import '../../domain/usecases/publisher_usecases.dart';
 import '../providers/publisher_provider.dart';
@@ -22,43 +23,18 @@ class PublisherDetailPage extends ConsumerWidget {
   const PublisherDetailPage({super.key, required this.publisherId});
   final String publisherId;
 
-  Future<void> _handleRemove(BuildContext context, WidgetRef ref, String publisherId) async {
-    final ThemeData theme = ref.read(activeThemeDataProvider);
-
-    final bool? confirmed = await showDialog<bool>(
+  Future<void> _handleRemove(BuildContext context, WidgetRef ref, PublisherEntity publisher) async {
+    await AppDialogs.removeEntity(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        icon: Icon(Icons.warning_rounded, color: theme.colorScheme.error, size: 48),
-        title: const Text('Remove Publisher'),
-        content: const Text(
-          'Are you sure you want to remove this publisher? This action cannot be undone.',
-        ),
-        actions: <Widget>[
-          TextButton(onPressed: () => context.pop(false), child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () => context.pop(true),
-            style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.error),
-            child: const Text('Remove'),
-          ),
-        ],
-      ),
+      entityType: 'Publisher',
+      entityName: publisher.name,
+      onConfirm: () async {
+        await ref.read(removePublisherUseCaseProvider)(publisher.id);
+        if (context.mounted) {
+          context.pop();
+        }
+      },
     );
-
-    if (confirmed != true) {
-      return;
-    }
-
-    try {
-      await ref.read(removePublisherUseCaseProvider)(publisherId);
-      SnackBars.showSuccess('Publisher removed successfully');
-      if (context.mounted) {
-        context.pop();
-      }
-    } on NoConnectionException catch (e) {
-      SnackBars.showError(e.message);
-    } catch (e) {
-      SnackBars.showError('Removal failed: $e');
-    }
   }
 
   @override
@@ -101,14 +77,14 @@ class PublisherDetailPage extends ConsumerWidget {
                   IconButton(
                     icon: const Icon(Icons.edit_note_rounded),
                     onPressed: () async {
-                      await context.push('/publishers/add', extra: publisher);
+                      await context.push('/publishers/upsert', extra: publisher);
                       ref.invalidate(publisherProvider(publisherId));
                     },
                     tooltip: 'Edit',
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete_outline_rounded),
-                    onPressed: () => _handleRemove(context, ref, publisher.id),
+                    onPressed: () => _handleRemove(context, ref, publisher),
                     tooltip: 'Remove',
                   ),
                   const SizedBox(width: 8),
@@ -153,18 +129,18 @@ class PublisherDetailPage extends ConsumerWidget {
                           DetailTile(
                             label: 'Other Name',
                             value: publisher.otherName!,
-                            icon: Icons.badge_rounded,
+                            leadingIcon: Icons.badge_rounded,
                           ),
                         DetailTile(
-                          label: 'Books Published',
+                          label: 'Books Count',
                           value: '${publisherBooks.length} books',
-                          icon: Icons.book_rounded,
+                          leadingIcon: Icons.book_rounded,
                         ),
                         if (publisher.website != null && publisher.website!.isNotEmpty)
                           DetailTile(
                             label: 'Website',
                             value: publisher.website!,
-                            icon: Icons.language_rounded,
+                            leadingIcon: Icons.language_rounded,
                             trailingIcon: Icons.open_in_new_rounded,
                             onTap: () => ExternalLauncher.launchBrowser(publisher.website!),
                           ),
@@ -172,7 +148,7 @@ class PublisherDetailPage extends ConsumerWidget {
                           DetailTile(
                             label: 'Email',
                             value: publisher.email!,
-                            icon: Icons.email_rounded,
+                            leadingIcon: Icons.email_rounded,
                             trailingIcon: Icons.open_in_new_rounded,
                             onTap: () => ExternalLauncher.launchEmail(publisher.email!),
                           ),
@@ -180,7 +156,7 @@ class PublisherDetailPage extends ConsumerWidget {
                           DetailTile(
                             label: 'Facebook',
                             value: publisher.facebook!,
-                            icon: Icons.facebook_rounded,
+                            leadingIcon: Icons.facebook_rounded,
                             trailingIcon: Icons.open_in_new_rounded,
                             onTap: () => ExternalLauncher.launchBrowser(publisher.facebook!),
                           ),
@@ -188,19 +164,19 @@ class PublisherDetailPage extends ConsumerWidget {
                           DetailTile(
                             label: 'Phone Number',
                             value: publisher.phoneNumber!,
-                            icon: Icons.phone_rounded,
+                            leadingIcon: Icons.phone_rounded,
                             trailingIcon: Icons.open_in_new_rounded,
                             onTap: () => ExternalLauncher.launchPhone(publisher.phoneNumber!),
                           ),
                         DetailTile(
                           label: 'Created',
                           value: DetailTile.formatDate(publisher.createdDate),
-                          icon: Icons.calendar_today_rounded,
+                          leadingIcon: Icons.calendar_today_rounded,
                         ),
                         DetailTile(
                           label: 'Last Updated',
                           value: DetailTile.formatDate(publisher.lastUpdated),
-                          icon: Icons.update_rounded,
+                          leadingIcon: Icons.update_rounded,
                         ),
                       ],
                     ),
@@ -211,7 +187,7 @@ class PublisherDetailPage extends ConsumerWidget {
                           .map(
                             (BookEntity book) => BookListTile(
                               book: book,
-                              onInfo: () => EntityQuickInfoDialog.show(context, book.id, 'book'),
+                              onInfo: () => BookQuickInfoDialog.show(context, book.id),
                             ),
                           )
                           .toList(),

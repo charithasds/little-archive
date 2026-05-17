@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/shared/presentation/utils/images.dart';
@@ -15,55 +14,49 @@ class WorkListTile extends ConsumerWidget {
     super.key,
     required this.work,
     this.onTap,
-    this.onInfo,
     this.onEdit,
     this.onRemove,
+    this.onInfo,
   });
 
   final WorkEntity work;
   final VoidCallback? onTap;
-  final VoidCallback? onInfo;
   final VoidCallback? onEdit;
   final VoidCallback? onRemove;
+  final VoidCallback? onInfo;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
-
+    final List<String> creatorIds = work.isTranslation ? work.translatorIds : work.authorIds;
+    final String creatorLabel = work.isTranslation ? 'Translator' : 'Author';
+    final int additionalCount = creatorIds.length > 1 ? creatorIds.length - 1 : 0;
     final BookEntity? connectedBook = work.bookId != null
         ? ref.watch(bookProvider(work.bookId!)).value
         : null;
-
-    final List<String> authorIdsToDisplay = work.authorIds;
-    final List<String> translatorIdsToDisplay = work.translatorIds;
-    final bool isTranslationToDisplay = work.isTranslation;
-
-    final List<String> creatorIds = isTranslationToDisplay
-        ? translatorIdsToDisplay
-        : authorIdsToDisplay;
-    final String creatorLabel = isTranslationToDisplay ? 'Translator' : 'Author';
-    final int additionalCount = creatorIds.length > 1 ? creatorIds.length - 1 : 0;
-
+    final String? bookCover = connectedBook?.cover;
     String? firstCreatorName;
+    String creatorText;
+
     if (creatorIds.isNotEmpty) {
-      if (isTranslationToDisplay) {
+      if (work.isTranslation) {
         firstCreatorName = ref.watch(translatorProvider(creatorIds.first)).value?.name;
       } else {
         firstCreatorName = ref.watch(authorProvider(creatorIds.first)).value?.name;
       }
     }
 
-    final String? bookCover = connectedBook?.cover;
+    if (creatorIds.isNotEmpty) {
+      if (firstCreatorName != null && firstCreatorName.isNotEmpty) {
+        creatorText = firstCreatorName;
 
-    String creatorText;
-    if (firstCreatorName != null && firstCreatorName.isNotEmpty) {
-      creatorText = firstCreatorName;
-      if (additionalCount > 0) {
-        creatorText += ' + $additionalCount';
+        if (additionalCount > 0) {
+          creatorText += ' + $additionalCount';
+        }
+      } else {
+        creatorText = 'Loading...';
       }
-    } else if (creatorIds.isNotEmpty) {
-      creatorText = 'Loading...';
     } else {
       creatorText = 'No ${creatorLabel}s';
     }
@@ -83,22 +76,28 @@ class WorkListTile extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: <Widget>[
-              Container(
-                width: 54,
-                height: 54 / Images.bookAspectRatio,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: Images.getAvatarBackgroundColor(theme),
-                  image: bookCover != null && bookCover.isNotEmpty
-                      ? DecorationImage(
-                          image: Images.getImageProvider(bookCover),
-                          fit: BoxFit.contain,
+              Hero(
+                tag: 'work_${work.id}',
+                child: Container(
+                  width: 64,
+                  height: 64 / Images.bookAspectRatio,
+                  decoration: BoxDecoration(
+                    color: Images.getAvatarBackgroundColor(theme),
+                    image: bookCover != null && bookCover.isNotEmpty
+                        ? DecorationImage(
+                            image: Images.getImageProvider(bookCover),
+                            fit: BoxFit.contain,
+                          )
+                        : null,
+                  ),
+                  child: bookCover == null || bookCover.isEmpty
+                      ? Icon(
+                          Icons.article_rounded,
+                          color: Images.getAvatarIconColor(theme),
+                          size: 32,
                         )
                       : null,
                 ),
-                child: bookCover == null || bookCover.isEmpty
-                    ? Icon(Icons.article_rounded, color: Images.getAvatarIconColor(theme), size: 28)
-                    : null,
               ),
               const SizedBox(width: 20),
               Expanded(
@@ -108,14 +107,14 @@ class WorkListTile extends ConsumerWidget {
                   children: <Widget>[
                     Text(
                       work.title,
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: colorScheme.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       creatorText,
                       maxLines: 1,
@@ -139,12 +138,6 @@ class WorkListTile extends ConsumerWidget {
               ),
               Column(
                 children: <Widget>[
-                  if (onInfo != null)
-                    IconButton(
-                      icon: Icon(Icons.info_outline_rounded, color: colorScheme.primary),
-                      onPressed: onInfo,
-                      tooltip: 'Info',
-                    ),
                   if (onEdit != null)
                     IconButton(
                       icon: Icon(Icons.edit_note_rounded, color: colorScheme.primary),
@@ -156,6 +149,12 @@ class WorkListTile extends ConsumerWidget {
                       icon: Icon(Icons.delete_rounded, color: colorScheme.error),
                       onPressed: onRemove,
                       tooltip: 'Remove',
+                    ),
+                  if (onInfo != null)
+                    IconButton(
+                      icon: Icon(Icons.info_outline_rounded, color: colorScheme.primary),
+                      onPressed: onInfo,
+                      tooltip: 'Info',
                     ),
                 ],
               ),

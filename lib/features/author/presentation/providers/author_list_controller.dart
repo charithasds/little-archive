@@ -23,6 +23,7 @@ class AuthorListController extends _$AuthorListController {
   AuthorListState build() {
     final List<AuthorEntity> allAuthors =
         ref.watch(authorsStreamProvider).value ?? <AuthorEntity>[];
+
     return _calculateState(allAuthors, '');
   }
 
@@ -30,25 +31,27 @@ class AuthorListController extends _$AuthorListController {
     if (state.searchQuery == query) {
       return;
     }
+
     final List<AuthorEntity> allAuthors = ref.read(authorsStreamProvider).value ?? <AuthorEntity>[];
+
     state = _calculateState(allAuthors, query);
   }
 
   AuthorListState _calculateState(List<AuthorEntity> allAuthors, String query) {
-    // Sort alphabetically (Case-insensitive)
     final List<AuthorEntity> sortedAuthors = List<AuthorEntity>.from(allAuthors)
       ..sort(
         (AuthorEntity a, AuthorEntity b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
       );
-
     List<AuthorEntity> filtered = sortedAuthors;
 
     if (query.isNotEmpty) {
       final String q = query.toLowerCase();
+
       filtered = sortedAuthors.where((AuthorEntity a) {
         final bool matchesName = a.name.toLowerCase().contains(q);
         final bool matchesOtherName = (a.otherName ?? '').toLowerCase().contains(q);
         final bool matchesWebsite = (a.website ?? '').toLowerCase().contains(q);
+
         return matchesName || matchesOtherName || matchesWebsite;
       }).toList();
     }

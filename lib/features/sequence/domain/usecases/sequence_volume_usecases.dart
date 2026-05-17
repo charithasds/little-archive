@@ -54,6 +54,13 @@ class WatchSequenceVolumesUseCase {
       repository.watchSequenceVolumes(sequenceId);
 }
 
+class WatchAllSequenceVolumesUseCase {
+  const WatchAllSequenceVolumesUseCase(this.repository);
+  final SequenceVolumeRepository repository;
+
+  Stream<List<SequenceVolumeEntity>> call() => repository.watchAllSequenceVolumes();
+}
+
 class AddSequenceVolumeUseCase {
   const AddSequenceVolumeUseCase(this.repository);
   final SequenceVolumeRepository repository;
@@ -132,6 +139,10 @@ FetchSequenceVolumesByWorkIdUseCase fetchSequenceVolumesByWorkIdUseCase(Ref ref)
 @riverpod
 WatchSequenceVolumesUseCase watchSequenceVolumesUseCase(Ref ref) =>
     WatchSequenceVolumesUseCase(ref.watch(sequenceVolumeRepositoryProvider));
+
+@riverpod
+WatchAllSequenceVolumesUseCase watchAllSequenceVolumesUseCase(Ref ref) =>
+    WatchAllSequenceVolumesUseCase(ref.watch(sequenceVolumeRepositoryProvider));
 
 @riverpod
 AddSequenceVolumeUseCase addSequenceVolumeUseCase(Ref ref) =>

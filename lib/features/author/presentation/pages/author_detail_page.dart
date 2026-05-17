@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/utils/dialogs.dart';
 import '../../../../core/shared/presentation/utils/external_launcher.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
-import '../../../../core/shared/presentation/utils/snack_bars.dart';
-import '../../../../core/shared/presentation/widgets/detail_widgets.dart';
-import '../../../../core/shared/presentation/widgets/info_dialogs.dart';
-import '../../../../core/shared/presentation/widgets/list_page_states.dart';
+import '../../../../core/shared/presentation/widgets/detail_section.dart';
+import '../../../../core/shared/presentation/widgets/detail_tile.dart';
+import '../../../../core/shared/presentation/widgets/list_empty_state.dart';
+import '../../../../core/shared/presentation/widgets/list_error_state.dart';
+import '../../../../core/shared/presentation/widgets/list_loading_state.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../book/domain/entities/book_entity.dart';
 import '../../../book/presentation/providers/book_provider.dart';
 import '../../../book/presentation/widgets/book_list_tile.dart';
+import '../../../book/presentation/widgets/book_quick_info_dialog.dart';
 import '../../../work/domain/entities/work_entity.dart';
 import '../../../work/presentation/providers/work_provider.dart';
 import '../../../work/presentation/widgets/work_list_tile.dart';
+import '../../../work/presentation/widgets/work_quick_info_dialog.dart';
 import '../../domain/entities/author_entity.dart';
 import '../../domain/usecases/author_usecases.dart';
 import '../providers/author_provider.dart';
@@ -25,43 +27,18 @@ class AuthorDetailPage extends ConsumerWidget {
   const AuthorDetailPage({super.key, required this.authorId});
   final String authorId;
 
-  Future<void> _handleRemove(BuildContext context, WidgetRef ref, String authorId) async {
-    final ThemeData theme = ref.read(activeThemeDataProvider);
-
-    final bool? confirmed = await showDialog<bool>(
+  Future<void> _handleRemove(BuildContext context, WidgetRef ref, AuthorEntity author) async {
+    await AppDialogs.removeEntity(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        icon: Icon(Icons.warning_rounded, color: theme.colorScheme.error, size: 48),
-        title: const Text('Remove Author'),
-        content: const Text(
-          'Are you sure you want to remove this author? This action cannot be undone.',
-        ),
-        actions: <Widget>[
-          TextButton(onPressed: () => context.pop(false), child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () => context.pop(true),
-            style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.error),
-            child: const Text('Remove'),
-          ),
-        ],
-      ),
+      entityType: 'Author',
+      entityName: author.name,
+      onConfirm: () async {
+        await ref.read(removeAuthorUseCaseProvider)(author.id);
+        if (context.mounted) {
+          context.pop();
+        }
+      },
     );
-
-    if (confirmed != true) {
-      return;
-    }
-
-    try {
-      await ref.read(removeAuthorUseCaseProvider)(authorId);
-      SnackBars.showSuccess('Author removed successfully');
-      if (context.mounted) {
-        context.pop();
-      }
-    } on NoConnectionException catch (e) {
-      SnackBars.showError(e.message);
-    } catch (e) {
-      SnackBars.showError('Removal failed: $e');
-    }
   }
 
   @override
@@ -83,7 +60,6 @@ class AuthorDetailPage extends ConsumerWidget {
 
         final AsyncValue<List<BookEntity>> booksAsync = ref.watch(booksStreamProvider);
         final AsyncValue<List<WorkEntity>> worksAsync = ref.watch(worksStreamProvider);
-
         final List<BookEntity> authorBooks =
             (booksAsync.value ?? <BookEntity>[])
                 .where((BookEntity b) => author.bookIds.contains(b.id))
@@ -92,7 +68,6 @@ class AuthorDetailPage extends ConsumerWidget {
                 (BookEntity a, BookEntity b) =>
                     a.title.toLowerCase().compareTo(b.title.toLowerCase()),
               );
-
         final List<WorkEntity> authorWorks =
             (worksAsync.value ?? <WorkEntity>[])
                 .where((WorkEntity w) => author.workIds.contains(w.id))
@@ -115,14 +90,14 @@ class AuthorDetailPage extends ConsumerWidget {
                   IconButton(
                     icon: const Icon(Icons.edit_note_rounded),
                     onPressed: () async {
-                      await context.push('/authors/add', extra: author);
+                      await context.push('/authors/upsert', extra: author);
                       ref.invalidate(authorProvider(authorId));
                     },
                     tooltip: 'Edit',
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete_outline_rounded),
-                    onPressed: () => _handleRemove(context, ref, author.id),
+                    onPressed: () => _handleRemove(context, ref, author),
                     tooltip: 'Remove',
                   ),
                   const SizedBox(width: 8),
@@ -167,23 +142,23 @@ class AuthorDetailPage extends ConsumerWidget {
                           DetailTile(
                             label: 'Other Name',
                             value: author.otherName!,
-                            icon: Icons.badge_rounded,
+                            leadingIcon: Icons.badge_rounded,
                           ),
                         DetailTile(
                           label: 'Books Count',
                           value: '${authorBooks.length} books',
-                          icon: Icons.book_rounded,
+                          leadingIcon: Icons.book_rounded,
                         ),
                         DetailTile(
                           label: 'Works Count',
                           value: '${authorWorks.length} works',
-                          icon: Icons.article_rounded,
+                          leadingIcon: Icons.article_rounded,
                         ),
                         if (author.website != null && author.website!.isNotEmpty)
                           DetailTile(
                             label: 'Website',
                             value: author.website!,
-                            icon: Icons.language_rounded,
+                            leadingIcon: Icons.language_rounded,
                             trailingIcon: Icons.open_in_new_rounded,
                             onTap: () => ExternalLauncher.launchBrowser(author.website!),
                           ),
@@ -191,19 +166,19 @@ class AuthorDetailPage extends ConsumerWidget {
                           DetailTile(
                             label: 'Facebook',
                             value: author.facebook!,
-                            icon: Icons.facebook_rounded,
+                            leadingIcon: Icons.facebook_rounded,
                             trailingIcon: Icons.open_in_new_rounded,
                             onTap: () => ExternalLauncher.launchBrowser(author.facebook!),
                           ),
                         DetailTile(
                           label: 'Created',
                           value: DetailTile.formatDate(author.createdDate),
-                          icon: Icons.calendar_today_rounded,
+                          leadingIcon: Icons.calendar_today_rounded,
                         ),
                         DetailTile(
                           label: 'Last Updated',
                           value: DetailTile.formatDate(author.lastUpdated),
-                          icon: Icons.update_rounded,
+                          leadingIcon: Icons.update_rounded,
                         ),
                       ],
                     ),
@@ -214,7 +189,7 @@ class AuthorDetailPage extends ConsumerWidget {
                           .map(
                             (BookEntity book) => BookListTile(
                               book: book,
-                              onInfo: () => EntityQuickInfoDialog.show(context, book.id, 'book'),
+                              onInfo: () => BookQuickInfoDialog.show(context, book.id),
                             ),
                           )
                           .toList(),
@@ -226,7 +201,7 @@ class AuthorDetailPage extends ConsumerWidget {
                           .map(
                             (WorkEntity work) => WorkListTile(
                               work: work,
-                              onInfo: () => EntityQuickInfoDialog.show(context, work.id, 'work'),
+                              onInfo: () => WorkQuickInfoDialog.show(context, work.id),
                             ),
                           )
                           .toList(),

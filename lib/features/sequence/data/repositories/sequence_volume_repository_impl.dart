@@ -42,6 +42,10 @@ class SequenceVolumeRepositoryImpl implements SequenceVolumeRepository {
       remoteDataSource.watchSequenceVolumes(sequenceId);
 
   @override
+  Stream<List<SequenceVolumeEntity>> watchAllSequenceVolumes() =>
+      remoteDataSource.watchAllSequenceVolumes();
+
+  @override
   Future<void> addSequenceVolume(SequenceVolumeEntity volume, {WriteBatch? batch}) async {
     await remoteDataSource.addSequenceVolume(
       SequenceVolumeModel(

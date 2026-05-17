@@ -40,17 +40,21 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
       );
 
       bool hasMore = true;
+
       while (hasMore) {
         final QuerySnapshot<Map<String, dynamic>> snapshot = await collectionRef.limit(500).get();
+
         if (snapshot.docs.isEmpty) {
           hasMore = false;
           break;
         }
 
         final WriteBatch batch = _firestore.batch();
+
         for (final QueryDocumentSnapshot<Map<String, dynamic>> doc in snapshot.docs) {
           batch.delete(doc.reference);
         }
+
         await batch.commit();
       }
     }

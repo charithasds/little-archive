@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/presentation/utils/buttons.dart';
-import '../../../../core/shared/presentation/utils/snack_bars.dart';
-import '../../../../core/shared/presentation/widgets/list_page_states.dart';
+import '../../../../core/shared/presentation/utils/dialogs.dart';
+import '../../../../core/shared/presentation/widgets/list_empty_state.dart';
+import '../../../../core/shared/presentation/widgets/list_error_state.dart';
+import '../../../../core/shared/presentation/widgets/list_loading_state.dart';
 import '../../../../core/shared/presentation/widgets/search_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/book_entity.dart';
@@ -15,49 +16,28 @@ import '../providers/book_list_controller.dart';
 import '../providers/book_provider.dart';
 import '../widgets/book_list_tile.dart';
 
-class BookListPage extends ConsumerWidget {
+class BookListPage extends ConsumerStatefulWidget {
   const BookListPage({super.key});
 
-  Future<void> _handleRemove(BuildContext context, WidgetRef ref, String bookId) async {
-    final ThemeData theme = ref.read(activeThemeDataProvider);
+  @override
+  ConsumerState<BookListPage> createState() => _BookListPageState();
+}
 
-    final bool? confirmed = await showDialog<bool>(
+class _BookListPageState extends ConsumerState<BookListPage> {
+  bool _isExtended = true;
+
+  Future<void> _handleRemove(String bookId, String bookTitle) async {
+    await AppDialogs.removeEntity(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        icon: Icon(Icons.warning_rounded, color: theme.colorScheme.error, size: 48),
-        title: const Text('Remove Book'),
-        content: const Text(
-          'Are you sure you want to remove this book? This action cannot be undone.',
-        ),
-        actions: <Widget>[
-          TextButton(onPressed: () => context.pop(false), child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () => context.pop(true),
-            style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.error),
-            child: const Text('Remove'),
-          ),
-        ],
-      ),
+      entityType: 'Book',
+      entityName: bookTitle,
+      onConfirm: () => ref.read(removeBookUseCaseProvider)(bookId),
     );
-
-    if (confirmed != true) {
-      return;
-    }
-
-    try {
-      await ref.read(removeBookUseCaseProvider)(bookId);
-      SnackBars.showSuccess('Book removed successfully');
-    } on NoConnectionException catch (e) {
-      SnackBars.showError(e.message);
-    } catch (e) {
-      SnackBars.showError('Removal failed: $e');
-    }
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final AsyncValue<List<BookEntity>> booksAsync = ref.watch(booksStreamProvider);
-
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
 
@@ -84,76 +64,94 @@ class BookListPage extends ConsumerWidget {
             );
           }
 
-          return Column(
-            children: <Widget>[
-              SearchField(
-                hintText: 'Search books by title, author, genre...',
-                onChanged: (String query) =>
-                    ref.read(bookListControllerProvider.notifier).setSearchQuery(query),
-              ),
-              if (books.isEmpty)
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      'No books match your search.',
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+          return NotificationListener<UserScrollNotification>(
+            onNotification: (UserScrollNotification notification) {
+              if (notification.direction == ScrollDirection.reverse) {
+                if (_isExtended) {
+                  setState(() => _isExtended = false);
+                }
+              } else if (notification.direction == ScrollDirection.forward) {
+                if (!_isExtended) {
+                  setState(() => _isExtended = true);
+                }
+              }
+
+              return true;
+            },
+            child: Column(
+              children: <Widget>[
+                SearchField(
+                  hintText: 'Search',
+                  onChanged: (String query) =>
+                      ref.read(bookListControllerProvider.notifier).setSearchQuery(query),
+                ),
+                if (books.isEmpty)
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        'No books match your search.',
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
+                  )
+                else
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (BuildContext context, BoxConstraints constraints) {
+                        if (constraints.maxWidth < 600) {
+                          return ListView.builder(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            itemCount: books.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              final BookEntity book = books[index];
+
+                              return BookListTile(
+                                book: book,
+                                onTap: () => context.go('/books/${book.id}'),
+                                onEdit: () => context.push('/books/upsert', extra: book),
+                                onRemove: () => _handleRemove(book.id, book.title),
+                              );
+                            },
+                          );
+                        } else {
+                          return GridView.builder(
+                            padding: const EdgeInsets.all(24),
+                            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent: 600,
+                              mainAxisExtent: 160,
+                              crossAxisSpacing: 24,
+                              mainAxisSpacing: 24,
+                            ),
+                            itemCount: books.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              final BookEntity book = books[index];
+
+                              return BookListTile(
+                                book: book,
+                                onTap: () => context.go('/books/${book.id}'),
+                                onEdit: () => context.push('/books/upsert', extra: book),
+                                onRemove: () => _handleRemove(book.id, book.title),
+                              );
+                            },
+                          );
+                        }
+                      },
+                    ),
                   ),
-                )
-              else
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (BuildContext context, BoxConstraints constraints) {
-                      if (constraints.maxWidth < 600) {
-                        return ListView.builder(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          itemCount: books.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            final BookEntity book = books[index];
-                            return BookListTile(
-                              book: book,
-                              onTap: () => context.go('/books/${book.id}'),
-                              onEdit: () => context.push('/books/add', extra: book),
-                              onRemove: () => _handleRemove(context, ref, book.id),
-                            );
-                          },
-                        );
-                      } else {
-                        return GridView.builder(
-                          padding: const EdgeInsets.all(24),
-                          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                            maxCrossAxisExtent: 600,
-                            mainAxisExtent: 160,
-                            crossAxisSpacing: 24,
-                            mainAxisSpacing: 24,
-                          ),
-                          itemCount: books.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            final BookEntity book = books[index];
-                            return BookListTile(
-                              book: book,
-                              onTap: () => context.go('/books/${book.id}'),
-                              onEdit: () => context.push('/books/add', extra: book),
-                              onRemove: () => _handleRemove(context, ref, book.id),
-                            );
-                          },
-                        );
-                      }
-                    },
-                  ),
-                ),
-            ],
+              ],
+            ),
           );
         },
         loading: () => const ListLoadingState(),
         error: (Object err, StackTrace stack) => ListErrorState(error: err),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        isExtended: _isExtended,
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
-        onPressed: () => context.go('/books/add'),
+        onPressed: () => context.go('/books/upsert'),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Book'),
       ),

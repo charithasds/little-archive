@@ -1,32 +1,29 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-import '../../domain/entities/reader_entity.dart';
+import '../../domain/entities/sequence_entity.dart';
+import '../../domain/entities/sequence_volume_entity.dart';
 
-class ReaderListTile extends ConsumerWidget {
-  const ReaderListTile({
+class SequenceVolumeListTile extends ConsumerWidget {
+  const SequenceVolumeListTile({
     super.key,
-    required this.reader,
+    required this.volume,
+    required this.sequence,
     this.onTap,
-    this.onEdit,
-    this.onRemove,
     this.onInfo,
   });
 
-  final ReaderEntity reader;
+  final SequenceVolumeEntity volume;
+  final SequenceEntity sequence;
   final VoidCallback? onTap;
-  final VoidCallback? onEdit;
-  final VoidCallback? onRemove;
   final VoidCallback? onInfo;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
-    final int bookCount = reader.bookIds.length;
 
     return Card(
       elevation: 0,
@@ -44,23 +41,19 @@ class ReaderListTile extends ConsumerWidget {
           child: Row(
             children: <Widget>[
               Hero(
-                tag: 'reader_${reader.id}',
+                tag: 'sequence_${sequence.id}',
                 child: Container(
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Images.getAvatarBackgroundColor(theme),
-                    image: reader.image != null && reader.image!.isNotEmpty
-                        ? DecorationImage(
-                            image: Images.getImageProvider(reader.image),
-                            fit: BoxFit.contain,
-                          )
-                        : null,
                   ),
-                  child: reader.image == null || reader.image!.isEmpty
-                      ? Icon(Icons.face_rounded, color: Images.getAvatarIconColor(theme), size: 32)
-                      : null,
+                  child: Icon(
+                    Icons.layers_rounded,
+                    color: Images.getAvatarIconColor(theme),
+                    size: 32,
+                  ),
                 ),
               ),
               const SizedBox(width: 20),
@@ -70,7 +63,7 @@ class ReaderListTile extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     Text(
-                      reader.name,
+                      sequence.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.titleLarge?.copyWith(
@@ -78,10 +71,10 @@ class ReaderListTile extends ConsumerWidget {
                         color: colorScheme.onSurface,
                       ),
                     ),
-                    if (reader.otherName != null && reader.otherName!.isNotEmpty) ...<Widget>[
+                    if (sequence.otherName != null && sequence.otherName!.isNotEmpty) ...<Widget>[
                       const SizedBox(height: 2),
                       Text(
-                        reader.otherName!,
+                        sequence.otherName!,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodyMedium?.copyWith(
@@ -92,38 +85,23 @@ class ReaderListTile extends ConsumerWidget {
                     ],
                     const SizedBox(height: 2),
                     Text(
-                      '$bookCount ${bookCount == 1 ? 'Book' : 'Books'}',
+                      'Volume ${volume.volume}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
               ),
-              Column(
-                children: <Widget>[
-                  if (onEdit != null)
-                    IconButton(
-                      icon: Icon(Icons.edit_note_rounded, color: colorScheme.primary),
-                      onPressed: onEdit,
-                      tooltip: 'Edit',
-                    ),
-                  if (onRemove != null)
-                    IconButton(
-                      icon: Icon(Icons.delete_rounded, color: colorScheme.error),
-                      onPressed: onRemove,
-                      tooltip: 'Remove',
-                    ),
-                  if (onInfo != null)
-                    IconButton(
-                      icon: Icon(Icons.info_outline_rounded, color: colorScheme.primary),
-                      onPressed: onInfo,
-                      tooltip: 'Info',
-                    ),
-                ],
-              ),
+              if (onInfo != null)
+                IconButton(
+                  icon: Icon(Icons.info_outline_rounded, color: colorScheme.primary),
+                  onPressed: onInfo,
+                  tooltip: 'Info',
+                ),
             ],
           ),
         ),

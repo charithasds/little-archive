@@ -12,6 +12,16 @@ class SettingsRepositoryImpl implements SettingsRepository {
 
   @override
   Future<void> clearAllData() => _remoteDataSource.clearAllData();
+
+  @override
+  Future<void> deleteAccount() async {
+    // TODO(charithasds): Implement delete account logic.
+    // This should include:
+    // 1. Deleting all user data (can reuse clearAllData).
+    // 2. Deleting the user record in Firestore.
+    // 3. Deleting the user account in Firebase Auth.
+    throw UnimplementedError('deleteAccount() has not been implemented yet.');
+  }
 }
 
 @riverpod

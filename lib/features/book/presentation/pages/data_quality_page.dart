@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../author/domain/entities/author_entity.dart';
 import '../../../author/presentation/providers/author_provider.dart';
-import '../../../book/domain/entities/book_entity.dart';
-import '../../../book/presentation/providers/book_provider.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
 import '../../../reader/domain/entities/reader_entity.dart';
@@ -18,6 +15,8 @@ import '../../../translator/domain/entities/translator_entity.dart';
 import '../../../translator/presentation/providers/translator_provider.dart';
 import '../../../work/domain/entities/work_entity.dart';
 import '../../../work/presentation/providers/work_provider.dart';
+import '../../domain/entities/book_entity.dart';
+import '../providers/book_provider.dart';
 
 // ── Tab definition ──────────────────────────────────────────────────────────
 
@@ -297,7 +296,7 @@ class _BooksQualityTab extends ConsumerWidget {
       tileBuilder: (BuildContext context, BookEntity book) => _QualityTile(
         name: book.title,
         missingChips: _missingFor(book),
-        onEdit: () => context.push('/books/add', extra: book),
+        onEdit: () => context.push('/books/upsert', extra: book),
       ),
     );
   }
@@ -353,7 +352,7 @@ class _WorksQualityTab extends ConsumerWidget {
       tileBuilder: (BuildContext context, WorkEntity work) => _QualityTile(
         name: work.title,
         missingChips: _missingFor(work),
-        onEdit: () => context.push('/works/add', extra: work),
+        onEdit: () => context.push('/works/upsert', extra: work),
       ),
     );
   }
@@ -403,7 +402,7 @@ class _AuthorsQualityTab extends ConsumerWidget {
       tileBuilder: (BuildContext context, AuthorEntity author) => _QualityTile(
         name: author.name,
         missingChips: _missingFor(author),
-        onEdit: () => context.push('/authors/add', extra: author),
+        onEdit: () => context.push('/authors/upsert', extra: author),
       ),
     );
   }
@@ -453,7 +452,7 @@ class _TranslatorsQualityTab extends ConsumerWidget {
       tileBuilder: (BuildContext context, TranslatorEntity translator) => _QualityTile(
         name: translator.name,
         missingChips: _missingFor(translator),
-        onEdit: () => context.push('/translators/add', extra: translator),
+        onEdit: () => context.push('/translators/upsert', extra: translator),
       ),
     );
   }
@@ -506,7 +505,7 @@ class _PublishersQualityTab extends ConsumerWidget {
       tileBuilder: (BuildContext context, PublisherEntity publisher) => _QualityTile(
         name: publisher.name,
         missingChips: _missingFor(publisher),
-        onEdit: () => context.push('/publishers/add', extra: publisher),
+        onEdit: () => context.push('/publishers/upsert', extra: publisher),
       ),
     );
   }
@@ -556,7 +555,7 @@ class _ReadersQualityTab extends ConsumerWidget {
       tileBuilder: (BuildContext context, ReaderEntity reader) => _QualityTile(
         name: reader.name,
         missingChips: _missingFor(reader),
-        onEdit: () => context.push('/readers/add', extra: reader),
+        onEdit: () => context.push('/readers/upsert', extra: reader),
       ),
     );
   }
@@ -597,7 +596,7 @@ class _SequencesQualityTab extends ConsumerWidget {
       tileBuilder: (BuildContext context, SequenceEntity sequence) => _QualityTile(
         name: sequence.name,
         missingChips: _missingFor(sequence),
-        onEdit: () => context.push('/sequences/add', extra: sequence),
+        onEdit: () => context.push('/sequences/upsert', extra: sequence),
       ),
     );
   }

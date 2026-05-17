@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/shared/domain/enums/compilation_type.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../author/presentation/providers/author_provider.dart';
@@ -14,27 +12,27 @@ class BookListTile extends ConsumerWidget {
     super.key,
     required this.book,
     this.onTap,
-    this.onInfo,
     this.onEdit,
     this.onRemove,
+    this.onInfo,
   });
 
   final BookEntity book;
   final VoidCallback? onTap;
-  final VoidCallback? onInfo;
   final VoidCallback? onEdit;
   final VoidCallback? onRemove;
+  final VoidCallback? onInfo;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
-
     final List<String> creatorIds = book.isTranslation ? book.translatorIds : book.authorIds;
     final String creatorLabel = book.isTranslation ? 'Translator' : 'Author';
     final int additionalCount = creatorIds.length > 1 ? creatorIds.length - 1 : 0;
-
     String? firstCreatorName;
+    String creatorText;
+
     if (creatorIds.isNotEmpty) {
       if (book.isTranslation) {
         firstCreatorName = ref.watch(translatorProvider(creatorIds.first)).value?.name;
@@ -43,20 +41,18 @@ class BookListTile extends ConsumerWidget {
       }
     }
 
-    String creatorText;
     if (creatorIds.isNotEmpty) {
       if (firstCreatorName != null && firstCreatorName.isNotEmpty) {
         creatorText = firstCreatorName;
+
         if (additionalCount > 0) {
           creatorText += ' + $additionalCount';
         }
       } else {
         creatorText = 'Loading...';
       }
-    } else if (book.compilationType == CompilationType.single) {
-      creatorText = 'No ${creatorLabel}s';
     } else {
-      creatorText = 'Various ${creatorLabel}s';
+      creatorText = 'No ${creatorLabel}s';
     }
 
     return Card(
@@ -74,22 +70,24 @@ class BookListTile extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: <Widget>[
-              Container(
-                width: 54,
-                height: 54 / Images.bookAspectRatio,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: Images.getAvatarBackgroundColor(theme),
-                  image: book.cover != null && book.cover!.isNotEmpty
-                      ? DecorationImage(
-                          image: Images.getImageProvider(book.cover),
-                          fit: BoxFit.contain,
-                        )
+              Hero(
+                tag: 'book_${book.id}',
+                child: Container(
+                  width: 64,
+                  height: 64 / Images.bookAspectRatio,
+                  decoration: BoxDecoration(
+                    color: Images.getAvatarBackgroundColor(theme),
+                    image: book.cover != null && book.cover!.isNotEmpty
+                        ? DecorationImage(
+                            image: Images.getImageProvider(book.cover),
+                            fit: BoxFit.contain,
+                          )
+                        : null,
+                  ),
+                  child: book.cover == null || book.cover!.isEmpty
+                      ? Icon(Icons.book_rounded, color: Images.getAvatarIconColor(theme), size: 32)
                       : null,
                 ),
-                child: book.cover == null || book.cover!.isEmpty
-                    ? Icon(Icons.book_rounded, color: Images.getAvatarIconColor(theme), size: 28)
-                    : null,
               ),
               const SizedBox(width: 20),
               Expanded(
@@ -106,7 +104,7 @@ class BookListTile extends ConsumerWidget {
                         color: colorScheme.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       creatorText,
                       maxLines: 1,
@@ -118,7 +116,7 @@ class BookListTile extends ConsumerWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      book.compilationType.clientValue,
+                      '${book.collectionStatus.clientValue} • ${book.readingStatus.clientValue}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(
@@ -130,12 +128,6 @@ class BookListTile extends ConsumerWidget {
               ),
               Column(
                 children: <Widget>[
-                  if (onInfo != null)
-                    IconButton(
-                      icon: Icon(Icons.info_outline_rounded, color: colorScheme.primary),
-                      onPressed: onInfo,
-                      tooltip: 'Info',
-                    ),
                   if (onEdit != null)
                     IconButton(
                       icon: Icon(Icons.edit_note_rounded, color: colorScheme.primary),
@@ -147,6 +139,12 @@ class BookListTile extends ConsumerWidget {
                       icon: Icon(Icons.delete_rounded, color: colorScheme.error),
                       onPressed: onRemove,
                       tooltip: 'Remove',
+                    ),
+                  if (onInfo != null)
+                    IconButton(
+                      icon: Icon(Icons.info_outline_rounded, color: colorScheme.primary),
+                      onPressed: onInfo,
+                      tooltip: 'Info',
                     ),
                 ],
               ),

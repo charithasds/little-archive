@@ -10,15 +10,17 @@ class TranslatorListTile extends ConsumerWidget {
   const TranslatorListTile({
     super.key,
     required this.translator,
-    required this.onTap,
-    required this.onEdit,
-    required this.onRemove,
+    this.onTap,
+    this.onEdit,
+    this.onRemove,
+    this.onInfo,
   });
 
   final TranslatorEntity translator;
-  final VoidCallback onTap;
-  final VoidCallback onEdit;
-  final VoidCallback onRemove;
+  final VoidCallback? onTap;
+  final VoidCallback? onEdit;
+  final VoidCallback? onRemove;
+  final VoidCallback? onInfo;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,7 +39,7 @@ class TranslatorListTile extends ConsumerWidget {
       color: colorScheme.primaryContainer.withValues(alpha: 0.2),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: InkWell(
-        onTap: onTap,
+        onTap: onTap ?? onInfo,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -81,14 +83,26 @@ class TranslatorListTile extends ConsumerWidget {
                         color: colorScheme.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    if (translator.otherName != null &&
+                        translator.otherName!.isNotEmpty) ...<Widget>[
+                      const SizedBox(height: 2),
+                      Text(
+                        translator.otherName!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 2),
                     Text(
                       '$bookCount ${bookCount == 1 ? 'Book' : 'Books'} • $workCount ${workCount == 1 ? 'Work' : 'Works'}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.w500,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -96,16 +110,24 @@ class TranslatorListTile extends ConsumerWidget {
               ),
               Column(
                 children: <Widget>[
-                  IconButton(
-                    icon: Icon(Icons.edit_note_rounded, color: colorScheme.primary),
-                    onPressed: onEdit,
-                    tooltip: 'Edit',
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.delete_rounded, color: colorScheme.error),
-                    onPressed: onRemove,
-                    tooltip: 'Remove',
-                  ),
+                  if (onEdit != null)
+                    IconButton(
+                      icon: Icon(Icons.edit_note_rounded, color: colorScheme.primary),
+                      onPressed: onEdit,
+                      tooltip: 'Edit',
+                    ),
+                  if (onRemove != null)
+                    IconButton(
+                      icon: Icon(Icons.delete_rounded, color: colorScheme.error),
+                      onPressed: onRemove,
+                      tooltip: 'Remove',
+                    ),
+                  if (onInfo != null)
+                    IconButton(
+                      icon: Icon(Icons.info_outline_rounded, color: colorScheme.primary),
+                      onPressed: onInfo,
+                      tooltip: 'Info',
+                    ),
                 ],
               ),
             ],

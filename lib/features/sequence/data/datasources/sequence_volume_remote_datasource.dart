@@ -16,6 +16,7 @@ abstract class SequenceVolumeRemoteDataSource {
   Future<List<SequenceVolumeModel>> fetchSequenceVolumesByBookId(String bookId);
   Future<List<SequenceVolumeModel>> fetchSequenceVolumesByWorkId(String workId);
   Stream<List<SequenceVolumeModel>> watchSequenceVolumes(String sequenceId);
+  Stream<List<SequenceVolumeModel>> watchAllSequenceVolumes();
   Future<void> addSequenceVolume(SequenceVolumeModel volume, {WriteBatch? batch});
   Future<void> editSequenceVolume(SequenceVolumeModel volume, {WriteBatch? batch});
   Future<void> removeSequenceVolume(String id, {WriteBatch? batch});
@@ -105,6 +106,19 @@ class SequenceVolumeRemoteDataSourceImpl implements SequenceVolumeRemoteDataSour
       .collection(_collectionPath)
       .where('sequenceId', isEqualTo: sequenceId)
       .orderBy('volume')
+      .snapshots()
+      .map(
+        (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
+            .map(
+              (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
+                  SequenceVolumeModel.fromMap(doc.data(), doc.id),
+            )
+            .toList(),
+      );
+
+  @override
+  Stream<List<SequenceVolumeModel>> watchAllSequenceVolumes() => _firestore
+      .collection(_collectionPath)
       .snapshots()
       .map(
         (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs

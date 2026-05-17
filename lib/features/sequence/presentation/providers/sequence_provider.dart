@@ -74,6 +74,20 @@ Stream<List<SequenceVolumeEntity>> sequenceVolumesStream(Ref ref, String sequenc
   return watchVolumes(sequenceId);
 }
 
+@riverpod
+Stream<List<SequenceVolumeEntity>> allSequenceVolumesStream(Ref ref) {
+  final WatchAllSequenceVolumesUseCase watchVolumes = ref.watch(
+    watchAllSequenceVolumesUseCaseProvider,
+  );
+  final String? userId = ref.watch(currentUidProvider);
+
+  if (userId == null) {
+    return Stream<List<SequenceVolumeEntity>>.value(<SequenceVolumeEntity>[]);
+  }
+
+  return watchVolumes();
+}
+
 class SequenceStats {
   const SequenceStats({this.bookCount = 0, this.workCount = 0});
 

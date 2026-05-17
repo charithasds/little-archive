@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/presentation/utils/buttons.dart';
-import '../../../../core/shared/presentation/utils/snack_bars.dart';
-import '../../../../core/shared/presentation/widgets/list_page_states.dart';
+import '../../../../core/shared/presentation/utils/dialogs.dart';
+import '../../../../core/shared/presentation/widgets/list_empty_state.dart';
+import '../../../../core/shared/presentation/widgets/list_error_state.dart';
+import '../../../../core/shared/presentation/widgets/list_loading_state.dart';
 import '../../../../core/shared/presentation/widgets/search_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/translator_entity.dart';
@@ -15,51 +16,30 @@ import '../providers/translator_list_controller.dart';
 import '../providers/translator_provider.dart';
 import '../widgets/translator_list_tile.dart';
 
-class TranslatorListPage extends ConsumerWidget {
+class TranslatorListPage extends ConsumerStatefulWidget {
   const TranslatorListPage({super.key});
 
-  Future<void> _handleRemove(BuildContext context, WidgetRef ref, String translatorId) async {
-    final ThemeData theme = ref.read(activeThemeDataProvider);
+  @override
+  ConsumerState<TranslatorListPage> createState() => _TranslatorListPageState();
+}
 
-    final bool? confirmed = await showDialog<bool>(
+class _TranslatorListPageState extends ConsumerState<TranslatorListPage> {
+  bool _isExtended = true;
+
+  Future<void> _handleRemove(String translatorId, String translatorName) async {
+    await AppDialogs.removeEntity(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        icon: Icon(Icons.warning_rounded, color: theme.colorScheme.error, size: 48),
-        title: const Text('Remove Translator'),
-        content: const Text(
-          'Are you sure you want to remove this translator? This action cannot be undone.',
-        ),
-        actions: <Widget>[
-          TextButton(onPressed: () => context.pop(false), child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () => context.pop(true),
-            style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.error),
-            child: const Text('Remove'),
-          ),
-        ],
-      ),
+      entityType: 'Translator',
+      entityName: translatorName,
+      onConfirm: () => ref.read(removeTranslatorUseCaseProvider)(translatorId),
     );
-
-    if (confirmed != true) {
-      return;
-    }
-
-    try {
-      await ref.read(removeTranslatorUseCaseProvider)(translatorId);
-      SnackBars.showSuccess('Translator removed successfully');
-    } on NoConnectionException catch (e) {
-      SnackBars.showError(e.message);
-    } catch (e) {
-      SnackBars.showError('Removal failed: $e');
-    }
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final AsyncValue<List<TranslatorEntity>> translatorsAsync = ref.watch(
       translatorsStreamProvider,
     );
-
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
 
@@ -86,76 +66,96 @@ class TranslatorListPage extends ConsumerWidget {
             );
           }
 
-          return Column(
-            children: <Widget>[
-              SearchField(
-                hintText: 'Search translators by name, website...',
-                onChanged: (String query) =>
-                    ref.read(translatorListControllerProvider.notifier).setSearchQuery(query),
-              ),
-              if (translators.isEmpty)
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      'No translators match your search.',
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+          return NotificationListener<UserScrollNotification>(
+            onNotification: (UserScrollNotification notification) {
+              if (notification.direction == ScrollDirection.reverse) {
+                if (_isExtended) {
+                  setState(() => _isExtended = false);
+                }
+              } else if (notification.direction == ScrollDirection.forward) {
+                if (!_isExtended) {
+                  setState(() => _isExtended = true);
+                }
+              }
+
+              return true;
+            },
+            child: Column(
+              children: <Widget>[
+                SearchField(
+                  hintText: 'Search',
+                  onChanged: (String query) =>
+                      ref.read(translatorListControllerProvider.notifier).setSearchQuery(query),
+                ),
+                if (translators.isEmpty)
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        'No translators match your search.',
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
+                  )
+                else
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (BuildContext context, BoxConstraints constraints) {
+                        if (constraints.maxWidth < 600) {
+                          return ListView.builder(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            itemCount: translators.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              final TranslatorEntity translator = translators[index];
+
+                              return TranslatorListTile(
+                                translator: translator,
+                                onTap: () => context.go('/translators/${translator.id}'),
+                                onEdit: () =>
+                                    context.push('/translators/upsert', extra: translator),
+                                onRemove: () => _handleRemove(translator.id, translator.name),
+                              );
+                            },
+                          );
+                        } else {
+                          return GridView.builder(
+                            padding: const EdgeInsets.all(24),
+                            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent: 600,
+                              mainAxisExtent: 160,
+                              crossAxisSpacing: 24,
+                              mainAxisSpacing: 24,
+                            ),
+                            itemCount: translators.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              final TranslatorEntity translator = translators[index];
+
+                              return TranslatorListTile(
+                                translator: translator,
+                                onTap: () => context.go('/translators/${translator.id}'),
+                                onEdit: () =>
+                                    context.push('/translators/upsert', extra: translator),
+                                onRemove: () => _handleRemove(translator.id, translator.name),
+                              );
+                            },
+                          );
+                        }
+                      },
+                    ),
                   ),
-                )
-              else
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (BuildContext context, BoxConstraints constraints) {
-                      if (constraints.maxWidth < 600) {
-                        return ListView.builder(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          itemCount: translators.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            final TranslatorEntity translator = translators[index];
-                            return TranslatorListTile(
-                              translator: translator,
-                              onTap: () => context.go('/translators/${translator.id}'),
-                              onEdit: () => context.push('/translators/add', extra: translator),
-                              onRemove: () => _handleRemove(context, ref, translator.id),
-                            );
-                          },
-                        );
-                      } else {
-                        return GridView.builder(
-                          padding: const EdgeInsets.all(24),
-                          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                            maxCrossAxisExtent: 600,
-                            mainAxisExtent: 140,
-                            crossAxisSpacing: 24,
-                            mainAxisSpacing: 24,
-                          ),
-                          itemCount: translators.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            final TranslatorEntity translator = translators[index];
-                            return TranslatorListTile(
-                              translator: translator,
-                              onTap: () => context.go('/translators/${translator.id}'),
-                              onEdit: () => context.push('/translators/add', extra: translator),
-                              onRemove: () => _handleRemove(context, ref, translator.id),
-                            );
-                          },
-                        );
-                      }
-                    },
-                  ),
-                ),
-            ],
+              ],
+            ),
           );
         },
         loading: () => const ListLoadingState(),
         error: (Object err, StackTrace stack) => ListErrorState(error: err),
       ),
       floatingActionButton: FloatingActionButton.extended(
+        isExtended: _isExtended,
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
-        onPressed: () => context.go('/translators/add'),
+        onPressed: () => context.go('/translators/upsert'),
         icon: const Icon(Icons.add_rounded),
         label: const Text('Add Translator'),
       ),

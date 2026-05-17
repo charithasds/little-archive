@@ -23,6 +23,7 @@ class PublisherListController extends _$PublisherListController {
   PublisherListState build() {
     final List<PublisherEntity> allPublishers =
         ref.watch(publishersStreamProvider).value ?? <PublisherEntity>[];
+
     return _calculateState(allPublishers, '');
   }
 
@@ -30,29 +31,31 @@ class PublisherListController extends _$PublisherListController {
     if (state.searchQuery == query) {
       return;
     }
+
     final List<PublisherEntity> allPublishers =
         ref.read(publishersStreamProvider).value ?? <PublisherEntity>[];
+
     state = _calculateState(allPublishers, query);
   }
 
   PublisherListState _calculateState(List<PublisherEntity> allPublishers, String query) {
-    // Sort alphabetically (Case-insensitive)
     final List<PublisherEntity> sortedPublishers = List<PublisherEntity>.from(allPublishers)
       ..sort(
         (PublisherEntity a, PublisherEntity b) =>
             a.name.toLowerCase().compareTo(b.name.toLowerCase()),
       );
-
     List<PublisherEntity> filtered = sortedPublishers;
 
     if (query.isNotEmpty) {
       final String q = query.toLowerCase();
+
       filtered = sortedPublishers.where((PublisherEntity p) {
         final bool matchesName = p.name.toLowerCase().contains(q);
         final bool matchesOtherName = (p.otherName ?? '').toLowerCase().contains(q);
         final bool matchesWebsite = (p.website ?? '').toLowerCase().contains(q);
         final bool matchesEmail = (p.email ?? '').toLowerCase().contains(q);
         final bool matchesPhone = (p.phoneNumber ?? '').toLowerCase().contains(q);
+
         return matchesName || matchesOtherName || matchesWebsite || matchesEmail || matchesPhone;
       }).toList();
     }

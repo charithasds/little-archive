@@ -1,28 +1,41 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/presentation/utils/dialogs.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
-import '../../../../core/shared/presentation/utils/snack_bars.dart';
-import '../../../../core/shared/presentation/widgets/detail_widgets.dart';
-import '../../../../core/shared/presentation/widgets/info_dialogs.dart';
-import '../../../../core/shared/presentation/widgets/list_page_states.dart';
+import '../../../../core/shared/presentation/widgets/detail_section.dart';
+import '../../../../core/shared/presentation/widgets/detail_tile.dart';
+import '../../../../core/shared/presentation/widgets/list_empty_state.dart';
+import '../../../../core/shared/presentation/widgets/list_error_state.dart';
+import '../../../../core/shared/presentation/widgets/list_loading_state.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
+import '../../../author/domain/entities/author_entity.dart';
 import '../../../author/presentation/providers/author_provider.dart';
+import '../../../author/presentation/widgets/author_list_tile.dart';
+import '../../../author/presentation/widgets/author_quick_info_dialog.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
+import '../../../publisher/presentation/widgets/publisher_list_tile.dart';
+import '../../../publisher/presentation/widgets/publisher_quick_info_dialog.dart';
 import '../../../reader/domain/entities/reader_entity.dart';
 import '../../../reader/presentation/providers/reader_provider.dart';
+import '../../../reader/presentation/widgets/reader_list_tile.dart';
+import '../../../reader/presentation/widgets/reader_quick_info_dialog.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/domain/entities/sequence_volume_entity.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
+import '../../../sequence/presentation/widgets/sequence_quick_info_dialog.dart';
+import '../../../sequence/presentation/widgets/sequence_volume_list_tile.dart';
+import '../../../translator/domain/entities/translator_entity.dart';
 import '../../../translator/presentation/providers/translator_provider.dart';
+import '../../../translator/presentation/widgets/translator_list_tile.dart';
+import '../../../translator/presentation/widgets/translator_quick_info_dialog.dart';
 import '../../../work/domain/entities/work_entity.dart';
 import '../../../work/presentation/providers/work_provider.dart';
 import '../../../work/presentation/widgets/work_list_tile.dart';
+import '../../../work/presentation/widgets/work_quick_info_dialog.dart';
 import '../../domain/entities/book_entity.dart';
 import '../../domain/usecases/book_usecases.dart';
 import '../providers/book_provider.dart';
@@ -31,50 +44,24 @@ class BookDetailPage extends ConsumerWidget {
   const BookDetailPage({super.key, required this.bookId});
   final String bookId;
 
-  Future<void> _handleRemove(BuildContext context, WidgetRef ref, String bookId) async {
-    final ThemeData theme = ref.read(activeThemeDataProvider);
-
-    final bool? confirmed = await showDialog<bool>(
+  Future<void> _handleRemove(BuildContext context, WidgetRef ref, BookEntity book) async {
+    await AppDialogs.removeEntity(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        icon: Icon(Icons.warning_rounded, color: theme.colorScheme.error, size: 48),
-        title: const Text('Remove Book'),
-        content: const Text(
-          'Are you sure you want to remove this book? This action cannot be undone.',
-        ),
-        actions: <Widget>[
-          TextButton(onPressed: () => context.pop(false), child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () => context.pop(true),
-            style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.error),
-            child: const Text('Remove'),
-          ),
-        ],
-      ),
+      entityType: 'Book',
+      entityName: book.title,
+      onConfirm: () async {
+        await ref.read(removeBookUseCaseProvider)(book.id);
+        if (context.mounted) {
+          context.pop();
+        }
+      },
     );
-
-    if (confirmed != true) {
-      return;
-    }
-
-    try {
-      await ref.read(removeBookUseCaseProvider)(bookId);
-      SnackBars.showSuccess('Book removed successfully');
-      if (context.mounted) {
-        context.pop();
-      }
-    } on NoConnectionException catch (e) {
-      SnackBars.showError(e.message);
-    } catch (e) {
-      SnackBars.showError('Removal failed: $e');
-    }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AsyncValue<BookEntity?> bookAsync = ref.watch(bookProvider(bookId));
     final ThemeData theme = ref.watch(activeThemeDataProvider);
-    final ColorScheme colorScheme = theme.colorScheme;
 
     return bookAsync.when(
       data: (BookEntity? book) {
@@ -88,6 +75,14 @@ class BookDetailPage extends ConsumerWidget {
           );
         }
 
+        final List<AuthorEntity> authors = book.authorIds
+            .map((String id) => ref.watch(authorProvider(id)).value)
+            .whereType<AuthorEntity>()
+            .toList();
+        final List<TranslatorEntity> translators = book.translatorIds
+            .map((String id) => ref.watch(translatorProvider(id)).value)
+            .whereType<TranslatorEntity>()
+            .toList();
         final AsyncValue<List<WorkEntity>> worksAsync = ref.watch(worksStreamProvider);
         final List<WorkEntity> bookWorks =
             (worksAsync.value ?? <WorkEntity>[])
@@ -97,6 +92,12 @@ class BookDetailPage extends ConsumerWidget {
                 (WorkEntity a, WorkEntity b) =>
                     a.title.toLowerCase().compareTo(b.title.toLowerCase()),
               );
+        final AsyncValue<PublisherEntity?> publisherAsync = book.publisherId != null
+            ? ref.watch(publisherProvider(book.publisherId!))
+            : const AsyncValue<PublisherEntity?>.data(null);
+        final AsyncValue<ReaderEntity?> readerAsync = book.readerId != null
+            ? ref.watch(readerProvider(book.readerId!))
+            : const AsyncValue<ReaderEntity?>.data(null);
 
         return Scaffold(
           body: CustomScrollView(
@@ -111,14 +112,14 @@ class BookDetailPage extends ConsumerWidget {
                   IconButton(
                     icon: const Icon(Icons.edit_note_rounded),
                     onPressed: () async {
-                      await context.push('/books/add', extra: book);
+                      await context.push('/books/upsert', extra: book);
                       ref.invalidate(bookProvider(bookId));
                     },
                     tooltip: 'Edit',
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete_outline_rounded),
-                    onPressed: () => _handleRemove(context, ref, book.id),
+                    onPressed: () => _handleRemove(context, ref, book),
                     tooltip: 'Remove',
                   ),
                   const SizedBox(width: 8),
@@ -130,211 +131,235 @@ class BookDetailPage extends ConsumerWidget {
                   children: <Widget>[
                     const SizedBox(height: 16),
                     Center(
-                      child: Container(
-                        width: 280,
-                        height: 280 / Images.bookAspectRatio,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          color: Images.getAvatarBackgroundColor(theme),
-                          boxShadow: <BoxShadow>[
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                          image: book.cover != null && book.cover!.isNotEmpty
-                              ? DecorationImage(
-                                  image: Images.getImageProvider(book.cover),
-                                  fit: BoxFit.contain,
+                      child: Hero(
+                        tag: 'book_${book.id}',
+                        child: Container(
+                          width: 240,
+                          height: 240 / Images.bookAspectRatio,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            color: Images.getAvatarBackgroundColor(theme),
+                            image: book.cover != null && book.cover!.isNotEmpty
+                                ? DecorationImage(
+                                    image: Images.getImageProvider(book.cover),
+                                    fit: BoxFit.contain,
+                                  )
+                                : null,
+                          ),
+                          child: book.cover == null || book.cover!.isEmpty
+                              ? Icon(
+                                  Icons.book_rounded,
+                                  color: Images.getAvatarIconColor(theme),
+                                  size: 120,
                                 )
                               : null,
                         ),
-                        child: book.cover == null || book.cover!.isEmpty
-                            ? Icon(
-                                Icons.book_rounded,
-                                color: Images.getAvatarIconColor(theme),
-                                size: 100,
-                              )
-                            : null,
                       ),
                     ),
                     const SizedBox(height: 24),
+                    if (authors.isNotEmpty || translators.isNotEmpty)
+                      DetailSection(
+                        title: 'CREATORS',
+                        children: <Widget>[
+                          ...authors.map(
+                            (AuthorEntity author) => AuthorListTile(
+                              author: author,
+                              onInfo: () => AuthorQuickInfoDialog.show(context, author.id),
+                            ),
+                          ),
+                          ...translators.map(
+                            (TranslatorEntity translator) => TranslatorListTile(
+                              translator: translator,
+                              onInfo: () => TranslatorQuickInfoDialog.show(context, translator.id),
+                            ),
+                          ),
+                        ],
+                      ),
+                    if (bookWorks.isNotEmpty)
+                      DetailSection(
+                        title: 'WORKS',
+                        children: bookWorks
+                            .map(
+                              (WorkEntity work) => WorkListTile(
+                                work: work,
+                                onInfo: () => WorkQuickInfoDialog.show(context, work.id),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    if (book.sequenceVolumeIds.isNotEmpty)
+                      DetailSection(
+                        title: 'SEQUENCE',
+                        children: book.sequenceVolumeIds.map((String id) {
+                          final SequenceVolumeEntity? volume = ref
+                              .watch(sequenceVolumeProvider(id))
+                              .value;
+
+                          if (volume == null) {
+                            return const SizedBox.shrink();
+                          }
+
+                          final SequenceEntity? sequence = ref
+                              .watch(sequenceProvider(volume.sequenceId))
+                              .value;
+
+                          if (sequence == null) {
+                            return const SizedBox.shrink();
+                          }
+
+                          return SequenceVolumeListTile(
+                            volume: volume,
+                            sequence: sequence,
+                            onInfo: () => SequenceQuickInfoDialog.show(context, volume.sequenceId),
+                          );
+                        }).toList(),
+                      ),
+                    if (book.publisherId != null)
+                      DetailSection(
+                        title: 'PUBLISHER',
+                        children: <Widget>[
+                          publisherAsync.when(
+                            data: (PublisherEntity? publisher) {
+                              if (publisher == null) {
+                                return const SizedBox.shrink();
+                              }
+
+                              return PublisherListTile(
+                                publisher: publisher,
+                                onInfo: () => PublisherQuickInfoDialog.show(context, publisher.id),
+                              );
+                            },
+                            loading: () => const Center(child: CircularProgressIndicator()),
+                            error: (_, _) => const Text('Error loading publisher'),
+                          ),
+                        ],
+                      ),
+                    if (book.readerId != null)
+                      DetailSection(
+                        title: 'READER',
+                        children: <Widget>[
+                          readerAsync.when(
+                            data: (ReaderEntity? reader) {
+                              if (reader == null) {
+                                return const SizedBox.shrink();
+                              }
+
+                              return ReaderListTile(
+                                reader: reader,
+                                onInfo: () => ReaderQuickInfoDialog.show(context, reader.id),
+                              );
+                            },
+                            loading: () => const Center(child: CircularProgressIndicator()),
+                            error: (_, _) => const Text('Error loading reader'),
+                          ),
+                        ],
+                      ),
                     DetailSection(
                       title: 'INFORMATION',
+                      showDivider: false,
                       children: <Widget>[
                         DetailTile(
-                          label: 'Authors',
-                          value: book.authorIds.isEmpty
-                              ? 'No Authors'
-                              : book.authorIds
-                                    .map(
-                                      (String id) =>
-                                          ref.watch(authorProvider(id)).value?.name ?? 'Loading...',
-                                    )
-                                    .join(', '),
-                          icon: Icons.person_rounded,
-                          onInfo: book.authorIds.length == 1
-                              ? () => EntityQuickInfoDialog.show(
-                                  context,
-                                  book.authorIds.first,
-                                  'author',
-                                )
-                              : null,
+                          label: 'Compilation Type',
+                          value: book.compilationType.clientValue,
+                          leadingIcon: Icons.collections_bookmark_rounded,
                         ),
-                        if (book.isTranslation)
+                        if (book.language != null)
                           DetailTile(
-                            label: 'Translators',
-                            value: book.translatorIds.isEmpty
-                                ? 'No Translators'
-                                : book.translatorIds
-                                      .map(
-                                        (String id) =>
-                                            ref.watch(translatorProvider(id)).value?.name ??
-                                            'Loading...',
-                                      )
-                                      .join(', '),
-                            icon: Icons.translate_rounded,
-                            onInfo: book.translatorIds.length == 1
-                                ? () => EntityQuickInfoDialog.show(
-                                    context,
-                                    book.translatorIds.first,
-                                    'translator',
-                                  )
-                                : null,
+                            label: 'Language',
+                            value: book.language!.clientValue,
+                            leadingIcon: Icons.language_rounded,
+                          ),
+                        if (book.genre != null)
+                          DetailTile(
+                            label: 'Genre',
+                            value: book.genre!.clientValue,
+                            leadingIcon: Icons.style_rounded,
+                          ),
+                        if (book.isbn != null && book.isbn!.isNotEmpty)
+                          DetailTile(
+                            label: 'ISBN',
+                            value: book.isbn!,
+                            leadingIcon: Icons.qr_code_rounded,
+                          ),
+                        if (book.publishedDate != null)
+                          DetailTile(
+                            label: 'Published Date',
+                            value: DateFormat('MMM d, yyyy').format(book.publishedDate!),
+                            leadingIcon: Icons.public_rounded,
+                          ),
+                        if (book.noOfPages != null)
+                          DetailTile(
+                            label: 'Number of Pages',
+                            value: book.noOfPages.toString(),
+                            leadingIcon: Icons.numbers_rounded,
                           ),
                         if (book.originalTitle != null && book.originalTitle!.isNotEmpty)
                           DetailTile(
                             label: 'Original Title',
                             value: book.originalTitle!,
-                            icon: Icons.title_rounded,
-                          ),
-                        if (book.language != null)
-                          DetailTile(
-                            label: 'Language',
-                            value: book.language!.clientValue,
-                            icon: Icons.language_rounded,
+                            leadingIcon: Icons.title_rounded,
                           ),
                         if (book.isTranslation && book.originalLanguage != null)
                           DetailTile(
                             label: 'Original Language',
                             value: book.originalLanguage!.clientValue,
-                            icon: Icons.translate_rounded,
-                          ),
-                        if (book.publisherId != null)
-                          DetailTile(
-                            label: 'Publisher',
-                            value: ref
-                                .watch(publisherProvider(book.publisherId!))
-                                .when(
-                                  data: (PublisherEntity? p) => p?.name ?? 'Unknown Publisher',
-                                  loading: () => 'Loading...',
-                                  error: (_, _) => 'Error',
-                                ),
-                            icon: Icons.business_rounded,
-                            onInfo: () =>
-                                EntityQuickInfoDialog.show(context, book.publisherId!, 'publisher'),
-                          ),
-                        if (book.readerId != null)
-                          DetailTile(
-                            label: 'Reader',
-                            value: ref
-                                .watch(readerProvider(book.readerId!))
-                                .when(
-                                  data: (ReaderEntity? r) => r?.name ?? 'Unknown Reader',
-                                  loading: () => 'Loading...',
-                                  error: (_, _) => 'Error',
-                                ),
-                            icon: Icons.chrome_reader_mode_rounded,
-                            onInfo: () =>
-                                EntityQuickInfoDialog.show(context, book.readerId!, 'reader'),
-                          ),
-                        if (book.isbn != null && book.isbn!.isNotEmpty)
-                          DetailTile(label: 'ISBN', value: book.isbn!, icon: Icons.qr_code_rounded),
-                        if (book.noOfPages != null)
-                          DetailTile(
-                            label: 'Pages',
-                            value: book.noOfPages.toString(),
-                            icon: Icons.auto_stories_rounded,
-                          ),
-                        if (book.publishedDate != null)
-                          DetailTile(
-                            label: 'Published',
-                            value: DateFormat('MMM d, yyyy').format(book.publishedDate!),
-                            icon: Icons.event_available_rounded,
+                            leadingIcon: Icons.translate_rounded,
                           ),
                         DetailTile(
-                          label: 'Status',
-                          value:
-                              '${book.collectionStatus.clientValue} • ${book.readingStatus.clientValue}',
-                          icon: Icons.bookmark_rounded,
+                          label: 'Collection Status',
+                          value: book.collectionStatus.clientValue,
+                          leadingIcon: Icons.inventory_rounded,
                         ),
-                      ],
-                    ),
-                    if (book.sequenceVolumeIds.isNotEmpty)
-                      DetailSection(
-                        title: 'SEQUENCES',
-                        children: book.sequenceVolumeIds.map((String id) {
-                          final SequenceVolumeEntity? volume = ref
-                              .watch(sequenceVolumeProvider(id))
-                              .value;
-                          if (volume == null) {
-                            return const SizedBox.shrink();
-                          }
-                          final SequenceEntity? sequence = ref
-                              .watch(sequenceProvider(volume.sequenceId))
-                              .value;
-                          final String sequenceName = sequence?.name ?? 'Loading...';
-                          return DetailTile(
-                            label: sequenceName,
-                            value: 'Volume ${volume.volume}',
-                            icon: Icons.layers_rounded,
-                            onInfo: () =>
-                                EntityQuickInfoDialog.show(context, volume.sequenceId, 'sequence'),
-                          );
-                        }).toList(),
-                      ),
-                    DetailSection(
-                      title: 'WORKS (${bookWorks.length})',
-                      showDivider: book.notes != null && book.notes!.isNotEmpty,
-                      children: bookWorks
-                          .map(
-                            (WorkEntity work) => WorkListTile(
-                              work: work,
-                              onInfo: () => EntityQuickInfoDialog.show(context, work.id, 'work'),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                    if (book.notes != null && book.notes!.isNotEmpty)
-                      DetailSection(
-                        title: 'NOTES',
-                        showDivider: false,
-                        children: <Widget>[
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
-                            child: Text(
-                              book.notes!,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurface,
-                              ),
-                            ),
+                        if (book.collectedDate != null)
+                          DetailTile(
+                            label: 'Collected Date',
+                            value: DateFormat('MMM d, yyyy').format(book.collectedDate!),
+                            leadingIcon: Icons.inventory_2_rounded,
                           ),
-                        ],
-                      ),
-                    DetailSection(
-                      title: 'METADATA',
-                      showDivider: false,
-                      children: <Widget>[
+                        if (book.lendedDate != null)
+                          DetailTile(
+                            label: 'Lended Date',
+                            value: DateFormat('MMM d, yyyy').format(book.lendedDate!),
+                            leadingIcon: Icons.handshake_rounded,
+                          ),
+                        if (book.dueDate != null)
+                          DetailTile(
+                            label: 'Due Date',
+                            value: DateFormat('MMM d, yyyy').format(book.dueDate!),
+                            leadingIcon: Icons.event_rounded,
+                          ),
+                        DetailTile(
+                          label: 'Reading Status',
+                          value: book.readingStatus.clientValue,
+                          leadingIcon: Icons.menu_book_rounded,
+                        ),
+                        if (book.pausedPage != null)
+                          DetailTile(
+                            label: 'Paused Page',
+                            value: book.pausedPage!.toString(),
+                            leadingIcon: Icons.bookmark_border_rounded,
+                          ),
+                        if (book.completedDate != null)
+                          DetailTile(
+                            label: 'Completed Date',
+                            value: DateFormat('MMM d, yyyy').format(book.completedDate!),
+                            leadingIcon: Icons.check_circle_outline_rounded,
+                          ),
+                        if (book.notes != null && book.notes!.isNotEmpty)
+                          DetailTile(
+                            label: 'Notes',
+                            value: book.notes!,
+                            leadingIcon: Icons.notes_rounded,
+                          ),
                         DetailTile(
                           label: 'Created',
                           value: DetailTile.formatDate(book.createdDate),
-                          icon: Icons.calendar_today_rounded,
+                          leadingIcon: Icons.calendar_today_rounded,
                         ),
                         DetailTile(
                           label: 'Last Updated',
                           value: DetailTile.formatDate(book.lastUpdated),
-                          icon: Icons.update_rounded,
+                          leadingIcon: Icons.update_rounded,
                         ),
                       ],
                     ),

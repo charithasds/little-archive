@@ -23,6 +23,7 @@ class TranslatorListController extends _$TranslatorListController {
   TranslatorListState build() {
     final List<TranslatorEntity> allTranslators =
         ref.watch(translatorsStreamProvider).value ?? <TranslatorEntity>[];
+
     return _calculateState(allTranslators, '');
   }
 
@@ -30,27 +31,29 @@ class TranslatorListController extends _$TranslatorListController {
     if (state.searchQuery == query) {
       return;
     }
+
     final List<TranslatorEntity> allTranslators =
         ref.read(translatorsStreamProvider).value ?? <TranslatorEntity>[];
+
     state = _calculateState(allTranslators, query);
   }
 
   TranslatorListState _calculateState(List<TranslatorEntity> allTranslators, String query) {
-    // Sort alphabetically (Case-insensitive)
     final List<TranslatorEntity> sortedTranslators = List<TranslatorEntity>.from(allTranslators)
       ..sort(
         (TranslatorEntity a, TranslatorEntity b) =>
             a.name.toLowerCase().compareTo(b.name.toLowerCase()),
       );
-
     List<TranslatorEntity> filtered = sortedTranslators;
 
     if (query.isNotEmpty) {
       final String q = query.toLowerCase();
+
       filtered = sortedTranslators.where((TranslatorEntity t) {
         final bool matchesName = t.name.toLowerCase().contains(q);
         final bool matchesOtherName = (t.otherName ?? '').toLowerCase().contains(q);
         final bool matchesWebsite = (t.website ?? '').toLowerCase().contains(q);
+
         return matchesName || matchesOtherName || matchesWebsite;
       }).toList();
     }

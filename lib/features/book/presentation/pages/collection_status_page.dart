@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-import '../../../book/domain/entities/book_entity.dart';
-import '../../../book/presentation/providers/book_provider.dart';
-import '../../../book/presentation/providers/book_status_controller.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
 import '../../../reader/domain/entities/reader_entity.dart';
 import '../../../reader/presentation/providers/reader_provider.dart';
+import '../../domain/entities/book_entity.dart';
+import '../providers/book_provider.dart';
+import '../providers/book_status_controller.dart';
 
 // ── Date formatter ─────────────────────────────────────────────────────────
 

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -10,11 +9,11 @@ import '../../../../features/author/presentation/pages/upsert_author_page.dart';
 import '../../../../features/book/domain/entities/book_entity.dart';
 import '../../../../features/book/presentation/pages/book_detail_page.dart';
 import '../../../../features/book/presentation/pages/book_list_page.dart';
+import '../../../../features/book/presentation/pages/collection_status_page.dart';
+import '../../../../features/book/presentation/pages/data_quality_page.dart';
+import '../../../../features/book/presentation/pages/reading_status_page.dart';
 import '../../../../features/book/presentation/pages/upsert_book_page.dart';
-import '../../../../features/home/presentation/pages/collection_status_page.dart';
-import '../../../../features/home/presentation/pages/data_quality_page.dart';
 import '../../../../features/home/presentation/pages/home_page.dart';
-import '../../../../features/home/presentation/pages/reading_status_page.dart';
 import '../../../../features/publisher/domain/entities/publisher_entity.dart';
 import '../../../../features/publisher/presentation/pages/publisher_detail_page.dart';
 import '../../../../features/publisher/presentation/pages/publisher_list_page.dart';
@@ -75,7 +74,7 @@ class RouterService {
           builder: (BuildContext context, GoRouterState state) => const WorkListPage(),
           routes: <RouteBase>[
             GoRoute(
-              path: 'add',
+              path: 'upsert',
               builder: (BuildContext context, GoRouterState state) =>
                   UpsertWorkPage(existingWork: state.extra as WorkEntity?),
             ),
@@ -94,7 +93,7 @@ class RouterService {
           builder: (BuildContext context, GoRouterState state) => const BookListPage(),
           routes: <RouteBase>[
             GoRoute(
-              path: 'add',
+              path: 'upsert',
               builder: (BuildContext context, GoRouterState state) =>
                   UpsertBookPage(existingBook: state.extra as BookEntity?),
             ),
@@ -113,7 +112,7 @@ class RouterService {
           builder: (BuildContext context, GoRouterState state) => const AuthorListPage(),
           routes: <RouteBase>[
             GoRoute(
-              path: 'add',
+              path: 'upsert',
               builder: (BuildContext context, GoRouterState state) =>
                   UpsertAuthorPage(existingAuthor: state.extra as AuthorEntity?),
             ),
@@ -132,7 +131,7 @@ class RouterService {
           builder: (BuildContext context, GoRouterState state) => const TranslatorListPage(),
           routes: <RouteBase>[
             GoRoute(
-              path: 'add',
+              path: 'upsert',
               builder: (BuildContext context, GoRouterState state) =>
                   UpsertTranslatorPage(existingTranslator: state.extra as TranslatorEntity?),
             ),
@@ -151,7 +150,7 @@ class RouterService {
           builder: (BuildContext context, GoRouterState state) => const PublisherListPage(),
           routes: <RouteBase>[
             GoRoute(
-              path: 'add',
+              path: 'upsert',
               builder: (BuildContext context, GoRouterState state) =>
                   UpsertPublisherPage(existingPublisher: state.extra as PublisherEntity?),
             ),
@@ -170,7 +169,7 @@ class RouterService {
           builder: (BuildContext context, GoRouterState state) => const SequenceListPage(),
           routes: <RouteBase>[
             GoRoute(
-              path: 'add',
+              path: 'upsert',
               builder: (BuildContext context, GoRouterState state) =>
                   UpsertSequencePage(existingSequence: state.extra as SequenceEntity?),
             ),
@@ -189,7 +188,7 @@ class RouterService {
           builder: (BuildContext context, GoRouterState state) => const ReaderListPage(),
           routes: <RouteBase>[
             GoRoute(
-              path: 'add',
+              path: 'upsert',
               builder: (BuildContext context, GoRouterState state) =>
                   UpsertReaderPage(existingReader: state.extra as ReaderEntity?),
             ),
