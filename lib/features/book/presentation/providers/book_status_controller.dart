@@ -11,72 +11,92 @@ part 'book_status_controller.g.dart';
 @riverpod
 class BookStatusController extends _$BookStatusController {
   @override
-  bool build() => false; // isLoading
+  bool build() => false;
 
-  /// Moves a book to the given [CollectionStatus].
-  /// For [CollectionStatus.lended] use [lendBook] to include reader + dates.
-  Future<void> setCollectionStatus(
+  Future<void> changeCollectionStatus(
     BookEntity book,
     CollectionStatus status, {
     DateTime? collectedDate,
+    String? readerId,
+    DateTime? lendedDate,
+    DateTime? dueDate,
   }) async {
     state = true;
+
     try {
       final EditBookUseCase editBook = ref.read(editBookUseCaseProvider);
-      final BookEntity updated = book.copyWith(
-        collectionStatus: status,
-        // Set collectedDate when moving to collected
-        collectedDate: status == CollectionStatus.collected
-            ? Nullable<DateTime?>(collectedDate ?? book.collectedDate ?? DateTime.now())
-            : const Nullable<DateTime?>(null),
-        // Clear lend info when not lended
-        lendedDate: status != CollectionStatus.lended ? const Nullable<DateTime?>(null) : null,
-        dueDate: status != CollectionStatus.lended ? const Nullable<DateTime?>(null) : null,
-        readerId: status != CollectionStatus.lended ? const Nullable<String?>(null) : null,
-        lastUpdated: DateTime.now(),
-      );
+      BookEntity updated;
+
+      switch (status) {
+        case CollectionStatus.announced:
+          updated = book.copyWith(collectionStatus: status, lastUpdated: DateTime.now());
+        case CollectionStatus.shoppingList:
+          updated = book.copyWith(collectionStatus: status, lastUpdated: DateTime.now());
+        case CollectionStatus.collected:
+          updated = book.copyWith(
+            collectionStatus: status,
+            collectedDate: Nullable<DateTime?>(collectedDate),
+            readerId: const Nullable<String?>(null),
+            lendedDate: const Nullable<DateTime?>(null),
+            dueDate: const Nullable<DateTime?>(null),
+            lastUpdated: DateTime.now(),
+          );
+        case CollectionStatus.lended:
+          updated = book.copyWith(
+            collectionStatus: status,
+            readerId: Nullable<String?>(readerId),
+            lendedDate: Nullable<DateTime?>(lendedDate),
+            dueDate: Nullable<DateTime?>(dueDate),
+            lastUpdated: DateTime.now(),
+          );
+        case CollectionStatus.outOfPrint:
+          updated = book.copyWith(collectionStatus: status, lastUpdated: DateTime.now());
+      }
+
       await editBook(updated);
     } finally {
       state = false;
     }
   }
 
-  /// Lends a book to a reader.
-  Future<void> lendBook(
-    BookEntity book, {
-    required String readerId,
-    required DateTime lendedDate,
-    required DateTime dueDate,
+  Future<void> changeReadingStatus(
+    BookEntity book,
+    ReadingStatus status, {
+    int? pausedPage,
+    DateTime? completedDate,
   }) async {
     state = true;
-    try {
-      final EditBookUseCase editBook = ref.read(editBookUseCaseProvider);
-      final BookEntity updated = book.copyWith(
-        collectionStatus: CollectionStatus.lended,
-        lendedDate: Nullable<DateTime?>(lendedDate),
-        dueDate: Nullable<DateTime?>(dueDate),
-        readerId: Nullable<String?>(readerId),
-        collectedDate: Nullable<DateTime?>(book.collectedDate ?? DateTime.now()),
-        lastUpdated: DateTime.now(),
-      );
-      await editBook(updated);
-    } finally {
-      state = false;
-    }
-  }
 
-  /// Sets the reading status of a book.
-  Future<void> setReadingStatus(BookEntity book, ReadingStatus status) async {
-    state = true;
     try {
       final EditBookUseCase editBook = ref.read(editBookUseCaseProvider);
-      final BookEntity updated = book.copyWith(
-        readingStatus: status,
-        completedDate: status == ReadingStatus.completed
-            ? Nullable<DateTime?>(book.completedDate ?? DateTime.now())
-            : null,
-        lastUpdated: DateTime.now(),
-      );
+      BookEntity updated;
+
+      switch (status) {
+        case ReadingStatus.notStarted:
+          updated = book.copyWith(readingStatus: status, lastUpdated: DateTime.now());
+        case ReadingStatus.reading:
+          updated = book.copyWith(readingStatus: status, lastUpdated: DateTime.now());
+        case ReadingStatus.paused:
+          updated = book.copyWith(
+            readingStatus: status,
+            pausedPage: Nullable<int?>(pausedPage),
+            lastUpdated: DateTime.now(),
+          );
+        case ReadingStatus.completed:
+          updated = book.copyWith(
+            readingStatus: status,
+            pausedPage: const Nullable<int?>(null),
+            completedDate: Nullable<DateTime?>(completedDate),
+            lastUpdated: DateTime.now(),
+          );
+        case ReadingStatus.abandoned:
+          updated = book.copyWith(
+            readingStatus: status,
+            pausedPage: const Nullable<int?>(null),
+            lastUpdated: DateTime.now(),
+          );
+      }
+
       await editBook(updated);
     } finally {
       state = false;

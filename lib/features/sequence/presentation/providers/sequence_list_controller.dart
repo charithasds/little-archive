@@ -51,10 +51,9 @@ class SequenceListController extends _$SequenceListController {
 
       filtered = allSequences.where((SequenceEntity s) {
         final bool matchesName = s.name.toLowerCase().contains(q);
-        final bool matchesOtherName = (s.otherName ?? '').toLowerCase().contains(q);
         final bool matchesNotes = (s.notes ?? '').toLowerCase().contains(q);
 
-        return matchesName || matchesOtherName || matchesNotes;
+        return matchesName || matchesNotes;
       }).toList();
     }
 

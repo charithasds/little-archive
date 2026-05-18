@@ -134,12 +134,6 @@ class SequenceDetailPage extends ConsumerWidget {
                     DetailSection(
                       title: 'INFORMATION',
                       children: <Widget>[
-                        if (sequence.otherName != null && sequence.otherName!.isNotEmpty)
-                          DetailTile(
-                            label: 'Other Name',
-                            value: sequence.otherName!,
-                            leadingIcon: Icons.badge_rounded,
-                          ),
                         DetailTile(
                           label: 'Volumes Count',
                           value: '${sequence.sequenceVolumeIds.length} volumes',

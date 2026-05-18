@@ -7,11 +7,11 @@ import '../../../../features/author/presentation/pages/author_detail_page.dart';
 import '../../../../features/author/presentation/pages/author_list_page.dart';
 import '../../../../features/author/presentation/pages/upsert_author_page.dart';
 import '../../../../features/book/domain/entities/book_entity.dart';
+import '../../../../features/book/presentation/pages/book_collection_status_manage_page.dart';
+import '../../../../features/book/presentation/pages/book_data_quality_manage_page.dart';
 import '../../../../features/book/presentation/pages/book_detail_page.dart';
 import '../../../../features/book/presentation/pages/book_list_page.dart';
-import '../../../../features/book/presentation/pages/collection_status_page.dart';
-import '../../../../features/book/presentation/pages/data_quality_page.dart';
-import '../../../../features/book/presentation/pages/reading_status_page.dart';
+import '../../../../features/book/presentation/pages/book_reading_status_manage_page.dart';
 import '../../../../features/book/presentation/pages/upsert_book_page.dart';
 import '../../../../features/home/presentation/pages/home_page.dart';
 import '../../../../features/publisher/domain/entities/publisher_entity.dart';
@@ -209,17 +209,19 @@ class RouterService {
 
         GoRoute(
           path: 'collection-status',
-          builder: (BuildContext context, GoRouterState state) => const CollectionStatusPage(),
+          builder: (BuildContext context, GoRouterState state) =>
+              const BookCollectionStatusManagePage(),
         ),
 
         GoRoute(
           path: 'reading-status',
-          builder: (BuildContext context, GoRouterState state) => const ReadingStatusPage(),
+          builder: (BuildContext context, GoRouterState state) =>
+              const BookReadingStatusManagePage(),
         ),
 
         GoRoute(
           path: 'data-quality',
-          builder: (BuildContext context, GoRouterState state) => const DataQualityPage(),
+          builder: (BuildContext context, GoRouterState state) => const BookDataQualityManagePage(),
         ),
       ],
     ),

@@ -46,10 +46,6 @@ List<({String label, int count})>? sequencesMissingInfo(Ref ref) {
   int countWhere(bool Function(SequenceEntity) test) => sequences.where(test).length;
 
   return <({String label, int count})>[
-    (
-      label: 'No Alt. Name',
-      count: countWhere((SequenceEntity s) => s.otherName == null || s.otherName!.trim().isEmpty),
-    ),
     (label: 'No Volumes', count: countWhere((SequenceEntity s) => s.sequenceVolumeIds.isEmpty)),
   ];
 }

@@ -74,18 +74,6 @@ class SequenceListTile extends ConsumerWidget {
                         color: colorScheme.onSurface,
                       ),
                     ),
-                    if (sequence.otherName != null && sequence.otherName!.isNotEmpty) ...<Widget>[
-                      const SizedBox(height: 2),
-                      Text(
-                        sequence.otherName!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.primary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
                     const SizedBox(height: 2),
                     Text(
                       '$volumeCount ${volumeCount == 1 ? 'Volume' : 'Volumes'}',

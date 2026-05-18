@@ -33,7 +33,6 @@ class SequenceRepositoryImpl implements SequenceRepository {
       SequenceModel(
         id: sequence.id,
         name: sequence.name,
-        otherName: sequence.otherName,
         notes: sequence.notes,
         sequenceVolumeIds: sequence.sequenceVolumeIds,
         createdDate: sequence.createdDate,
@@ -57,7 +56,6 @@ class SequenceRepositoryImpl implements SequenceRepository {
       SequenceModel(
         id: sequence.id,
         name: sequence.name,
-        otherName: sequence.otherName,
         notes: sequence.notes,
         sequenceVolumeIds: sequence.sequenceVolumeIds,
         createdDate: sequence.createdDate,

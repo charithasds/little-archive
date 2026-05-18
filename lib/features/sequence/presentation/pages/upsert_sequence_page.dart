@@ -24,7 +24,6 @@ class UpsertSequencePage extends ConsumerStatefulWidget {
 class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _otherNameController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
 
   @override
@@ -33,7 +32,6 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
     if (widget.existingSequence != null) {
       final SequenceEntity sequence = widget.existingSequence!;
       _nameController.text = sequence.name;
-      _otherNameController.text = sequence.otherName ?? '';
       _notesController.text = sequence.notes ?? '';
     }
 
@@ -46,11 +44,7 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
     if (_formKey.currentState!.validate()) {
       final SequenceEntity? result = await ref
           .read(upsertSequenceControllerProvider.notifier)
-          .saveSequence(
-            name: _nameController.text.trim(),
-            otherName: _otherNameController.text.trim(),
-            notes: _notesController.text.trim(),
-          );
+          .saveSequence(name: _nameController.text.trim(), notes: _notesController.text.trim());
 
       if (result != null && mounted) {
         SnackBars.showSuccess(
@@ -66,7 +60,6 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
   @override
   void dispose() {
     _nameController.dispose();
-    _otherNameController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -119,14 +112,6 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
                   prefixIcon: Icons.layers_rounded,
                   maxLength: 200,
                   isRequired: true,
-                ),
-                const SizedBox(height: 16),
-                FormTextField(
-                  controller: _otherNameController,
-                  label: 'Other Name',
-                  hint: 'Alternative Name',
-                  prefixIcon: Icons.badge_rounded,
-                  maxLength: 200,
                 ),
               ],
             ),

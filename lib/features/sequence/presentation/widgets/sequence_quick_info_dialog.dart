@@ -38,12 +38,6 @@ class SequenceQuickInfoDialog extends ConsumerWidget {
             const InfoDialogCircleImage(icon: Icons.layers_rounded),
             const SizedBox(height: 16),
             Text(sequence.name, style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
-            if (sequence.otherName != null && sequence.otherName!.isNotEmpty)
-              Text(
-                sequence.otherName!,
-                style: theme.textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
             const Divider(height: 32),
             DetailTile(
               label: 'Volumes Count',

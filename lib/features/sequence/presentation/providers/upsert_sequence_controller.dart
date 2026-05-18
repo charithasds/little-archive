@@ -36,11 +36,7 @@ class UpsertSequenceController extends _$UpsertSequenceController {
     state = UpsertSequenceState(existingSequence: sequence);
   }
 
-  Future<SequenceEntity?> saveSequence({
-    required String name,
-    String? otherName,
-    String? notes,
-  }) async {
+  Future<SequenceEntity?> saveSequence({required String name, String? notes}) async {
     state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
     final UserEntity? user = ref.read(authStateProvider).value;
@@ -59,14 +55,12 @@ class UpsertSequenceController extends _$UpsertSequenceController {
     final SequenceEntity sequenceToSave = existingSequence != null
         ? existingSequence.copyWith(
             name: name,
-            otherName: Nullable<String?>(otherName?.isEmpty ?? true ? null : otherName),
             notes: Nullable<String?>(notes?.isEmpty ?? true ? null : notes),
             lastUpdated: DateTime.now(),
           )
         : SequenceEntity(
             id: generatedId,
             name: name,
-            otherName: otherName?.isEmpty ?? true ? null : otherName,
             notes: notes?.isEmpty ?? true ? null : notes,
             sequenceVolumeIds: const <String>[],
             createdDate: DateTime.now(),

@@ -34,14 +34,16 @@ enum _DQTab {
   final IconData icon;
 }
 
-class DataQualityPage extends ConsumerStatefulWidget {
-  const DataQualityPage({super.key});
+// ── Main Page ───────────────────────────────────────────────────────────────
+
+class BookDataQualityManagePage extends ConsumerStatefulWidget {
+  const BookDataQualityManagePage({super.key});
 
   @override
-  ConsumerState<DataQualityPage> createState() => _DataQualityPageState();
+  ConsumerState<BookDataQualityManagePage> createState() => _BookDataQualityManagePageState();
 }
 
-class _DataQualityPageState extends ConsumerState<DataQualityPage>
+class _BookDataQualityManagePageState extends ConsumerState<BookDataQualityManagePage>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
 
@@ -62,6 +64,37 @@ class _DataQualityPageState extends ConsumerState<DataQualityPage>
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme cs = theme.colorScheme;
 
+    final List<BookEntity>? books = ref.watch(booksStreamProvider).value;
+    final List<WorkEntity>? works = ref.watch(worksStreamProvider).value;
+    final List<AuthorEntity>? authors = ref.watch(authorsStreamProvider).value;
+    final List<TranslatorEntity>? translators = ref.watch(translatorsStreamProvider).value;
+    final List<PublisherEntity>? publishers = ref.watch(publishersStreamProvider).value;
+    final List<ReaderEntity>? readers = ref.watch(readersStreamProvider).value;
+    final List<SequenceEntity>? sequences = ref.watch(sequencesStreamProvider).value;
+
+    int? getCountFor(_DQTab tab) {
+      switch (tab) {
+        case _DQTab.books:
+          return books?.where((BookEntity b) => _missingForBook(b).isNotEmpty).length;
+        case _DQTab.works:
+          return works?.where((WorkEntity w) => _missingForWork(w).isNotEmpty).length;
+        case _DQTab.authors:
+          return authors?.where((AuthorEntity a) => _missingForAuthor(a).isNotEmpty).length;
+        case _DQTab.translators:
+          return translators
+              ?.where((TranslatorEntity t) => _missingForTranslator(t).isNotEmpty)
+              .length;
+        case _DQTab.publishers:
+          return publishers
+              ?.where((PublisherEntity p) => _missingForPublisher(p).isNotEmpty)
+              .length;
+        case _DQTab.readers:
+          return readers?.where((ReaderEntity r) => _missingForReader(r).isNotEmpty).length;
+        case _DQTab.sequences:
+          return sequences?.where((SequenceEntity s) => _missingForSequence(s).isNotEmpty).length;
+      }
+    }
+
     return Scaffold(
       backgroundColor: cs.surface,
       appBar: AppBar(
@@ -78,20 +111,50 @@ class _DataQualityPageState extends ConsumerState<DataQualityPage>
           unselectedLabelColor: cs.onSurfaceVariant,
           indicatorColor: cs.error,
           dividerColor: cs.outlineVariant.withValues(alpha: 0.4),
-          tabs: _DQTab.values
-              .map(
-                (_DQTab t) => Tab(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Icon(t.icon, size: 16),
-                      const SizedBox(width: 6),
-                      Text(t.label),
-                    ],
-                  ),
-                ),
-              )
-              .toList(),
+          tabs: _DQTab.values.map((_DQTab t) {
+            final int? count = getCountFor(t);
+            return Tab(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Icon(t.icon, size: 16),
+                  const SizedBox(width: 6),
+                  Text(t.label),
+                  if (count == null)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 6),
+                      child: SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            cs.error.withValues(alpha: 0.5),
+                          ),
+                        ),
+                      ),
+                    )
+                  else if (count > 0) ...<Widget>[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: cs.errorContainer,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '$count',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: cs.onErrorContainer,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            );
+          }).toList(),
         ),
       ),
       body: TabBarView(
@@ -110,9 +173,7 @@ class _DataQualityPageState extends ConsumerState<DataQualityPage>
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // ── Shared widgets ───────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
 
 /// Shows each entity in a list with missing-field chips and an Edit button.
 class _QualityListView<T> extends StatelessWidget {
@@ -137,7 +198,7 @@ class _QualityListView<T> extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Icon(emptyIcon, size: 64, color: cs.secondary.withValues(alpha: 0.6)),
+            Icon(emptyIcon, size: 64, color: cs.onSurfaceVariant.withValues(alpha: 0.4)),
             const SizedBox(height: 16),
             Text(
               emptyLabel,
@@ -173,9 +234,9 @@ class _QualityTile extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: cs.errorContainer.withValues(alpha: 0.6)),
+        side: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.4)),
       ),
-      color: cs.errorContainer.withValues(alpha: 0.1),
+      color: cs.errorContainer.withValues(alpha: 0.18),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -234,50 +295,48 @@ class _QualityTile extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // ── Books tab ────────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
+
+List<String> _missingForBook(BookEntity b) {
+  final List<String> missing = <String>[];
+  if (b.authorIds.isEmpty && !b.isTranslation) {
+    missing.add('No Authors');
+  }
+  if (b.isTranslation && b.translatorIds.isEmpty) {
+    missing.add('No Translators');
+  }
+  if (b.isTranslation && (b.originalTitle == null || b.originalTitle!.trim().isEmpty)) {
+    missing.add('No Original Title');
+  }
+  if (b.language == null) {
+    missing.add('No Language');
+  }
+  if (b.isTranslation && b.originalLanguage == null) {
+    missing.add('No Orig. Language');
+  }
+  if (b.genre == null) {
+    missing.add('No Genre');
+  }
+  if (b.isbn == null || b.isbn!.trim().isEmpty) {
+    missing.add('No ISBN');
+  }
+  if (b.noOfPages == null) {
+    missing.add('No Pages');
+  }
+  if (b.publisherId == null) {
+    missing.add('No Publisher');
+  }
+  if (b.publishedDate == null) {
+    missing.add('No Pub. Date');
+  }
+  if (b.sequenceVolumeIds.isEmpty) {
+    missing.add('No Sequences');
+  }
+  return missing;
+}
 
 class _BooksQualityTab extends ConsumerWidget {
   const _BooksQualityTab();
-
-  static List<String> _missingFor(BookEntity b) {
-    final List<String> missing = <String>[];
-    if (b.authorIds.isEmpty && !b.isTranslation) {
-      missing.add('No Authors');
-    }
-    if (b.isTranslation && b.translatorIds.isEmpty) {
-      missing.add('No Translators');
-    }
-    if (b.isTranslation && (b.originalTitle == null || b.originalTitle!.trim().isEmpty)) {
-      missing.add('No Original Title');
-    }
-    if (b.language == null) {
-      missing.add('No Language');
-    }
-    if (b.isTranslation && b.originalLanguage == null) {
-      missing.add('No Orig. Language');
-    }
-    if (b.genre == null) {
-      missing.add('No Genre');
-    }
-    if (b.isbn == null || b.isbn!.trim().isEmpty) {
-      missing.add('No ISBN');
-    }
-    if (b.noOfPages == null) {
-      missing.add('No Pages');
-    }
-    if (b.publisherId == null) {
-      missing.add('No Publisher');
-    }
-    if (b.publishedDate == null) {
-      missing.add('No Pub. Date');
-    }
-    if (b.sequenceVolumeIds.isEmpty) {
-      missing.add('No Sequences');
-    }
-    return missing;
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -287,53 +346,51 @@ class _BooksQualityTab extends ConsumerWidget {
     }
 
     final List<BookEntity> incomplete = books
-        .where((BookEntity b) => _missingFor(b).isNotEmpty)
+        .where((BookEntity b) => _missingForBook(b).isNotEmpty)
         .toList();
 
     return _QualityListView<BookEntity>(
       items: incomplete,
-      emptyLabel: 'All books have complete data ✓',
+      emptyLabel: 'All books have complete data',
       tileBuilder: (BuildContext context, BookEntity book) => _QualityTile(
         name: book.title,
-        missingChips: _missingFor(book),
+        missingChips: _missingForBook(book),
         onEdit: () => context.push('/books/upsert', extra: book),
       ),
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // ── Works tab ────────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
+
+List<String> _missingForWork(WorkEntity w) {
+  final List<String> missing = <String>[];
+  if (w.authorIds.isEmpty) {
+    missing.add('No Authors');
+  }
+  if (w.isTranslation && w.translatorIds.isEmpty) {
+    missing.add('No Translators');
+  }
+  if (w.isTranslation && (w.originalTitle == null || w.originalTitle!.trim().isEmpty)) {
+    missing.add('No Original Title');
+  }
+  if (w.language == null) {
+    missing.add('No Language');
+  }
+  if (w.isTranslation && w.originalLanguage == null) {
+    missing.add('No Orig. Language');
+  }
+  if (w.genre == null) {
+    missing.add('No Genre');
+  }
+  if (w.sequenceVolumeIds.isEmpty) {
+    missing.add('No Sequences');
+  }
+  return missing;
+}
 
 class _WorksQualityTab extends ConsumerWidget {
   const _WorksQualityTab();
-
-  static List<String> _missingFor(WorkEntity w) {
-    final List<String> missing = <String>[];
-    if (w.authorIds.isEmpty) {
-      missing.add('No Authors');
-    }
-    if (w.isTranslation && w.translatorIds.isEmpty) {
-      missing.add('No Translators');
-    }
-    if (w.isTranslation && (w.originalTitle == null || w.originalTitle!.trim().isEmpty)) {
-      missing.add('No Original Title');
-    }
-    if (w.language == null) {
-      missing.add('No Language');
-    }
-    if (w.isTranslation && w.originalLanguage == null) {
-      missing.add('No Orig. Language');
-    }
-    if (w.genre == null) {
-      missing.add('No Genre');
-    }
-    if (w.sequenceVolumeIds.isEmpty) {
-      missing.add('No Sequences');
-    }
-    return missing;
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -343,47 +400,45 @@ class _WorksQualityTab extends ConsumerWidget {
     }
 
     final List<WorkEntity> incomplete = works
-        .where((WorkEntity w) => _missingFor(w).isNotEmpty)
+        .where((WorkEntity w) => _missingForWork(w).isNotEmpty)
         .toList();
 
     return _QualityListView<WorkEntity>(
       items: incomplete,
-      emptyLabel: 'All works have complete data ✓',
+      emptyLabel: 'All works have complete data',
       tileBuilder: (BuildContext context, WorkEntity work) => _QualityTile(
         name: work.title,
-        missingChips: _missingFor(work),
+        missingChips: _missingForWork(work),
         onEdit: () => context.push('/works/upsert', extra: work),
       ),
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // ── Authors tab ──────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
+
+List<String> _missingForAuthor(AuthorEntity a) {
+  final List<String> missing = <String>[];
+  if (a.image == null || a.image!.trim().isEmpty) {
+    missing.add('No Photo');
+  }
+  if (a.otherName == null || a.otherName!.trim().isEmpty) {
+    missing.add('No Alt. Name');
+  }
+  if (a.website == null || a.website!.trim().isEmpty) {
+    missing.add('No Website');
+  }
+  if (a.bookIds.isEmpty) {
+    missing.add('No Books');
+  }
+  if (a.workIds.isEmpty) {
+    missing.add('No Works');
+  }
+  return missing;
+}
 
 class _AuthorsQualityTab extends ConsumerWidget {
   const _AuthorsQualityTab();
-
-  static List<String> _missingFor(AuthorEntity a) {
-    final List<String> missing = <String>[];
-    if (a.image == null || a.image!.trim().isEmpty) {
-      missing.add('No Photo');
-    }
-    if (a.otherName == null || a.otherName!.trim().isEmpty) {
-      missing.add('No Alt. Name');
-    }
-    if (a.website == null || a.website!.trim().isEmpty) {
-      missing.add('No Website');
-    }
-    if (a.bookIds.isEmpty) {
-      missing.add('No Books');
-    }
-    if (a.workIds.isEmpty) {
-      missing.add('No Works');
-    }
-    return missing;
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -393,47 +448,45 @@ class _AuthorsQualityTab extends ConsumerWidget {
     }
 
     final List<AuthorEntity> incomplete = authors
-        .where((AuthorEntity a) => _missingFor(a).isNotEmpty)
+        .where((AuthorEntity a) => _missingForAuthor(a).isNotEmpty)
         .toList();
 
     return _QualityListView<AuthorEntity>(
       items: incomplete,
-      emptyLabel: 'All authors have complete data ✓',
+      emptyLabel: 'All authors have complete data',
       tileBuilder: (BuildContext context, AuthorEntity author) => _QualityTile(
         name: author.name,
-        missingChips: _missingFor(author),
+        missingChips: _missingForAuthor(author),
         onEdit: () => context.push('/authors/upsert', extra: author),
       ),
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // ── Translators tab ──────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
+
+List<String> _missingForTranslator(TranslatorEntity t) {
+  final List<String> missing = <String>[];
+  if (t.image == null || t.image!.trim().isEmpty) {
+    missing.add('No Photo');
+  }
+  if (t.otherName == null || t.otherName!.trim().isEmpty) {
+    missing.add('No Alt. Name');
+  }
+  if (t.website == null || t.website!.trim().isEmpty) {
+    missing.add('No Website');
+  }
+  if (t.bookIds.isEmpty) {
+    missing.add('No Books');
+  }
+  if (t.workIds.isEmpty) {
+    missing.add('No Works');
+  }
+  return missing;
+}
 
 class _TranslatorsQualityTab extends ConsumerWidget {
   const _TranslatorsQualityTab();
-
-  static List<String> _missingFor(TranslatorEntity t) {
-    final List<String> missing = <String>[];
-    if (t.image == null || t.image!.trim().isEmpty) {
-      missing.add('No Photo');
-    }
-    if (t.otherName == null || t.otherName!.trim().isEmpty) {
-      missing.add('No Alt. Name');
-    }
-    if (t.website == null || t.website!.trim().isEmpty) {
-      missing.add('No Website');
-    }
-    if (t.bookIds.isEmpty) {
-      missing.add('No Books');
-    }
-    if (t.workIds.isEmpty) {
-      missing.add('No Works');
-    }
-    return missing;
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -443,50 +496,48 @@ class _TranslatorsQualityTab extends ConsumerWidget {
     }
 
     final List<TranslatorEntity> incomplete = translators
-        .where((TranslatorEntity t) => _missingFor(t).isNotEmpty)
+        .where((TranslatorEntity t) => _missingForTranslator(t).isNotEmpty)
         .toList();
 
     return _QualityListView<TranslatorEntity>(
       items: incomplete,
-      emptyLabel: 'All translators have complete data ✓',
+      emptyLabel: 'All translators have complete data',
       tileBuilder: (BuildContext context, TranslatorEntity translator) => _QualityTile(
         name: translator.name,
-        missingChips: _missingFor(translator),
+        missingChips: _missingForTranslator(translator),
         onEdit: () => context.push('/translators/upsert', extra: translator),
       ),
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // ── Publishers tab ───────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
+
+List<String> _missingForPublisher(PublisherEntity p) {
+  final List<String> missing = <String>[];
+  if (p.logo == null || p.logo!.trim().isEmpty) {
+    missing.add('No Logo');
+  }
+  if (p.otherName == null || p.otherName!.trim().isEmpty) {
+    missing.add('No Alt. Name');
+  }
+  if (p.website == null || p.website!.trim().isEmpty) {
+    missing.add('No Website');
+  }
+  if (p.email == null || p.email!.trim().isEmpty) {
+    missing.add('No Email');
+  }
+  if (p.phoneNumber == null || p.phoneNumber!.trim().isEmpty) {
+    missing.add('No Phone');
+  }
+  if (p.bookIds.isEmpty) {
+    missing.add('No Books');
+  }
+  return missing;
+}
 
 class _PublishersQualityTab extends ConsumerWidget {
   const _PublishersQualityTab();
-
-  static List<String> _missingFor(PublisherEntity p) {
-    final List<String> missing = <String>[];
-    if (p.logo == null || p.logo!.trim().isEmpty) {
-      missing.add('No Logo');
-    }
-    if (p.otherName == null || p.otherName!.trim().isEmpty) {
-      missing.add('No Alt. Name');
-    }
-    if (p.website == null || p.website!.trim().isEmpty) {
-      missing.add('No Website');
-    }
-    if (p.email == null || p.email!.trim().isEmpty) {
-      missing.add('No Email');
-    }
-    if (p.phoneNumber == null || p.phoneNumber!.trim().isEmpty) {
-      missing.add('No Phone');
-    }
-    if (p.bookIds.isEmpty) {
-      missing.add('No Books');
-    }
-    return missing;
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -496,47 +547,45 @@ class _PublishersQualityTab extends ConsumerWidget {
     }
 
     final List<PublisherEntity> incomplete = publishers
-        .where((PublisherEntity p) => _missingFor(p).isNotEmpty)
+        .where((PublisherEntity p) => _missingForPublisher(p).isNotEmpty)
         .toList();
 
     return _QualityListView<PublisherEntity>(
       items: incomplete,
-      emptyLabel: 'All publishers have complete data ✓',
+      emptyLabel: 'All publishers have complete data',
       tileBuilder: (BuildContext context, PublisherEntity publisher) => _QualityTile(
         name: publisher.name,
-        missingChips: _missingFor(publisher),
+        missingChips: _missingForPublisher(publisher),
         onEdit: () => context.push('/publishers/upsert', extra: publisher),
       ),
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // ── Readers tab ──────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
+
+List<String> _missingForReader(ReaderEntity r) {
+  final List<String> missing = <String>[];
+  if (r.image == null || r.image!.trim().isEmpty) {
+    missing.add('No Photo');
+  }
+  if (r.otherName == null || r.otherName!.trim().isEmpty) {
+    missing.add('No Alt. Name');
+  }
+  if (r.email == null || r.email!.trim().isEmpty) {
+    missing.add('No Email');
+  }
+  if (r.phoneNumber == null || r.phoneNumber!.trim().isEmpty) {
+    missing.add('No Phone');
+  }
+  if (r.bookIds.isEmpty) {
+    missing.add('No Books');
+  }
+  return missing;
+}
 
 class _ReadersQualityTab extends ConsumerWidget {
   const _ReadersQualityTab();
-
-  static List<String> _missingFor(ReaderEntity r) {
-    final List<String> missing = <String>[];
-    if (r.image == null || r.image!.trim().isEmpty) {
-      missing.add('No Photo');
-    }
-    if (r.otherName == null || r.otherName!.trim().isEmpty) {
-      missing.add('No Alt. Name');
-    }
-    if (r.email == null || r.email!.trim().isEmpty) {
-      missing.add('No Email');
-    }
-    if (r.phoneNumber == null || r.phoneNumber!.trim().isEmpty) {
-      missing.add('No Phone');
-    }
-    if (r.bookIds.isEmpty) {
-      missing.add('No Books');
-    }
-    return missing;
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -546,38 +595,33 @@ class _ReadersQualityTab extends ConsumerWidget {
     }
 
     final List<ReaderEntity> incomplete = readers
-        .where((ReaderEntity r) => _missingFor(r).isNotEmpty)
+        .where((ReaderEntity r) => _missingForReader(r).isNotEmpty)
         .toList();
 
     return _QualityListView<ReaderEntity>(
       items: incomplete,
-      emptyLabel: 'All readers have complete data ✓',
+      emptyLabel: 'All readers have complete data',
       tileBuilder: (BuildContext context, ReaderEntity reader) => _QualityTile(
         name: reader.name,
-        missingChips: _missingFor(reader),
+        missingChips: _missingForReader(reader),
         onEdit: () => context.push('/readers/upsert', extra: reader),
       ),
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // ── Sequences tab ────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
+
+List<String> _missingForSequence(SequenceEntity s) {
+  final List<String> missing = <String>[];
+  if (s.sequenceVolumeIds.isEmpty) {
+    missing.add('No Volumes');
+  }
+  return missing;
+}
 
 class _SequencesQualityTab extends ConsumerWidget {
   const _SequencesQualityTab();
-
-  static List<String> _missingFor(SequenceEntity s) {
-    final List<String> missing = <String>[];
-    if (s.otherName == null || s.otherName!.trim().isEmpty) {
-      missing.add('No Alt. Name');
-    }
-    if (s.sequenceVolumeIds.isEmpty) {
-      missing.add('No Volumes');
-    }
-    return missing;
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -587,15 +631,15 @@ class _SequencesQualityTab extends ConsumerWidget {
     }
 
     final List<SequenceEntity> incomplete = sequences
-        .where((SequenceEntity s) => _missingFor(s).isNotEmpty)
+        .where((SequenceEntity s) => _missingForSequence(s).isNotEmpty)
         .toList();
 
     return _QualityListView<SequenceEntity>(
       items: incomplete,
-      emptyLabel: 'All sequences have complete data ✓',
+      emptyLabel: 'All sequences have complete data',
       tileBuilder: (BuildContext context, SequenceEntity sequence) => _QualityTile(
         name: sequence.name,
-        missingChips: _missingFor(sequence),
+        missingChips: _missingForSequence(sequence),
         onEdit: () => context.push('/sequences/upsert', extra: sequence),
       ),
     );
