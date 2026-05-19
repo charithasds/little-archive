@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../theme/presentation/providers/theme_provider.dart';
 import '../utils/buttons.dart';
 
-class LoadingFilledButton extends StatelessWidget {
+class LoadingFilledButton extends ConsumerWidget {
   const LoadingFilledButton({
     super.key,
     required this.onPressed,
@@ -17,8 +19,8 @@ class LoadingFilledButton extends StatelessWidget {
   final IconData? icon;
 
   @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
 
     return FilledButton(
       onPressed: isLoading ? null : onPressed,

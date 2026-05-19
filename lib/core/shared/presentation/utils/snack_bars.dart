@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../theme/presentation/providers/theme_provider.dart';
 
 class SnackBars {
   SnackBars._();
@@ -52,7 +55,7 @@ class SnackBars {
     if (effectiveContext == null) {
       return const ColorScheme.light();
     }
-    return Theme.of(effectiveContext).colorScheme;
+    return ProviderScope.containerOf(effectiveContext).read(activeThemeDataProvider).colorScheme;
   }
 
   static void _showSnackBar({

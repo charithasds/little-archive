@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class SearchField extends StatefulWidget {
+import '../../../theme/presentation/providers/theme_provider.dart';
+
+class SearchField extends ConsumerStatefulWidget {
   const SearchField({required this.onChanged, this.hintText = 'Search...', super.key});
 
   final ValueChanged<String> onChanged;
   final String hintText;
 
   @override
-  State<SearchField> createState() => _SearchFieldState();
+  ConsumerState<SearchField> createState() => _SearchFieldState();
 }
 
-class _SearchFieldState extends State<SearchField> {
+class _SearchFieldState extends ConsumerState<SearchField> {
   final TextEditingController _controller = TextEditingController();
 
   @override
@@ -21,7 +24,7 @@ class _SearchFieldState extends State<SearchField> {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme cs = theme.colorScheme;
 
     return Padding(

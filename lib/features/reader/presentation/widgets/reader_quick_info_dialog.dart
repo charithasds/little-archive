@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/widgets/detail_tile.dart';
 import '../../../../core/shared/presentation/widgets/info_dialog_circle_image.dart';
@@ -63,9 +64,7 @@ class ReaderQuickInfoDialog extends ConsumerWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: const Text('Reader Info'),
       content: SingleChildScrollView(child: SizedBox(width: 450, child: content)),
-      actions: <Widget>[
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close')),
-      ],
+      actions: <Widget>[TextButton(onPressed: () => context.pop(), child: const Text('Close'))],
     );
   }
 }

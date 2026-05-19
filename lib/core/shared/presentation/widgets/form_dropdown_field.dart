@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../theme/presentation/providers/theme_provider.dart';
 import 'form_decoration.dart';
 
-class FormDropdownField<T> extends StatelessWidget {
+class FormDropdownField<T> extends ConsumerWidget {
   const FormDropdownField({
     super.key,
     required this.label,
@@ -23,8 +25,8 @@ class FormDropdownField<T> extends StatelessWidget {
   final bool isNullable;
 
   @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
 
     return DropdownButtonFormField<T>(

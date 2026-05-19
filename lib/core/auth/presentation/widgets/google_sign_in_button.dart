@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../shared/presentation/utils/snack_bars.dart';
+import '../../../theme/presentation/providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
 
 class GoogleSignInButton extends ConsumerStatefulWidget {
@@ -18,7 +19,7 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
     final AsyncValue<void> authControllerState = ref.watch(authControllerProvider);
     final bool isLoading = authControllerState.isLoading || _isLocalLoading;

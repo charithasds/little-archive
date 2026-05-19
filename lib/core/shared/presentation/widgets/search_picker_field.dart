@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../theme/presentation/providers/theme_provider.dart';
 import 'form_decoration.dart';
 
 class SearchPickerField<T> extends ConsumerStatefulWidget {
@@ -38,7 +39,7 @@ class SearchPickerField<T> extends ConsumerStatefulWidget {
 class _SearchPickerFieldState<T> extends ConsumerState<SearchPickerField<T>> {
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
 
     return InkWell(
@@ -73,7 +74,7 @@ class _SearchPickerFieldState<T> extends ConsumerState<SearchPickerField<T>> {
   }
 
   void _showPicker(BuildContext context) {
-    final ColorScheme cs = Theme.of(context).colorScheme;
+    final ColorScheme cs = ref.read(activeThemeDataProvider).colorScheme;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -88,7 +89,7 @@ class _SearchPickerFieldState<T> extends ConsumerState<SearchPickerField<T>> {
         itemLabel: widget.itemLabel,
         onSelected: (T? val) {
           widget.onChanged(val);
-          Navigator.pop(context);
+          context.pop();
         },
         onAdd: widget.onAdd,
         isNullable: widget.isNullable,
@@ -134,7 +135,8 @@ class _PickerSheetState<T> extends ConsumerState<_PickerSheet<T>> {
   @override
   Widget build(BuildContext context) {
     final AsyncValue<List<T>> itemsAsync = ref.watch(widget.itemsProvider);
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
+    final ColorScheme colorScheme = theme.colorScheme;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.7,
@@ -147,7 +149,7 @@ class _PickerSheetState<T> extends ConsumerState<_PickerSheet<T>> {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Row(
               children: <Widget>[
-                Text('Select ${widget.label}', style: Theme.of(context).textTheme.titleLarge),
+                Text('Select ${widget.label}', style: theme.textTheme.titleLarge),
                 const Spacer(),
                 if (widget.onAdd != null)
                   IconButton.filledTonal(
@@ -159,10 +161,7 @@ class _PickerSheetState<T> extends ConsumerState<_PickerSheet<T>> {
                     },
                     icon: const Icon(Icons.add_rounded),
                   ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close_rounded),
-                ),
+                IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.close_rounded)),
               ],
             ),
           ),

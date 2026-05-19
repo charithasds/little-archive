@@ -683,11 +683,11 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                               ),
                               actions: <Widget>[
                                 TextButton(
-                                  onPressed: () => Navigator.pop(context, false),
+                                  onPressed: () => context.pop(false),
                                   child: const Text('Cancel'),
                                 ),
                                 TextButton(
-                                  onPressed: () => Navigator.pop(context, true),
+                                  onPressed: () => context.pop(true),
                                   child: const Text('Unlink & Proceed'),
                                 ),
                               ],

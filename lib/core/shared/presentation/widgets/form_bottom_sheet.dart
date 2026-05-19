@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class FormBottomSheet extends StatelessWidget {
+import '../../../theme/presentation/providers/theme_provider.dart';
+
+class FormBottomSheet extends ConsumerWidget {
   const FormBottomSheet({super.key, required this.title, required this.child, this.actions});
 
   final String title;
@@ -10,8 +12,8 @@ class FormBottomSheet extends StatelessWidget {
   final List<Widget>? actions;
 
   @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
 
     return Material(

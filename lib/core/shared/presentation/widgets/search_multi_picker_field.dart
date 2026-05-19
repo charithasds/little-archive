@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../theme/presentation/providers/theme_provider.dart';
 import 'form_decoration.dart';
 
 class SearchMultiPickerField<T> extends ConsumerStatefulWidget {
@@ -47,7 +48,7 @@ class _SearchMultiPickerFieldState<T> extends ConsumerState<SearchMultiPickerFie
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
 
     return Column(
@@ -103,7 +104,7 @@ class _SearchMultiPickerFieldState<T> extends ConsumerState<SearchMultiPickerFie
   }
 
   void _showPicker(BuildContext context) {
-    final ColorScheme cs = Theme.of(context).colorScheme;
+    final ColorScheme cs = ref.read(activeThemeDataProvider).colorScheme;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -180,7 +181,8 @@ class _MultiPickerSheetState<T> extends ConsumerState<_MultiPickerSheet<T>> {
   @override
   Widget build(BuildContext context) {
     final AsyncValue<List<T>> itemsAsync = ref.watch(widget.itemsProvider);
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
+    final ColorScheme colorScheme = theme.colorScheme;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.7,
@@ -193,7 +195,7 @@ class _MultiPickerSheetState<T> extends ConsumerState<_MultiPickerSheet<T>> {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Row(
               children: <Widget>[
-                Text('Select ${widget.label}', style: Theme.of(context).textTheme.titleLarge),
+                Text('Select ${widget.label}', style: theme.textTheme.titleLarge),
                 const Spacer(),
                 if (widget.onAdd != null)
                   IconButton.filledTonal(
@@ -207,10 +209,7 @@ class _MultiPickerSheetState<T> extends ConsumerState<_MultiPickerSheet<T>> {
                     },
                     icon: const Icon(Icons.add_rounded),
                   ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close_rounded),
-                ),
+                IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.close_rounded)),
               ],
             ),
           ),
@@ -307,7 +306,7 @@ class _MultiPickerSheetState<T> extends ConsumerState<_MultiPickerSheet<T>> {
             child: FilledButton(
               onPressed: () {
                 widget.onChanged(_currentSelections);
-                Navigator.pop(context);
+                context.pop();
               },
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(56),

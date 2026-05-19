@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../theme/presentation/providers/theme_provider.dart';
 import '../../domain/error/exceptions.dart';
 import 'snack_bars.dart';
 
@@ -13,36 +16,40 @@ class AppDialogs {
     required String content,
     required String confirmLabel,
   }) async {
-    final ThemeData theme = Theme.of(context);
-    final ColorScheme cs = theme.colorScheme;
-
     final bool? result = await showDialog<bool>(
       context: context,
-      builder: (BuildContext ctx) => AlertDialog(
-        icon: Icon(Icons.warning_rounded, color: cs.error, size: 40),
-        iconPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-        title: Text(title),
-        titleTextStyle: theme.textTheme.titleLarge?.copyWith(
-          color: cs.onSurface,
-          fontWeight: FontWeight.w600,
-        ),
-        content: Text(
-          content,
-          style: theme.textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
-        ),
-        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        actions: <Widget>[
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: cs.error,
-              foregroundColor: cs.onError,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      builder: (BuildContext _) => Consumer(
+        builder: (BuildContext context, WidgetRef ref, Widget? child) {
+          final ThemeData theme = ref.watch(activeThemeDataProvider);
+          final ColorScheme cs = theme.colorScheme;
+
+          return AlertDialog(
+            icon: Icon(Icons.warning_rounded, color: cs.error, size: 40),
+            iconPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+            title: Text(title),
+            titleTextStyle: theme.textTheme.titleLarge?.copyWith(
+              color: cs.onSurface,
+              fontWeight: FontWeight.w600,
             ),
-            child: Text(confirmLabel),
-          ),
-        ],
+            content: Text(
+              content,
+              style: theme.textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
+            ),
+            actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            actions: <Widget>[
+              TextButton(onPressed: () => context.pop(false), child: const Text('Cancel')),
+              FilledButton(
+                onPressed: () => context.pop(true),
+                style: FilledButton.styleFrom(
+                  backgroundColor: cs.error,
+                  foregroundColor: cs.onError,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: Text(confirmLabel),
+              ),
+            ],
+          );
+        },
       ),
     );
     return result ?? false;

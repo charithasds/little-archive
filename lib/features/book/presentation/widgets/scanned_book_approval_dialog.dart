@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:string_similarity/string_similarity.dart';
 
 import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
+import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../author/domain/entities/author_entity.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../../translator/domain/entities/translator_entity.dart';
@@ -302,13 +304,13 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
     ),
   );
 
-  Widget _buildStaticTile(String key, String title, String subtitle) {
+  Widget _buildStaticTile(String key, String title, String subtitle, ThemeData theme) {
     if (!_approvals.containsKey(key)) {
       return const SizedBox.shrink();
     }
     return CheckboxListTile(
-      title: Text(title, style: Theme.of(context).textTheme.titleMedium),
-      subtitle: Text(subtitle, style: TextStyle(color: Theme.of(context).colorScheme.primary)),
+      title: Text(title, style: theme.textTheme.titleMedium),
+      subtitle: Text(subtitle, style: TextStyle(color: theme.colorScheme.primary)),
       value: _approvals[key] ?? false,
       onChanged: (bool? val) {
         if (val != null) {
@@ -322,22 +324,18 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
+
     if (widget.scannedBook.analysisError != null) {
       return AlertDialog(
-        icon: Icon(
-          Icons.error_outline_rounded,
-          color: Theme.of(context).colorScheme.error,
-          size: 48,
-        ),
+        icon: Icon(Icons.error_outline_rounded, color: theme.colorScheme.error, size: 48),
         title: const Text('Scan Failed'),
         content: Text(
           widget.scannedBook.analysisError!,
           textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyLarge,
+          style: theme.textTheme.bodyLarge,
         ),
-        actions: <Widget>[
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK')),
-        ],
+        actions: <Widget>[TextButton(onPressed: () => context.pop(), child: const Text('OK'))],
       );
     }
 
@@ -354,23 +352,29 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
             const SizedBox(height: 16),
             if (_approvals.containsKey('title'))
               _buildEditableTile('title', 'Title', _titleController),
-            _buildStaticTile('isTranslation', 'Is Translation?', b.isTranslation ? 'Yes' : 'No'),
+            _buildStaticTile(
+              'isTranslation',
+              'Is Translation?',
+              b.isTranslation ? 'Yes' : 'No',
+              theme,
+            ),
             if (_approvals.containsKey('isbn')) _buildEditableTile('isbn', 'ISBN', _isbnController),
             if (_approvals.containsKey('originalTitle'))
               _buildEditableTile('originalTitle', 'Original Title', _originalTitleController),
             if (b.language != null)
-              _buildStaticTile('language', 'Language', b.language!.clientValue),
+              _buildStaticTile('language', 'Language', b.language!.clientValue, theme),
             if (b.originalLanguage != null)
               _buildStaticTile(
                 'originalLanguage',
                 'Original Language',
                 b.originalLanguage!.clientValue,
+                theme,
               ),
-            if (b.genre != null) _buildStaticTile('genre', 'Genre', b.genre!.clientValue),
+            if (b.genre != null) _buildStaticTile('genre', 'Genre', b.genre!.clientValue, theme),
 
             if (widget.scannedBook.authors.isNotEmpty) ...<Widget>[
               const Divider(height: 32),
-              Text('Authors', style: Theme.of(context).textTheme.titleLarge),
+              Text('Authors', style: theme.textTheme.titleLarge),
               const SizedBox(height: 8),
               for (final ScannedNameEntity sn in widget.scannedBook.authors)
                 _buildMatchSection(
@@ -385,7 +389,7 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
 
             if (widget.scannedBook.translators.isNotEmpty) ...<Widget>[
               const Divider(height: 32),
-              Text('Translators', style: Theme.of(context).textTheme.titleLarge),
+              Text('Translators', style: theme.textTheme.titleLarge),
               const SizedBox(height: 8),
               for (final ScannedNameEntity sn in widget.scannedBook.translators)
                 _buildMatchSection(
@@ -400,7 +404,7 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
 
             if (widget.scannedBook.publisher != null) ...<Widget>[
               const Divider(height: 32),
-              Text('Publisher', style: Theme.of(context).textTheme.titleLarge),
+              Text('Publisher', style: theme.textTheme.titleLarge),
               const SizedBox(height: 8),
               _buildMatchSection(
                 detectedKey: widget.scannedBook.publisher!.name,
@@ -415,7 +419,7 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
         ),
       ),
       actions: <Widget>[
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+        TextButton(onPressed: () => context.pop(), child: const Text('Cancel')),
         FilledButton(
           onPressed: () {
             final BookEntity approvedBook = BookEntity(
@@ -502,7 +506,7 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
               newPublisher: newPublisher,
             );
 
-            Navigator.of(context).pop(result);
+            context.pop(result);
           },
           child: const Text('Apply'),
         ),

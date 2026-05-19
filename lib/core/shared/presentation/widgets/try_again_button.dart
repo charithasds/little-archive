@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class TryAgainButton extends StatelessWidget {
+import '../../../theme/presentation/providers/theme_provider.dart';
+
+class TryAgainButton extends ConsumerWidget {
   const TryAgainButton({required this.onTap, super.key});
 
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
 
     return FilledButton(
