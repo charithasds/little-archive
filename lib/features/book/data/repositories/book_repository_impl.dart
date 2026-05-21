@@ -4,13 +4,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/shared/data/services/relationship_sync_service.dart';
-import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/enums/compilation_type.dart';
 import '../../../../core/shared/domain/enums/language.dart';
 import '../../../../core/shared/domain/enums/original_language.dart';
-import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
-import '../../../../core/shared/domain/utils/string_extensions.dart';
 import '../../../../core/shared/presentation/providers/firebase_provider.dart';
 import '../../../sequence/data/repositories/sequence_volume_repository_impl.dart';
 import '../../../sequence/domain/repositories/sequence_volume_repository.dart';
@@ -19,10 +16,10 @@ import '../../../work/domain/entities/work_entity.dart';
 import '../../../work/domain/repositories/work_repository.dart';
 import '../../domain/entities/book_entity.dart';
 import '../../domain/entities/scan/scanned_book_entity.dart';
-import '../../domain/entities/scan/scanned_name_entity.dart';
 import '../../domain/repositories/book_repository.dart';
 import '../datasources/book_remote_datasource.dart';
 import '../models/book_model.dart';
+import '../models/scanned_book_model.dart';
 
 part 'book_repository_impl.g.dart';
 
@@ -229,83 +226,8 @@ class BookRepositoryImpl implements BookRepository {
   @override
   Future<ScannedBookEntity> scanBookCover(Uint8List imageBytes) async {
     final Map<String, dynamic> data = await remoteDataSource.scanBookCover(imageBytes);
-    final String title = data['title'] as String? ?? '';
-    final bool isTranslation = data['isTranslation'] as bool? ?? false;
-    final String? languageStr = data['language'] as String?;
-    final Language? language;
-    final String? originalTitle = data['originalTitle'] as String?;
-    final String? originalLanguageStr = data['originalLanguage'] as String?;
-    final OriginalLanguage? originalLanguage;
-    final List<dynamic> authorsRaw = data['authorNames'] as List<dynamic>? ?? <dynamic>[];
-    final List<ScannedNameEntity> authors = authorsRaw.map((dynamic e) {
-      final Map<String, dynamic> map = e as Map<String, dynamic>;
-      final String name = map['name'] as String? ?? '';
-      final String? otherName = map['otherName'] as String?;
 
-      return ScannedNameEntity(name: name.toTitleCase(), otherName: otherName?.toTitleCase());
-    }).toList();
-    final List<dynamic> translatorsRaw = data['translatorNames'] as List<dynamic>? ?? <dynamic>[];
-    final List<ScannedNameEntity> translators = translatorsRaw.map((dynamic e) {
-      final Map<String, dynamic> map = e as Map<String, dynamic>;
-      final String name = map['name'] as String? ?? '';
-      final String? otherName = map['otherName'] as String?;
-
-      return ScannedNameEntity(name: name.toTitleCase(), otherName: otherName?.toTitleCase());
-    }).toList();
-    final dynamic publisherRaw = data['publisher'];
-    final ScannedNameEntity? publisher;
-    final String? isbn = (data['isbn'] as String?).cleanDummyData;
-    BookEntity bookEntity;
-
-    if (languageStr != null) {
-      language = Language.values.where((Language e) => e.name == languageStr).firstOrNull;
-    } else {
-      language = null;
-    }
-
-    if (originalLanguageStr != null) {
-      originalLanguage = OriginalLanguage.values
-          .where((OriginalLanguage e) => e.name == originalLanguageStr)
-          .firstOrNull;
-    } else {
-      originalLanguage = null;
-    }
-
-    bookEntity = BookEntity(
-      id: '',
-      title: title,
-      compilationType: CompilationType.single,
-      isTranslation: isTranslation,
-      language: language,
-      originalTitle: originalTitle,
-      originalLanguage: originalLanguage,
-      collectionStatus: CollectionStatus.collected,
-      readingStatus: ReadingStatus.notStarted,
-      isbn: isbn,
-      authorIds: const <String>[],
-      translatorIds: const <String>[],
-      workIds: const <String>[],
-      sequenceVolumeIds: const <String>[],
-      createdDate: DateTime.now(),
-      lastUpdated: DateTime.now(),
-    );
-
-    if (publisherRaw != null && publisherRaw is Map<String, dynamic>) {
-      final String name = publisherRaw['name'] as String? ?? '';
-      final String? otherName = publisherRaw['otherName'] as String?;
-
-      publisher = ScannedNameEntity(name: name.toTitleCase(), otherName: otherName?.toTitleCase());
-    } else {
-      publisher = null;
-    }
-
-    return ScannedBookEntity(
-      book: bookEntity,
-      authors: authors,
-      translators: translators,
-      publisher: publisher,
-      analysisError: data['analysisError'] as String?,
-    );
+    return ScannedBookModel.fromMap(data);
   }
 }
 

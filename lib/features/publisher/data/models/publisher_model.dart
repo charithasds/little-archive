@@ -13,6 +13,7 @@ class PublisherModel extends PublisherEntity {
     super.facebook,
     super.phoneNumber,
     required super.bookIds,
+    super.bookFairPublisherId,
     required super.createdDate,
     required super.lastUpdated,
   });
@@ -27,6 +28,7 @@ class PublisherModel extends PublisherEntity {
     facebook: map['facebook'] as String?,
     phoneNumber: map['phoneNumber'] as String?,
     bookIds: List<String>.from(map['bookIds'] as Iterable<dynamic>? ?? <String>[]),
+    bookFairPublisherId: map['bookFairPublisherId'] as String?,
     createdDate: (map['createdDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
     lastUpdated: (map['lastUpdated'] as Timestamp?)?.toDate() ?? DateTime.now(),
   );
@@ -41,6 +43,7 @@ class PublisherModel extends PublisherEntity {
     'facebook': facebook,
     'phoneNumber': phoneNumber,
     'bookIds': bookIds,
+    'bookFairPublisherId': bookFairPublisherId,
     'createdDate': Timestamp.fromDate(createdDate),
     'lastUpdated': Timestamp.fromDate(lastUpdated),
   };

@@ -13,6 +13,7 @@ class PublisherEntity extends Equatable {
     this.facebook,
     this.phoneNumber,
     required this.bookIds,
+    this.bookFairPublisherId,
     required this.createdDate,
     required this.lastUpdated,
   });
@@ -26,6 +27,7 @@ class PublisherEntity extends Equatable {
   final String? facebook;
   final String? phoneNumber;
   final List<String> bookIds;
+  final String? bookFairPublisherId;
   final DateTime createdDate;
   final DateTime lastUpdated;
 
@@ -42,6 +44,7 @@ class PublisherEntity extends Equatable {
     Nullable<String?>? facebook,
     Nullable<String?>? phoneNumber,
     List<String>? bookIds,
+    Nullable<String?>? bookFairPublisherId,
     DateTime? createdDate,
     DateTime? lastUpdated,
   }) => PublisherEntity(
@@ -54,6 +57,9 @@ class PublisherEntity extends Equatable {
     facebook: facebook != null ? facebook.value : this.facebook,
     phoneNumber: phoneNumber != null ? phoneNumber.value : this.phoneNumber,
     bookIds: bookIds ?? this.bookIds,
+    bookFairPublisherId: bookFairPublisherId != null
+        ? bookFairPublisherId.value
+        : this.bookFairPublisherId,
     createdDate: createdDate ?? this.createdDate,
     lastUpdated: lastUpdated ?? this.lastUpdated,
   );

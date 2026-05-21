@@ -13,6 +13,8 @@ import '../../../../features/book/presentation/pages/book_detail_page.dart';
 import '../../../../features/book/presentation/pages/book_list_page.dart';
 import '../../../../features/book/presentation/pages/book_reading_status_manage_page.dart';
 import '../../../../features/book/presentation/pages/upsert_book_page.dart';
+import '../../../../features/book_fair/presentation/pages/book_fair_setup_page.dart';
+import '../../../../features/book_fair/presentation/pages/book_fair_shopping_plan_page.dart';
 import '../../../../features/home/presentation/pages/home_page.dart';
 import '../../../../features/publisher/domain/entities/publisher_entity.dart';
 import '../../../../features/publisher/presentation/pages/publisher_detail_page.dart';
@@ -222,6 +224,15 @@ class RouterService {
         GoRoute(
           path: 'data-quality',
           builder: (BuildContext context, GoRouterState state) => const BookDataQualityManagePage(),
+        ),
+
+        GoRoute(
+          path: 'book-fair',
+          builder: (BuildContext context, GoRouterState state) => const BookFairSetupPage(),
+        ),
+        GoRoute(
+          path: 'shopping-plan',
+          builder: (BuildContext context, GoRouterState state) => const BookFairShoppingPlanPage(),
         ),
       ],
     ),

@@ -3,9 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/auth/presentation/providers/user_profile_provider.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../author/presentation/providers/author_provider.dart';
 import '../../../book/presentation/providers/book_provider.dart';
+import '../../../book_fair/domain/entities/book_fair_event_entity.dart';
+import '../../../book_fair/presentation/providers/book_fair_event_provider.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
 import '../../../reader/presentation/providers/reader_provider.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
@@ -39,6 +42,37 @@ class Dashboard extends ConsumerWidget {
     final int? publisherCount = ref.watch(publisherCountProvider);
     final int? sequenceCount = ref.watch(sequenceCountProvider);
     final int? readerCount = ref.watch(readerCountProvider);
+    final AsyncValue<Map<String, dynamic>?> profileAsync = ref.watch(userProfileProvider);
+    final AsyncValue<BookFairEventEntity> eventAsync = ref.watch(bookFairEventProvider);
+
+    // Check visibility based on dates from event entity
+    const bool isFairTileVisible = true;
+    String? countdownText;
+
+    eventAsync.whenData((BookFairEventEntity event) {
+      final DateTime now = DateTime.now();
+
+      if (now.isBefore(event.startDate)) {
+        // Countdown to start
+        final Duration diff = event.startDate.difference(now);
+        if (diff.inDays >= 1) {
+          countdownText = '${diff.inDays} ${diff.inDays == 1 ? 'day' : 'days'} to go';
+        } else {
+          countdownText = '${diff.inHours} ${diff.inHours == 1 ? 'hour' : 'hours'} to go';
+        }
+      } else if (now.isBefore(event.endDate)) {
+        // Happening now!
+        final Duration diff = event.endDate.difference(now);
+        if (diff.inDays >= 1) {
+          countdownText = '${diff.inDays} ${diff.inDays == 1 ? 'day' : 'days'} left';
+        } else {
+          countdownText = 'Live Now!';
+        }
+      } else {
+        // Ended
+        countdownText = 'Ended';
+      }
+    });
 
     // ── Layout helpers ─────────────────────────────────────────────────
     final int crossAxisCount = isExpanded ? 4 : (isCompact ? 2 : 3);
@@ -116,7 +150,7 @@ class Dashboard extends ConsumerWidget {
         icon: Icons.menu_book_rounded,
         count: null,
         route: '/reading-status',
-        colorVariant: DashboardCardColor.tertiary,
+        colorVariant: DashboardCardColor.blue,
       ),
       const _CardDef(
         title: 'Data Quality',
@@ -125,6 +159,23 @@ class Dashboard extends ConsumerWidget {
         route: '/data-quality',
         colorVariant: DashboardCardColor.error,
       ),
+      if (isFairTileVisible)
+        _CardDef(
+          title: eventAsync.value != null ? 'CIBF ${eventAsync.value!.year}' : 'CIBF',
+          icon: Icons.festival_rounded,
+          count: null,
+          subtitle: countdownText,
+          countdownTarget: eventAsync.value != null
+              ? (DateTime.now().isBefore(eventAsync.value!.startDate)
+                    ? eventAsync.value!.startDate
+                    : eventAsync.value!.endDate)
+              : null,
+          countdownSuffix: eventAsync.value != null
+              ? (DateTime.now().isBefore(eventAsync.value!.startDate) ? 'STARTS IN' : 'ENDS IN')
+              : null,
+          colorVariant: DashboardCardColor.purple,
+          route: '/book-fair',
+        ),
     ];
 
     return CustomScrollView(
@@ -202,8 +253,25 @@ class Dashboard extends ConsumerWidget {
                           title: c.title,
                           icon: c.icon,
                           count: c.count,
+                          subtitle: c.subtitle,
+                          countdownTarget: c.countdownTarget,
+                          countdownSuffix: c.countdownSuffix,
                           colorVariant: c.colorVariant,
-                          onTap: () => context.push(c.route),
+                          onTap: () {
+                            if (c.route == '/book-fair') {
+                              final Map<String, dynamic>? profile = profileAsync.value;
+                              final String? lastConfiguredFairId =
+                                  profile?['lastConfiguredFairId'] as String?;
+                              final String activeFairId = eventAsync.value?.id ?? '';
+                              if (lastConfiguredFairId == activeFairId) {
+                                context.go('/shopping-plan');
+                              } else {
+                                context.go('/book-fair');
+                              }
+                            } else {
+                              context.go(c.route);
+                            }
+                          },
                         );
                       },
                     ),
@@ -235,6 +303,9 @@ class _CardDef {
     required this.count,
     required this.route,
     required this.colorVariant,
+    this.subtitle,
+    this.countdownTarget,
+    this.countdownSuffix,
   });
 
   final String title;
@@ -242,6 +313,9 @@ class _CardDef {
   final int? count;
   final String route;
   final DashboardCardColor colorVariant;
+  final String? subtitle;
+  final DateTime? countdownTarget;
+  final String? countdownSuffix;
 }
 
 // ── Greeting ───────────────────────────────────────────────────────────────
