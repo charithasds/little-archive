@@ -12,6 +12,7 @@ class WorkModel extends WorkEntity {
     required super.title,
     required super.contentCategory,
     required super.isTranslation,
+    required super.toBeTranslated,
     super.language,
     super.genre,
     super.originalTitle,
@@ -32,6 +33,7 @@ class WorkModel extends WorkEntity {
         ContentCategory.values.asNameMap()[map['contentCategory'] as String?] ??
         ContentCategory.shortStory,
     isTranslation: (map['isTranslation'] as bool?) ?? false,
+    toBeTranslated: (map['toBeTranslated'] as bool?) ?? false,
     language: Language.values.asNameMap()[map['language'] as String?],
     genre: Genre.values.asNameMap()[map['genre'] as String?],
     originalTitle: map['originalTitle'] as String?,
@@ -52,6 +54,7 @@ class WorkModel extends WorkEntity {
     'title': title,
     'contentCategory': contentCategory.name,
     'isTranslation': isTranslation,
+    'toBeTranslated': toBeTranslated,
     'language': language?.name,
     'genre': genre?.name,
     'originalTitle': originalTitle,

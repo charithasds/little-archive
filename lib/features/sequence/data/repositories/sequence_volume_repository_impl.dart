@@ -70,10 +70,23 @@ class SequenceVolumeRepositoryImpl implements SequenceVolumeRepository {
   }
 
   @override
-  Future<void> editSequenceVolume(SequenceVolumeEntity volume, {WriteBatch? batch}) async {
-    final SequenceVolumeModel? existingVolume = await remoteDataSource.fetchSequenceVolumeById(
-      volume.id,
-    );
+  Future<void> editSequenceVolume(SequenceVolumeEntity volume, {SequenceVolumeEntity? oldVolume, WriteBatch? batch}) async {
+    final String? oldSequenceId;
+    final String? oldBookId;
+    final String? oldWorkId;
+
+    if (oldVolume != null) {
+      oldSequenceId = oldVolume.sequenceId;
+      oldBookId = oldVolume.bookId;
+      oldWorkId = oldVolume.workId;
+    } else {
+      final SequenceVolumeModel? existingVolume = await remoteDataSource.fetchSequenceVolumeById(
+        volume.id,
+      );
+      oldSequenceId = existingVolume?.sequenceId;
+      oldBookId = existingVolume?.bookId;
+      oldWorkId = existingVolume?.workId;
+    }
 
     await remoteDataSource.editSequenceVolume(
       SequenceVolumeModel(
@@ -93,9 +106,9 @@ class SequenceVolumeRepositoryImpl implements SequenceVolumeRepository {
       newSequenceId: volume.sequenceId,
       newBookId: volume.bookId,
       newWorkId: volume.workId,
-      oldSequenceId: existingVolume?.sequenceId,
-      oldBookId: existingVolume?.bookId,
-      oldWorkId: existingVolume?.workId,
+      oldSequenceId: oldSequenceId,
+      oldBookId: oldBookId,
+      oldWorkId: oldWorkId,
       batch: batch,
     );
   }

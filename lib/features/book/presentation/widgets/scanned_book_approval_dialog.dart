@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,7 @@ import 'package:string_similarity/string_similarity.dart';
 
 import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
+import '../../../../core/shared/presentation/utils/validators.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../author/domain/entities/author_entity.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
@@ -89,7 +91,7 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
     if (b.title.isNotEmpty) {
       _approvals['title'] = true;
     }
-    _approvals['isTranslation'] = true;
+    _approvals['isTranslation'] = b.isTranslation;
     if (b.isbn != null) {
       _approvals['isbn'] = true;
     }
@@ -293,6 +295,41 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
           child: TextFormField(
             controller: controller,
             decoration: InputDecoration(labelText: title, isDense: true),
+            maxLength: key == 'isbn' ? 13 : null,
+            buildCounter: key == 'isbn'
+                ? (
+                    BuildContext context, {
+                    required int currentLength,
+                    required int? maxLength,
+                    required bool isFocused,
+                  }) {
+                    final String text = controller.text;
+                    final String clean = text.replaceAll(RegExp(r'[-\s]'), '').toUpperCase();
+
+                    final String label;
+                    final bool isValid;
+                    if (clean.length <= 10) {
+                      label = 'ISBN10';
+                      isValid = Validators.isValidIsbn10(clean);
+                    } else {
+                      label = 'ISBN13';
+                      isValid = Validators.isValidIsbn13(clean);
+                    }
+
+                    final String emoji = isValid ? '🟢' : '🔴';
+
+                    return Text(
+                      '$label $emoji',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    );
+                  }
+                : null,
+            keyboardType: key == 'isbn' ? TextInputType.number : null,
+            inputFormatters: key == 'isbn'
+                ? <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly]
+                : null,
             onChanged: (String val) {
               if (!(_approvals[key] ?? false) && val.isNotEmpty) {
                 setState(() => _approvals[key] = true);
@@ -352,12 +389,13 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
             const SizedBox(height: 16),
             if (_approvals.containsKey('title'))
               _buildEditableTile('title', 'Title', _titleController),
-            _buildStaticTile(
-              'isTranslation',
-              'Is Translation?',
-              b.isTranslation ? 'Yes' : 'No',
-              theme,
-            ),
+            if (b.isTranslation)
+              _buildStaticTile(
+                'isTranslation',
+                'Is Translation?',
+                b.isTranslation ? 'Yes' : 'No',
+                theme,
+              ),
             if (_approvals.containsKey('isbn')) _buildEditableTile('isbn', 'ISBN', _isbnController),
             if (_approvals.containsKey('originalTitle'))
               _buildEditableTile('originalTitle', 'Original Title', _originalTitleController),
@@ -387,7 +425,8 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
                 ),
             ],
 
-            if (widget.scannedBook.translators.isNotEmpty) ...<Widget>[
+            if ((_approvals['isTranslation'] ?? false) &&
+                widget.scannedBook.translators.isNotEmpty) ...<Widget>[
               const Divider(height: 32),
               Text('Translators', style: theme.textTheme.titleLarge),
               const SizedBox(height: 8),
@@ -426,7 +465,8 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
               id: b.id,
               title: (_approvals['title'] ?? false) ? _titleController.text : '',
               compilationType: b.compilationType,
-              isTranslation: (_approvals['isTranslation'] ?? false) && b.isTranslation,
+              isTranslation: _approvals['isTranslation'] ?? false,
+              toBeTranslated: false,
               isbn: (_approvals['isbn'] ?? false) ? _isbnController.text : null,
               originalTitle: (_approvals['originalTitle'] ?? false)
                   ? _originalTitleController.text
@@ -466,20 +506,22 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
 
             final List<TranslatorEntity> selectedTranslators = <TranslatorEntity>[];
             final List<ScannedNameEntity> newTranslators = <ScannedNameEntity>[];
-            _translatorSelections.forEach((String key, dynamic selection) {
-              if (selection is TranslatorEntity) {
-                selectedTranslators.add(selection);
-              } else if (selection == 'NEW') {
-                newTranslators.add(
-                  ScannedNameEntity(
-                    name: _translatorNameControllers[key]!.text,
-                    otherName: _translatorOtherNameControllers[key]!.text.isEmpty
-                        ? null
-                        : _translatorOtherNameControllers[key]!.text,
-                  ),
-                );
-              }
-            });
+            if (_approvals['isTranslation'] ?? false) {
+              _translatorSelections.forEach((String key, dynamic selection) {
+                if (selection is TranslatorEntity) {
+                  selectedTranslators.add(selection);
+                } else if (selection == 'NEW') {
+                  newTranslators.add(
+                    ScannedNameEntity(
+                      name: _translatorNameControllers[key]!.text,
+                      otherName: _translatorOtherNameControllers[key]!.text.isEmpty
+                          ? null
+                          : _translatorOtherNameControllers[key]!.text,
+                    ),
+                  );
+                }
+              });
+            }
 
             PublisherEntity? selectedPublisher;
             ScannedNameEntity? newPublisher;

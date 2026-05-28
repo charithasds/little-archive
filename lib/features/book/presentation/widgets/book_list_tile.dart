@@ -14,14 +14,12 @@ class BookListTile extends ConsumerWidget {
     this.onTap,
     this.onEdit,
     this.onRemove,
-    this.onInfo,
   });
 
   final BookEntity book;
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onRemove;
-  final VoidCallback? onInfo;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -65,7 +63,7 @@ class BookListTile extends ConsumerWidget {
       color: colorScheme.primaryContainer.withValues(alpha: 0.2),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: InkWell(
-        onTap: onTap ?? onInfo,
+        onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -140,12 +138,7 @@ class BookListTile extends ConsumerWidget {
                       onPressed: onRemove,
                       tooltip: 'Remove',
                     ),
-                  if (onInfo != null)
-                    IconButton(
-                      icon: Icon(Icons.info_outline_rounded, color: colorScheme.primary),
-                      onPressed: onInfo,
-                      tooltip: 'Info',
-                    ),
+
                 ],
               ),
             ],

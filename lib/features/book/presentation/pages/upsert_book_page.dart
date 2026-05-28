@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -81,6 +81,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
   OriginalLanguage? _originalLanguage = OriginalLanguage.english;
 
   bool _isTranslation = false;
+  bool _toBeTranslated = false;
 
   DateTime? _publishedDate;
   DateTime? _collectedDate;
@@ -109,7 +110,6 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
   bool get _showOriginalLanguage => _showOriginalTitle;
   bool get _showTranslatorIds => _isTranslation;
   bool get _showWorkIds => _compilationType == CompilationType.multiple;
-  bool get _showSequenceVolumeIds => _compilationType == CompilationType.single;
 
   bool get _showCollectedDate =>
       _collectionStatus == CollectionStatus.collected ||
@@ -128,15 +128,14 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
   void _onCompilationTypeChanged(CompilationType v) {
     setState(() {
       _compilationType = v;
+      _selectedSequences = <SequenceEntity, String>{};
 
       if (!_showGenre) {
         _genre = null;
       }
+
       if (!_showWorkIds) {
         _selectedWorks = <WorkEntity>[];
-      }
-      if (!_showSequenceVolumeIds) {
-        _selectedSequences = <SequenceEntity, String>{};
       }
     });
   }
@@ -207,6 +206,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
       _readingStatus = book.readingStatus;
       _originalLanguage = book.originalLanguage;
       _isTranslation = book.isTranslation;
+      _toBeTranslated = book.toBeTranslated;
       _publishedDate = book.publishedDate;
       _collectedDate = book.collectedDate;
       _lendedDate = book.lendedDate;
@@ -262,6 +262,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
             publishedDate: _publishedDate,
             noOfPages: int.tryParse(_noOfPagesController.text),
             isTranslation: _isTranslation,
+            toBeTranslated: _toBeTranslated,
             originalTitle: _showOriginalTitle ? _originalTitleController.text : null,
             originalLanguage: _showOriginalLanguage ? _originalLanguage : null,
             collectionStatus: _collectionStatus,
@@ -281,9 +282,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
             workIds: _showWorkIds
                 ? _selectedWorks.map((WorkEntity e) => e.id).toList()
                 : <String>[],
-            sequenceEntries: _showSequenceVolumeIds
-                ? _selectedSequences
-                : <SequenceEntity, String>{},
+            sequenceEntries: _selectedSequences,
             publisherId: _selectedPublisher?.id,
             readerId: _showReaderId ? _selectedReader?.id : null,
             applyToWorks: _applyToWorks,
@@ -382,6 +381,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
               finalPublisher = PublisherEntity(
                 id: newId,
                 name: approvedData.newPublisher!.name,
+                isSelfPublisher: false,
                 otherName: approvedData.newPublisher!.otherName,
                 bookIds: const <String>[],
                 createdDate: DateTime.now(),
@@ -407,6 +407,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
               _readingStatus = ReadingStatus.notStarted;
               _originalLanguage = OriginalLanguage.english;
               _isTranslation = false;
+              _toBeTranslated = false;
 
               _publishedDate = null;
               _collectedDate = null;
@@ -712,6 +713,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       itemsProvider: authorsStreamProvider,
                       itemLabel: (AuthorEntity a) => a.name,
                       itemKey: (AuthorEntity a) => a.id,
+                      extraSearchLabels: (AuthorEntity a) => <String?>[a.otherName],
                       onChanged: (List<AuthorEntity> l) => setState(() => _selectedAuthors = l),
                       onAdd: () async => showModalBottomSheet<AuthorEntity>(
                         context: context,
@@ -733,25 +735,17 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       onChanged: (Language? v) => setState(() => _language = v),
                     ),
                   ],
-                  if (_showWorkIds && _selectedWorks.isNotEmpty) ...<Widget>[
-                    const SizedBox(height: 16),
-                    SwitchListTile.adaptive(
-                      value: _applyToWorks,
-                      onChanged: (bool v) => setState(() => _applyToWorks = v),
-                      title: Text(
-                        'Apply book details to all connected works',
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                      subtitle: Text(
-                        'Authors, Translators, and Language will be copied',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      contentPadding: EdgeInsets.zero,
-                      secondary: Icon(Icons.sync_rounded, color: colorScheme.primary),
+                  const SizedBox(height: 16),
+                  SwitchListTile.adaptive(
+                    value: _toBeTranslated,
+                    onChanged: (bool v) => setState(() => _toBeTranslated = v),
+                    title: Text(
+                      'To Be Translated',
+                      style: theme.textTheme.bodyMedium,
                     ),
-                  ],
+                    contentPadding: EdgeInsets.zero,
+                    secondary: Icon(Icons.g_translate_rounded, color: colorScheme.primary),
+                  ),
                 ],
               ),
               if (_showTranslatorIds || _showOriginalTitle || _showOriginalLanguage)
@@ -777,6 +771,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                         itemsProvider: translatorsStreamProvider,
                         itemLabel: (TranslatorEntity t) => t.name,
                         itemKey: (TranslatorEntity t) => t.id,
+                        extraSearchLabels: (TranslatorEntity t) => <String?>[t.otherName],
                         onChanged: (List<TranslatorEntity> l) =>
                             setState(() => _selectedTranslators = l),
                         onAdd: () async => showModalBottomSheet<TranslatorEntity>(
@@ -800,98 +795,113 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       ),
                   ],
                 ),
-              if (_showSequenceVolumeIds || _showWorkIds)
-                FormSection(
-                  title: 'Reference Info',
-                  icon: Icons.layers_outlined,
-                  children: <Widget>[
-                    if (_showSequenceVolumeIds) ...<Widget>[
-                      SearchMultiPickerField<SequenceEntity>(
-                        label: 'Sequences',
-                        prefixIcon: Icons.layers_rounded,
-                        selectedItems: _selectedSequences.keys.toList(),
-                        itemsProvider: sequencesStreamProvider,
-                        itemLabel: (SequenceEntity s) => s.name,
-                        chipLabel: (SequenceEntity s) => '${s.name} #${_selectedSequences[s]}',
-                        itemKey: (SequenceEntity s) => s.id,
-                        onChanged: (List<SequenceEntity> list) async {
-                          await Future<void>.delayed(const Duration(milliseconds: 300));
-                          if (!mounted) {
-                            return;
-                          }
+              FormSection(
+                title: 'Reference Info',
+                icon: Icons.layers_outlined,
+                children: <Widget>[
+                  SearchMultiPickerField<SequenceEntity>(
+                    label: 'Sequences',
+                    prefixIcon: Icons.layers_rounded,
+                    selectedItems: _selectedSequences.keys.toList(),
+                    itemsProvider: sequencesStreamProvider,
+                    itemLabel: (SequenceEntity s) => s.name,
+                    chipLabel: (SequenceEntity s) => '${s.name} #${_selectedSequences[s]}',
+                    itemKey: (SequenceEntity s) => s.id,
+                    onChanged: (List<SequenceEntity> list) async {
+                      await Future<void>.delayed(const Duration(milliseconds: 300));
+                      if (!mounted) {
+                        return;
+                      }
 
-                          final Set<String> existingIds = _selectedSequences.keys
-                              .map((SequenceEntity s) => s.id)
-                              .toSet();
-                          final List<SequenceEntity> newSequences = list
-                              .where((SequenceEntity s) => !existingIds.contains(s.id))
-                              .toList();
+                      final Set<String> existingIds = _selectedSequences.keys
+                          .map((SequenceEntity s) => s.id)
+                          .toSet();
+                      final List<SequenceEntity> newSequences = list
+                          .where((SequenceEntity s) => !existingIds.contains(s.id))
+                          .toList();
 
-                          setState(() {
-                            _selectedSequences.removeWhere(
-                              (SequenceEntity k, _) => !list.contains(k),
-                            );
-                          });
+                      setState(() {
+                        _selectedSequences.removeWhere((SequenceEntity k, _) => !list.contains(k));
+                      });
 
-                          for (final SequenceEntity s in newSequences) {
-                            if (!context.mounted) {
-                              break;
-                            }
-                            final String? number = await showDialog<String>(
-                              context: context,
-                              builder: (_) => SequenceNumberDialog(sequenceName: s.name),
-                            );
-                            if (number != null) {
-                              setState(() => _selectedSequences[s] = number);
-                            } else {
-                              setState(() => _selectedSequences.remove(s));
-                            }
-                          }
-                        },
-                        onChipPressed: (SequenceEntity s) async {
-                          if (!context.mounted) {
-                            return;
-                          }
-                          final String? number = await showDialog<String>(
-                            context: context,
-                            builder: (_) => SequenceNumberDialog(
-                              initialValue: _selectedSequences[s],
-                              sequenceName: s.name,
-                            ),
-                          );
-                          if (number != null && context.mounted) {
-                            setState(() => _selectedSequences[s] = number);
-                          }
-                        },
-                        onAdd: () async => showModalBottomSheet<SequenceEntity>(
+                      for (final SequenceEntity s in newSequences) {
+                        if (!context.mounted) {
+                          break;
+                        }
+                        final String? number = await showDialog<String>(
                           context: context,
-                          isScrollControlled: true,
-                          useSafeArea: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (_) => const AddSequenceBottomSheet(),
+                          builder: (_) => SequenceNumberDialog(sequenceName: s.name),
+                        );
+                        if (number != null) {
+                          setState(() => _selectedSequences[s] = number);
+                        } else {
+                          setState(() => _selectedSequences.remove(s));
+                        }
+                      }
+                    },
+                    onChipPressed: (SequenceEntity s) async {
+                      if (!context.mounted) {
+                        return;
+                      }
+                      final String? number = await showDialog<String>(
+                        context: context,
+                        builder: (_) => SequenceNumberDialog(
+                          initialValue: _selectedSequences[s],
+                          sequenceName: s.name,
                         ),
+                      );
+                      if (number != null && context.mounted) {
+                        setState(() => _selectedSequences[s] = number);
+                      }
+                    },
+                    onAdd: () async => showModalBottomSheet<SequenceEntity>(
+                      context: context,
+                      isScrollControlled: true,
+                      useSafeArea: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (_) => const AddSequenceBottomSheet(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  if (_showWorkIds) ...<Widget>[
+                    SearchMultiPickerField<WorkEntity>(
+                      label: 'Works',
+                      prefixIcon: Icons.article_rounded,
+                      selectedItems: _selectedWorks,
+                      itemsProvider: worksStreamProvider,
+                      itemLabel: (WorkEntity s) => s.title,
+                      itemKey: (WorkEntity w) => w.id,
+                      onChanged: (List<WorkEntity> l) => setState(() => _selectedWorks = l),
+                      onAdd: () async => showModalBottomSheet<WorkEntity>(
+                        context: context,
+                        isScrollControlled: true,
+                        useSafeArea: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (_) => AddWorkBottomSheet(isTranslation: _isTranslation),
                       ),
-                      if (_showWorkIds) const SizedBox(height: 16),
+                    ),
+                    if (_selectedWorks.isNotEmpty) ...<Widget>[
+                      const SizedBox(height: 16),
+                      SwitchListTile.adaptive(
+                        value: _applyToWorks,
+                        onChanged: (bool v) => setState(() => _applyToWorks = v),
+                        title: Text(
+                          'Apply book details to all connected works',
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                        subtitle: Text(
+                          'Authors, Translators, and Language will be copied',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        contentPadding: EdgeInsets.zero,
+                        secondary: Icon(Icons.sync_rounded, color: colorScheme.primary),
+                      ),
                     ],
-                    if (_showWorkIds)
-                      SearchMultiPickerField<WorkEntity>(
-                        label: 'Works',
-                        prefixIcon: Icons.article_rounded,
-                        selectedItems: _selectedWorks,
-                        itemsProvider: worksStreamProvider,
-                        itemLabel: (WorkEntity s) => s.title,
-                        itemKey: (WorkEntity w) => w.id,
-                        onChanged: (List<WorkEntity> l) => setState(() => _selectedWorks = l),
-                        onAdd: () async => showModalBottomSheet<WorkEntity>(
-                          context: context,
-                          isScrollControlled: true,
-                          useSafeArea: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (_) => AddWorkBottomSheet(isTranslation: _isTranslation),
-                        ),
-                      ),
                   ],
-                ),
+                ],
+              ),
               FormSection(
                 title: 'Collection Info',
                 icon: Icons.inventory_2_outlined,
@@ -932,6 +942,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                         selectedItem: _selectedReader,
                         itemsProvider: readersStreamProvider,
                         itemLabel: (ReaderEntity r) => r.name,
+                        extraSearchLabels: (ReaderEntity r) => <String?>[r.otherName],
                         onChanged: (ReaderEntity? r) => setState(() => _selectedReader = r),
                         onAdd: () async => showModalBottomSheet<ReaderEntity>(
                           context: context,
@@ -1015,6 +1026,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                     selectedItem: _selectedPublisher,
                     itemsProvider: publishersStreamProvider,
                     itemLabel: (PublisherEntity p) => p.name,
+                    extraSearchLabels: (PublisherEntity p) => <String?>[p.otherName],
                     onChanged: (PublisherEntity? p) => setState(() => _selectedPublisher = p),
                     onAdd: () async => showModalBottomSheet<PublisherEntity>(
                       context: context,
@@ -1058,7 +1070,37 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                     hint: 'e.g. ISBN10 or ISBN13',
                     prefixIcon: Icons.qr_code_rounded,
                     maxLength: 13,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
                     validator: Validators.validateIsbn,
+                    buildCounter: (
+                      BuildContext context, {
+                      required int currentLength,
+                      required int? maxLength,
+                      required bool isFocused,
+                    }) {
+                      final String text = _isbnController.text;
+                      final String clean = text.replaceAll(RegExp(r'[-\s]'), '').toUpperCase();
+
+                      final String label;
+                      final bool isValid;
+                      if (clean.length <= 10) {
+                        label = 'ISBN10';
+                        isValid = Validators.isValidIsbn10(clean);
+                      } else {
+                        label = 'ISBN13';
+                        isValid = Validators.isValidIsbn13(clean);
+                      }
+
+                      final String emoji = isValid ? '🟢' : '🔴';
+
+                      return Text(
+                        '$label $emoji',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      );
+                    },
                   ),
                 ],
               ),

@@ -49,8 +49,15 @@ class SequenceRepositoryImpl implements SequenceRepository {
   }
 
   @override
-  Future<void> editSequence(SequenceEntity sequence, {WriteBatch? batch}) async {
-    final SequenceModel? existingSequence = await remoteDataSource.fetchSequenceById(sequence.id);
+  Future<void> editSequence(SequenceEntity sequence, {SequenceEntity? oldSequence, WriteBatch? batch}) async {
+    final List<String> oldSequenceVolumeIds;
+
+    if (oldSequence != null) {
+      oldSequenceVolumeIds = oldSequence.sequenceVolumeIds;
+    } else {
+      final SequenceModel? existingSequence = await remoteDataSource.fetchSequenceById(sequence.id);
+      oldSequenceVolumeIds = existingSequence?.sequenceVolumeIds ?? <String>[];
+    }
 
     await remoteDataSource.editSequence(
       SequenceModel(
@@ -67,7 +74,7 @@ class SequenceRepositoryImpl implements SequenceRepository {
     await relationshipSyncService.syncSequenceRelationships(
       sequenceId: sequence.id,
       newSequenceVolumeIds: sequence.sequenceVolumeIds,
-      oldSequenceVolumeIds: existingSequence?.sequenceVolumeIds ?? <String>[],
+      oldSequenceVolumeIds: oldSequenceVolumeIds,
       batch: batch,
     );
   }

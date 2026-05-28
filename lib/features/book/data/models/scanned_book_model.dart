@@ -32,14 +32,20 @@ class ScannedBookModel extends ScannedBookEntity {
             .map(ScannedNameModel.fromMap)
             .toList();
     final dynamic publisherRaw = map['publisher'];
-    final ScannedNameEntity? publisher = publisherRaw is Map<String, dynamic>
+    ScannedNameEntity? publisher = publisherRaw is Map<String, dynamic>
         ? ScannedNameModel.fromMap(publisherRaw)
         : null;
+
+    if (publisher != null && publisher.name.trim().isEmpty) {
+      publisher = null;
+    }
+
     final BookEntity book = BookEntity(
       id: '',
       title: map['title'] as String? ?? '',
       compilationType: CompilationType.single,
       isTranslation: map['isTranslation'] as bool? ?? false,
+      toBeTranslated: false,
       language: language,
       originalTitle: map['originalTitle'] as String?,
       originalLanguage: originalLanguage,

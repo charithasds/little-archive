@@ -72,7 +72,8 @@ class EditSequenceVolumeUseCase {
   const EditSequenceVolumeUseCase(this.repository);
   final SequenceVolumeRepository repository;
 
-  Future<void> call(SequenceVolumeEntity volume) => repository.editSequenceVolume(volume);
+  Future<void> call(SequenceVolumeEntity volume, {SequenceVolumeEntity? oldVolume}) =>
+      repository.editSequenceVolume(volume, oldVolume: oldVolume);
 }
 
 class RemoveSequenceVolumeUseCase {

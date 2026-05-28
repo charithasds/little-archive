@@ -8,6 +8,6 @@ abstract class SequenceRepository {
   Future<SequenceEntity?> fetchSequenceById(String id);
   Stream<List<SequenceEntity>> watchSequences();
   Future<void> addSequence(SequenceEntity sequence, {WriteBatch? batch});
-  Future<void> editSequence(SequenceEntity sequence, {WriteBatch? batch});
+  Future<void> editSequence(SequenceEntity sequence, {SequenceEntity? oldSequence, WriteBatch? batch});
   Future<void> removeSequence(String id, {WriteBatch? batch});
 }

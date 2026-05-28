@@ -179,7 +179,7 @@ class ReaderDetailPage extends ConsumerWidget {
                           .map(
                             (BookEntity book) => BookListTile(
                               book: book,
-                              onInfo: () => BookQuickInfoDialog.show(context, book.id),
+                              onTap: () => BookQuickInfoDialog.show(context, book.id),
                             ),
                           )
                           .toList(),

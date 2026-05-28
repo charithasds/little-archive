@@ -70,6 +70,7 @@ class UpsertPublisherController extends _$UpsertPublisherController {
     String? email,
     String? facebook,
     String? phone,
+    bool isSelfPublisher = false,
   }) async {
     state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
@@ -89,6 +90,7 @@ class UpsertPublisherController extends _$UpsertPublisherController {
     PublisherEntity publisherToSave = existingPublisher != null
         ? existingPublisher.copyWith(
             name: name,
+            isSelfPublisher: isSelfPublisher,
             otherName: Nullable<String?>(otherName?.isEmpty ?? true ? null : otherName),
             website: Nullable<String?>(website?.isEmpty ?? true ? null : website),
             email: Nullable<String?>(email?.isEmpty ?? true ? null : email),
@@ -100,6 +102,7 @@ class UpsertPublisherController extends _$UpsertPublisherController {
         : PublisherEntity(
             id: generatedId,
             name: name,
+            isSelfPublisher: isSelfPublisher,
             otherName: otherName?.isEmpty ?? true ? null : otherName,
             website: website?.isEmpty ?? true ? null : website,
             email: email?.isEmpty ?? true ? null : email,

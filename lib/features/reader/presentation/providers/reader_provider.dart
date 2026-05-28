@@ -41,25 +41,35 @@ List<({String label, int count})>? readersMissingInfo(Ref ref) {
     return null;
   }
 
-  int countWhere(bool Function(ReaderEntity) test) => readers.where(test).length;
+  int noPhoto = 0;
+  int noAltName = 0;
+  int noEmail = 0;
+  int noPhone = 0;
+  int noBooks = 0;
+
+  for (final ReaderEntity r in readers) {
+    if (r.image == null || r.image!.trim().isEmpty) {
+      noPhoto++;
+    }
+    if (r.otherName == null || r.otherName!.trim().isEmpty) {
+      noAltName++;
+    }
+    if (r.email == null || r.email!.trim().isEmpty) {
+      noEmail++;
+    }
+    if (r.phoneNumber == null || r.phoneNumber!.trim().isEmpty) {
+      noPhone++;
+    }
+    if (r.bookIds.isEmpty) {
+      noBooks++;
+    }
+  }
 
   return <({String label, int count})>[
-    (
-      label: 'No Photo',
-      count: countWhere((ReaderEntity r) => r.image == null || r.image!.trim().isEmpty),
-    ),
-    (
-      label: 'No Alt. Name',
-      count: countWhere((ReaderEntity r) => r.otherName == null || r.otherName!.trim().isEmpty),
-    ),
-    (
-      label: 'No Email',
-      count: countWhere((ReaderEntity r) => r.email == null || r.email!.trim().isEmpty),
-    ),
-    (
-      label: 'No Phone',
-      count: countWhere((ReaderEntity r) => r.phoneNumber == null || r.phoneNumber!.trim().isEmpty),
-    ),
-    (label: 'No Books', count: countWhere((ReaderEntity r) => r.bookIds.isEmpty)),
+    (label: 'No Photo', count: noPhoto),
+    (label: 'No Alt. Name', count: noAltName),
+    (label: 'No Email', count: noEmail),
+    (label: 'No Phone', count: noPhone),
+    (label: 'No Books', count: noBooks),
   ];
 }

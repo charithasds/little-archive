@@ -14,6 +14,7 @@ class BookModel extends BookEntity {
     required super.title,
     required super.compilationType,
     required super.isTranslation,
+    required super.toBeTranslated,
     super.cover,
     super.language,
     super.genre,
@@ -47,6 +48,7 @@ class BookModel extends BookEntity {
         CompilationType.values.asNameMap()[map['compilationType'] as String?] ??
         CompilationType.single,
     isTranslation: (map['isTranslation'] as bool?) ?? false,
+    toBeTranslated: (map['toBeTranslated'] as bool?) ?? false,
     cover: map['cover'] as String?,
     language: Language.values.asNameMap()[map['language'] as String?],
     genre: Genre.values.asNameMap()[map['genre'] as String?],
@@ -84,6 +86,7 @@ class BookModel extends BookEntity {
     'title': title,
     'compilationType': compilationType.name,
     'isTranslation': isTranslation,
+    'toBeTranslated': toBeTranslated,
     'cover': cover,
     'language': language?.name,
     'genre': genre?.name,

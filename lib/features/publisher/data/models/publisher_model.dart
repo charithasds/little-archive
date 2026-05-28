@@ -6,6 +6,7 @@ class PublisherModel extends PublisherEntity {
   const PublisherModel({
     required super.id,
     required super.name,
+    required super.isSelfPublisher,
     super.logo,
     super.otherName,
     super.website,
@@ -21,6 +22,7 @@ class PublisherModel extends PublisherEntity {
   factory PublisherModel.fromMap(Map<String, dynamic> map, String documentId) => PublisherModel(
     id: documentId,
     name: (map['name'] as String?) ?? '',
+    isSelfPublisher: (map['isSelfPublisher'] as bool?) ?? false,
     logo: map['logo'] as String?,
     otherName: map['otherName'] as String?,
     website: map['website'] as String?,
@@ -36,6 +38,7 @@ class PublisherModel extends PublisherEntity {
   Map<String, dynamic> toMap() => <String, dynamic>{
     'id': id,
     'name': name,
+    'isSelfPublisher': isSelfPublisher,
     'logo': logo,
     'otherName': otherName,
     'website': website,

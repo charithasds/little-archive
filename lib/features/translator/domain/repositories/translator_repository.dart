@@ -8,6 +8,6 @@ abstract class TranslatorRepository {
   Future<TranslatorEntity?> fetchTranslatorById(String id);
   Stream<List<TranslatorEntity>> watchTranslators();
   Future<void> addTranslator(TranslatorEntity translator, {WriteBatch? batch});
-  Future<void> editTranslator(TranslatorEntity translator, {WriteBatch? batch});
+  Future<void> editTranslator(TranslatorEntity translator, {TranslatorEntity? oldTranslator, WriteBatch? batch});
   Future<void> removeTranslator(String id, {WriteBatch? batch});
 }

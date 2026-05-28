@@ -41,28 +41,47 @@ List<({String label, int count})>? worksMissingInfo(Ref ref) {
     return null;
   }
 
-  int countWhere(bool Function(WorkEntity) test) => works.where(test).length;
+  int noAuthors = 0;
+  int noTranslators = 0;
+  int noOriginalTitle = 0;
+  int noLanguage = 0;
+  int noOriginalLanguage = 0;
+  int noGenre = 0;
+  int noSequences = 0;
 
-  final List<WorkEntity> translations = works.where((WorkEntity w) => w.isTranslation).toList();
+  for (final WorkEntity w in works) {
+    if (w.authorIds.isEmpty) {
+      noAuthors++;
+    }
+    if (w.isTranslation) {
+      if (w.translatorIds.isEmpty) {
+        noTranslators++;
+      }
+      if (w.originalTitle == null || w.originalTitle!.trim().isEmpty) {
+        noOriginalTitle++;
+      }
+      if (w.originalLanguage == null) {
+        noOriginalLanguage++;
+      }
+    }
+    if (w.language == null) {
+      noLanguage++;
+    }
+    if (w.genre == null) {
+      noGenre++;
+    }
+    if (w.sequenceVolumeIds.isEmpty) {
+      noSequences++;
+    }
+  }
 
   return <({String label, int count})>[
-    (label: 'No Authors', count: countWhere((WorkEntity w) => w.authorIds.isEmpty)),
-    (
-      label: 'No Translators',
-      count: translations.where((WorkEntity w) => w.translatorIds.isEmpty).length,
-    ),
-    (
-      label: 'No Original Title',
-      count: translations
-          .where((WorkEntity w) => w.originalTitle == null || w.originalTitle!.trim().isEmpty)
-          .length,
-    ),
-    (label: 'No Language', count: countWhere((WorkEntity w) => w.language == null)),
-    (
-      label: 'No Orig. Language',
-      count: translations.where((WorkEntity w) => w.originalLanguage == null).length,
-    ),
-    (label: 'No Genre', count: countWhere((WorkEntity w) => w.genre == null)),
-    (label: 'No Sequences', count: countWhere((WorkEntity w) => w.sequenceVolumeIds.isEmpty)),
+    (label: 'No Authors', count: noAuthors),
+    (label: 'No Translators', count: noTranslators),
+    (label: 'No Original Title', count: noOriginalTitle),
+    (label: 'No Language', count: noLanguage),
+    (label: 'No Orig. Language', count: noOriginalLanguage),
+    (label: 'No Genre', count: noGenre),
+    (label: 'No Sequences', count: noSequences),
   ];
 }

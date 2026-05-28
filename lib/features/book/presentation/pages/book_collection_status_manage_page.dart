@@ -263,6 +263,25 @@ class _CollectionBookTile extends ConsumerWidget {
             onTap: isLoading ? null : () => _showCollectDialog(context, ref, book),
           ),
         );
+        actions.add(
+          StatusActionChip(
+            label: 'Order Online',
+            icon: Icons.local_shipping_rounded,
+            color: colorScheme.primary,
+            onTap: isLoading
+                ? null
+                : () => ctrl.changeCollectionStatus(book, CollectionStatus.onTheWay),
+          ),
+        );
+      case CollectionStatus.onTheWay:
+        actions.add(
+          StatusActionChip(
+            label: 'Collect',
+            icon: Icons.check_circle_rounded,
+            color: colorScheme.primary,
+            onTap: isLoading ? null : () => _showCollectDialog(context, ref, book),
+          ),
+        );
       case CollectionStatus.collected:
         actions.add(
           StatusActionChip(

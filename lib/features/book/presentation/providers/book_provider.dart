@@ -82,60 +82,85 @@ List<({String label, int count})>? booksMissingInfo(Ref ref) {
     return null;
   }
 
-  int countWhere(bool Function(BookEntity) test) => books.where(test).length;
+  int noAuthors = 0;
+  int noTranslators = 0;
+  int noOriginalTitle = 0;
+  int noLanguage = 0;
+  int noOriginalLanguage = 0;
+  int noGenre = 0;
+  int noIsbn = 0;
+  int noPages = 0;
+  int noSequences = 0;
+  int noPublisher = 0;
+  int noPublishedDate = 0;
+  int noCollectedDate = 0;
+  int noPausedPage = 0;
+  int noCompletedDate = 0;
 
-  final List<BookEntity> translations = books.where((BookEntity b) => b.isTranslation).toList();
+  for (final BookEntity b in books) {
+    if (b.authorIds.isEmpty) {
+      noAuthors++;
+    }
+    if (b.isTranslation) {
+      if (b.translatorIds.isEmpty) {
+        noTranslators++;
+      }
+      if (b.originalTitle == null || b.originalTitle!.trim().isEmpty) {
+        noOriginalTitle++;
+      }
+      if (b.originalLanguage == null) {
+        noOriginalLanguage++;
+      }
+    }
+    if (b.language == null) {
+      noLanguage++;
+    }
+    if (b.genre == null) {
+      noGenre++;
+    }
+    if (b.isbn == null || b.isbn!.trim().isEmpty) {
+      noIsbn++;
+    }
+    if (b.noOfPages == null) {
+      noPages++;
+    }
+    if (b.sequenceVolumeIds.isEmpty) {
+      noSequences++;
+    }
+    if (b.publisherId == null) {
+      noPublisher++;
+    }
+    if (b.publishedDate == null) {
+      noPublishedDate++;
+    }
 
-  final List<BookEntity> collected = books
-      .where(
-        (BookEntity b) =>
-            b.collectionStatus == CollectionStatus.collected ||
-            b.collectionStatus == CollectionStatus.lended,
-      )
-      .toList();
-
-  final List<BookEntity> reading = books
-      .where((BookEntity b) => b.readingStatus == ReadingStatus.reading)
-      .toList();
-
-  final List<BookEntity> completed = books
-      .where((BookEntity b) => b.readingStatus == ReadingStatus.completed)
-      .toList();
+    final bool isCollected = b.collectionStatus == CollectionStatus.collected ||
+        b.collectionStatus == CollectionStatus.lended;
+    if (isCollected && b.collectedDate == null) {
+      noCollectedDate++;
+    }
+    if (b.readingStatus == ReadingStatus.reading && b.pausedPage == null) {
+      noPausedPage++;
+    }
+    if (b.readingStatus == ReadingStatus.completed && b.completedDate == null) {
+      noCompletedDate++;
+    }
+  }
 
   return <({String label, int count})>[
-    (label: 'No Authors', count: countWhere((BookEntity b) => b.authorIds.isEmpty)),
-    (
-      label: 'No Translators',
-      count: translations.where((BookEntity b) => b.translatorIds.isEmpty).length,
-    ),
-    (
-      label: 'No Original Title',
-      count: translations
-          .where((BookEntity b) => b.originalTitle == null || b.originalTitle!.trim().isEmpty)
-          .length,
-    ),
-    (label: 'No Language', count: countWhere((BookEntity b) => b.language == null)),
-    (
-      label: 'No Orig. Language',
-      count: translations.where((BookEntity b) => b.originalLanguage == null).length,
-    ),
-    (label: 'No Genre', count: countWhere((BookEntity b) => b.genre == null)),
-    (
-      label: 'No ISBN',
-      count: countWhere((BookEntity b) => b.isbn == null || b.isbn!.trim().isEmpty),
-    ),
-    (label: 'No Pages', count: countWhere((BookEntity b) => b.noOfPages == null)),
-    (label: 'No Sequences', count: countWhere((BookEntity b) => b.sequenceVolumeIds.isEmpty)),
-    (label: 'No Publisher', count: countWhere((BookEntity b) => b.publisherId == null)),
-    (label: 'No Pub. Date', count: countWhere((BookEntity b) => b.publishedDate == null)),
-    (
-      label: 'No Collected Date',
-      count: collected.where((BookEntity b) => b.collectedDate == null).length,
-    ),
-    (label: 'No Paused Page', count: reading.where((BookEntity b) => b.pausedPage == null).length),
-    (
-      label: 'No Completed Date',
-      count: completed.where((BookEntity b) => b.completedDate == null).length,
-    ),
+    (label: 'No Authors', count: noAuthors),
+    (label: 'No Translators', count: noTranslators),
+    (label: 'No Original Title', count: noOriginalTitle),
+    (label: 'No Language', count: noLanguage),
+    (label: 'No Orig. Language', count: noOriginalLanguage),
+    (label: 'No Genre', count: noGenre),
+    (label: 'No ISBN', count: noIsbn),
+    (label: 'No Pages', count: noPages),
+    (label: 'No Sequences', count: noSequences),
+    (label: 'No Publisher', count: noPublisher),
+    (label: 'No Pub. Date', count: noPublishedDate),
+    (label: 'No Collected Date', count: noCollectedDate),
+    (label: 'No Paused Page', count: noPausedPage),
+    (label: 'No Completed Date', count: noCompletedDate),
   ];
 }

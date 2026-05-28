@@ -189,7 +189,7 @@ class AuthorDetailPage extends ConsumerWidget {
                           .map(
                             (BookEntity book) => BookListTile(
                               book: book,
-                              onInfo: () => BookQuickInfoDialog.show(context, book.id),
+                              onTap: () => BookQuickInfoDialog.show(context, book.id),
                             ),
                           )
                           .toList(),
@@ -201,7 +201,7 @@ class AuthorDetailPage extends ConsumerWidget {
                           .map(
                             (WorkEntity work) => WorkListTile(
                               work: work,
-                              onInfo: () => WorkQuickInfoDialog.show(context, work.id),
+                              onTap: () => WorkQuickInfoDialog.show(context, work.id),
                             ),
                           )
                           .toList(),

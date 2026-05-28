@@ -22,6 +22,7 @@ class FormTextField extends ConsumerWidget {
     this.isRequired = false,
     this.alignLabelWithHint = false,
     this.autofocus = false,
+    this.buildCounter,
   });
 
   final TextEditingController controller;
@@ -37,6 +38,7 @@ class FormTextField extends ConsumerWidget {
   final bool isRequired;
   final bool alignLabelWithHint;
   final bool autofocus;
+  final InputCounterWidgetBuilder? buildCounter;
 
   TextCapitalization get _effectiveCapitalization {
     if (textCapitalization != null) {
@@ -77,7 +79,7 @@ class FormTextField extends ConsumerWidget {
           validator ??
           (isRequired ? (String? v) => v!.trim().isEmpty ? '$label is required' : null : null),
       maxLength: maxLength,
-      buildCounter: maxLength == null
+      buildCounter: buildCounter ?? (maxLength == null
           ? null
           : (
               BuildContext context, {
@@ -89,7 +91,7 @@ class FormTextField extends ConsumerWidget {
                 return null;
               }
               return Text('$currentLength / $maxLength', style: theme.textTheme.bodySmall);
-            },
+            }),
       maxLines: maxLines,
       inputFormatters: inputFormatters,
     );

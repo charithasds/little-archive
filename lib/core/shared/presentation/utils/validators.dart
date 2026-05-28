@@ -101,4 +101,56 @@ class Validators {
 
     return null;
   }
+
+  static bool isValidIsbn10(String value) {
+    final String clean = value.replaceAll(RegExp(r'[-\s]'), '').toUpperCase();
+    if (clean.length != 10) {
+      return false;
+    }
+    if (!RegExp(r'^\d{9}[\dX]$').hasMatch(clean)) {
+      return false;
+    }
+    int sum = 0;
+    for (int i = 0; i < 10; i++) {
+      final String char = clean[i];
+      final int val = char == 'X' ? 10 : int.parse(char);
+      sum += val * (10 - i);
+    }
+    return sum % 11 == 0;
+  }
+
+  static bool isValidIsbn13(String value) {
+    final String clean = value.replaceAll(RegExp(r'[-\s]'), '').toUpperCase();
+    if (clean.length != 13) {
+      return false;
+    }
+    if (!RegExp(r'^\d{13}$').hasMatch(clean)) {
+      return false;
+    }
+    int sum = 0;
+    for (int i = 0; i < 13; i++) {
+      final int val = int.parse(clean[i]);
+      final int weight = i.isEven ? 1 : 3;
+      sum += val * weight;
+    }
+    return sum % 10 == 0;
+  }
+
+  static String formatIsbn(String isbn) {
+    final String clean = isbn
+        .replaceAll(RegExp(r'[^0-9X]', caseSensitive: false), '')
+        .toUpperCase();
+
+    if (clean.length == 13) {
+      if (clean.startsWith('978') || clean.startsWith('979')) {
+        return '${clean.substring(0, 3)}-${clean.substring(3, 4)}-${clean.substring(4, 7)}-${clean.substring(7, 12)}-${clean.substring(12)}';
+      }
+
+      return clean;
+    } else if (clean.length == 10) {
+      return '${clean.substring(0, 1)}-${clean.substring(1, 4)}-${clean.substring(4, 9)}-${clean.substring(9)}';
+    }
+
+    return isbn;
+  }
 }

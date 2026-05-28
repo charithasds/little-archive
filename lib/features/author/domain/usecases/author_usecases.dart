@@ -45,7 +45,8 @@ class EditAuthorUseCase {
   const EditAuthorUseCase(this.repository);
   final AuthorRepository repository;
 
-  Future<void> call(AuthorEntity author) => repository.editAuthor(author);
+  Future<void> call(AuthorEntity author, {AuthorEntity? oldAuthor}) =>
+      repository.editAuthor(author, oldAuthor: oldAuthor);
 }
 
 class RemoveAuthorUseCase {

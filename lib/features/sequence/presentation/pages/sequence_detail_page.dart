@@ -63,12 +63,16 @@ class SequenceDetailPage extends ConsumerWidget {
         );
         final AsyncValue<List<BookEntity>> booksAsync = ref.watch(booksStreamProvider);
         final AsyncValue<List<WorkEntity>> worksAsync = ref.watch(worksStreamProvider);
-        final List<BookEntity> books = booksAsync.value ?? <BookEntity>[];
-        final List<WorkEntity> works = worksAsync.value ?? <WorkEntity>[];
+
+        if (volumesAsync.value == null || booksAsync.value == null || worksAsync.value == null) {
+          return const Scaffold(body: ListLoadingState());
+        }
+
+        final List<BookEntity> books = booksAsync.value!;
+        final List<WorkEntity> works = worksAsync.value!;
 
         final List<SequenceVolumeEntity> sequenceVolumes =
-            (volumesAsync.value ?? <SequenceVolumeEntity>[])
-                .where((SequenceVolumeEntity s) => sequence.sequenceVolumeIds.contains(s.id))
+            volumesAsync.value!
                 .toList()
               ..sort((SequenceVolumeEntity a, SequenceVolumeEntity b) {
                 final double? aVal = double.tryParse(a.volume);
@@ -159,6 +163,7 @@ class SequenceDetailPage extends ConsumerWidget {
                     ),
                     DetailSection(
                       title: 'VOLUMES (${sequenceVolumes.length})',
+                      showDivider: false,
                       children: sequenceVolumes.map((SequenceVolumeEntity volume) {
                         final String volumeLabel = volume.volume.isEmpty
                             ? '??'
@@ -172,7 +177,7 @@ class SequenceDetailPage extends ConsumerWidget {
                           if (book != null) {
                             return BookListTile(
                               book: book.copyWith(title: '$volumeLabel: ${book.title}'),
-                              onInfo: () => BookQuickInfoDialog.show(context, book.id),
+                              onTap: () => BookQuickInfoDialog.show(context, book.id),
                             );
                           }
                         }
@@ -185,7 +190,7 @@ class SequenceDetailPage extends ConsumerWidget {
                           if (work != null) {
                             return WorkListTile(
                               work: work.copyWith(title: '$volumeLabel: ${work.title}'),
-                              onInfo: () => WorkQuickInfoDialog.show(context, work.id),
+                              onTap: () => WorkQuickInfoDialog.show(context, work.id),
                             );
                           }
                         }

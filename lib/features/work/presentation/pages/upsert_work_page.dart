@@ -57,6 +57,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
   OriginalLanguage? _originalLanguage = OriginalLanguage.english;
 
   bool _isTranslation = false;
+  bool _toBeTranslated = false;
 
   List<AuthorEntity> _selectedAuthors = <AuthorEntity>[];
   List<TranslatorEntity> _selectedTranslators = <TranslatorEntity>[];
@@ -102,6 +103,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
       _contentCategory = work.contentCategory;
       _originalLanguage = work.originalLanguage;
       _isTranslation = work.isTranslation;
+      _toBeTranslated = work.toBeTranslated;
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -169,6 +171,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
             title: _titleController.text.trim(),
             contentCategory: _contentCategory,
             isTranslation: _isTranslation,
+            toBeTranslated: _toBeTranslated,
             language: _showLanguageField ? _language : null,
             genre: _genre,
             originalTitle: _showOriginalTitle ? _originalTitleController.text : null,
@@ -359,6 +362,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                             itemsProvider: authorsStreamProvider,
                             itemLabel: (AuthorEntity a) => a.name,
                             itemKey: (AuthorEntity a) => a.id,
+                            extraSearchLabels: (AuthorEntity a) => <String?>[a.otherName],
                             onChanged: (List<AuthorEntity> l) =>
                                 setState(() => _selectedAuthors = l),
                             onAdd: () async => showModalBottomSheet<AuthorEntity>(
@@ -390,6 +394,17 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                           itemLabel: (Genre e) => e.clientValue,
                           onChanged: (Genre? v) => setState(() => _genre = v),
                         ),
+                        const SizedBox(height: 16),
+                        SwitchListTile.adaptive(
+                          value: _toBeTranslated,
+                          onChanged: (bool v) => setState(() => _toBeTranslated = v),
+                          title: Text(
+                            'To Be Translated',
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                          contentPadding: EdgeInsets.zero,
+                          secondary: Icon(Icons.g_translate_rounded, color: colorScheme.primary),
+                        ),
                       ],
                     ),
                     if (_showTranslatorIds || _showOriginalTitle || _showOriginalLanguage)
@@ -416,6 +431,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                               itemsProvider: translatorsStreamProvider,
                               itemLabel: (TranslatorEntity t) => t.name,
                               itemKey: (TranslatorEntity t) => t.id,
+                              extraSearchLabels: (TranslatorEntity t) => <String?>[t.otherName],
                               onChanged: (List<TranslatorEntity> l) =>
                                   setState(() => _selectedTranslators = l),
                               onAdd: () async => showModalBottomSheet<TranslatorEntity>(
@@ -516,6 +532,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                           selectedItem: _selectedBook,
                           itemsProvider: booksStreamProvider,
                           itemLabel: (BookEntity b) => b.title,
+                          extraSearchLabels: (BookEntity b) => <String?>[b.originalTitle],
                           filterItems: (List<BookEntity> books) => books
                               .where(
                                 (BookEntity b) => b.compilationType == CompilationType.multiple,

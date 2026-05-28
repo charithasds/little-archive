@@ -55,10 +55,20 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
   }
 
   @override
-  Future<void> editTranslator(TranslatorEntity translator, {WriteBatch? batch}) async {
-    final TranslatorModel? existingTranslator = await remoteDataSource.fetchTranslatorById(
-      translator.id,
-    );
+  Future<void> editTranslator(TranslatorEntity translator, {TranslatorEntity? oldTranslator, WriteBatch? batch}) async {
+    final List<String> oldBookIds;
+    final List<String> oldWorkIds;
+
+    if (oldTranslator != null) {
+      oldBookIds = oldTranslator.bookIds;
+      oldWorkIds = oldTranslator.workIds;
+    } else {
+      final TranslatorModel? existingTranslator = await remoteDataSource.fetchTranslatorById(
+        translator.id,
+      );
+      oldBookIds = existingTranslator?.bookIds ?? <String>[];
+      oldWorkIds = existingTranslator?.workIds ?? <String>[];
+    }
 
     await remoteDataSource.editTranslator(
       TranslatorModel(
@@ -80,8 +90,8 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
       translatorId: translator.id,
       newBookIds: translator.bookIds,
       newWorkIds: translator.workIds,
-      oldBookIds: existingTranslator?.bookIds ?? <String>[],
-      oldWorkIds: existingTranslator?.workIds ?? <String>[],
+      oldBookIds: oldBookIds,
+      oldWorkIds: oldWorkIds,
       batch: batch,
     );
   }

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/shared/presentation/utils/dialogs.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
+import '../../../../core/shared/presentation/utils/validators.dart';
 import '../../../../core/shared/presentation/widgets/detail_section.dart';
 import '../../../../core/shared/presentation/widgets/detail_tile.dart';
 import '../../../../core/shared/presentation/widgets/list_empty_state.dart';
@@ -157,23 +158,25 @@ class BookDetailPage extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    if (authors.isNotEmpty || translators.isNotEmpty)
+                    if (authors.isNotEmpty)
                       DetailSection(
-                        title: 'CREATORS',
-                        children: <Widget>[
-                          ...authors.map(
-                            (AuthorEntity author) => AuthorListTile(
-                              author: author,
-                              onInfo: () => AuthorQuickInfoDialog.show(context, author.id),
-                            ),
+                        title: 'AUTHORS',
+                        children: authors.map(
+                          (AuthorEntity author) => AuthorListTile(
+                            author: author,
+                            onTap: () => AuthorQuickInfoDialog.show(context, author.id),
                           ),
-                          ...translators.map(
-                            (TranslatorEntity translator) => TranslatorListTile(
-                              translator: translator,
-                              onInfo: () => TranslatorQuickInfoDialog.show(context, translator.id),
-                            ),
+                        ).toList(),
+                      ),
+                    if (translators.isNotEmpty)
+                      DetailSection(
+                        title: 'TRANSLATORS',
+                        children: translators.map(
+                          (TranslatorEntity translator) => TranslatorListTile(
+                            translator: translator,
+                            onTap: () => TranslatorQuickInfoDialog.show(context, translator.id),
                           ),
-                        ],
+                        ).toList(),
                       ),
                     if (bookWorks.isNotEmpty)
                       DetailSection(
@@ -182,7 +185,7 @@ class BookDetailPage extends ConsumerWidget {
                             .map(
                               (WorkEntity work) => WorkListTile(
                                 work: work,
-                                onInfo: () => WorkQuickInfoDialog.show(context, work.id),
+                                onTap: () => WorkQuickInfoDialog.show(context, work.id),
                               ),
                             )
                             .toList(),
@@ -210,7 +213,7 @@ class BookDetailPage extends ConsumerWidget {
                           return SequenceVolumeListTile(
                             volume: volume,
                             sequence: sequence,
-                            onInfo: () => SequenceQuickInfoDialog.show(context, volume.sequenceId),
+                            onTap: () => SequenceQuickInfoDialog.show(context, volume.sequenceId),
                           );
                         }).toList(),
                       ),
@@ -226,7 +229,7 @@ class BookDetailPage extends ConsumerWidget {
 
                               return PublisherListTile(
                                 publisher: publisher,
-                                onInfo: () => PublisherQuickInfoDialog.show(context, publisher.id),
+                                onTap: () => PublisherQuickInfoDialog.show(context, publisher.id),
                               );
                             },
                             loading: () => const Center(child: CircularProgressIndicator()),
@@ -246,7 +249,7 @@ class BookDetailPage extends ConsumerWidget {
 
                               return ReaderListTile(
                                 reader: reader,
-                                onInfo: () => ReaderQuickInfoDialog.show(context, reader.id),
+                                onTap: () => ReaderQuickInfoDialog.show(context, reader.id),
                               );
                             },
                             loading: () => const Center(child: CircularProgressIndicator()),
@@ -258,6 +261,11 @@ class BookDetailPage extends ConsumerWidget {
                       title: 'INFORMATION',
                       showDivider: false,
                       children: <Widget>[
+                        DetailTile(
+                          label: 'To Be Translated',
+                          value: book.toBeTranslated ? 'Yes' : 'No',
+                          leadingIcon: Icons.g_translate_rounded,
+                        ),
                         DetailTile(
                           label: 'Compilation Type',
                           value: book.compilationType.clientValue,
@@ -278,7 +286,7 @@ class BookDetailPage extends ConsumerWidget {
                         if (book.isbn != null && book.isbn!.isNotEmpty)
                           DetailTile(
                             label: 'ISBN',
-                            value: book.isbn!,
+                            value: Validators.formatIsbn(book.isbn!),
                             leadingIcon: Icons.qr_code_rounded,
                           ),
                         if (book.publishedDate != null)

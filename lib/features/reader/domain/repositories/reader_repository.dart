@@ -8,6 +8,6 @@ abstract class ReaderRepository {
   Future<ReaderEntity?> fetchReaderById(String id);
   Stream<List<ReaderEntity>> watchReaders();
   Future<void> addReader(ReaderEntity reader, {WriteBatch? batch});
-  Future<void> editReader(ReaderEntity reader, {WriteBatch? batch});
+  Future<void> editReader(ReaderEntity reader, {ReaderEntity? oldReader, WriteBatch? batch});
   Future<void> removeReader(String id, {WriteBatch? batch});
 }

@@ -47,7 +47,8 @@ class EditWorkUseCase {
   const EditWorkUseCase(this.repository);
   final WorkRepository repository;
 
-  Future<void> call(WorkEntity work) => repository.editWork(work);
+  Future<void> call(WorkEntity work, {WorkEntity? oldWork}) =>
+      repository.editWork(work, oldWork: oldWork);
 }
 
 class RemoveWorkUseCase {

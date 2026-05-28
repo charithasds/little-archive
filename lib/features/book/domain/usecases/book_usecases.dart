@@ -50,7 +50,8 @@ class EditBookUseCase {
   const EditBookUseCase(this.repository);
   final BookRepository repository;
 
-  Future<void> call(BookEntity book) => repository.editBook(book);
+  Future<void> call(BookEntity book, {BookEntity? oldBook}) =>
+      repository.editBook(book, oldBook: oldBook);
 }
 
 class RemoveBookUseCase {

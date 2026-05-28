@@ -54,8 +54,18 @@ class AuthorRepositoryImpl implements AuthorRepository {
   }
 
   @override
-  Future<void> editAuthor(AuthorEntity author, {WriteBatch? batch}) async {
-    final AuthorModel? existingAuthor = await remoteDataSource.fetchAuthorById(author.id);
+  Future<void> editAuthor(AuthorEntity author, {AuthorEntity? oldAuthor, WriteBatch? batch}) async {
+    final List<String> oldBookIds;
+    final List<String> oldWorkIds;
+
+    if (oldAuthor != null) {
+      oldBookIds = oldAuthor.bookIds;
+      oldWorkIds = oldAuthor.workIds;
+    } else {
+      final AuthorModel? existingAuthor = await remoteDataSource.fetchAuthorById(author.id);
+      oldBookIds = existingAuthor?.bookIds ?? <String>[];
+      oldWorkIds = existingAuthor?.workIds ?? <String>[];
+    }
 
     await remoteDataSource.editAuthor(
       AuthorModel(
@@ -77,8 +87,8 @@ class AuthorRepositoryImpl implements AuthorRepository {
       authorId: author.id,
       newBookIds: author.bookIds,
       newWorkIds: author.workIds,
-      oldBookIds: existingAuthor?.bookIds ?? <String>[],
-      oldWorkIds: existingAuthor?.workIds ?? <String>[],
+      oldBookIds: oldBookIds,
+      oldWorkIds: oldWorkIds,
       batch: batch,
     );
   }

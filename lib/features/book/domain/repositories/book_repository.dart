@@ -11,7 +11,7 @@ abstract class BookRepository {
   Future<BookEntity?> fetchBookById(String id);
   Stream<List<BookEntity>> watchBooks();
   Future<void> addBook(BookEntity book, {WriteBatch? batch});
-  Future<void> editBook(BookEntity book, {WriteBatch? batch});
+  Future<void> editBook(BookEntity book, {BookEntity? oldBook, WriteBatch? batch});
   Future<void> removeBook(String id, {WriteBatch? batch});
   Future<BookEntity> upsertBook(
     BookEntity book,

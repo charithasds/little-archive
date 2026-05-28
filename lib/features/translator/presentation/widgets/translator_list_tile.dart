@@ -13,14 +13,12 @@ class TranslatorListTile extends ConsumerWidget {
     this.onTap,
     this.onEdit,
     this.onRemove,
-    this.onInfo,
   });
 
   final TranslatorEntity translator;
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onRemove;
-  final VoidCallback? onInfo;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -39,7 +37,7 @@ class TranslatorListTile extends ConsumerWidget {
       color: colorScheme.primaryContainer.withValues(alpha: 0.2),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: InkWell(
-        onTap: onTap ?? onInfo,
+        onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -121,12 +119,6 @@ class TranslatorListTile extends ConsumerWidget {
                       icon: Icon(Icons.delete_rounded, color: colorScheme.error),
                       onPressed: onRemove,
                       tooltip: 'Remove',
-                    ),
-                  if (onInfo != null)
-                    IconButton(
-                      icon: Icon(Icons.info_outline_rounded, color: colorScheme.primary),
-                      onPressed: onInfo,
-                      tooltip: 'Info',
                     ),
                 ],
               ),

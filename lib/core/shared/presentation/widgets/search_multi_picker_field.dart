@@ -20,6 +20,7 @@ class SearchMultiPickerField<T> extends ConsumerStatefulWidget {
     this.chipLabel,
     this.onChipPressed,
     this.onBeforeAdd,
+    this.extraSearchLabels,
   });
 
   final String label;
@@ -33,6 +34,7 @@ class SearchMultiPickerField<T> extends ConsumerStatefulWidget {
   final String Function(T)? chipLabel;
   final void Function(T)? onChipPressed;
   final Future<bool> Function(T)? onBeforeAdd;
+  final List<String?> Function(T)? extraSearchLabels;
 
   @override
   ConsumerState<SearchMultiPickerField<T>> createState() => _SearchMultiPickerFieldState<T>();
@@ -122,6 +124,7 @@ class _SearchMultiPickerFieldState<T> extends ConsumerState<SearchMultiPickerFie
         onChanged: widget.onChanged,
         onAdd: widget.onAdd,
         onBeforeAdd: widget.onBeforeAdd,
+        extraSearchLabels: widget.extraSearchLabels,
       ),
     );
   }
@@ -137,6 +140,7 @@ class _MultiPickerSheet<T> extends ConsumerStatefulWidget {
     this.onAdd,
     this.itemKey,
     this.onBeforeAdd,
+    this.extraSearchLabels,
   });
 
   final String label;
@@ -147,6 +151,7 @@ class _MultiPickerSheet<T> extends ConsumerStatefulWidget {
   final Future<T?> Function()? onAdd;
   final Object Function(T)? itemKey;
   final Future<bool> Function(T)? onBeforeAdd;
+  final List<String?> Function(T)? extraSearchLabels;
 
   @override
   ConsumerState<_MultiPickerSheet<T>> createState() => _MultiPickerSheetState<T>();
@@ -246,9 +251,21 @@ class _MultiPickerSheetState<T> extends ConsumerState<_MultiPickerSheet<T>> {
                 final List<T> sortedItems = items.toList()
                   ..sort((T a, T b) => widget.itemLabel(a).compareTo(widget.itemLabel(b)));
 
-                final List<T> filtered = sortedItems
-                    .where((T e) => widget.itemLabel(e).toLowerCase().contains(_query))
-                    .toList();
+                final List<T> filtered = sortedItems.where((T e) {
+                  final bool matchesLabel = widget.itemLabel(e).toLowerCase().contains(_query);
+                  if (matchesLabel) {
+                    return true;
+                  }
+                  if (widget.extraSearchLabels != null) {
+                    final List<String?> extraList = widget.extraSearchLabels!(e);
+                    for (final String? extra in extraList) {
+                      if (extra != null && extra.toLowerCase().contains(_query)) {
+                        return true;
+                      }
+                    }
+                  }
+                  return false;
+                }).toList();
 
                 if (filtered.isEmpty) {
                   return Center(

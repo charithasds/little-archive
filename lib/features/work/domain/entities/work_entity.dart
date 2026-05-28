@@ -12,6 +12,7 @@ class WorkEntity extends Equatable {
     required this.title,
     required this.contentCategory,
     required this.isTranslation,
+    required this.toBeTranslated,
     this.language,
     this.genre,
     this.originalTitle,
@@ -29,6 +30,7 @@ class WorkEntity extends Equatable {
   final String title;
   final ContentCategory contentCategory;
   final bool isTranslation;
+  final bool toBeTranslated;
   final Language? language;
   final Genre? genre;
   final String? originalTitle;
@@ -49,6 +51,7 @@ class WorkEntity extends Equatable {
     String? title,
     ContentCategory? contentCategory,
     bool? isTranslation,
+    bool? toBeTranslated,
     Nullable<Language?>? language,
     Nullable<Genre?>? genre,
     Nullable<String?>? originalTitle,
@@ -65,6 +68,7 @@ class WorkEntity extends Equatable {
     title: title ?? this.title,
     contentCategory: contentCategory ?? this.contentCategory,
     isTranslation: isTranslation ?? this.isTranslation,
+    toBeTranslated: toBeTranslated ?? this.toBeTranslated,
     language: language != null ? language.value : this.language,
     genre: genre != null ? genre.value : this.genre,
     originalTitle: originalTitle != null ? originalTitle.value : this.originalTitle,

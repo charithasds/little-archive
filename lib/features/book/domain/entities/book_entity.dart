@@ -14,6 +14,7 @@ class BookEntity extends Equatable {
     required this.title,
     required this.compilationType,
     required this.isTranslation,
+    required this.toBeTranslated,
     this.cover,
     this.language,
     this.genre,
@@ -44,6 +45,7 @@ class BookEntity extends Equatable {
   final String title;
   final CompilationType compilationType;
   final bool isTranslation;
+  final bool toBeTranslated;
   final String? cover;
   final Language? language;
   final Genre? genre;
@@ -77,6 +79,7 @@ class BookEntity extends Equatable {
     String? title,
     CompilationType? compilationType,
     bool? isTranslation,
+    bool? toBeTranslated,
     Nullable<String?>? cover,
     Nullable<Language?>? language,
     Nullable<Genre?>? genre,
@@ -106,6 +109,7 @@ class BookEntity extends Equatable {
     title: title ?? this.title,
     compilationType: compilationType ?? this.compilationType,
     isTranslation: isTranslation ?? this.isTranslation,
+    toBeTranslated: toBeTranslated ?? this.toBeTranslated,
     cover: cover != null ? cover.value : this.cover,
     language: language != null ? language.value : this.language,
     genre: genre != null ? genre.value : this.genre,

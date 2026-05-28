@@ -8,6 +8,6 @@ abstract class AuthorRepository {
   Future<AuthorEntity?> fetchAuthorById(String id);
   Stream<List<AuthorEntity>> watchAuthors();
   Future<void> addAuthor(AuthorEntity author, {WriteBatch? batch});
-  Future<void> editAuthor(AuthorEntity author, {WriteBatch? batch});
+  Future<void> editAuthor(AuthorEntity author, {AuthorEntity? oldAuthor, WriteBatch? batch});
   Future<void> removeAuthor(String id, {WriteBatch? batch});
 }

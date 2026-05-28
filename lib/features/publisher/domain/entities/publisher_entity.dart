@@ -6,6 +6,7 @@ class PublisherEntity extends Equatable {
   const PublisherEntity({
     required this.id,
     required this.name,
+    required this.isSelfPublisher,
     this.logo,
     this.otherName,
     this.website,
@@ -20,6 +21,7 @@ class PublisherEntity extends Equatable {
 
   final String id;
   final String name;
+  final bool isSelfPublisher;
   final String? logo;
   final String? otherName;
   final String? website;
@@ -37,6 +39,7 @@ class PublisherEntity extends Equatable {
   PublisherEntity copyWith({
     String? id,
     String? name,
+    bool? isSelfPublisher,
     Nullable<String?>? logo,
     Nullable<String?>? otherName,
     Nullable<String?>? website,
@@ -50,6 +53,7 @@ class PublisherEntity extends Equatable {
   }) => PublisherEntity(
     id: id ?? this.id,
     name: name ?? this.name,
+    isSelfPublisher: isSelfPublisher ?? this.isSelfPublisher,
     logo: logo != null ? logo.value : this.logo,
     otherName: otherName != null ? otherName.value : this.otherName,
     website: website != null ? website.value : this.website,

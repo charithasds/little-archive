@@ -53,8 +53,15 @@ class ReaderRepositoryImpl implements ReaderRepository {
   }
 
   @override
-  Future<void> editReader(ReaderEntity reader, {WriteBatch? batch}) async {
-    final ReaderModel? existingReader = await remoteDataSource.fetchReaderById(reader.id);
+  Future<void> editReader(ReaderEntity reader, {ReaderEntity? oldReader, WriteBatch? batch}) async {
+    final List<String> oldBookIds;
+
+    if (oldReader != null) {
+      oldBookIds = oldReader.bookIds;
+    } else {
+      final ReaderModel? existingReader = await remoteDataSource.fetchReaderById(reader.id);
+      oldBookIds = existingReader?.bookIds ?? <String>[];
+    }
 
     await remoteDataSource.editReader(
       ReaderModel(
@@ -75,7 +82,7 @@ class ReaderRepositoryImpl implements ReaderRepository {
     await relationshipSyncService.syncReaderRelationships(
       readerId: reader.id,
       newBookIds: reader.bookIds,
-      oldBookIds: existingReader?.bookIds ?? <String>[],
+      oldBookIds: oldBookIds,
       batch: batch,
     );
   }

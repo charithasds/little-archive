@@ -102,7 +102,7 @@ class PublisherDetailPage extends ConsumerWidget {
                           width: 240,
                           height: 240,
                           decoration: BoxDecoration(
-                            shape: BoxShape.circle,
+                            borderRadius: BorderRadius.circular(32),
                             color: Images.getAvatarBackgroundColor(theme),
                             image: publisher.logo != null && publisher.logo!.isNotEmpty
                                 ? DecorationImage(
@@ -125,6 +125,11 @@ class PublisherDetailPage extends ConsumerWidget {
                     DetailSection(
                       title: 'INFORMATION',
                       children: <Widget>[
+                        DetailTile(
+                          label: 'Self Publisher',
+                          value: publisher.isSelfPublisher ? 'Yes' : 'No',
+                          leadingIcon: Icons.business_center_rounded,
+                        ),
                         if (publisher.otherName != null && publisher.otherName!.isNotEmpty)
                           DetailTile(
                             label: 'Other Name',
@@ -187,7 +192,7 @@ class PublisherDetailPage extends ConsumerWidget {
                           .map(
                             (BookEntity book) => BookListTile(
                               book: book,
-                              onInfo: () => BookQuickInfoDialog.show(context, book.id),
+                              onTap: () => BookQuickInfoDialog.show(context, book.id),
                             ),
                           )
                           .toList(),

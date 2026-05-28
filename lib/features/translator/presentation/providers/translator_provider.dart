@@ -41,22 +41,35 @@ List<({String label, int count})>? translatorsMissingInfo(Ref ref) {
     return null;
   }
 
-  int countWhere(bool Function(TranslatorEntity) test) => translators.where(test).length;
+  int noPhoto = 0;
+  int noAltName = 0;
+  int noWebsite = 0;
+  int noBooks = 0;
+  int noWorks = 0;
+
+  for (final TranslatorEntity t in translators) {
+    if (t.image == null || t.image!.trim().isEmpty) {
+      noPhoto++;
+    }
+    if (t.otherName == null || t.otherName!.trim().isEmpty) {
+      noAltName++;
+    }
+    if (t.website == null || t.website!.trim().isEmpty) {
+      noWebsite++;
+    }
+    if (t.bookIds.isEmpty) {
+      noBooks++;
+    }
+    if (t.workIds.isEmpty) {
+      noWorks++;
+    }
+  }
 
   return <({String label, int count})>[
-    (
-      label: 'No Photo',
-      count: countWhere((TranslatorEntity t) => t.image == null || t.image!.trim().isEmpty),
-    ),
-    (
-      label: 'No Alt. Name',
-      count: countWhere((TranslatorEntity t) => t.otherName == null || t.otherName!.trim().isEmpty),
-    ),
-    (
-      label: 'No Website',
-      count: countWhere((TranslatorEntity t) => t.website == null || t.website!.trim().isEmpty),
-    ),
-    (label: 'No Books', count: countWhere((TranslatorEntity t) => t.bookIds.isEmpty)),
-    (label: 'No Works', count: countWhere((TranslatorEntity t) => t.workIds.isEmpty)),
+    (label: 'No Photo', count: noPhoto),
+    (label: 'No Alt. Name', count: noAltName),
+    (label: 'No Website', count: noWebsite),
+    (label: 'No Books', count: noBooks),
+    (label: 'No Works', count: noWorks),
   ];
 }

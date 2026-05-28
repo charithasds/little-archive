@@ -53,6 +53,7 @@ class WorkRepositoryImpl implements WorkRepository {
         title: work.title,
         contentCategory: work.contentCategory,
         isTranslation: work.isTranslation,
+        toBeTranslated: work.toBeTranslated,
         language: work.language,
         genre: work.genre,
         originalTitle: work.originalTitle,
@@ -79,8 +80,24 @@ class WorkRepositoryImpl implements WorkRepository {
   }
 
   @override
-  Future<void> editWork(WorkEntity work, {WriteBatch? batch}) async {
-    final WorkModel? existingWork = await remoteDataSource.fetchWorkById(work.id);
+  Future<void> editWork(WorkEntity work, {WorkEntity? oldWork, WriteBatch? batch}) async {
+    final List<String> oldAuthorIds;
+    final List<String> oldTranslatorIds;
+    final List<String> oldSequenceVolumeIds;
+    final String? oldBookId;
+
+    if (oldWork != null) {
+      oldAuthorIds = oldWork.authorIds;
+      oldTranslatorIds = oldWork.translatorIds;
+      oldSequenceVolumeIds = oldWork.sequenceVolumeIds;
+      oldBookId = oldWork.bookId;
+    } else {
+      final WorkModel? existingWork = await remoteDataSource.fetchWorkById(work.id);
+      oldAuthorIds = existingWork?.authorIds ?? <String>[];
+      oldTranslatorIds = existingWork?.translatorIds ?? <String>[];
+      oldSequenceVolumeIds = existingWork?.sequenceVolumeIds ?? <String>[];
+      oldBookId = existingWork?.bookId;
+    }
 
     await remoteDataSource.editWork(
       WorkModel(
@@ -88,6 +105,7 @@ class WorkRepositoryImpl implements WorkRepository {
         title: work.title,
         contentCategory: work.contentCategory,
         isTranslation: work.isTranslation,
+        toBeTranslated: work.toBeTranslated,
         language: work.language,
         genre: work.genre,
         originalTitle: work.originalTitle,
@@ -109,10 +127,10 @@ class WorkRepositoryImpl implements WorkRepository {
       newTranslatorIds: work.translatorIds,
       newSequenceVolumeIds: work.sequenceVolumeIds,
       newBookId: work.bookId,
-      oldAuthorIds: existingWork?.authorIds ?? <String>[],
-      oldTranslatorIds: existingWork?.translatorIds ?? <String>[],
-      oldSequenceVolumeIds: existingWork?.sequenceVolumeIds ?? <String>[],
-      oldBookId: existingWork?.bookId,
+      oldAuthorIds: oldAuthorIds,
+      oldTranslatorIds: oldTranslatorIds,
+      oldSequenceVolumeIds: oldSequenceVolumeIds,
+      oldBookId: oldBookId,
       batch: batch,
     );
   }
@@ -122,17 +140,27 @@ class WorkRepositoryImpl implements WorkRepository {
     final WorkModel? existingWork = await remoteDataSource.fetchWorkById(id);
 
     if (existingWork != null) {
+      final WriteBatch effectiveBatch = batch ?? firestore.batch();
+
+      for (final String volumeId in existingWork.sequenceVolumeIds) {
+        await sequenceVolumeRepository.removeSequenceVolume(volumeId, batch: effectiveBatch);
+      }
+
       await relationshipSyncService.removeWorkRelationships(
         workId: id,
         authorIds: existingWork.authorIds,
         translatorIds: existingWork.translatorIds,
         sequenceVolumeIds: existingWork.sequenceVolumeIds,
         bookId: existingWork.bookId,
-        batch: batch,
+        batch: effectiveBatch,
       );
-    }
 
-    await remoteDataSource.removeWork(id, batch: batch);
+      await remoteDataSource.removeWork(id, batch: effectiveBatch);
+
+      if (batch == null) {
+        await effectiveBatch.commit();
+      }
+    }
   }
 
   @override
@@ -174,6 +202,7 @@ class WorkRepositoryImpl implements WorkRepository {
           title: updatedBookEntity.title,
           compilationType: updatedBookEntity.compilationType,
           isTranslation: updatedBookEntity.isTranslation,
+          toBeTranslated: updatedBookEntity.toBeTranslated,
           cover: updatedBookEntity.cover,
           language: updatedBookEntity.language,
           genre: updatedBookEntity.genre,

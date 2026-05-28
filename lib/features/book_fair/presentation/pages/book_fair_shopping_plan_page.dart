@@ -99,6 +99,29 @@ class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlan
       return hasStallMapped && hasBookInShoppingList;
     }).toList();
 
+    final List<PublisherEntity> unmappedInShoppingList = publishers.where((PublisherEntity p) {
+      final String? bookFairPublisherId = p.bookFairPublisherId;
+      final bool isConfigurationRequired =
+          bookFairPublisherId != 'none' &&
+          (bookFairPublisherId == null ||
+           !bookFairPublisherId.startsWith('CIBF_${widget.event.year}_'));
+      final bool hasBookInShoppingList = publisherIdsInShoppingList.contains(p.id);
+
+      return hasBookInShoppingList && isConfigurationRequired;
+    }).toList();
+
+    if (unmappedInShoppingList.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(goRouterProvider).go('/book-fair');
+        ref.read(userProfileControllerProvider.notifier).updateLastConfiguredFairId(null);
+      });
+
+      return Scaffold(
+        backgroundColor: colorScheme.surface,
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     if (mapped.isEmpty) {
       return Scaffold(
         backgroundColor: colorScheme.surface,

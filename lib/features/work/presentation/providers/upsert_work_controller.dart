@@ -45,6 +45,7 @@ class UpsertWorkController extends _$UpsertWorkController {
     required String title,
     required ContentCategory contentCategory,
     required bool isTranslation,
+    bool toBeTranslated = false,
     Language? language,
     Genre? genre,
     String? originalTitle,
@@ -76,6 +77,7 @@ class UpsertWorkController extends _$UpsertWorkController {
               title: title,
               contentCategory: contentCategory,
               isTranslation: isTranslation,
+              toBeTranslated: toBeTranslated,
               language: Nullable<Language?>(language),
               genre: Nullable<Genre?>(genre),
               originalTitle: Nullable<String?>(
@@ -94,6 +96,7 @@ class UpsertWorkController extends _$UpsertWorkController {
               title: title,
               contentCategory: contentCategory,
               isTranslation: isTranslation,
+              toBeTranslated: toBeTranslated,
               language: language,
               genre: genre,
               originalTitle: isTranslation ? originalTitle : null,

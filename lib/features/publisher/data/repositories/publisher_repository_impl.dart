@@ -33,6 +33,7 @@ class PublisherRepositoryImpl implements PublisherRepository {
       PublisherModel(
         id: publisher.id,
         name: publisher.name,
+        isSelfPublisher: publisher.isSelfPublisher,
         logo: publisher.logo,
         otherName: publisher.otherName,
         website: publisher.website,
@@ -55,15 +56,23 @@ class PublisherRepositoryImpl implements PublisherRepository {
   }
 
   @override
-  Future<void> editPublisher(PublisherEntity publisher, {WriteBatch? batch}) async {
-    final PublisherModel? existingPublisher = await remoteDataSource.fetchPublisherById(
-      publisher.id,
-    );
+  Future<void> editPublisher(PublisherEntity publisher, {PublisherEntity? oldPublisher, WriteBatch? batch}) async {
+    final List<String> oldBookIds;
+
+    if (oldPublisher != null) {
+      oldBookIds = oldPublisher.bookIds;
+    } else {
+      final PublisherModel? existingPublisher = await remoteDataSource.fetchPublisherById(
+        publisher.id,
+      );
+      oldBookIds = existingPublisher?.bookIds ?? <String>[];
+    }
 
     await remoteDataSource.editPublisher(
       PublisherModel(
         id: publisher.id,
         name: publisher.name,
+        isSelfPublisher: publisher.isSelfPublisher,
         logo: publisher.logo,
         otherName: publisher.otherName,
         website: publisher.website,
@@ -81,7 +90,7 @@ class PublisherRepositoryImpl implements PublisherRepository {
     await relationshipSyncService.syncPublisherRelationships(
       publisherId: publisher.id,
       newBookIds: publisher.bookIds,
-      oldBookIds: existingPublisher?.bookIds ?? <String>[],
+      oldBookIds: oldBookIds,
       batch: batch,
     );
   }

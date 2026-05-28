@@ -178,23 +178,29 @@ class WorkDetailPage extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    if (authors.isNotEmpty || translators.isNotEmpty)
+                    if (authors.isNotEmpty)
                       DetailSection(
-                        title: 'CREATORS',
-                        children: <Widget>[
-                          ...authors.map(
-                            (AuthorEntity author) => AuthorListTile(
-                              author: author,
-                              onInfo: () => AuthorQuickInfoDialog.show(context, author.id),
-                            ),
-                          ),
-                          ...translators.map(
-                            (TranslatorEntity translator) => TranslatorListTile(
-                              translator: translator,
-                              onInfo: () => TranslatorQuickInfoDialog.show(context, translator.id),
-                            ),
-                          ),
-                        ],
+                        title: 'AUTHORS',
+                        children: authors
+                            .map(
+                              (AuthorEntity author) => AuthorListTile(
+                                author: author,
+                                onTap: () => AuthorQuickInfoDialog.show(context, author.id),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    if (translators.isNotEmpty)
+                      DetailSection(
+                        title: 'TRANSLATORS',
+                        children: translators
+                            .map(
+                              (TranslatorEntity translator) => TranslatorListTile(
+                                translator: translator,
+                                onTap: () => TranslatorQuickInfoDialog.show(context, translator.id),
+                              ),
+                            )
+                            .toList(),
                       ),
                     if (work.bookId != null)
                       DetailSection(
@@ -208,7 +214,7 @@ class WorkDetailPage extends ConsumerWidget {
 
                               return BookListTile(
                                 book: book,
-                                onInfo: () => BookQuickInfoDialog.show(context, book.id),
+                                onTap: () => BookQuickInfoDialog.show(context, book.id),
                               );
                             },
                             loading: () => const Center(child: CircularProgressIndicator()),
@@ -239,7 +245,7 @@ class WorkDetailPage extends ConsumerWidget {
                           return SequenceVolumeListTile(
                             volume: volume,
                             sequence: sequence,
-                            onInfo: () => SequenceQuickInfoDialog.show(context, volume.sequenceId),
+                            onTap: () => SequenceQuickInfoDialog.show(context, volume.sequenceId),
                           );
                         }).toList(),
                       ),
@@ -247,6 +253,11 @@ class WorkDetailPage extends ConsumerWidget {
                       title: 'INFORMATION',
                       showDivider: false,
                       children: <Widget>[
+                        DetailTile(
+                          label: 'To Be Translated',
+                          value: work.toBeTranslated ? 'Yes' : 'No',
+                          leadingIcon: Icons.g_translate_rounded,
+                        ),
                         DetailTile(
                           label: 'Content Category',
                           value: work.contentCategory.clientValue,

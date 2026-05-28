@@ -306,7 +306,7 @@ class _QualityTile extends ConsumerWidget {
 List<String> _missingForBook(BookEntity b) {
   final List<String> missing = <String>[];
 
-  if (b.cover == null) {
+  if (!b.toBeTranslated && b.cover == null) {
     missing.add('Cover');
   }
 
@@ -318,19 +318,21 @@ List<String> _missingForBook(BookEntity b) {
     missing.add('Genre');
   }
 
-  if (b.isbn == null || b.isbn!.trim().isEmpty) {
+  if (!b.toBeTranslated && (b.isbn == null || b.isbn!.trim().isEmpty)) {
     missing.add('ISBN');
   }
 
-  if (b.publishedDate == null) {
+  if (!b.toBeTranslated && b.publishedDate == null) {
     missing.add('Published Date');
   }
 
-  if (b.noOfPages == null) {
+  if (!b.toBeTranslated && b.noOfPages == null) {
     missing.add('Number of Pages');
   }
 
-  if (b.isTranslation && (b.originalTitle == null || b.originalTitle!.trim().isEmpty)) {
+  if (b.compilationType == CompilationType.single &&
+      b.isTranslation &&
+      (b.originalTitle == null || b.originalTitle!.trim().isEmpty)) {
     missing.add('Original Title');
   }
 
@@ -338,25 +340,28 @@ List<String> _missingForBook(BookEntity b) {
     missing.add('Original Language');
   }
 
-  if ((b.collectionStatus == CollectionStatus.collected ||
-          b.collectionStatus == CollectionStatus.lended) &&
-      b.collectedDate == null) {
+  if (!b.toBeTranslated &&
+      ((b.collectionStatus == CollectionStatus.collected ||
+              b.collectionStatus == CollectionStatus.lended) &&
+          b.collectedDate == null)) {
     missing.add('Collected Date');
   }
 
-  if (b.collectionStatus == CollectionStatus.lended && b.lendedDate == null) {
+  if (!b.toBeTranslated &&
+      (b.collectionStatus == CollectionStatus.lended && b.lendedDate == null)) {
     missing.add('Lended Date');
   }
 
-  if (b.collectionStatus == CollectionStatus.lended && b.dueDate == null) {
+  if (!b.toBeTranslated && (b.collectionStatus == CollectionStatus.lended && b.dueDate == null)) {
     missing.add('Due Date');
   }
 
-  if (b.readingStatus == ReadingStatus.paused && b.pausedPage == null) {
+  if (!b.toBeTranslated && (b.readingStatus == ReadingStatus.paused && b.pausedPage == null)) {
     missing.add('Paused Page');
   }
 
-  if (b.readingStatus == ReadingStatus.completed && b.completedDate == null) {
+  if (!b.toBeTranslated &&
+      (b.readingStatus == ReadingStatus.completed && b.completedDate == null)) {
     missing.add('Completed Date');
   }
 
@@ -364,15 +369,15 @@ List<String> _missingForBook(BookEntity b) {
     missing.add('Authors');
   }
 
-  if (b.isTranslation && b.translatorIds.isEmpty) {
+  if (!b.toBeTranslated && b.isTranslation && b.translatorIds.isEmpty) {
     missing.add('Translators');
   }
 
-  if (b.publisherId == null) {
+  if (!b.toBeTranslated && b.publisherId == null) {
     missing.add('Publisher');
   }
 
-  if (b.collectionStatus == CollectionStatus.lended && b.readerId == null) {
+  if (!b.toBeTranslated && (b.collectionStatus == CollectionStatus.lended && b.readerId == null)) {
     missing.add('Reader');
   }
 
@@ -394,11 +399,11 @@ List<String> _missingForWork(WorkEntity w) {
     missing.add('Genre');
   }
 
-  if (w.isTranslation && (w.originalTitle == null || w.originalTitle!.trim().isEmpty)) {
+  if (w.originalTitle == null || w.originalTitle!.trim().isEmpty) {
     missing.add('Original Title');
   }
 
-  if (w.isTranslation && w.originalLanguage == null) {
+  if (w.originalLanguage == null) {
     missing.add('Original Language');
   }
 
@@ -406,7 +411,7 @@ List<String> _missingForWork(WorkEntity w) {
     missing.add('Authors');
   }
 
-  if (w.isTranslation && w.translatorIds.isEmpty) {
+  if (!w.toBeTranslated && w.isTranslation && w.translatorIds.isEmpty) {
     missing.add('Translators');
   }
 
@@ -476,7 +481,7 @@ List<String> _missingForTranslator(TranslatorEntity t) {
 List<String> _missingForPublisher(PublisherEntity p) {
   final List<String> missing = <String>[];
 
-  if (p.logo == null) {
+  if (!p.isSelfPublisher && p.logo == null) {
     missing.add('Logo');
   }
 
@@ -484,19 +489,19 @@ List<String> _missingForPublisher(PublisherEntity p) {
     missing.add('Other Name');
   }
 
-  if (p.website == null || p.website!.trim().isEmpty) {
+  if (!p.isSelfPublisher && (p.website == null || p.website!.trim().isEmpty)) {
     missing.add('Website');
   }
 
-  if (p.email == null || p.email!.trim().isEmpty) {
+  if (!p.isSelfPublisher && (p.email == null || p.email!.trim().isEmpty)) {
     missing.add('Email');
   }
 
-  if (p.facebook == null || p.facebook!.trim().isEmpty) {
+  if (!p.isSelfPublisher && (p.facebook == null || p.facebook!.trim().isEmpty)) {
     missing.add('Facebook');
   }
 
-  if (p.phoneNumber == null || p.phoneNumber!.trim().isEmpty) {
+  if (!p.isSelfPublisher && (p.phoneNumber == null || p.phoneNumber!.trim().isEmpty)) {
     missing.add('Phone Number');
   }
 

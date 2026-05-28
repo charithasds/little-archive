@@ -45,7 +45,8 @@ class EditPublisherUseCase {
   const EditPublisherUseCase(this.repository);
   final PublisherRepository repository;
 
-  Future<void> call(PublisherEntity publisher) => repository.editPublisher(publisher);
+  Future<void> call(PublisherEntity publisher, {PublisherEntity? oldPublisher}) =>
+      repository.editPublisher(publisher, oldPublisher: oldPublisher);
 }
 
 class RemovePublisherUseCase {

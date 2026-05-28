@@ -64,16 +64,6 @@ class RelationshipSyncService {
       isSingleSync: true,
     );
 
-    await _syncEntityRelationship(
-      batch: b,
-      collection: 'sequence_volumes',
-      fieldName: 'bookId',
-      entityId: bookId,
-      newIds: newSequenceVolumeIds,
-      oldIds: oldSequenceVolumeIds,
-      isSingleSync: true,
-    );
-
     await _syncSingleEntityRelationship(
       batch: b,
       collection: 'publishers',
@@ -136,16 +126,6 @@ class RelationshipSyncService {
       entityId: workId,
       newId: newBookId,
       oldId: oldBookId,
-    );
-
-    await _syncEntityRelationship(
-      batch: b,
-      collection: 'sequence_volumes',
-      fieldName: 'workId',
-      entityId: workId,
-      newIds: newSequenceVolumeIds,
-      oldIds: oldSequenceVolumeIds,
-      isSingleSync: true,
     );
 
     if (batch == null) {
@@ -369,14 +349,6 @@ class RelationshipSyncService {
       }, SetOptions(merge: true));
     }
 
-    for (final String volumeId in sequenceVolumeIds) {
-      b.set(
-        _firestore.collection(_collectionPath('sequence_volumes')).doc(volumeId),
-        <String, dynamic>{'bookId': null, 'lastUpdated': FieldValue.serverTimestamp()},
-        SetOptions(merge: true),
-      );
-    }
-
     if (publisherId != null) {
       b.set(
         _firestore.collection(_collectionPath('publishers')).doc(publisherId),
@@ -433,14 +405,6 @@ class RelationshipSyncService {
         'workIds': FieldValue.arrayRemove(<dynamic>[workId]),
         'lastUpdated': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
-    }
-
-    for (final String volumeId in sequenceVolumeIds) {
-      b.set(
-        _firestore.collection(_collectionPath('sequence_volumes')).doc(volumeId),
-        <String, dynamic>{'workId': null, 'lastUpdated': FieldValue.serverTimestamp()},
-        SetOptions(merge: true),
-      );
     }
 
     if (batch == null) {

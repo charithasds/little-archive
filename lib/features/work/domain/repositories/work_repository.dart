@@ -8,7 +8,7 @@ abstract class WorkRepository {
   Future<WorkEntity?> fetchWorkById(String id);
   Stream<List<WorkEntity>> watchWorks();
   Future<void> addWork(WorkEntity work, {WriteBatch? batch});
-  Future<void> editWork(WorkEntity work, {WriteBatch? batch});
+  Future<void> editWork(WorkEntity work, {WorkEntity? oldWork, WriteBatch? batch});
   Future<void> removeWork(String id, {WriteBatch? batch});
   Future<WorkEntity> upsertWork(
     WorkEntity work,

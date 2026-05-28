@@ -58,6 +58,7 @@ class BookRepositoryImpl implements BookRepository {
         title: book.title,
         compilationType: book.compilationType,
         isTranslation: book.isTranslation,
+        toBeTranslated: book.toBeTranslated,
         cover: book.cover,
         language: book.language,
         genre: book.genre,
@@ -99,8 +100,30 @@ class BookRepositoryImpl implements BookRepository {
   }
 
   @override
-  Future<void> editBook(BookEntity book, {WriteBatch? batch}) async {
-    final BookModel? existingBook = await remoteDataSource.fetchBookById(book.id);
+  Future<void> editBook(BookEntity book, {BookEntity? oldBook, WriteBatch? batch}) async {
+    final List<String> oldAuthorIds;
+    final List<String> oldTranslatorIds;
+    final List<String> oldSequenceVolumeIds;
+    final List<String> oldWorkIds;
+    final String? oldPublisherId;
+    final String? oldReaderId;
+
+    if (oldBook != null) {
+      oldAuthorIds = oldBook.authorIds;
+      oldTranslatorIds = oldBook.translatorIds;
+      oldSequenceVolumeIds = oldBook.sequenceVolumeIds;
+      oldWorkIds = oldBook.workIds;
+      oldPublisherId = oldBook.publisherId;
+      oldReaderId = oldBook.readerId;
+    } else {
+      final BookModel? existingBook = await remoteDataSource.fetchBookById(book.id);
+      oldAuthorIds = existingBook?.authorIds ?? <String>[];
+      oldTranslatorIds = existingBook?.translatorIds ?? <String>[];
+      oldSequenceVolumeIds = existingBook?.sequenceVolumeIds ?? <String>[];
+      oldWorkIds = existingBook?.workIds ?? <String>[];
+      oldPublisherId = existingBook?.publisherId;
+      oldReaderId = existingBook?.readerId;
+    }
 
     await remoteDataSource.editBook(
       BookModel(
@@ -108,6 +131,7 @@ class BookRepositoryImpl implements BookRepository {
         title: book.title,
         compilationType: book.compilationType,
         isTranslation: book.isTranslation,
+        toBeTranslated: book.toBeTranslated,
         cover: book.cover,
         language: book.language,
         genre: book.genre,
@@ -144,12 +168,12 @@ class BookRepositoryImpl implements BookRepository {
       newWorkIds: book.workIds,
       newPublisherId: book.publisherId,
       newReaderId: book.readerId,
-      oldAuthorIds: existingBook?.authorIds ?? <String>[],
-      oldTranslatorIds: existingBook?.translatorIds ?? <String>[],
-      oldSequenceVolumeIds: existingBook?.sequenceVolumeIds ?? <String>[],
-      oldWorkIds: existingBook?.workIds ?? <String>[],
-      oldPublisherId: existingBook?.publisherId,
-      oldReaderId: existingBook?.readerId,
+      oldAuthorIds: oldAuthorIds,
+      oldTranslatorIds: oldTranslatorIds,
+      oldSequenceVolumeIds: oldSequenceVolumeIds,
+      oldWorkIds: oldWorkIds,
+      oldPublisherId: oldPublisherId,
+      oldReaderId: oldReaderId,
       batch: batch,
     );
   }
@@ -159,6 +183,12 @@ class BookRepositoryImpl implements BookRepository {
     final BookModel? existingBook = await remoteDataSource.fetchBookById(id);
 
     if (existingBook != null) {
+      final WriteBatch effectiveBatch = batch ?? firestore.batch();
+
+      for (final String volumeId in existingBook.sequenceVolumeIds) {
+        await sequenceVolumeRepository.removeSequenceVolume(volumeId, batch: effectiveBatch);
+      }
+
       await relationshipSyncService.removeBookRelationships(
         bookId: id,
         authorIds: existingBook.authorIds,
@@ -167,11 +197,15 @@ class BookRepositoryImpl implements BookRepository {
         workIds: existingBook.workIds,
         publisherId: existingBook.publisherId,
         readerId: existingBook.readerId,
-        batch: batch,
+        batch: effectiveBatch,
       );
-    }
 
-    await remoteDataSource.removeBook(id, batch: batch);
+      await remoteDataSource.removeBook(id, batch: effectiveBatch);
+
+      if (batch == null) {
+        await effectiveBatch.commit();
+      }
+    }
   }
 
   @override

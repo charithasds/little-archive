@@ -13,14 +13,12 @@ class PublisherListTile extends ConsumerWidget {
     this.onTap,
     this.onEdit,
     this.onRemove,
-    this.onInfo,
   });
 
   final PublisherEntity publisher;
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onRemove;
-  final VoidCallback? onInfo;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,7 +36,7 @@ class PublisherListTile extends ConsumerWidget {
       color: colorScheme.primaryContainer.withValues(alpha: 0.2),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: InkWell(
-        onTap: onTap ?? onInfo,
+        onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -49,7 +47,7 @@ class PublisherListTile extends ConsumerWidget {
                   width: 64,
                   height: 64,
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
+                    borderRadius: BorderRadius.circular(12),
                     color: Images.getAvatarBackgroundColor(theme),
                     image: publisher.logo != null && publisher.logo!.isNotEmpty
                         ? DecorationImage(
@@ -120,12 +118,7 @@ class PublisherListTile extends ConsumerWidget {
                       onPressed: onRemove,
                       tooltip: 'Remove',
                     ),
-                  if (onInfo != null)
-                    IconButton(
-                      icon: Icon(Icons.info_outline_rounded, color: colorScheme.primary),
-                      onPressed: onInfo,
-                      tooltip: 'Info',
-                    ),
+
                 ],
               ),
             ],

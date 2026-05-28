@@ -45,7 +45,8 @@ class EditSequenceUseCase {
   const EditSequenceUseCase(this.repository);
   final SequenceRepository repository;
 
-  Future<void> call(SequenceEntity sequence) => repository.editSequence(sequence);
+  Future<void> call(SequenceEntity sequence, {SequenceEntity? oldSequence}) =>
+      repository.editSequence(sequence, oldSequence: oldSequence);
 }
 
 class RemoveSequenceUseCase {

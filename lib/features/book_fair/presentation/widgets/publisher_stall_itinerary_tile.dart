@@ -62,7 +62,7 @@ class PublisherStallItineraryTile extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    publisher.name,
+                    stall.name,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       decoration: isVisited ? TextDecoration.lineThrough : null,
@@ -73,7 +73,7 @@ class PublisherStallItineraryTile extends ConsumerWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    stall.name,
+                    publisher.name,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: isVisited
                           ? colorScheme.onSurfaceVariant.withValues(alpha: 0.4)

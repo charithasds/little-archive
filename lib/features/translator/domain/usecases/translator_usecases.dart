@@ -45,7 +45,8 @@ class EditTranslatorUseCase {
   const EditTranslatorUseCase(this.repository);
   final TranslatorRepository repository;
 
-  Future<void> call(TranslatorEntity translator) => repository.editTranslator(translator);
+  Future<void> call(TranslatorEntity translator, {TranslatorEntity? oldTranslator}) =>
+      repository.editTranslator(translator, oldTranslator: oldTranslator);
 }
 
 class RemoveTranslatorUseCase {

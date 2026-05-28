@@ -11,7 +11,7 @@ abstract class SequenceVolumeRepository {
   Stream<List<SequenceVolumeEntity>> watchSequenceVolumes(String sequenceId);
   Stream<List<SequenceVolumeEntity>> watchAllSequenceVolumes();
   Future<void> addSequenceVolume(SequenceVolumeEntity volume, {WriteBatch? batch});
-  Future<void> editSequenceVolume(SequenceVolumeEntity volume, {WriteBatch? batch});
+  Future<void> editSequenceVolume(SequenceVolumeEntity volume, {SequenceVolumeEntity? oldVolume, WriteBatch? batch});
   Future<void> removeSequenceVolume(String id, {WriteBatch? batch});
   Future<List<String>> syncBookVolumes(
     String bookId,

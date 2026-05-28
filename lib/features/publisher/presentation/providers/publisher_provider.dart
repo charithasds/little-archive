@@ -41,31 +41,40 @@ List<({String label, int count})>? publishersMissingInfo(Ref ref) {
     return null;
   }
 
-  int countWhere(bool Function(PublisherEntity) test) => publishers.where(test).length;
+  int noLogo = 0;
+  int noAltName = 0;
+  int noWebsite = 0;
+  int noEmail = 0;
+  int noPhone = 0;
+  int noBooks = 0;
+
+  for (final PublisherEntity p in publishers) {
+    if (p.logo == null || p.logo!.trim().isEmpty) {
+      noLogo++;
+    }
+    if (p.otherName == null || p.otherName!.trim().isEmpty) {
+      noAltName++;
+    }
+    if (p.website == null || p.website!.trim().isEmpty) {
+      noWebsite++;
+    }
+    if (p.email == null || p.email!.trim().isEmpty) {
+      noEmail++;
+    }
+    if (p.phoneNumber == null || p.phoneNumber!.trim().isEmpty) {
+      noPhone++;
+    }
+    if (p.bookIds.isEmpty) {
+      noBooks++;
+    }
+  }
 
   return <({String label, int count})>[
-    (
-      label: 'No Logo',
-      count: countWhere((PublisherEntity p) => p.logo == null || p.logo!.trim().isEmpty),
-    ),
-    (
-      label: 'No Alt. Name',
-      count: countWhere((PublisherEntity p) => p.otherName == null || p.otherName!.trim().isEmpty),
-    ),
-    (
-      label: 'No Website',
-      count: countWhere((PublisherEntity p) => p.website == null || p.website!.trim().isEmpty),
-    ),
-    (
-      label: 'No Email',
-      count: countWhere((PublisherEntity p) => p.email == null || p.email!.trim().isEmpty),
-    ),
-    (
-      label: 'No Phone',
-      count: countWhere(
-        (PublisherEntity p) => p.phoneNumber == null || p.phoneNumber!.trim().isEmpty,
-      ),
-    ),
-    (label: 'No Books', count: countWhere((PublisherEntity p) => p.bookIds.isEmpty)),
+    (label: 'No Logo', count: noLogo),
+    (label: 'No Alt. Name', count: noAltName),
+    (label: 'No Website', count: noWebsite),
+    (label: 'No Email', count: noEmail),
+    (label: 'No Phone', count: noPhone),
+    (label: 'No Books', count: noBooks),
   ];
 }

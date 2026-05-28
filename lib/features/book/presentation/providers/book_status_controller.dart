@@ -32,6 +32,8 @@ class BookStatusController extends _$BookStatusController {
           updated = book.copyWith(collectionStatus: status, lastUpdated: DateTime.now());
         case CollectionStatus.shoppingList:
           updated = book.copyWith(collectionStatus: status, lastUpdated: DateTime.now());
+        case CollectionStatus.onTheWay:
+          updated = book.copyWith(collectionStatus: status, lastUpdated: DateTime.now());
         case CollectionStatus.collected:
           updated = book.copyWith(
             collectionStatus: status,
@@ -53,7 +55,7 @@ class BookStatusController extends _$BookStatusController {
           updated = book.copyWith(collectionStatus: status, lastUpdated: DateTime.now());
       }
 
-      await editBook(updated);
+      await editBook(updated, oldBook: book);
     } finally {
       state = false;
     }
@@ -97,7 +99,7 @@ class BookStatusController extends _$BookStatusController {
           );
       }
 
-      await editBook(updated);
+      await editBook(updated, oldBook: book);
     } finally {
       state = false;
     }

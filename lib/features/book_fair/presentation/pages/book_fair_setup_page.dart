@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/presentation/providers/user_profile_provider.dart';
+import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
+import '../../../book/domain/entities/book_entity.dart';
+import '../../../book/presentation/providers/book_provider.dart';
 import '../../../publisher/data/repositories/publisher_repository_impl.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
@@ -53,6 +56,14 @@ class _BookFairSetupPageState extends ConsumerState<BookFairSetupPage> {
     final AsyncValue<BookFairEventEntity> eventAsync = ref.watch(bookFairEventProvider);
     final List<PublisherEntity> allPublishers =
         ref.watch(publishersStreamProvider).value ?? <PublisherEntity>[];
+    final List<BookEntity> books = ref.watch(booksStreamProvider).value ?? <BookEntity>[];
+    final Set<String> publisherIdsInShoppingList = books
+        .where(
+          (BookEntity b) =>
+              b.collectionStatus == CollectionStatus.shoppingList && b.publisherId != null,
+        )
+        .map((BookEntity b) => b.publisherId!)
+        .toSet();
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -84,6 +95,10 @@ class _BookFairSetupPageState extends ConsumerState<BookFairSetupPage> {
           final List<PublisherEntity> filteredPublishers = allPublishers.where((
             PublisherEntity publisher,
           ) {
+            if (!publisherIdsInShoppingList.contains(publisher.id)) {
+              return false;
+            }
+
             final String query = _searchQuery.toLowerCase().trim();
 
             if (query.isEmpty) {
@@ -97,13 +112,51 @@ class _BookFairSetupPageState extends ConsumerState<BookFairSetupPage> {
             return nameMatches || otherNameMatches;
           }).toList();
 
-          final int mappedCount = _publisherStallMap.values
-              .where(
-                (String? mappingId) =>
-                    mappingId != null &&
+          filteredPublishers.sort((PublisherEntity a, PublisherEntity b) {
+            final bool aConfigured =
+                a.bookFairPublisherId == 'none' ||
+                (a.bookFairPublisherId != null &&
+                 a.bookFairPublisherId!.startsWith('CIBF_${bookFairEvent.year}_'));
+            final bool bConfigured =
+                b.bookFairPublisherId == 'none' ||
+                (b.bookFairPublisherId != null &&
+                 b.bookFairPublisherId!.startsWith('CIBF_${bookFairEvent.year}_'));
+
+            final bool aInShopping = publisherIdsInShoppingList.contains(a.id);
+            final bool bInShopping = publisherIdsInShoppingList.contains(b.id);
+
+            final bool aUrgent = !aConfigured && aInShopping;
+            final bool bUrgent = !bConfigured && bInShopping;
+
+            if (aUrgent && !bUrgent) {
+              return -1;
+            }
+
+            if (!aUrgent && bUrgent) {
+              return 1;
+            }
+
+            final bool aUnmapped = !aConfigured;
+            final bool bUnmapped = !bConfigured;
+
+            if (aUnmapped && !bUnmapped) {
+              return -1;
+            }
+
+            if (!aUnmapped && bUnmapped) {
+              return 1;
+            }
+
+            return a.name.compareTo(b.name);
+          });
+
+          final int mappedCount = filteredPublishers
+              .where((PublisherEntity p) {
+                final String? mappingId = _publisherStallMap[p.id];
+                return mappingId != null &&
                     mappingId != 'none' &&
-                    mappingId.startsWith('CIBF_${bookFairEvent.year}_'),
-              )
+                    mappingId.startsWith('CIBF_${bookFairEvent.year}_');
+              })
               .length;
 
           return Column(
@@ -180,7 +233,7 @@ class _BookFairSetupPageState extends ConsumerState<BookFairSetupPage> {
                     children: <Widget>[
                       Expanded(
                         child: Text(
-                          '$mappedCount of ${allPublishers.length} Mapped',
+                          '$mappedCount of ${filteredPublishers.length} Mapped',
                           style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -221,7 +274,7 @@ class _BookFairSetupPageState extends ConsumerState<BookFairSetupPage> {
 
                                   final List<Future<void>> editFutures = <Future<void>>[];
 
-                                  for (final PublisherEntity publisher in allPublishers) {
+                                  for (final PublisherEntity publisher in filteredPublishers) {
                                     final String? activeStallId = _publisherStallMap[publisher.id];
 
                                     if (publisher.bookFairPublisherId != activeStallId) {

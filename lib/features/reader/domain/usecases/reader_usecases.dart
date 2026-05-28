@@ -45,7 +45,8 @@ class EditReaderUseCase {
   const EditReaderUseCase(this.repository);
   final ReaderRepository repository;
 
-  Future<void> call(ReaderEntity reader) => repository.editReader(reader);
+  Future<void> call(ReaderEntity reader, {ReaderEntity? oldReader}) =>
+      repository.editReader(reader, oldReader: oldReader);
 }
 
 class RemoveReaderUseCase {

@@ -30,6 +30,7 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _facebookController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
+  bool _isSelfPublisher = false;
 
   @override
   void initState() {
@@ -42,6 +43,7 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
       _emailController.text = publisher.email ?? '';
       _facebookController.text = publisher.facebook ?? '';
       _phoneController.text = publisher.phoneNumber ?? '';
+      _isSelfPublisher = publisher.isSelfPublisher;
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -60,6 +62,7 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
             email: _emailController.text.trim(),
             facebook: _facebookController.text.trim(),
             phone: _phoneController.text.trim(),
+            isSelfPublisher: _isSelfPublisher,
           );
 
       final bool isSuccess = savedPublisher != null;
@@ -176,6 +179,17 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
                   hint: 'Alternative Name',
                   prefixIcon: Icons.badge_rounded,
                   maxLength: 200,
+                ),
+                const SizedBox(height: 16),
+                SwitchListTile.adaptive(
+                  value: _isSelfPublisher,
+                  onChanged: (bool v) => setState(() => _isSelfPublisher = v),
+                  title: Text(
+                    'Self Publisher',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  contentPadding: EdgeInsets.zero,
+                  secondary: Icon(Icons.business_center_rounded, color: colorScheme.primary),
                 ),
               ],
             ),
