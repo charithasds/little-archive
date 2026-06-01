@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../theme/presentation/providers/theme_provider.dart';
+import 'custom_icons.dart';
 import 'form_decoration.dart';
 
 class SearchMultiPickerField<T> extends ConsumerStatefulWidget {
@@ -28,7 +30,7 @@ class SearchMultiPickerField<T> extends ConsumerStatefulWidget {
   final Refreshable<AsyncValue<List<T>>> itemsProvider;
   final String Function(T) itemLabel;
   final ValueChanged<List<T>> onChanged;
-  final IconData? prefixIcon;
+  final dynamic prefixIcon;
   final Future<T?> Function()? onAdd;
   final Object Function(T)? itemKey;
   final String Function(T)? chipLabel;
@@ -71,7 +73,7 @@ class _SearchMultiPickerFieldState<T> extends ConsumerState<SearchMultiPickerFie
                 const Expanded(
                   child: Text('Add Items...', style: TextStyle(color: Colors.grey, fontSize: 16)),
                 ),
-                Icon(Icons.search_rounded, color: colorScheme.onSurfaceVariant),
+                buildAppIcon(FontAwesomeIcons.magnifyingGlass, color: colorScheme.onSurfaceVariant)!,
               ],
             ),
           ),
@@ -212,9 +214,9 @@ class _MultiPickerSheetState<T> extends ConsumerState<_MultiPickerSheet<T>> {
                         });
                       }
                     },
-                    icon: const Icon(Icons.add_rounded),
+                    icon: buildAppIcon(FontAwesomeIcons.plus)!,
                   ),
-                IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.close_rounded)),
+                IconButton(onPressed: () => context.pop(), icon: buildAppIcon(FontAwesomeIcons.xmark)!),
               ],
             ),
           ),
@@ -225,10 +227,18 @@ class _MultiPickerSheetState<T> extends ConsumerState<_MultiPickerSheet<T>> {
               autofocus: true,
               decoration: InputDecoration(
                 hintText: 'Search...',
-                prefixIcon: const Icon(Icons.search_rounded),
+                prefixIcon: Padding(
+                  padding: const EdgeInsets.only(left: 16, right: 10),
+                  child: Align(
+                    widthFactor: 1.0,
+                    heightFactor: 1.0,
+                    child: buildAppIcon(FontAwesomeIcons.magnifyingGlass),
+                  ),
+                ),
+                prefixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                 suffixIcon: _query.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear_rounded),
+                        icon: buildAppIcon(FontAwesomeIcons.xmark)!,
                         onPressed: () {
                           _searchController.clear();
                           setState(() => _query = '');

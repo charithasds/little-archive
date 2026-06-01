@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/utils/buttons.dart';
@@ -31,7 +32,10 @@ class _BookListPageState extends ConsumerState<BookListPage> {
       context: context,
       entityType: 'Book',
       entityName: bookTitle,
-      onConfirm: () => ref.read(removeBookUseCaseProvider)(bookId),
+      onConfirm: () async {
+        await ref.read(removeBookUseCaseProvider)(bookId);
+        ref.invalidate(bookCountProvider);
+      },
     );
   }
 
@@ -58,7 +62,7 @@ class _BookListPageState extends ConsumerState<BookListPage> {
 
           if (books.isEmpty && state.searchQuery.isEmpty) {
             return const ListEmptyState(
-              icon: Icons.book_rounded,
+              icon: FontAwesomeIcons.book,
               title: 'No Books Yet',
               subtitle: 'Tap the button below to add your first book.',
             );
@@ -152,7 +156,7 @@ class _BookListPageState extends ConsumerState<BookListPage> {
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
         onPressed: () => context.go('/books/upsert'),
-        icon: const Icon(Icons.add_rounded),
+        icon: const FaIcon(FontAwesomeIcons.plus),
         label: const Text('Add Book'),
       ),
     );

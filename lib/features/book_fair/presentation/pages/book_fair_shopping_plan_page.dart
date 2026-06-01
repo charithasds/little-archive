@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../../core/auth/presentation/providers/user_profile_provider.dart';
 import '../../../../core/shared/domain/enums/collection_status.dart';
@@ -43,7 +44,7 @@ class BookFairShoppingPlanPage extends ConsumerWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Icon(Icons.error_outline_rounded, color: colorScheme.error, size: 48),
+              FaIcon(FontAwesomeIcons.circleExclamation, color: colorScheme.error, size: 48),
               const SizedBox(height: 16),
               Text('Failed to load plan', style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
@@ -143,7 +144,7 @@ class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlan
                     color: purpleContainer.withValues(alpha: 0.3),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.explore_outlined, size: 64, color: purplePrimary),
+                  child: FaIcon(FontAwesomeIcons.compass, size: 64, color: purplePrimary),
                 ),
                 const SizedBox(height: 24),
                 Text(
@@ -165,7 +166,7 @@ class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlan
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
-                  icon: const Icon(Icons.settings_outlined),
+                  icon: const FaIcon(FontAwesomeIcons.gear),
                   label: const Text('Start Setup Wizard'),
                   onPressed: widget.onEditMappings,
                 ),
@@ -212,7 +213,7 @@ class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlan
         elevation: 0,
         actions: <Widget>[
           TextButton.icon(
-            icon: const Icon(Icons.edit_road_rounded, size: 18),
+            icon: const FaIcon(FontAwesomeIcons.road, size: 18),
             label: const Text('Edit Plan'),
             onPressed: widget.onEditMappings,
             style: TextButton.styleFrom(

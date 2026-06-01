@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
@@ -63,8 +64,8 @@ class PublisherStallMappingCard extends ConsumerWidget {
         ),
         child: Row(
           children: <Widget>[
-            Icon(
-              selectedStall != null ? Icons.storefront_rounded : Icons.storefront_outlined,
+            FaIcon(
+              selectedStall != null ? FontAwesomeIcons.store : FontAwesomeIcons.store,
               color: selectedStall != null ? purplePrimary : colorScheme.onSurfaceVariant,
               size: 20,
             ),
@@ -98,7 +99,7 @@ class PublisherStallMappingCard extends ConsumerWidget {
                     ),
             ),
             const SizedBox(width: 8),
-            Icon(Icons.edit_rounded, size: 16, color: purplePrimary),
+            FaIcon(FontAwesomeIcons.pen, size: 16, color: purplePrimary),
           ],
         ),
       ),

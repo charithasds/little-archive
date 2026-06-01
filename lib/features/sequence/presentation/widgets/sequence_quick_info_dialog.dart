@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/widgets/detail_tile.dart';
@@ -36,14 +37,14 @@ class SequenceQuickInfoDialog extends ConsumerWidget {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            const InfoDialogCircleImage(icon: Icons.layers_rounded),
+            const InfoDialogCircleImage(icon: FontAwesomeIcons.layerGroup),
             const SizedBox(height: 16),
             Text(sequence.name, style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
             const Divider(height: 32),
             DetailTile(
               label: 'Volumes Count',
               value: '${sequence.sequenceVolumeIds.length} volumes',
-              leadingIcon: Icons.layers_rounded,
+              leadingIcon: FontAwesomeIcons.layerGroup,
             ),
             InfoDialogMetadata(created: sequence.createdDate, updated: sequence.lastUpdated),
           ],

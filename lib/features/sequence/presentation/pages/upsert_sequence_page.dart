@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/utils/buttons.dart';
@@ -93,9 +93,10 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
               child: Container(
                 width: 120,
                 height: 120,
+                alignment: Alignment.center,
                 decoration: Images.getPickerDecoration(theme, shape: ImageShape.square),
-                child: Icon(
-                  Icons.layers_rounded,
+                child: FaIcon(
+                  FontAwesomeIcons.layerGroup,
                   size: 48,
                   color: Images.getPickerIconColor(theme),
                 ),
@@ -103,13 +104,13 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
             ),
             FormSection(
               title: 'Identity',
-              icon: Icons.person_outline_rounded,
+              icon: FontAwesomeIcons.user,
               children: <Widget>[
                 FormTextField(
                   controller: _nameController,
                   label: 'Name',
                   hint: 'Sequence Name',
-                  prefixIcon: Icons.layers_rounded,
+                  prefixIcon: FontAwesomeIcons.layerGroup,
                   maxLength: 200,
                   isRequired: true,
                 ),
@@ -118,13 +119,13 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
 
             FormSection(
               title: 'Additional Information',
-              icon: Icons.notes_rounded,
+              icon: FontAwesomeIcons.noteSticky,
               children: <Widget>[
                 FormTextField(
                   controller: _notesController,
                   label: 'Notes',
                   hint: 'Notes about this Sequence',
-                  prefixIcon: Icons.notes_rounded,
+                  prefixIcon: FontAwesomeIcons.noteSticky,
                   maxLength: 500,
                   maxLines: 3,
                 ),
@@ -143,7 +144,7 @@ class _UpsertSequencePageState extends ConsumerState<UpsertSequencePage> {
                         color: colorScheme.onPrimary,
                       ),
                     )
-                  : const Icon(Icons.save_rounded),
+                  : const FaIcon(FontAwesomeIcons.floppyDisk),
               label: Text(
                 state.isLoading
                     ? 'Saving...'

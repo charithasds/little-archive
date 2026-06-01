@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 
@@ -25,8 +26,8 @@ class ListErrorState extends ConsumerWidget {
                 color: colorScheme.errorContainer,
                 borderRadius: BorderRadius.circular(28),
               ),
-              child: Icon(
-                Icons.error_outline_rounded,
+              child: FaIcon(
+                FontAwesomeIcons.circleExclamation,
                 size: 52,
                 color: colorScheme.onErrorContainer,
               ),

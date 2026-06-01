@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/utils/buttons.dart';
@@ -31,7 +32,10 @@ class _AuthorListPageState extends ConsumerState<AuthorListPage> {
       context: context,
       entityType: 'Author',
       entityName: authorName,
-      onConfirm: () => ref.read(removeAuthorUseCaseProvider)(authorId),
+      onConfirm: () async {
+        await ref.read(removeAuthorUseCaseProvider)(authorId);
+        ref.invalidate(authorCountProvider);
+      },
     );
   }
 
@@ -58,7 +62,7 @@ class _AuthorListPageState extends ConsumerState<AuthorListPage> {
 
           if (authors.isEmpty && state.searchQuery.isEmpty) {
             return const ListEmptyState(
-              icon: Icons.person_rounded,
+              icon: FontAwesomeIcons.user,
               title: 'No Authors Yet',
               subtitle: 'Tap the button below to add your first author.',
             );
@@ -152,7 +156,7 @@ class _AuthorListPageState extends ConsumerState<AuthorListPage> {
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
         onPressed: () => context.go('/authors/upsert'),
-        icon: const Icon(Icons.add_rounded),
+        icon: const FaIcon(FontAwesomeIcons.plus),
         label: const Text('Add Author'),
       ),
     );

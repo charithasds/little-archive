@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/widgets/detail_tile.dart';
@@ -36,7 +37,7 @@ class TranslatorQuickInfoDialog extends ConsumerWidget {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            InfoDialogCircleImage(image: translator.image, icon: Icons.translate_rounded),
+            InfoDialogCircleImage(image: translator.image, icon: FontAwesomeIcons.language),
             const SizedBox(height: 16),
             Text(translator.name, style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
             if (translator.otherName != null && translator.otherName!.isNotEmpty)
@@ -49,12 +50,12 @@ class TranslatorQuickInfoDialog extends ConsumerWidget {
             DetailTile(
               label: 'Books Count',
               value: '${translator.bookIds.length} books',
-              leadingIcon: Icons.book_rounded,
+              leadingIcon: FontAwesomeIcons.book,
             ),
             DetailTile(
               label: 'Works Count',
               value: '${translator.workIds.length} works',
-              leadingIcon: Icons.article_rounded,
+              leadingIcon: FontAwesomeIcons.fileLines,
             ),
             InfoDialogMetadata(created: translator.createdDate, updated: translator.lastUpdated),
           ],

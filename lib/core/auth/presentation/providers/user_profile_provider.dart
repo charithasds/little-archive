@@ -1,22 +1,35 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../domain/entities/user_entity.dart';
 import 'auth_provider.dart';
 
 part 'user_profile_provider.g.dart';
 
 @riverpod
-Stream<Map<String, dynamic>?> userProfile(Ref ref) {
+Stream<UserEntity?> userProfile(Ref ref) {
   final String? uid = ref.watch(currentUidProvider);
   
   if (uid == null) {
-    return Stream<Map<String, dynamic>?>.value(null);
+    return Stream<UserEntity?>.value(null);
   }
 
   return FirebaseFirestore.instance
       .collection('users')
       .doc(uid)
       .snapshots()
-      .map((DocumentSnapshot<Map<String, dynamic>> snapshot) => snapshot.data());
+      .map((DocumentSnapshot<Map<String, dynamic>> snapshot) {
+        final Map<String, dynamic>? data = snapshot.data();
+        if (data == null) {
+          return null;
+        }
+        return UserEntity(
+          uid: uid,
+          email: data['email'] as String?,
+          displayName: data['displayName'] as String?,
+          photoUrl: data['photoUrl'] as String?,
+          lastConfiguredFairId: data['lastConfiguredFairId'] as String?,
+        );
+      });
 }
 
 @Riverpod(keepAlive: true)

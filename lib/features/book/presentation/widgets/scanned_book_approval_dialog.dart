@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:string_similarity/string_similarity.dart';
 
@@ -365,7 +365,7 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
 
     if (widget.scannedBook.analysisError != null) {
       return AlertDialog(
-        icon: Icon(Icons.error_outline_rounded, color: theme.colorScheme.error, size: 48),
+        icon: FaIcon(FontAwesomeIcons.circleExclamation, color: theme.colorScheme.error, size: 48),
         title: const Text('Scan Failed'),
         content: Text(
           widget.scannedBook.analysisError!,

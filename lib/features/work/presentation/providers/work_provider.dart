@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
+import '../../../../core/shared/data/services/firestore_service.dart';
 import '../../domain/entities/work_entity.dart';
 import '../../domain/usecases/work_usecases.dart';
 
@@ -18,8 +20,17 @@ Stream<List<WorkEntity>> worksStream(Ref ref) {
   return watchWorks();
 }
 
+
 @riverpod
-int? workCount(Ref ref) => ref.watch(worksStreamProvider).value?.length;
+Future<int> workCount(Ref ref) async {
+  final String? userId = ref.watch(currentUidProvider);
+  if (userId == null) {
+    return 0;
+  }
+  final FirebaseFirestore firestore = ref.watch(firestoreServiceProvider).firebaseFirestore;
+  final AggregateQuerySnapshot snap = await firestore.collection('users/$userId/works').count().get();
+  return snap.count ?? 0;
+}
 
 @riverpod
 Future<WorkEntity?> work(Ref ref, String id) async {

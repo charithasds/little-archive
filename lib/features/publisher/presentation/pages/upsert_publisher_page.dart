@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/utils/buttons.dart';
@@ -116,6 +116,7 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
                 child: Container(
                   width: 120,
                   height: 120,
+                  alignment: Alignment.center,
                   decoration: Images.getPickerDecoration(
                     theme,
                     shape: ImageShape.square,
@@ -127,8 +128,8 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
                         : null,
                   ),
                   child: state.pickedBase64Logo == null
-                      ? Icon(
-                          Icons.business_rounded,
+                      ? FaIcon(
+                          FontAwesomeIcons.building,
                           size: 48,
                           color: Images.getPickerIconColor(theme),
                         )
@@ -144,14 +145,14 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
                   TextButton.icon(
                     onPressed: () =>
                         ref.read(upsertPublisherControllerProvider.notifier).pickImage(),
-                    icon: const Icon(Icons.camera_rounded),
+                    icon: const FaIcon(FontAwesomeIcons.camera),
                     label: Text(state.pickedBase64Logo == null ? 'Add Logo' : 'Change Logo'),
                   ),
                   if (state.pickedBase64Logo != null)
                     TextButton.icon(
                       onPressed: () =>
                           ref.read(upsertPublisherControllerProvider.notifier).clearLogo(),
-                      icon: const Icon(Icons.delete_rounded),
+                      icon: const FaIcon(FontAwesomeIcons.trash),
                       label: const Text('Remove Logo'),
                       style: TextButton.styleFrom(foregroundColor: colorScheme.error),
                     ),
@@ -162,13 +163,13 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
 
             FormSection(
               title: 'Identity',
-              icon: Icons.business_center_outlined,
+              icon: FontAwesomeIcons.briefcase,
               children: <Widget>[
                 FormTextField(
                   controller: _nameController,
                   label: 'Name',
                   hint: 'Publisher Name',
-                  prefixIcon: Icons.business_rounded,
+                  prefixIcon: FontAwesomeIcons.building,
                   maxLength: 200,
                   isRequired: true,
                 ),
@@ -177,7 +178,7 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
                   controller: _otherNameController,
                   label: 'Other Name',
                   hint: 'Alternative Name',
-                  prefixIcon: Icons.badge_rounded,
+                  prefixIcon: FontAwesomeIcons.idBadge,
                   maxLength: 200,
                 ),
                 const SizedBox(height: 16),
@@ -189,20 +190,20 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
                     style: theme.textTheme.bodyMedium,
                   ),
                   contentPadding: EdgeInsets.zero,
-                  secondary: Icon(Icons.business_center_rounded, color: colorScheme.primary),
+                  secondary: FaIcon(FontAwesomeIcons.briefcase, color: colorScheme.primary),
                 ),
               ],
             ),
 
             FormSection(
               title: 'Contact',
-              icon: Icons.contact_support_outlined,
+              icon: FontAwesomeIcons.circleQuestion,
               children: <Widget>[
                 FormTextField(
                   controller: _websiteController,
                   label: 'Website',
                   hint: 'https://www.example.com',
-                  prefixIcon: Icons.language_rounded,
+                  prefixIcon: FontAwesomeIcons.globe,
                   maxLength: 200,
                   keyboardType: TextInputType.url,
                   validator: Validators.validateWebsiteUrl,
@@ -212,7 +213,7 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
                   controller: _emailController,
                   label: 'Email',
                   hint: 'publisher@example.com',
-                  prefixIcon: Icons.email_rounded,
+                  prefixIcon: FontAwesomeIcons.envelope,
                   maxLength: 200,
                   keyboardType: TextInputType.emailAddress,
                   validator: Validators.validateEmail,
@@ -222,7 +223,7 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
                   controller: _facebookController,
                   label: 'Facebook',
                   hint: 'https://www.facebook.com/username',
-                  prefixIcon: Icons.facebook_rounded,
+                  prefixIcon: FontAwesomeIcons.facebook,
                   maxLength: 200,
                   keyboardType: TextInputType.url,
                   validator: Validators.validateFacebookUrl,
@@ -232,7 +233,7 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
                   controller: _phoneController,
                   label: 'Phone Number',
                   hint: '+94 77 123 4567 or 077 123 4567',
-                  prefixIcon: Icons.phone_rounded,
+                  prefixIcon: FontAwesomeIcons.phone,
                   maxLength: 20,
                   keyboardType: TextInputType.phone,
                   validator: Validators.validateSriLankanPhoneNumber,
@@ -253,7 +254,7 @@ class _UpsertPublisherPageState extends ConsumerState<UpsertPublisherPage> {
                         color: colorScheme.onPrimary,
                       ),
                     )
-                  : const Icon(Icons.save_rounded),
+                  : const FaIcon(FontAwesomeIcons.floppyDisk),
               label: Text(
                 state.isLoading
                     ? 'Saving...'

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/utils/buttons.dart';
@@ -105,6 +105,7 @@ class _UpsertAuthorPageState extends ConsumerState<UpsertAuthorPage> {
                 child: Container(
                   width: 120,
                   height: 120,
+                  alignment: Alignment.center,
                   decoration: Images.getPickerDecoration(
                     theme,
                     image: state.pickedBase64Image != null
@@ -115,8 +116,8 @@ class _UpsertAuthorPageState extends ConsumerState<UpsertAuthorPage> {
                         : null,
                   ),
                   child: state.pickedBase64Image == null
-                      ? Icon(
-                          Icons.person_rounded,
+                      ? FaIcon(
+                          FontAwesomeIcons.user,
                           size: 56,
                           color: Images.getPickerIconColor(theme),
                         )
@@ -131,14 +132,14 @@ class _UpsertAuthorPageState extends ConsumerState<UpsertAuthorPage> {
                 children: <Widget>[
                   TextButton.icon(
                     onPressed: () => ref.read(upsertAuthorControllerProvider.notifier).pickImage(),
-                    icon: const Icon(Icons.camera_rounded),
+                    icon: const FaIcon(FontAwesomeIcons.camera),
                     label: Text(state.pickedBase64Image == null ? 'Add Image' : 'Change Image'),
                   ),
                   if (state.pickedBase64Image != null)
                     TextButton.icon(
                       onPressed: () =>
                           ref.read(upsertAuthorControllerProvider.notifier).clearImage(),
-                      icon: const Icon(Icons.delete_rounded),
+                      icon: const FaIcon(FontAwesomeIcons.trash),
                       label: const Text('Remove Image'),
                       style: TextButton.styleFrom(foregroundColor: colorScheme.error),
                     ),
@@ -149,13 +150,13 @@ class _UpsertAuthorPageState extends ConsumerState<UpsertAuthorPage> {
 
             FormSection(
               title: 'Identity',
-              icon: Icons.person_outline_rounded,
+              icon: FontAwesomeIcons.user,
               children: <Widget>[
                 FormTextField(
                   controller: _nameController,
                   label: 'Name',
                   hint: 'Author Name',
-                  prefixIcon: Icons.person_rounded,
+                  prefixIcon: FontAwesomeIcons.user,
                   maxLength: 200,
                   isRequired: true,
                 ),
@@ -164,7 +165,7 @@ class _UpsertAuthorPageState extends ConsumerState<UpsertAuthorPage> {
                   controller: _otherNameController,
                   label: 'Other Name',
                   hint: 'Alternative Name',
-                  prefixIcon: Icons.badge_rounded,
+                  prefixIcon: FontAwesomeIcons.idBadge,
                   maxLength: 200,
                 ),
               ],
@@ -172,13 +173,13 @@ class _UpsertAuthorPageState extends ConsumerState<UpsertAuthorPage> {
 
             FormSection(
               title: 'Contact',
-              icon: Icons.public_rounded,
+              icon: FontAwesomeIcons.earthAmericas,
               children: <Widget>[
                 FormTextField(
                   controller: _websiteController,
                   label: 'Website',
                   hint: 'https://www.example.com',
-                  prefixIcon: Icons.language_rounded,
+                  prefixIcon: FontAwesomeIcons.globe,
                   maxLength: 200,
                   keyboardType: TextInputType.url,
                   validator: Validators.validateWebsiteUrl,
@@ -188,7 +189,7 @@ class _UpsertAuthorPageState extends ConsumerState<UpsertAuthorPage> {
                   controller: _facebookController,
                   label: 'Facebook',
                   hint: 'https://www.facebook.com/username',
-                  prefixIcon: Icons.facebook_rounded,
+                  prefixIcon: FontAwesomeIcons.facebook,
                   maxLength: 200,
                   keyboardType: TextInputType.url,
                   validator: Validators.validateFacebookUrl,
@@ -209,7 +210,7 @@ class _UpsertAuthorPageState extends ConsumerState<UpsertAuthorPage> {
                         color: colorScheme.onPrimary,
                       ),
                     )
-                  : const Icon(Icons.save_rounded),
+                  : const FaIcon(FontAwesomeIcons.floppyDisk),
               label: Text(
                 state.isLoading
                     ? 'Saving...'

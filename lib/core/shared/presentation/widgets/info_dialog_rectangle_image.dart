@@ -3,12 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../theme/presentation/providers/theme_provider.dart';
 import '../utils/images.dart';
+import 'custom_icons.dart';
 
 class InfoDialogImageRectangle extends ConsumerWidget {
   const InfoDialogImageRectangle({this.image, required this.icon, super.key});
 
   final String? image;
-  final IconData icon;
+  final dynamic icon;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,7 +25,7 @@ class InfoDialogImageRectangle extends ConsumerWidget {
             : null,
       ),
       child: image == null || image!.isEmpty
-          ? Icon(icon, color: Images.getAvatarIconColor(theme), size: 60)
+          ? buildAppIcon(icon, color: Images.getAvatarIconColor(theme), size: 60)!
           : null,
     );
   }

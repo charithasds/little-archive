@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/utils/dialogs.dart';
@@ -34,6 +35,7 @@ class AuthorDetailPage extends ConsumerWidget {
       entityName: author.name,
       onConfirm: () async {
         await ref.read(removeAuthorUseCaseProvider)(author.id);
+        ref.invalidate(authorCountProvider);
         if (context.mounted) {
           context.pop();
         }
@@ -51,7 +53,7 @@ class AuthorDetailPage extends ConsumerWidget {
         if (author == null) {
           return const Scaffold(
             body: ListEmptyState(
-              icon: Icons.person_rounded,
+              icon: FontAwesomeIcons.user,
               title: 'Author Not Found',
               subtitle: 'This author may have been removed.',
             ),
@@ -88,7 +90,7 @@ class AuthorDetailPage extends ConsumerWidget {
                 scrolledUnderElevation: 1,
                 actions: <Widget>[
                   IconButton(
-                    icon: const Icon(Icons.edit_note_rounded),
+                    icon: const FaIcon(FontAwesomeIcons.penToSquare),
                     onPressed: () async {
                       await context.push('/authors/upsert', extra: author);
                       ref.invalidate(authorProvider(authorId));
@@ -96,7 +98,7 @@ class AuthorDetailPage extends ConsumerWidget {
                     tooltip: 'Edit',
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete_outline_rounded),
+                    icon: const FaIcon(FontAwesomeIcons.trash),
                     onPressed: () => _handleRemove(context, ref, author),
                     tooltip: 'Remove',
                   ),
@@ -114,6 +116,7 @@ class AuthorDetailPage extends ConsumerWidget {
                         child: Container(
                           width: 240,
                           height: 240,
+                          alignment: Alignment.center,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: Images.getAvatarBackgroundColor(theme),
@@ -125,8 +128,8 @@ class AuthorDetailPage extends ConsumerWidget {
                                 : null,
                           ),
                           child: author.image == null || author.image!.isEmpty
-                              ? Icon(
-                                  Icons.person_rounded,
+                              ? FaIcon(
+                                  FontAwesomeIcons.user,
                                   color: Images.getAvatarIconColor(theme),
                                   size: 120,
                                 )
@@ -142,43 +145,43 @@ class AuthorDetailPage extends ConsumerWidget {
                           DetailTile(
                             label: 'Other Name',
                             value: author.otherName!,
-                            leadingIcon: Icons.badge_rounded,
+                            leadingIcon: FontAwesomeIcons.idBadge,
                           ),
                         DetailTile(
                           label: 'Books Count',
                           value: '${authorBooks.length} books',
-                          leadingIcon: Icons.book_rounded,
+                          leadingIcon: FontAwesomeIcons.book,
                         ),
                         DetailTile(
                           label: 'Works Count',
                           value: '${authorWorks.length} works',
-                          leadingIcon: Icons.article_rounded,
+                          leadingIcon: FontAwesomeIcons.fileLines,
                         ),
                         if (author.website != null && author.website!.isNotEmpty)
                           DetailTile(
                             label: 'Website',
                             value: author.website!,
-                            leadingIcon: Icons.language_rounded,
-                            trailingIcon: Icons.open_in_new_rounded,
+                            leadingIcon: FontAwesomeIcons.globe,
+                            trailingIcon: FontAwesomeIcons.arrowUpRightFromSquare,
                             onTap: () => ExternalLauncher.launchBrowser(author.website!),
                           ),
                         if (author.facebook != null && author.facebook!.isNotEmpty)
                           DetailTile(
                             label: 'Facebook',
                             value: author.facebook!,
-                            leadingIcon: Icons.facebook_rounded,
-                            trailingIcon: Icons.open_in_new_rounded,
+                            leadingIcon: FontAwesomeIcons.facebook,
+                            trailingIcon: FontAwesomeIcons.arrowUpRightFromSquare,
                             onTap: () => ExternalLauncher.launchBrowser(author.facebook!),
                           ),
                         DetailTile(
                           label: 'Created',
                           value: DetailTile.formatDate(author.createdDate),
-                          leadingIcon: Icons.calendar_today_rounded,
+                          leadingIcon: FontAwesomeIcons.calendar,
                         ),
                         DetailTile(
                           label: 'Last Updated',
                           value: DetailTile.formatDate(author.lastUpdated),
-                          leadingIcon: Icons.update_rounded,
+                          leadingIcon: FontAwesomeIcons.clockRotateLeft,
                         ),
                       ],
                     ),

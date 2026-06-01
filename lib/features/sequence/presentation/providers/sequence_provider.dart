@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
+import '../../../../core/shared/data/services/firestore_service.dart';
 import '../../domain/entities/sequence_entity.dart';
 import '../../domain/entities/sequence_volume_entity.dart';
 import '../../domain/usecases/sequence_usecases.dart';
@@ -21,7 +23,16 @@ Stream<List<SequenceEntity>> sequencesStream(Ref ref) {
 }
 
 @riverpod
-int? sequenceCount(Ref ref) => ref.watch(sequencesStreamProvider).value?.length;
+Future<int> sequenceCount(Ref ref) async {
+  final String? userId = ref.watch(currentUidProvider);
+  if (userId == null) {
+    return 0;
+  }
+  final FirebaseFirestore firestore = ref.watch(firestoreServiceProvider).firebaseFirestore;
+  final AggregateQuerySnapshot snap = await firestore.collection('users/$userId/sequences').count().get();
+  return snap.count ?? 0;
+}
+
 
 @riverpod
 Future<SequenceEntity?> sequence(Ref ref, String id) async {

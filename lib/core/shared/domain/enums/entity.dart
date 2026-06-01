@@ -1,17 +1,17 @@
-import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 enum Entity {
-  book('Book', 'Books', Icons.book_rounded),
-  work('Work', 'Works', Icons.article_rounded),
-  author('Author', 'Authors', Icons.person_rounded),
-  translator('Translator', 'Translators', Icons.translate_rounded),
-  publisher('Publisher', 'Publishers', Icons.business_rounded),
-  reader('Reader', 'Readers', Icons.face_rounded),
-  sequence('Sequence', 'Sequences', Icons.layers_rounded),
-  sequenceVolume('Sequence Volume', 'Sequence Volumes', Icons.format_list_numbered_rounded);
+  book('Book', 'Books', FontAwesomeIcons.book),
+  work('Work', 'Works', FontAwesomeIcons.fileLines),
+  author('Author', 'Authors', FontAwesomeIcons.user),
+  translator('Translator', 'Translators', FontAwesomeIcons.language),
+  publisher('Publisher', 'Publishers', FontAwesomeIcons.building),
+  reader('Reader', 'Readers', FontAwesomeIcons.smile),
+  sequence('Sequence', 'Sequences', FontAwesomeIcons.layerGroup),
+  sequenceVolume('Sequence Volume', 'Sequence Volumes', FontAwesomeIcons.listOl);
 
   const Entity(this.clientSingularValue, this.clientPluralValue, this.icon);
   final String clientSingularValue;
   final String clientPluralValue;
-  final IconData icon;
+  final dynamic icon;
 }

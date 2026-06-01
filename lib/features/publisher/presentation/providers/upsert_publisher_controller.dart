@@ -11,6 +11,7 @@ import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../domain/entities/publisher_entity.dart';
 import '../../domain/usecases/publisher_usecases.dart';
+import 'publisher_provider.dart';
 
 part 'upsert_publisher_controller.g.dart';
 
@@ -142,7 +143,7 @@ class UpsertPublisherController extends _$UpsertPublisherController {
       }
 
       state = state.copyWith(isLoading: false);
-
+      ref.invalidate(publisherCountProvider);
       return publisherToSave;
     } on NoConnectionException catch (e) {
       state = state.copyWith(isLoading: false, error: Nullable<String?>(e.message));

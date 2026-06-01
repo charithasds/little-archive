@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/shared/presentation/widgets/custom_icons.dart';
 
 class StatusActionChip extends StatelessWidget {
   const StatusActionChip({
@@ -10,13 +11,13 @@ class StatusActionChip extends StatelessWidget {
   });
 
   final String label;
-  final IconData icon;
+  final dynamic icon;
   final Color color;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) => ActionChip(
-    avatar: Icon(icon, size: 16, color: color),
+    avatar: buildAppIcon(icon, size: 16, color: color),
     label: Text(label),
     labelStyle: TextStyle(color: color, fontWeight: FontWeight.w600),
     backgroundColor: color.withValues(alpha: 0.1),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/auth/domain/entities/user_entity.dart';
@@ -44,10 +44,10 @@ class HomePage extends ConsumerWidget {
                       height: 28,
                       fit: BoxFit.cover,
                       errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) =>
-                          const Icon(Icons.account_circle_outlined),
+                          const FaIcon(FontAwesomeIcons.user),
                     ),
                   )
-                : const Icon(Icons.account_circle_outlined),
+                : const FaIcon(FontAwesomeIcons.user),
             tooltip: 'User Profile',
             onSelected: (String value) {
               if (value == 'settings') {
@@ -60,7 +60,7 @@ class HomePage extends ConsumerWidget {
               const PopupMenuItem<String>(
                 value: 'settings',
                 child: ListTile(
-                  leading: Icon(Icons.settings_outlined),
+                  leading: FaIcon(FontAwesomeIcons.gear),
                   title: Text('Settings'),
                   contentPadding: EdgeInsets.zero,
                 ),
@@ -69,7 +69,7 @@ class HomePage extends ConsumerWidget {
               PopupMenuItem<String>(
                 value: 'logout',
                 child: ListTile(
-                  leading: Icon(Icons.logout_rounded, color: cs.error),
+                  leading: FaIcon(FontAwesomeIcons.rightFromBracket, color: cs.error),
                   title: Text('Sign Out', style: TextStyle(color: cs.error)),
                   contentPadding: EdgeInsets.zero,
                 ),

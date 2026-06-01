@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
+import '../../../../core/shared/data/services/firestore_service.dart';
 import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../domain/entities/book_entity.dart';
@@ -20,8 +22,17 @@ Stream<List<BookEntity>> booksStream(Ref ref) {
   return watchBooks();
 }
 
+
 @riverpod
-int? bookCount(Ref ref) => ref.watch(booksStreamProvider).value?.length;
+Future<int> bookCount(Ref ref) async {
+  final String? userId = ref.watch(currentUidProvider);
+  if (userId == null) {
+    return 0;
+  }
+  final FirebaseFirestore firestore = ref.watch(firestoreServiceProvider).firebaseFirestore;
+  final AggregateQuerySnapshot snap = await firestore.collection('users/$userId/books').count().get();
+  return snap.count ?? 0;
+}
 
 @riverpod
 Future<BookEntity?> book(Ref ref, String id) async {

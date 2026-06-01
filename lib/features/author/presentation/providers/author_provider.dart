@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
+import '../../../../core/shared/data/services/firestore_service.dart';
 import '../../domain/entities/author_entity.dart';
 import '../../domain/usecases/author_usecases.dart';
 
@@ -18,8 +20,17 @@ Stream<List<AuthorEntity>> authorsStream(Ref ref) {
   return watchAuthors();
 }
 
+
 @riverpod
-int? authorCount(Ref ref) => ref.watch(authorsStreamProvider).value?.length;
+Future<int> authorCount(Ref ref) async {
+  final String? userId = ref.watch(currentUidProvider);
+  if (userId == null) {
+    return 0;
+  }
+  final FirebaseFirestore firestore = ref.watch(firestoreServiceProvider).firebaseFirestore;
+  final AggregateQuerySnapshot snap = await firestore.collection('users/$userId/authors').count().get();
+  return snap.count ?? 0;
+}
 
 @riverpod
 Future<AuthorEntity?> author(Ref ref, String id) async {

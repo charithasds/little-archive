@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../theme/presentation/providers/theme_provider.dart';
+import 'custom_icons.dart';
 import 'form_decoration.dart';
 
 class FormDropdownField<T> extends ConsumerWidget {
@@ -21,7 +23,7 @@ class FormDropdownField<T> extends ConsumerWidget {
   final String Function(T) itemLabel;
   final ValueChanged<T?>? onChanged;
   final T? value;
-  final IconData? prefixIcon;
+  final dynamic prefixIcon;
   final bool isNullable;
 
   @override
@@ -37,7 +39,7 @@ class FormDropdownField<T> extends ConsumerWidget {
       ],
       onChanged: onChanged,
       decoration: buildFormDecoration(colorScheme, labelText: label, prefixIcon: prefixIcon),
-      icon: Icon(Icons.arrow_drop_down_rounded, color: colorScheme.onSurfaceVariant),
+      icon: buildAppIcon(FontAwesomeIcons.caretDown, color: colorScheme.onSurfaceVariant),
       dropdownColor: colorScheme.surfaceContainerHighest,
       borderRadius: BorderRadius.circular(16),
     );

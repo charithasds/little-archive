@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../theme/presentation/providers/theme_provider.dart';
@@ -24,7 +25,7 @@ class AppDialogs {
           final ColorScheme cs = theme.colorScheme;
 
           return AlertDialog(
-            icon: Icon(Icons.warning_rounded, color: cs.error, size: 40),
+            icon: FaIcon(FontAwesomeIcons.triangleExclamation, color: cs.error, size: 40),
             iconPadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
             title: Text(title),
             titleTextStyle: theme.textTheme.titleLarge?.copyWith(

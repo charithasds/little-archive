@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -52,6 +53,7 @@ class BookDetailPage extends ConsumerWidget {
       entityName: book.title,
       onConfirm: () async {
         await ref.read(removeBookUseCaseProvider)(book.id);
+        ref.invalidate(bookCountProvider);
         if (context.mounted) {
           context.pop();
         }
@@ -69,7 +71,7 @@ class BookDetailPage extends ConsumerWidget {
         if (book == null) {
           return const Scaffold(
             body: ListEmptyState(
-              icon: Icons.book_rounded,
+              icon: FontAwesomeIcons.book,
               title: 'Book Not Found',
               subtitle: 'This book may have been removed.',
             ),
@@ -111,7 +113,7 @@ class BookDetailPage extends ConsumerWidget {
                 scrolledUnderElevation: 1,
                 actions: <Widget>[
                   IconButton(
-                    icon: const Icon(Icons.edit_note_rounded),
+                    icon: const FaIcon(FontAwesomeIcons.penToSquare),
                     onPressed: () async {
                       await context.push('/books/upsert', extra: book);
                       ref.invalidate(bookProvider(bookId));
@@ -119,7 +121,7 @@ class BookDetailPage extends ConsumerWidget {
                     tooltip: 'Edit',
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete_outline_rounded),
+                    icon: const FaIcon(FontAwesomeIcons.trash),
                     onPressed: () => _handleRemove(context, ref, book),
                     tooltip: 'Remove',
                   ),
@@ -137,6 +139,7 @@ class BookDetailPage extends ConsumerWidget {
                         child: Container(
                           width: 240,
                           height: 240 / Images.bookAspectRatio,
+                          alignment: Alignment.center,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(16),
                             color: Images.getAvatarBackgroundColor(theme),
@@ -148,8 +151,8 @@ class BookDetailPage extends ConsumerWidget {
                                 : null,
                           ),
                           child: book.cover == null || book.cover!.isEmpty
-                              ? Icon(
-                                  Icons.book_rounded,
+                              ? FaIcon(
+                                  FontAwesomeIcons.book,
                                   color: Images.getAvatarIconColor(theme),
                                   size: 120,
                                 )
@@ -264,110 +267,110 @@ class BookDetailPage extends ConsumerWidget {
                         DetailTile(
                           label: 'To Be Translated',
                           value: book.toBeTranslated ? 'Yes' : 'No',
-                          leadingIcon: Icons.g_translate_rounded,
+                          leadingIcon: FontAwesomeIcons.language,
                         ),
                         DetailTile(
                           label: 'Compilation Type',
                           value: book.compilationType.clientValue,
-                          leadingIcon: Icons.collections_bookmark_rounded,
+                          leadingIcon: FontAwesomeIcons.book,
                         ),
                         if (book.language != null)
                           DetailTile(
                             label: 'Language',
                             value: book.language!.clientValue,
-                            leadingIcon: Icons.language_rounded,
+                            leadingIcon: FontAwesomeIcons.globe,
                           ),
                         if (book.genre != null)
                           DetailTile(
                             label: 'Genre',
                             value: book.genre!.clientValue,
-                            leadingIcon: Icons.style_rounded,
+                            leadingIcon: FontAwesomeIcons.tags,
                           ),
                         if (book.isbn != null && book.isbn!.isNotEmpty)
                           DetailTile(
                             label: 'ISBN',
                             value: Validators.formatIsbn(book.isbn!),
-                            leadingIcon: Icons.qr_code_rounded,
+                            leadingIcon: FontAwesomeIcons.qrcode,
                           ),
                         if (book.publishedDate != null)
                           DetailTile(
                             label: 'Published Date',
                             value: DateFormat('MMM d, yyyy').format(book.publishedDate!),
-                            leadingIcon: Icons.public_rounded,
+                            leadingIcon: FontAwesomeIcons.earthAmericas,
                           ),
                         if (book.noOfPages != null)
                           DetailTile(
                             label: 'Number of Pages',
                             value: book.noOfPages.toString(),
-                            leadingIcon: Icons.numbers_rounded,
+                            leadingIcon: FontAwesomeIcons.hashtag,
                           ),
                         if (book.originalTitle != null && book.originalTitle!.isNotEmpty)
                           DetailTile(
                             label: 'Original Title',
                             value: book.originalTitle!,
-                            leadingIcon: Icons.title_rounded,
+                            leadingIcon: FontAwesomeIcons.heading,
                           ),
                         if (book.isTranslation && book.originalLanguage != null)
                           DetailTile(
                             label: 'Original Language',
                             value: book.originalLanguage!.clientValue,
-                            leadingIcon: Icons.translate_rounded,
+                            leadingIcon: FontAwesomeIcons.language,
                           ),
                         DetailTile(
                           label: 'Collection Status',
                           value: book.collectionStatus.clientValue,
-                          leadingIcon: Icons.inventory_rounded,
+                          leadingIcon: FontAwesomeIcons.boxesStacked,
                         ),
                         if (book.collectedDate != null)
                           DetailTile(
                             label: 'Collected Date',
                             value: DateFormat('MMM d, yyyy').format(book.collectedDate!),
-                            leadingIcon: Icons.inventory_2_rounded,
+                            leadingIcon: FontAwesomeIcons.boxArchive,
                           ),
                         if (book.lendedDate != null)
                           DetailTile(
                             label: 'Lended Date',
                             value: DateFormat('MMM d, yyyy').format(book.lendedDate!),
-                            leadingIcon: Icons.handshake_rounded,
+                            leadingIcon: FontAwesomeIcons.handshake,
                           ),
                         if (book.dueDate != null)
                           DetailTile(
                             label: 'Due Date',
                             value: DateFormat('MMM d, yyyy').format(book.dueDate!),
-                            leadingIcon: Icons.event_rounded,
+                            leadingIcon: FontAwesomeIcons.calendarDays,
                           ),
                         DetailTile(
                           label: 'Reading Status',
                           value: book.readingStatus.clientValue,
-                          leadingIcon: Icons.menu_book_rounded,
+                          leadingIcon: FontAwesomeIcons.bookOpen,
                         ),
                         if (book.pausedPage != null)
                           DetailTile(
                             label: 'Paused Page',
                             value: book.pausedPage!.toString(),
-                            leadingIcon: Icons.bookmark_border_rounded,
+                            leadingIcon: FontAwesomeIcons.bookmark,
                           ),
                         if (book.completedDate != null)
                           DetailTile(
                             label: 'Completed Date',
                             value: DateFormat('MMM d, yyyy').format(book.completedDate!),
-                            leadingIcon: Icons.check_circle_outline_rounded,
+                            leadingIcon: FontAwesomeIcons.circleCheck,
                           ),
                         if (book.notes != null && book.notes!.isNotEmpty)
                           DetailTile(
                             label: 'Notes',
                             value: book.notes!,
-                            leadingIcon: Icons.notes_rounded,
+                            leadingIcon: FontAwesomeIcons.noteSticky,
                           ),
                         DetailTile(
                           label: 'Created',
                           value: DetailTile.formatDate(book.createdDate),
-                          leadingIcon: Icons.calendar_today_rounded,
+                          leadingIcon: FontAwesomeIcons.calendar,
                         ),
                         DetailTile(
                           label: 'Last Updated',
                           value: DetailTile.formatDate(book.lastUpdated),
-                          leadingIcon: Icons.update_rounded,
+                          leadingIcon: FontAwesomeIcons.clockRotateLeft,
                         ),
                       ],
                     ),

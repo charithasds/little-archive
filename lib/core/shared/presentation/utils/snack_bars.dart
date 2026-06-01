@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../theme/presentation/providers/theme_provider.dart';
+import '../widgets/custom_icons.dart';
 
 class SnackBars {
   SnackBars._();
@@ -12,7 +14,7 @@ class SnackBars {
     final ColorScheme colorScheme = _colorScheme(context);
     _showSnackBar(
       message: message,
-      icon: Icons.check_circle_rounded,
+      icon: FontAwesomeIcons.circleCheck,
       backgroundColor: colorScheme.secondaryContainer,
       foregroundColor: colorScheme.onSecondaryContainer,
     );
@@ -22,7 +24,7 @@ class SnackBars {
     final ColorScheme colorScheme = _colorScheme(context);
     _showSnackBar(
       message: message,
-      icon: Icons.error_rounded,
+      icon: FontAwesomeIcons.triangleExclamation,
       backgroundColor: colorScheme.errorContainer,
       foregroundColor: colorScheme.onErrorContainer,
     );
@@ -32,7 +34,7 @@ class SnackBars {
     final ColorScheme colorScheme = _colorScheme(context);
     _showSnackBar(
       message: message,
-      icon: Icons.warning_rounded,
+      icon: FontAwesomeIcons.triangleExclamation,
       backgroundColor: colorScheme.tertiaryContainer,
       foregroundColor: colorScheme.onTertiaryContainer,
     );
@@ -42,7 +44,7 @@ class SnackBars {
     final ColorScheme colorScheme = _colorScheme(context);
     _showSnackBar(
       message: message,
-      icon: Icons.info_rounded,
+      icon: FontAwesomeIcons.circleInfo,
       backgroundColor: colorScheme.primaryContainer,
       foregroundColor: colorScheme.onPrimaryContainer,
     );
@@ -60,7 +62,7 @@ class SnackBars {
 
   static void _showSnackBar({
     required String message,
-    required IconData icon,
+    required dynamic icon,
     required Color backgroundColor,
     required Color foregroundColor,
   }) {
@@ -75,7 +77,7 @@ class SnackBars {
       SnackBar(
         content: Row(
           children: <Widget>[
-            Icon(icon, color: foregroundColor, size: 24),
+            buildAppIcon(icon, color: foregroundColor, size: 24)!,
             const SizedBox(width: 14),
             Expanded(
               child: Text(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
@@ -67,7 +67,7 @@ class _AddPublisherBottomSheetState extends ConsumerState<AddPublisherBottomShee
           onPressed: _save,
           isLoading: state.isLoading,
           label: 'Save Publisher',
-          icon: Icons.save_rounded,
+          icon: FontAwesomeIcons.floppyDisk,
         ),
       ],
       child: Form(
@@ -76,7 +76,7 @@ class _AddPublisherBottomSheetState extends ConsumerState<AddPublisherBottomShee
           controller: _nameController,
           label: 'Name',
           hint: 'Publisher Name',
-          prefixIcon: Icons.business_rounded,
+          prefixIcon: FontAwesomeIcons.building,
           isRequired: true,
           maxLength: 200,
           autofocus: true,

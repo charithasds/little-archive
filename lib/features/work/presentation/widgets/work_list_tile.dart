@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
@@ -10,13 +11,7 @@ import '../../../translator/presentation/providers/translator_provider.dart';
 import '../../domain/entities/work_entity.dart';
 
 class WorkListTile extends ConsumerWidget {
-  const WorkListTile({
-    super.key,
-    required this.work,
-    this.onTap,
-    this.onEdit,
-    this.onRemove,
-  });
+  const WorkListTile({super.key, required this.work, this.onTap, this.onEdit, this.onRemove});
 
   final WorkEntity work;
   final VoidCallback? onTap;
@@ -79,6 +74,7 @@ class WorkListTile extends ConsumerWidget {
                 child: Container(
                   width: 64,
                   height: 64 / Images.bookAspectRatio,
+                  alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: Images.getAvatarBackgroundColor(theme),
                     image: bookCover != null && bookCover.isNotEmpty
@@ -89,8 +85,8 @@ class WorkListTile extends ConsumerWidget {
                         : null,
                   ),
                   child: bookCover == null || bookCover.isEmpty
-                      ? Icon(
-                          Icons.article_rounded,
+                      ? FaIcon(
+                          FontAwesomeIcons.fileLines,
                           color: Images.getAvatarIconColor(theme),
                           size: 32,
                         )
@@ -135,20 +131,20 @@ class WorkListTile extends ConsumerWidget {
                 ),
               ),
               Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   if (onEdit != null)
                     IconButton(
-                      icon: Icon(Icons.edit_note_rounded, color: colorScheme.primary),
+                      icon: FaIcon(FontAwesomeIcons.penToSquare, color: colorScheme.primary),
                       onPressed: onEdit,
                       tooltip: 'Edit',
                     ),
                   if (onRemove != null)
                     IconButton(
-                      icon: Icon(Icons.delete_rounded, color: colorScheme.error),
+                      icon: FaIcon(FontAwesomeIcons.trashCan, color: colorScheme.error),
                       onPressed: onRemove,
                       tooltip: 'Remove',
                     ),
-
                 ],
               ),
             ],

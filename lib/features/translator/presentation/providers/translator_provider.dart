@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/auth/presentation/providers/auth_provider.dart';
+import '../../../../core/shared/data/services/firestore_service.dart';
 import '../../domain/entities/translator_entity.dart';
 import '../../domain/usecases/translator_usecases.dart';
 
@@ -18,8 +20,17 @@ Stream<List<TranslatorEntity>> translatorsStream(Ref ref) {
   return watchTranslators();
 }
 
+
 @riverpod
-int? translatorCount(Ref ref) => ref.watch(translatorsStreamProvider).value?.length;
+Future<int> translatorCount(Ref ref) async {
+  final String? userId = ref.watch(currentUidProvider);
+  if (userId == null) {
+    return 0;
+  }
+  final FirebaseFirestore firestore = ref.watch(firestoreServiceProvider).firebaseFirestore;
+  final AggregateQuerySnapshot snap = await firestore.collection('users/$userId/translators').count().get();
+  return snap.count ?? 0;
+}
 
 @riverpod
 Future<TranslatorEntity?> translator(Ref ref, String id) async {

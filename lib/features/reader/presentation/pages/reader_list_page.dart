@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/utils/buttons.dart';
@@ -31,7 +32,10 @@ class _ReaderListPageState extends ConsumerState<ReaderListPage> {
       context: context,
       entityType: 'Reader',
       entityName: readerName,
-      onConfirm: () => ref.read(removeReaderUseCaseProvider)(readerId),
+      onConfirm: () async {
+        await ref.read(removeReaderUseCaseProvider)(readerId);
+        ref.invalidate(readerCountProvider);
+      },
     );
   }
 
@@ -58,7 +62,7 @@ class _ReaderListPageState extends ConsumerState<ReaderListPage> {
 
           if (readers.isEmpty && state.searchQuery.isEmpty) {
             return const ListEmptyState(
-              icon: Icons.face_rounded,
+              icon: FontAwesomeIcons.smile,
               title: 'No Readers Yet',
               subtitle: 'Tap the button below to add your first reader.',
             );
@@ -152,7 +156,7 @@ class _ReaderListPageState extends ConsumerState<ReaderListPage> {
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
         onPressed: () => context.go('/readers/upsert'),
-        icon: const Icon(Icons.add_rounded),
+        icon: const FaIcon(FontAwesomeIcons.plus),
         label: const Text('Add Reader'),
       ),
     );

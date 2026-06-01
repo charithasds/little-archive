@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
@@ -57,7 +58,7 @@ class BookFairHallGroupCard extends ConsumerWidget {
             ),
             child: Row(
               children: <Widget>[
-                Icon(Icons.domain_rounded, size: 20, color: purplePrimary),
+                FaIcon(FontAwesomeIcons.building, size: 20, color: purplePrimary),
                 const SizedBox(width: 8),
                 Text(
                   'Hall $hallId',

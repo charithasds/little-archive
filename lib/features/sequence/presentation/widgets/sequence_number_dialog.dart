@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/utils/validators.dart';
@@ -45,7 +45,7 @@ class _SequenceNumberDialogState extends State<SequenceNumberDialog> {
         controller: _controller,
         label: 'Sequence Number',
         hint: '1, 2.5, ...',
-        prefixIcon: Icons.format_list_numbered_rounded,
+        prefixIcon: FontAwesomeIcons.listOl,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
         autofocus: true,

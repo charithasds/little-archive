@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../shared/presentation/utils/snack_bars.dart';
@@ -43,16 +43,17 @@ class _GoogleSignInButtonState extends ConsumerState<GoogleSignInButton> {
             Container(
               width: 28,
               height: 28,
+              alignment: Alignment.center,
               padding: const EdgeInsets.all(3),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: Icon(Icons.g_mobiledata_rounded, color: colorScheme.primary, size: 18),
+              child: FaIcon(FontAwesomeIcons.google, color: colorScheme.primary, size: 18),
             ),
           const SizedBox(width: 12),
           Text(
-            isLoading ? 'Signing in...' : 'Continue with Google',
+            isLoading ? 'Signing in...' : 'Sign in with Google',
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: colorScheme.onPrimary,

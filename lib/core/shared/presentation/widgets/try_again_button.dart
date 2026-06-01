@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../theme/presentation/providers/theme_provider.dart';
 
@@ -24,7 +25,7 @@ class TryAgainButton extends ConsumerWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Icon(Icons.refresh_rounded, color: colorScheme.onError, size: 24),
+          FaIcon(FontAwesomeIcons.rotateRight, color: colorScheme.onError, size: 24),
           const SizedBox(width: 12),
           Text(
             'Try Again',

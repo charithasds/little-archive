@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/enums/compilation_type.dart';
 import '../../../../core/shared/domain/enums/entity.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
+import '../../../../core/shared/presentation/widgets/custom_icons.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../author/domain/entities/author_entity.dart';
 import '../../../author/presentation/providers/author_provider.dart';
@@ -117,7 +119,7 @@ class _BookDataQualityManagePageState extends ConsumerState<BookDataQualityManag
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  Icon(entity.icon, size: 16),
+                  buildAppIcon(entity.icon, size: 16)!,
                   const SizedBox(width: 6),
                   Text(entity.clientPluralValue),
                   if (count == null)
@@ -167,13 +169,13 @@ class _QualityListView<T> extends ConsumerWidget {
   const _QualityListView({
     required this.items,
     required this.tileBuilder,
-    this.emptyIcon = Icons.check_circle_outline_rounded,
+    this.emptyIcon = FontAwesomeIcons.circleCheck,
     this.emptyLabel = 'All data complete',
   });
 
   final List<T> items;
   final Widget Function(BuildContext context, T item) tileBuilder;
-  final IconData emptyIcon;
+  final dynamic emptyIcon;
   final String emptyLabel;
 
   @override
@@ -186,7 +188,7 @@ class _QualityListView<T> extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Icon(emptyIcon, size: 64, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4)),
+            buildAppIcon(emptyIcon, size: 64, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4))!,
             const SizedBox(height: 16),
             Text(
               emptyLabel,
@@ -268,7 +270,7 @@ class _QualityTile extends ConsumerWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: <Widget>[
-                                Icon(Icons.error_outline_rounded, size: 16, color: redText),
+                                FaIcon(FontAwesomeIcons.circleExclamation, size: 16, color: redText),
                                 const SizedBox(width: 4),
                                 Text(
                                   chip,
@@ -288,7 +290,7 @@ class _QualityTile extends ConsumerWidget {
             ),
             const SizedBox(width: 8),
             IconButton.outlined(
-              icon: const Icon(Icons.edit_note_rounded),
+              icon: const FaIcon(FontAwesomeIcons.penToSquare),
               tooltip: 'Edit',
               onPressed: onEdit,
               style: IconButton.styleFrom(

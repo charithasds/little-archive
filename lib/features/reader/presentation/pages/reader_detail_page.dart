@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/utils/dialogs.dart';
@@ -30,6 +31,7 @@ class ReaderDetailPage extends ConsumerWidget {
       entityName: reader.name,
       onConfirm: () async {
         await ref.read(removeReaderUseCaseProvider)(reader.id);
+        ref.invalidate(readerCountProvider);
         if (context.mounted) {
           context.pop();
         }
@@ -47,7 +49,7 @@ class ReaderDetailPage extends ConsumerWidget {
         if (reader == null) {
           return const Scaffold(
             body: ListEmptyState(
-              icon: Icons.face_rounded,
+              icon: FontAwesomeIcons.smile,
               title: 'Reader Not Found',
               subtitle: 'This reader may have been removed.',
             ),
@@ -75,7 +77,7 @@ class ReaderDetailPage extends ConsumerWidget {
                 scrolledUnderElevation: 1,
                 actions: <Widget>[
                   IconButton(
-                    icon: const Icon(Icons.edit_note_rounded),
+                    icon: const FaIcon(FontAwesomeIcons.penToSquare),
                     onPressed: () async {
                       await context.push('/readers/upsert', extra: reader);
                       ref.invalidate(readerProvider(readerId));
@@ -83,7 +85,7 @@ class ReaderDetailPage extends ConsumerWidget {
                     tooltip: 'Edit',
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete_outline_rounded),
+                    icon: const FaIcon(FontAwesomeIcons.trash),
                     onPressed: () => _handleRemove(context, ref, reader),
                     tooltip: 'Remove',
                   ),
@@ -101,6 +103,7 @@ class ReaderDetailPage extends ConsumerWidget {
                         child: Container(
                           width: 240,
                           height: 240,
+                          alignment: Alignment.center,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: Images.getAvatarBackgroundColor(theme),
@@ -112,8 +115,8 @@ class ReaderDetailPage extends ConsumerWidget {
                                 : null,
                           ),
                           child: reader.image == null || reader.image!.isEmpty
-                              ? Icon(
-                                  Icons.face_rounded,
+                              ? FaIcon(
+                                  FontAwesomeIcons.smile,
                                   color: Images.getAvatarIconColor(theme),
                                   size: 120,
                                 )
@@ -129,46 +132,46 @@ class ReaderDetailPage extends ConsumerWidget {
                           DetailTile(
                             label: 'Other Name',
                             value: reader.otherName!,
-                            leadingIcon: Icons.badge_rounded,
+                            leadingIcon: FontAwesomeIcons.idBadge,
                           ),
                         DetailTile(
                           label: 'Books Count',
                           value: '${readerBooks.length} books',
-                          leadingIcon: Icons.book_rounded,
+                          leadingIcon: FontAwesomeIcons.book,
                         ),
                         if (reader.email != null && reader.email!.isNotEmpty)
                           DetailTile(
                             label: 'Email',
                             value: reader.email!,
-                            leadingIcon: Icons.email_rounded,
-                            trailingIcon: Icons.open_in_new_rounded,
+                            leadingIcon: FontAwesomeIcons.envelope,
+                            trailingIcon: FontAwesomeIcons.arrowUpRightFromSquare,
                             onTap: () => ExternalLauncher.launchEmail(reader.email!),
                           ),
                         if (reader.facebook != null && reader.facebook!.isNotEmpty)
                           DetailTile(
                             label: 'Facebook',
                             value: reader.facebook!,
-                            leadingIcon: Icons.facebook_rounded,
-                            trailingIcon: Icons.open_in_new_rounded,
+                            leadingIcon: FontAwesomeIcons.facebook,
+                            trailingIcon: FontAwesomeIcons.arrowUpRightFromSquare,
                             onTap: () => ExternalLauncher.launchBrowser(reader.facebook!),
                           ),
                         if (reader.phoneNumber != null && reader.phoneNumber!.isNotEmpty)
                           DetailTile(
                             label: 'Phone Number',
                             value: reader.phoneNumber!,
-                            leadingIcon: Icons.phone_rounded,
-                            trailingIcon: Icons.open_in_new_rounded,
+                            leadingIcon: FontAwesomeIcons.phone,
+                            trailingIcon: FontAwesomeIcons.arrowUpRightFromSquare,
                             onTap: () => ExternalLauncher.launchPhone(reader.phoneNumber!),
                           ),
                         DetailTile(
                           label: 'Created',
                           value: DetailTile.formatDate(reader.createdDate),
-                          leadingIcon: Icons.calendar_today_rounded,
+                          leadingIcon: FontAwesomeIcons.calendar,
                         ),
                         DetailTile(
                           label: 'Last Updated',
                           value: DetailTile.formatDate(reader.lastUpdated),
-                          leadingIcon: Icons.update_rounded,
+                          leadingIcon: FontAwesomeIcons.clockRotateLeft,
                         ),
                       ],
                     ),

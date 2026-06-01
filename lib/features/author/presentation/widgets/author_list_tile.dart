@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
@@ -41,6 +41,7 @@ class AuthorListTile extends ConsumerWidget {
                 child: Container(
                   width: 64,
                   height: 64,
+                  alignment: Alignment.center,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Images.getAvatarBackgroundColor(theme),
@@ -52,8 +53,8 @@ class AuthorListTile extends ConsumerWidget {
                         : null,
                   ),
                   child: author.image == null || author.image!.isEmpty
-                      ? Icon(
-                          Icons.person_rounded,
+                      ? FaIcon(
+                          FontAwesomeIcons.user,
                           color: Images.getAvatarIconColor(theme),
                           size: 32,
                         )
@@ -100,16 +101,17 @@ class AuthorListTile extends ConsumerWidget {
                 ),
               ),
               Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   if (onEdit != null)
                     IconButton(
-                      icon: Icon(Icons.edit_note_rounded, color: colorScheme.primary),
+                      icon: FaIcon(FontAwesomeIcons.penToSquare, color: colorScheme.primary),
                       onPressed: onEdit,
                       tooltip: 'Edit',
                     ),
                   if (onRemove != null)
                     IconButton(
-                      icon: Icon(Icons.delete_rounded, color: colorScheme.error),
+                      icon: FaIcon(FontAwesomeIcons.trashCan, color: colorScheme.error),
                       onPressed: onRemove,
                       tooltip: 'Remove',
                     ),

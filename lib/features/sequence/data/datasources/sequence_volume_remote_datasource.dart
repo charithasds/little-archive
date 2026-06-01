@@ -40,8 +40,7 @@ class SequenceVolumeRemoteDataSourceImpl implements SequenceVolumeRemoteDataSour
         .safeGetDocs(
           _firestore
               .collection(_collectionPath)
-              .where('sequenceId', isEqualTo: sequenceId)
-              .orderBy('volume'),
+              .where('sequenceId', isEqualTo: sequenceId),
         );
 
     return docs
@@ -71,8 +70,7 @@ class SequenceVolumeRemoteDataSourceImpl implements SequenceVolumeRemoteDataSour
         .safeGetDocs(
           _firestore
               .collection(_collectionPath)
-              .where('bookId', isEqualTo: bookId)
-              .orderBy('volume'),
+              .where('bookId', isEqualTo: bookId),
         );
 
     return docs
@@ -89,8 +87,7 @@ class SequenceVolumeRemoteDataSourceImpl implements SequenceVolumeRemoteDataSour
         .safeGetDocs(
           _firestore
               .collection(_collectionPath)
-              .where('workId', isEqualTo: workId)
-              .orderBy('volume'),
+              .where('workId', isEqualTo: workId),
         );
 
     return docs
@@ -105,7 +102,6 @@ class SequenceVolumeRemoteDataSourceImpl implements SequenceVolumeRemoteDataSour
   Stream<List<SequenceVolumeModel>> watchSequenceVolumes(String sequenceId) => _firestore
       .collection(_collectionPath)
       .where('sequenceId', isEqualTo: sequenceId)
-      .orderBy('volume')
       .snapshots()
       .map(
         (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/utils/buttons.dart';
@@ -31,7 +32,10 @@ class _PublisherListPageState extends ConsumerState<PublisherListPage> {
       context: context,
       entityType: 'Publisher',
       entityName: publisherName,
-      onConfirm: () => ref.read(removePublisherUseCaseProvider)(publisherId),
+      onConfirm: () async {
+        await ref.read(removePublisherUseCaseProvider)(publisherId);
+        ref.invalidate(publisherCountProvider);
+      },
     );
   }
 
@@ -58,7 +62,7 @@ class _PublisherListPageState extends ConsumerState<PublisherListPage> {
 
           if (publishers.isEmpty && state.searchQuery.isEmpty) {
             return const ListEmptyState(
-              icon: Icons.business_rounded,
+              icon: FontAwesomeIcons.building,
               title: 'No Publishers Yet',
               subtitle: 'Tap the button below to add your first publisher.',
             );
@@ -152,7 +156,7 @@ class _PublisherListPageState extends ConsumerState<PublisherListPage> {
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
         onPressed: () => context.go('/publishers/upsert'),
-        icon: const Icon(Icons.add_rounded),
+        icon: const FaIcon(FontAwesomeIcons.plus),
         label: const Text('Add Publisher'),
       ),
     );

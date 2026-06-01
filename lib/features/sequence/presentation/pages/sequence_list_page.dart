@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/utils/buttons.dart';
@@ -31,7 +32,10 @@ class _SequenceListPageState extends ConsumerState<SequenceListPage> {
       context: context,
       entityType: 'Sequence',
       entityName: sequenceName,
-      onConfirm: () => ref.read(removeSequenceUseCaseProvider)(sequenceId),
+      onConfirm: () async {
+        await ref.read(removeSequenceUseCaseProvider)(sequenceId);
+        ref.invalidate(sequenceCountProvider);
+      },
     );
   }
 
@@ -58,7 +62,7 @@ class _SequenceListPageState extends ConsumerState<SequenceListPage> {
 
           if (sequences.isEmpty && state.searchQuery.isEmpty) {
             return const ListEmptyState(
-              icon: Icons.layers_rounded,
+              icon: FontAwesomeIcons.layerGroup,
               title: 'No Sequences Yet',
               subtitle: 'Tap the button below to add your first sequence.',
             );
@@ -152,7 +156,7 @@ class _SequenceListPageState extends ConsumerState<SequenceListPage> {
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
         onPressed: () => context.go('/sequences/upsert'),
-        icon: const Icon(Icons.add_rounded),
+        icon: const FaIcon(FontAwesomeIcons.plus),
         label: const Text('Add Sequence'),
       ),
     );

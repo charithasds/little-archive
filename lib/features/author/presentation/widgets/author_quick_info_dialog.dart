@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/widgets/detail_tile.dart';
@@ -36,7 +37,7 @@ class AuthorQuickInfoDialog extends ConsumerWidget {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            InfoDialogCircleImage(image: author.image, icon: Icons.person_rounded),
+            InfoDialogCircleImage(image: author.image, icon: FontAwesomeIcons.user),
             const SizedBox(height: 16),
             Text(author.name, style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
             if (author.otherName != null && author.otherName!.isNotEmpty)
@@ -49,12 +50,12 @@ class AuthorQuickInfoDialog extends ConsumerWidget {
             DetailTile(
               label: 'Books Count',
               value: '${author.bookIds.length} books',
-              leadingIcon: Icons.book_rounded,
+              leadingIcon: FontAwesomeIcons.book,
             ),
             DetailTile(
               label: 'Works Count',
               value: '${author.workIds.length} works',
-              leadingIcon: Icons.article_rounded,
+              leadingIcon: FontAwesomeIcons.fileLines,
             ),
             InfoDialogMetadata(created: author.createdDate, updated: author.lastUpdated),
           ],

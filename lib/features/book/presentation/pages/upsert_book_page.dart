@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -55,9 +55,10 @@ import '../providers/upsert_book_controller.dart';
 import '../widgets/scanned_book_approval_dialog.dart';
 
 class UpsertBookPage extends ConsumerStatefulWidget {
-  const UpsertBookPage({super.key, this.existingBook});
+  const UpsertBookPage({super.key, this.existingBook, this.preselectedSequence});
 
   final BookEntity? existingBook;
+  final SequenceEntity? preselectedSequence;
 
   @override
   ConsumerState<UpsertBookPage> createState() => _UpsertBookPageState();
@@ -144,6 +145,9 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
     setState(() {
       _isTranslation = v;
 
+      if (!v) {
+        _toBeTranslated = false;
+      }
       if (!_showOriginalTitle) {
         _originalTitleController.clear();
       }
@@ -214,6 +218,27 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
       _completedDate = book.completedDate;
     }
 
+    final SequenceEntity? seq = widget.preselectedSequence;
+    if (seq != null) {
+      _selectedSequences[seq] = '';
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) {
+          return;
+        }
+        final String? number = await showDialog<String>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => SequenceNumberDialog(sequenceName: seq.name),
+        );
+
+        if (number != null && number.isNotEmpty) {
+          setState(() => _selectedSequences[seq] = number);
+        } else {
+          setState(() => _selectedSequences.remove(seq));
+        }
+      });
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(upsertBookControllerProvider.notifier).initializeWith(widget.existingBook);
     });
@@ -256,22 +281,26 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
           .saveBook(
             title: _titleController.text.trim(),
             compilationType: _compilationType,
-            language: _showLanguage ? _language : null,
+            language: _language,
             genre: _showGenre ? _genre : null,
-            isbn: _isbnController.text.isNotEmpty ? _isbnController.text : null,
-            publishedDate: _publishedDate,
-            noOfPages: int.tryParse(_noOfPagesController.text),
+            isbn: _toBeTranslated
+                ? null
+                : (_isbnController.text.isNotEmpty ? _isbnController.text : null),
+            publishedDate: _toBeTranslated ? null : _publishedDate,
+            noOfPages: _toBeTranslated ? null : int.tryParse(_noOfPagesController.text),
             isTranslation: _isTranslation,
             toBeTranslated: _toBeTranslated,
             originalTitle: _showOriginalTitle ? _originalTitleController.text : null,
             originalLanguage: _showOriginalLanguage ? _originalLanguage : null,
-            collectionStatus: _collectionStatus,
-            collectedDate: _showCollectedDate ? _collectedDate : null,
-            lendedDate: _showLendedDate ? _lendedDate : null,
-            dueDate: _showDueDate ? _dueDate : null,
-            readingStatus: _readingStatus,
-            pausedPage: _showPausedPage ? int.tryParse(_pausedPageController.text) : null,
-            completedDate: _showCompletedDate ? _completedDate : null,
+            collectionStatus: _toBeTranslated ? CollectionStatus.announced : _collectionStatus,
+            collectedDate: _toBeTranslated ? null : (_showCollectedDate ? _collectedDate : null),
+            lendedDate: _toBeTranslated ? null : (_showLendedDate ? _lendedDate : null),
+            dueDate: _toBeTranslated ? null : (_showDueDate ? _dueDate : null),
+            readingStatus: _toBeTranslated ? ReadingStatus.notStarted : _readingStatus,
+            pausedPage: _toBeTranslated
+                ? null
+                : (_showPausedPage ? int.tryParse(_pausedPageController.text) : null),
+            completedDate: _toBeTranslated ? null : (_showCompletedDate ? _completedDate : null),
             notes: _notesController.text,
             authorIds: _showAuthorIds
                 ? _selectedAuthors.map((AuthorEntity e) => e.id).toList()
@@ -284,7 +313,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                 : <String>[],
             sequenceEntries: _selectedSequences,
             publisherId: _selectedPublisher?.id,
-            readerId: _showReaderId ? _selectedReader?.id : null,
+            readerId: _toBeTranslated ? null : (_showReaderId ? _selectedReader?.id : null),
             applyToWorks: _applyToWorks,
           );
 
@@ -528,24 +557,6 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
         foregroundColor: colorScheme.onSurface,
         surfaceTintColor: colorScheme.primary,
         scrolledUnderElevation: 1,
-        actions: <Widget>[
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Row(
-              children: <Widget>[
-                Icon(Icons.g_translate_rounded, size: 20, color: colorScheme.onSurfaceVariant),
-                const SizedBox(width: 8),
-                Switch(
-                  value: _isTranslation,
-                  onChanged: _onIsTranslationChanged,
-                  inactiveThumbColor: colorScheme.onSurfaceVariant,
-                  inactiveTrackColor: colorScheme.surfaceContainerHighest,
-                  trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
       body: Form(
         key: _formKey,
@@ -560,6 +571,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                   child: Container(
                     width: 140,
                     height: 140 / Images.bookAspectRatio,
+                    alignment: Alignment.center,
                     decoration: Images.getPickerDecoration(
                       theme,
                       shape: ImageShape.rectangle,
@@ -571,8 +583,8 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                           : null,
                     ),
                     child: state.pickedBase64Image == null
-                        ? Icon(
-                            Icons.book_rounded,
+                        ? FaIcon(
+                            FontAwesomeIcons.book,
                             size: 48,
                             color: Images.getPickerIconColor(theme),
                           )
@@ -598,7 +610,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                                   height: 16,
                                   child: CircularProgressIndicator(strokeWidth: 2),
                                 )
-                              : const Icon(Icons.add_photo_alternate_rounded),
+                              : const FaIcon(FontAwesomeIcons.image),
                           label: Text(
                             state.pickedBase64Image == null ? 'Add Cover' : 'Change Cover',
                           ),
@@ -610,13 +622,13 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                                   ? null
                                   : () =>
                                         ref.read(upsertBookControllerProvider.notifier).retryScan(),
-                              icon: const Icon(Icons.auto_awesome_rounded),
+                              icon: const FaIcon(FontAwesomeIcons.wandMagicSparkles),
                               label: const Text('Retry Scan'),
                             ),
                           TextButton.icon(
                             onPressed: () =>
                                 ref.read(upsertBookControllerProvider.notifier).clearCover(),
-                            icon: const Icon(Icons.delete_rounded),
+                            icon: const FaIcon(FontAwesomeIcons.trash),
                             label: const Text('Remove'),
                             style: TextButton.styleFrom(foregroundColor: colorScheme.error),
                           ),
@@ -651,23 +663,49 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                 ),
               ),
               const SizedBox(height: 24),
-              FormSection(
-                title: 'Primary Info',
-                icon: Icons.info_outline_rounded,
-                children: <Widget>[
-                  FormTextField(
-                    controller: _titleController,
-                    label: 'Title',
-                    hint: 'Book Title',
-                    prefixIcon: Icons.book_rounded,
-                    isRequired: true,
-                    maxLength: 200,
-                  ),
+                  FormSection(
+                 title: 'Primary Info',
+                 icon: FontAwesomeIcons.circleInfo,
+                 children: <Widget>[
+                   // ── IsTranslation & ToBeTranslated ─────────────────────
+                   SwitchListTile.adaptive(
+                     value: _isTranslation,
+                     onChanged: _onIsTranslationChanged,
+                     title: Text('Is Translation', style: theme.textTheme.bodyMedium),
+                     contentPadding: EdgeInsets.zero,
+                     secondary: FaIcon(FontAwesomeIcons.language, color: colorScheme.primary),
+                   ),
+                   if (_isTranslation) ...<Widget>[
+                     SwitchListTile.adaptive(
+                       value: _toBeTranslated,
+                       onChanged: (bool v) {
+                         setState(() {
+                           _toBeTranslated = v;
+                           if (v) {
+                             _collectionStatus = CollectionStatus.announced;
+                             _onCollectionStatusChanged(CollectionStatus.announced);
+                           }
+                         });
+                       },
+                       title: Text('To Be Translated', style: theme.textTheme.bodyMedium),
+                       contentPadding: EdgeInsets.zero,
+                       secondary: FaIcon(FontAwesomeIcons.language, color: colorScheme.secondary),
+                     ),
+                   ],
+                   const SizedBox(height: 8),
+                   FormTextField(
+                     controller: _titleController,
+                     label: 'Title',
+                     hint: 'Book Title',
+                     prefixIcon: FontAwesomeIcons.book,
+                     isRequired: true,
+                     maxLength: 200,
+                   ),
                   const SizedBox(height: 16),
                   FormDropdownField<CompilationType>(
                     value: _compilationType,
                     label: 'Compilation Type',
-                    prefixIcon: Icons.collections_bookmark_rounded,
+                    prefixIcon: FontAwesomeIcons.book,
                     items: CompilationType.values,
                     itemLabel: (CompilationType e) => e.clientValue,
                     onChanged: (CompilationType? v) async {
@@ -708,7 +746,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                     const SizedBox(height: 16),
                     SearchMultiPickerField<AuthorEntity>(
                       label: 'Authors',
-                      prefixIcon: Icons.person_rounded,
+                      prefixIcon: FontAwesomeIcons.user,
                       selectedItems: _selectedAuthors,
                       itemsProvider: authorsStreamProvider,
                       itemLabel: (AuthorEntity a) => a.name,
@@ -729,36 +767,26 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                     FormDropdownField<Language>(
                       value: _language,
                       label: 'Language',
-                      prefixIcon: Icons.language_rounded,
+                      prefixIcon: FontAwesomeIcons.globe,
                       items: Language.values,
                       itemLabel: (Language e) => e.clientValue,
                       onChanged: (Language? v) => setState(() => _language = v),
                     ),
                   ],
-                  const SizedBox(height: 16),
-                  SwitchListTile.adaptive(
-                    value: _toBeTranslated,
-                    onChanged: (bool v) => setState(() => _toBeTranslated = v),
-                    title: Text(
-                      'To Be Translated',
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                    contentPadding: EdgeInsets.zero,
-                    secondary: Icon(Icons.g_translate_rounded, color: colorScheme.primary),
-                  ),
-                ],
-              ),
+                   // ToBeTranslated is now shown above Title — removed from here
+                 ],
+               ),
               if (_showTranslatorIds || _showOriginalTitle || _showOriginalLanguage)
                 FormSection(
                   title: 'Translation Info',
-                  icon: Icons.translate_rounded,
+                  icon: FontAwesomeIcons.language,
                   children: <Widget>[
                     if (_showOriginalTitle) ...<Widget>[
                       FormTextField(
                         controller: _originalTitleController,
                         label: 'Original Title',
                         hint: 'Book Original Title',
-                        prefixIcon: Icons.translate_rounded,
+                        prefixIcon: FontAwesomeIcons.language,
                         maxLength: 200,
                       ),
                       if (_showTranslatorIds || _showOriginalLanguage) const SizedBox(height: 16),
@@ -766,7 +794,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                     if (_showTranslatorIds) ...<Widget>[
                       SearchMultiPickerField<TranslatorEntity>(
                         label: 'Translators',
-                        prefixIcon: Icons.translate_rounded,
+                        prefixIcon: FontAwesomeIcons.language,
                         selectedItems: _selectedTranslators,
                         itemsProvider: translatorsStreamProvider,
                         itemLabel: (TranslatorEntity t) => t.name,
@@ -788,7 +816,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       FormDropdownField<OriginalLanguage>(
                         value: _originalLanguage,
                         label: 'Original Language',
-                        prefixIcon: Icons.language_rounded,
+                        prefixIcon: FontAwesomeIcons.globe,
                         items: OriginalLanguage.values,
                         itemLabel: (OriginalLanguage e) => e.clientValue,
                         onChanged: (OriginalLanguage? v) => setState(() => _originalLanguage = v),
@@ -797,11 +825,11 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                 ),
               FormSection(
                 title: 'Reference Info',
-                icon: Icons.layers_outlined,
+                icon: FontAwesomeIcons.layerGroup,
                 children: <Widget>[
                   SearchMultiPickerField<SequenceEntity>(
                     label: 'Sequences',
-                    prefixIcon: Icons.layers_rounded,
+                    prefixIcon: FontAwesomeIcons.layerGroup,
                     selectedItems: _selectedSequences.keys.toList(),
                     itemsProvider: sequencesStreamProvider,
                     itemLabel: (SequenceEntity s) => s.name,
@@ -866,7 +894,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                   if (_showWorkIds) ...<Widget>[
                     SearchMultiPickerField<WorkEntity>(
                       label: 'Works',
-                      prefixIcon: Icons.article_rounded,
+                      prefixIcon: FontAwesomeIcons.fileLines,
                       selectedItems: _selectedWorks,
                       itemsProvider: worksStreamProvider,
                       itemLabel: (WorkEntity s) => s.title,
@@ -896,7 +924,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                           ),
                         ),
                         contentPadding: EdgeInsets.zero,
-                        secondary: Icon(Icons.sync_rounded, color: colorScheme.primary),
+                        secondary: FaIcon(FontAwesomeIcons.arrowsRotate, color: colorScheme.primary),
                       ),
                     ],
                   ],
@@ -904,19 +932,21 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
               ),
               FormSection(
                 title: 'Collection Info',
-                icon: Icons.inventory_2_outlined,
+                icon: FontAwesomeIcons.boxArchive,
                 children: <Widget>[
                   FormDropdownField<CollectionStatus>(
-                    value: _collectionStatus,
+                    value: _toBeTranslated ? CollectionStatus.announced : _collectionStatus,
                     label: 'Collection Status',
-                    prefixIcon: Icons.inventory_rounded,
+                    prefixIcon: FontAwesomeIcons.boxesStacked,
                     items: CollectionStatus.values,
                     itemLabel: (CollectionStatus e) => e.clientValue,
-                    onChanged: (CollectionStatus? v) {
-                      if (v != null) {
-                        _onCollectionStatusChanged(v);
-                      }
-                    },
+                    onChanged: _toBeTranslated
+                        ? null
+                        : (CollectionStatus? v) {
+                            if (v != null) {
+                              _onCollectionStatusChanged(v);
+                            }
+                          },
                     isNullable: false,
                   ),
                   if (_showCollectedDate) ...<Widget>[
@@ -925,7 +955,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       label: 'Collected Date',
                       value: _collectedDate,
                       onDateSelected: (DateTime d) => setState(() => _collectedDate = d),
-                      icon: Icons.inventory_2_rounded,
+                      icon: FontAwesomeIcons.boxArchive,
                     ),
                   ],
                 ],
@@ -933,12 +963,12 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
               if (_showReaderId || _showLendedDate || _showDueDate)
                 FormSection(
                   title: 'Lending Info',
-                  icon: Icons.handshake_outlined,
+                  icon: FontAwesomeIcons.handshake,
                   children: <Widget>[
                     if (_showReaderId) ...<Widget>[
                       SearchPickerField<ReaderEntity>(
                         label: 'Reader',
-                        prefixIcon: Icons.face_rounded,
+                        prefixIcon: FontAwesomeIcons.smile,
                         selectedItem: _selectedReader,
                         itemsProvider: readersStreamProvider,
                         itemLabel: (ReaderEntity r) => r.name,
@@ -961,7 +991,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                         onDateSelected: (DateTime d) => setState(() => _lendedDate = d),
                         onCleared: () => setState(() => _lendedDate = null),
                         isClearable: true,
-                        icon: Icons.handshake_rounded,
+                        icon: FontAwesomeIcons.handshake,
                       ),
                       if (_showDueDate) const SizedBox(height: 16),
                     ],
@@ -972,57 +1002,58 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                         onDateSelected: (DateTime d) => setState(() => _dueDate = d),
                         onCleared: () => setState(() => _dueDate = null),
                         isClearable: true,
-                        icon: Icons.event_rounded,
+                        icon: FontAwesomeIcons.calendarDays,
                       ),
                   ],
                 ),
-              FormSection(
-                title: 'Reading Progress',
-                icon: Icons.auto_stories_outlined,
-                children: <Widget>[
-                  const SizedBox(height: 16),
-                  FormDropdownField<ReadingStatus>(
-                    value: _readingStatus,
-                    label: 'Reading Status',
-                    prefixIcon: Icons.menu_book_rounded,
-                    items: ReadingStatus.values,
-                    itemLabel: (ReadingStatus e) => e.clientValue,
-                    onChanged: (ReadingStatus? v) {
-                      if (v != null) {
-                        _onReadingStatusChanged(v);
-                      }
-                    },
-                    isNullable: false,
-                  ),
-                  if (_showPausedPage) ...<Widget>[
+              if (!_toBeTranslated)
+                FormSection(
+                  title: 'Reading Progress',
+                  icon: FontAwesomeIcons.bookOpen,
+                  children: <Widget>[
                     const SizedBox(height: 16),
-                    FormTextField(
-                      controller: _pausedPageController,
-                      label: 'Paused Page',
-                      hint: 'e.g. 27',
-                      prefixIcon: Icons.bookmark_border_rounded,
-                      keyboardType: TextInputType.number,
-                      validator: Validators.validatePositiveNumber,
+                    FormDropdownField<ReadingStatus>(
+                      value: _readingStatus,
+                      label: 'Reading Status',
+                      prefixIcon: FontAwesomeIcons.bookOpen,
+                      items: ReadingStatus.values,
+                      itemLabel: (ReadingStatus e) => e.clientValue,
+                      onChanged: (ReadingStatus? v) {
+                        if (v != null) {
+                          _onReadingStatusChanged(v);
+                        }
+                      },
+                      isNullable: false,
                     ),
+                    if (_showPausedPage) ...<Widget>[
+                      const SizedBox(height: 16),
+                      FormTextField(
+                        controller: _pausedPageController,
+                        label: 'Paused Page',
+                        hint: 'e.g. 27',
+                        prefixIcon: FontAwesomeIcons.bookmark,
+                        keyboardType: TextInputType.number,
+                        validator: Validators.validatePositiveNumber,
+                      ),
+                    ],
+                    if (_showCompletedDate) ...<Widget>[
+                      const SizedBox(height: 16),
+                      FormDateField(
+                        label: 'Completed Date',
+                        value: _completedDate,
+                        onDateSelected: (DateTime d) => setState(() => _completedDate = d),
+                        icon: FontAwesomeIcons.circleCheck,
+                      ),
+                    ],
                   ],
-                  if (_showCompletedDate) ...<Widget>[
-                    const SizedBox(height: 16),
-                    FormDateField(
-                      label: 'Completed Date',
-                      value: _completedDate,
-                      onDateSelected: (DateTime d) => setState(() => _completedDate = d),
-                      icon: Icons.check_circle_outline_rounded,
-                    ),
-                  ],
-                ],
-              ),
+                ),
               FormSection(
                 title: 'Publication Info',
-                icon: Icons.hub_outlined,
+                icon: FontAwesomeIcons.circleNodes,
                 children: <Widget>[
                   SearchPickerField<PublisherEntity>(
                     label: 'Publisher',
-                    prefixIcon: Icons.business_rounded,
+                    prefixIcon: FontAwesomeIcons.building,
                     selectedItem: _selectedPublisher,
                     itemsProvider: publishersStreamProvider,
                     itemLabel: (PublisherEntity p) => p.name,
@@ -1036,83 +1067,88 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       builder: (_) => const AddPublisherBottomSheet(),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  FormDateField(
-                    label: 'Published Date',
-                    value: _publishedDate,
-                    onDateSelected: (DateTime d) => setState(() => _publishedDate = d),
-                    icon: Icons.public_rounded,
-                  ),
-                  const SizedBox(height: 16),
-                  FormTextField(
-                    controller: _noOfPagesController,
-                    label: 'Number of Pages',
-                    hint: 'e.g. 153',
-                    prefixIcon: Icons.numbers_rounded,
-                    keyboardType: TextInputType.number,
-                    validator: Validators.validatePositiveNumber,
-                  ),
-                  if (_showGenre) ...<Widget>[
+                  if (!_toBeTranslated) ...<Widget>[
                     const SizedBox(height: 16),
-                    FormDropdownField<Genre>(
-                      value: _genre,
-                      label: 'Genre',
-                      prefixIcon: Icons.theater_comedy_rounded,
-                      items: Genre.values,
-                      itemLabel: (Genre e) => e.clientValue,
-                      onChanged: (Genre? v) => setState(() => _genre = v),
+                    FormDateField(
+                      label: 'Published Date',
+                      value: _publishedDate,
+                      onDateSelected: (DateTime d) => setState(() => _publishedDate = d),
+                      icon: FontAwesomeIcons.earthAmericas,
+                    ),
+                    const SizedBox(height: 16),
+                    FormTextField(
+                      controller: _noOfPagesController,
+                      label: 'Number of Pages',
+                      hint: 'e.g. 153',
+                      prefixIcon: FontAwesomeIcons.hashtag,
+                      keyboardType: TextInputType.number,
+                      validator: Validators.validatePositiveNumber,
+                    ),
+                    if (_showGenre) ...<Widget>[
+                      const SizedBox(height: 16),
+                      FormDropdownField<Genre>(
+                        value: _genre,
+                        label: 'Genre',
+                        prefixIcon: FontAwesomeIcons.masksTheater,
+                        items: Genre.values,
+                        itemLabel: (Genre e) => e.clientValue,
+                        onChanged: (Genre? v) => setState(() => _genre = v),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    FormTextField(
+                      controller: _isbnController,
+                      label: 'ISBN',
+                      hint: 'e.g. ISBN10 or ISBN13',
+                      prefixIcon: FontAwesomeIcons.qrcode,
+                      maxLength: 13,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
+                      validator: Validators.validateIsbn,
+                      buildCounter:
+                          (
+                            BuildContext context, {
+                            required int currentLength,
+                            required int? maxLength,
+                            required bool isFocused,
+                          }) {
+                            final String text = _isbnController.text;
+                            final String clean = text
+                                .replaceAll(RegExp(r'[-\s]'), '')
+                                .toUpperCase();
+
+                            final String label;
+                            final bool isValid;
+                            if (clean.length <= 10) {
+                              label = 'ISBN10';
+                              isValid = Validators.isValidIsbn10(clean);
+                            } else {
+                              label = 'ISBN13';
+                              isValid = Validators.isValidIsbn13(clean);
+                            }
+
+                            final String emoji = isValid ? '🟢' : '🔴';
+
+                            return Text(
+                              '$label $emoji',
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+                            );
+                          },
                     ),
                   ],
-                  const SizedBox(height: 16),
-                  FormTextField(
-                    controller: _isbnController,
-                    label: 'ISBN',
-                    hint: 'e.g. ISBN10 or ISBN13',
-                    prefixIcon: Icons.qr_code_rounded,
-                    maxLength: 13,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-                    validator: Validators.validateIsbn,
-                    buildCounter: (
-                      BuildContext context, {
-                      required int currentLength,
-                      required int? maxLength,
-                      required bool isFocused,
-                    }) {
-                      final String text = _isbnController.text;
-                      final String clean = text.replaceAll(RegExp(r'[-\s]'), '').toUpperCase();
-
-                      final String label;
-                      final bool isValid;
-                      if (clean.length <= 10) {
-                        label = 'ISBN10';
-                        isValid = Validators.isValidIsbn10(clean);
-                      } else {
-                        label = 'ISBN13';
-                        isValid = Validators.isValidIsbn13(clean);
-                      }
-
-                      final String emoji = isValid ? '🟢' : '🔴';
-
-                      return Text(
-                        '$label $emoji',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      );
-                    },
-                  ),
                 ],
               ),
               FormSection(
                 title: 'Additional Information',
-                icon: Icons.notes_rounded,
+                icon: FontAwesomeIcons.noteSticky,
                 children: <Widget>[
                   FormTextField(
                     controller: _notesController,
                     label: 'Notes',
                     hint: 'Notes about this Book',
-                    prefixIcon: Icons.notes_rounded,
+                    prefixIcon: FontAwesomeIcons.noteSticky,
                     maxLines: 3,
                     alignLabelWithHint: true,
                   ),
@@ -1130,7 +1166,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                           color: colorScheme.onPrimary,
                         ),
                       )
-                    : const Icon(Icons.save_rounded),
+                    : const FaIcon(FontAwesomeIcons.floppyDisk),
                 label: Text(
                   state.isLoading
                       ? 'Saving...'

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/widgets/info_dialog_loading.dart';
@@ -42,7 +43,7 @@ class WorkQuickInfoDialog extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             InfoDialogImageRectangle(
-              icon: Icons.article_rounded,
+              icon: FontAwesomeIcons.fileLines,
               image: bookAsync?.when(
                 data: (BookEntity? book) => book?.cover,
                 loading: () => null,

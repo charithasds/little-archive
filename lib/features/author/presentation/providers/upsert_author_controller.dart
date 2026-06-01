@@ -11,6 +11,7 @@ import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../domain/entities/author_entity.dart';
 import '../../domain/usecases/author_usecases.dart';
+import 'author_provider.dart';
 
 part 'upsert_author_controller.g.dart';
 
@@ -134,7 +135,7 @@ class UpsertAuthorController extends _$UpsertAuthorController {
       }
 
       state = state.copyWith(isLoading: false);
-
+      ref.invalidate(authorCountProvider);
       return authorToSave;
     } on NoConnectionException catch (e) {
       state = state.copyWith(isLoading: false, error: Nullable<String?>(e.message));

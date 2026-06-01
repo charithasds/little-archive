@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/utils/buttons.dart';
@@ -31,7 +32,10 @@ class _TranslatorListPageState extends ConsumerState<TranslatorListPage> {
       context: context,
       entityType: 'Translator',
       entityName: translatorName,
-      onConfirm: () => ref.read(removeTranslatorUseCaseProvider)(translatorId),
+      onConfirm: () async {
+        await ref.read(removeTranslatorUseCaseProvider)(translatorId);
+        ref.invalidate(translatorCountProvider);
+      },
     );
   }
 
@@ -60,7 +64,7 @@ class _TranslatorListPageState extends ConsumerState<TranslatorListPage> {
 
           if (translators.isEmpty && state.searchQuery.isEmpty) {
             return const ListEmptyState(
-              icon: Icons.translate_rounded,
+              icon: FontAwesomeIcons.language,
               title: 'No Translators Yet',
               subtitle: 'Tap the button below to add your first translator.',
             );
@@ -156,7 +160,7 @@ class _TranslatorListPageState extends ConsumerState<TranslatorListPage> {
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
         onPressed: () => context.go('/translators/upsert'),
-        icon: const Icon(Icons.add_rounded),
+        icon: const FaIcon(FontAwesomeIcons.plus),
         label: const Text('Add Translator'),
       ),
     );

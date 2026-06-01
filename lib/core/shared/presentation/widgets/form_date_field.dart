@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
 import '../../../theme/presentation/providers/theme_provider.dart';
+import 'custom_icons.dart';
 import 'form_decoration.dart';
 
 class FormDateField extends ConsumerWidget {
@@ -12,7 +13,7 @@ class FormDateField extends ConsumerWidget {
     required this.label,
     required this.onDateSelected,
     this.value,
-    this.icon = Icons.calendar_today_rounded,
+    this.icon = FontAwesomeIcons.calendar,
     this.isClearable = false,
     this.onCleared,
     this.firstDate,
@@ -21,7 +22,7 @@ class FormDateField extends ConsumerWidget {
 
   final String label;
   final DateTime? value;
-  final IconData icon;
+  final dynamic icon;
   final void Function(DateTime) onDateSelected;
   final bool isClearable;
   final VoidCallback? onCleared;
@@ -65,7 +66,7 @@ class FormDateField extends ConsumerWidget {
             if (isClearable && value != null)
               IconButton(
                 visualDensity: VisualDensity.compact,
-                icon: const Icon(Icons.clear, size: 20),
+                icon: buildAppIcon(FontAwesomeIcons.xmark, size: 20)!,
                 onPressed: onCleared,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),

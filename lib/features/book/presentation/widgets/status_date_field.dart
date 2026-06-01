@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
 final DateFormat _dateFmt = DateFormat('d MMM yyyy');
@@ -37,7 +38,7 @@ class StatusDateField extends StatelessWidget {
     child: InputDecorator(
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: const Icon(Icons.calendar_today_outlined),
+        prefixIcon: const FaIcon(FontAwesomeIcons.calendar),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         errorText: errorText,
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import './detail_tile.dart';
 
@@ -14,12 +15,12 @@ class InfoDialogMetadata extends StatelessWidget {
       DetailTile(
         label: 'Created',
         value: DetailTile.formatDate(created),
-        leadingIcon: Icons.calendar_today_rounded,
+        leadingIcon: FontAwesomeIcons.calendar,
       ),
       DetailTile(
         label: 'Last Updated',
         value: DetailTile.formatDate(updated),
-        leadingIcon: Icons.update_rounded,
+        leadingIcon: FontAwesomeIcons.clockRotateLeft,
       ),
     ],
   );

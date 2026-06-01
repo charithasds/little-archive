@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
@@ -43,12 +44,13 @@ class SequenceVolumeListTile extends ConsumerWidget {
                 child: Container(
                   width: 64,
                   height: 64,
+                  alignment: Alignment.center,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Images.getAvatarBackgroundColor(theme),
                   ),
-                  child: Icon(
-                    Icons.layers_rounded,
+                  child: FaIcon(
+                    FontAwesomeIcons.layerGroup,
                     color: Images.getAvatarIconColor(theme),
                     size: 32,
                   ),

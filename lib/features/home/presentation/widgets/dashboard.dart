@@ -3,15 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/auth/presentation/providers/user_profile_provider.dart';
-import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../author/presentation/providers/author_provider.dart';
-import '../../../book/domain/entities/book_entity.dart';
 import '../../../book/presentation/providers/book_provider.dart';
 import '../../../book_fair/domain/entities/book_fair_event_entity.dart';
 import '../../../book_fair/presentation/providers/book_fair_event_provider.dart';
-import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
 import '../../../reader/presentation/providers/reader_provider.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
@@ -38,14 +34,13 @@ class Dashboard extends ConsumerWidget {
     final bool isExpanded = width >= _kExpanded;
 
     // ── Entity counts ──────────────────────────────────────────────────
-    final int? bookCount = ref.watch(bookCountProvider);
-    final int? workCount = ref.watch(workCountProvider);
-    final int? authorCount = ref.watch(authorCountProvider);
-    final int? translatorCount = ref.watch(translatorCountProvider);
-    final int? publisherCount = ref.watch(publisherCountProvider);
-    final int? sequenceCount = ref.watch(sequenceCountProvider);
-    final int? readerCount = ref.watch(readerCountProvider);
-    final AsyncValue<Map<String, dynamic>?> profileAsync = ref.watch(userProfileProvider);
+    final int? bookCount = ref.watch(bookCountProvider).value;
+    final int? workCount = ref.watch(workCountProvider).value;
+    final int? authorCount = ref.watch(authorCountProvider).value;
+    final int? translatorCount = ref.watch(translatorCountProvider).value;
+    final int? publisherCount = ref.watch(publisherCountProvider).value;
+    final int? sequenceCount = ref.watch(sequenceCountProvider).value;
+    final int? readerCount = ref.watch(readerCountProvider).value;
     final AsyncValue<BookFairEventEntity> eventAsync = ref.watch(bookFairEventProvider);
 
     // Check visibility based on dates from event entity
@@ -76,49 +71,6 @@ class Dashboard extends ConsumerWidget {
         countdownText = 'Ended';
       }
     });
-
-    final List<BookEntity> books = ref.watch(booksStreamProvider).value ?? <BookEntity>[];
-    final List<PublisherEntity> publishers =
-        ref.watch(publishersStreamProvider).value ?? <PublisherEntity>[];
-    final BookFairEventEntity? activeEvent = eventAsync.value;
-
-    bool needsSetup = false;
-    if (activeEvent != null) {
-      final Set<String> publisherIdsInShoppingList = books
-          .where(
-            (BookEntity b) =>
-                b.collectionStatus == CollectionStatus.shoppingList && b.publisherId != null,
-          )
-          .map((BookEntity b) => b.publisherId!)
-          .toSet();
-
-      for (final String pubId in publisherIdsInShoppingList) {
-        final PublisherEntity? pub = publishers
-            .where((PublisherEntity p) => p.id == pubId)
-            .firstOrNull;
-        if (pub != null) {
-          final String? mappingId = pub.bookFairPublisherId;
-          final bool isMapped =
-              mappingId != null &&
-              mappingId != 'none' &&
-              mappingId.startsWith('CIBF_${activeEvent.year}_');
-          if (!isMapped) {
-            needsSetup = true;
-            break;
-          }
-        }
-      }
-    }
-
-    final Map<String, dynamic>? profile = profileAsync.value;
-    final String? lastConfiguredFairId = profile?['lastConfiguredFairId'] as String?;
-    final String activeFairId = activeEvent?.id ?? '';
-
-    if (needsSetup && lastConfiguredFairId == activeFairId && lastConfiguredFairId != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(userProfileControllerProvider.notifier).updateLastConfiguredFairId(null);
-      });
-    }
 
     // ── Layout helpers ─────────────────────────────────────────────────
     final int crossAxisCount = isExpanded ? 4 : (isCompact ? 2 : 3);
@@ -301,17 +253,7 @@ class Dashboard extends ConsumerWidget {
                           countdownTarget: c.countdownTarget,
                           countdownSuffix: c.countdownSuffix,
                           colorVariant: c.colorVariant,
-                          onTap: () {
-                            if (c.route == '/book-fair') {
-                              if (lastConfiguredFairId == activeFairId && !needsSetup) {
-                                context.go('/shopping-plan');
-                              } else {
-                                context.go('/book-fair');
-                              }
-                            } else {
-                              context.go(c.route);
-                            }
-                          },
+                          onTap: () => context.go(c.route),
                         );
                       },
                     ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../theme/presentation/providers/theme_provider.dart';
 import '../utils/buttons.dart';
+import 'custom_icons.dart';
 
 class LoadingFilledButton extends ConsumerWidget {
   const LoadingFilledButton({
@@ -16,7 +17,7 @@ class LoadingFilledButton extends ConsumerWidget {
   final VoidCallback? onPressed;
   final bool isLoading;
   final String label;
-  final IconData? icon;
+  final dynamic icon;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -35,7 +36,7 @@ class LoadingFilledButton extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                if (icon != null) ...<Widget>[Icon(icon, size: 20), const SizedBox(width: 8)],
+                if (icon != null) ...<Widget>[buildAppIcon(icon, size: 20)!, const SizedBox(width: 8)],
                 Text(label),
               ],
             ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/widgets/detail_tile.dart';
@@ -36,7 +37,7 @@ class ReaderQuickInfoDialog extends ConsumerWidget {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            InfoDialogCircleImage(image: reader.image, icon: Icons.face_rounded),
+            InfoDialogCircleImage(image: reader.image, icon: FontAwesomeIcons.smile),
             const SizedBox(height: 16),
             Text(reader.name, style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
             if (reader.otherName != null && reader.otherName!.isNotEmpty)
@@ -49,7 +50,7 @@ class ReaderQuickInfoDialog extends ConsumerWidget {
             DetailTile(
               label: 'Books Count',
               value: '${reader.bookIds.length} books',
-              leadingIcon: Icons.book_rounded,
+              leadingIcon: FontAwesomeIcons.book,
             ),
             InfoDialogMetadata(created: reader.createdDate, updated: reader.lastUpdated),
           ],

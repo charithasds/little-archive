@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
@@ -67,7 +67,7 @@ class _AddReaderBottomSheetState extends ConsumerState<AddReaderBottomSheet> {
           onPressed: _save,
           isLoading: state.isLoading,
           label: 'Save Reader',
-          icon: Icons.save_rounded,
+          icon: FontAwesomeIcons.floppyDisk,
         ),
       ],
       child: Form(
@@ -76,7 +76,7 @@ class _AddReaderBottomSheetState extends ConsumerState<AddReaderBottomSheet> {
           controller: _nameController,
           label: 'Name',
           hint: 'Reader Name',
-          prefixIcon: Icons.face_rounded,
+          prefixIcon: FontAwesomeIcons.smile,
           isRequired: true,
           maxLength: 200,
           autofocus: true,

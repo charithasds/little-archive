@@ -28,7 +28,7 @@ class FormTextField extends ConsumerWidget {
   final TextEditingController controller;
   final String label;
   final String? hint;
-  final IconData? prefixIcon;
+  final dynamic prefixIcon;
   final TextInputType? keyboardType;
   final TextCapitalization? textCapitalization;
   final String? Function(String?)? validator;

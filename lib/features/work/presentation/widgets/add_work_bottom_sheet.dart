@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/domain/enums/content_category.dart';
@@ -76,7 +76,7 @@ class _AddWorkBottomSheetState extends ConsumerState<AddWorkBottomSheet> {
           onPressed: _save,
           isLoading: state.isLoading,
           label: 'Save Work',
-          icon: Icons.save_rounded,
+          icon: FontAwesomeIcons.floppyDisk,
         ),
       ],
       child: Form(
@@ -88,7 +88,7 @@ class _AddWorkBottomSheetState extends ConsumerState<AddWorkBottomSheet> {
               controller: _titleController,
               label: 'Title',
               hint: 'Work Title',
-              prefixIcon: Icons.article_rounded,
+              prefixIcon: FontAwesomeIcons.fileLines,
               isRequired: true,
               maxLength: 200,
               autofocus: true,
@@ -96,7 +96,7 @@ class _AddWorkBottomSheetState extends ConsumerState<AddWorkBottomSheet> {
             const SizedBox(height: 16),
             FormDropdownField<ContentCategory>(
               label: 'Content Category',
-              prefixIcon: Icons.topic_rounded,
+              prefixIcon: FontAwesomeIcons.bookBookmark,
               items: ContentCategory.values,
               value: _contentCategory,
               itemLabel: (ContentCategory c) => c.clientValue,

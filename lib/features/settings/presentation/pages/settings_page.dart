@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../../core/shared/presentation/utils/dialogs.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
@@ -45,7 +45,7 @@ class SettingsPage extends ConsumerWidget {
             // ── Appearance ───────────────────────────────────────────────
             FormSection(
               title: 'Appearance',
-              icon: Icons.palette_outlined,
+              icon: FontAwesomeIcons.palette,
               children: <Widget>[
                 Card(
                   elevation: 0,
@@ -54,7 +54,7 @@ class SettingsPage extends ConsumerWidget {
                   child: SwitchListTile(
                     title: const Text('Dark Mode'),
                     subtitle: Text(isDark ? 'Dark theme active' : 'Light theme active'),
-                    secondary: Icon(isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded),
+                    secondary: FaIcon(isDark ? FontAwesomeIcons.moon : FontAwesomeIcons.sun),
                     value: isDark,
                     onChanged: (bool value) => ref.read(themeModeProvider.notifier).toggleTheme(),
                     activeColor: colorScheme.primary,
@@ -65,7 +65,7 @@ class SettingsPage extends ConsumerWidget {
             // ── Data & Privacy ───────────────────────────────────────────
             FormSection(
               title: 'Data & Privacy',
-              icon: Icons.security_outlined,
+              icon: FontAwesomeIcons.shieldHalved,
               children: <Widget>[
                 Card(
                   elevation: 0,
@@ -87,7 +87,7 @@ class SettingsPage extends ConsumerWidget {
                                   color: colorScheme.error,
                                 ),
                               )
-                            : Icon(Icons.delete_sweep_outlined, color: colorScheme.error),
+                            : FaIcon(FontAwesomeIcons.broom, color: colorScheme.error),
                         title: Text(
                           'Clear All Data',
                           style: theme.textTheme.bodyLarge?.copyWith(
@@ -129,7 +129,7 @@ class SettingsPage extends ConsumerWidget {
                         shape: const RoundedRectangleBorder(
                           borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
                         ),
-                        leading: Icon(Icons.person_remove_outlined, color: colorScheme.error),
+                        leading: FaIcon(FontAwesomeIcons.userMinus, color: colorScheme.error),
                         title: Text(
                           'Delete Account',
                           style: theme.textTheme.bodyLarge?.copyWith(

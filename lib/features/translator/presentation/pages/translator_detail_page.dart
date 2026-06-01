@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/utils/dialogs.dart';
@@ -38,6 +39,7 @@ class TranslatorDetailPage extends ConsumerWidget {
       entityName: translator.name,
       onConfirm: () async {
         await ref.read(removeTranslatorUseCaseProvider)(translator.id);
+        ref.invalidate(translatorCountProvider);
         if (context.mounted) {
           context.pop();
         }
@@ -57,7 +59,7 @@ class TranslatorDetailPage extends ConsumerWidget {
         if (translator == null) {
           return const Scaffold(
             body: ListEmptyState(
-              icon: Icons.translate_rounded,
+              icon: FontAwesomeIcons.language,
               title: 'Translator Not Found',
               subtitle: 'This translator may have been removed.',
             ),
@@ -94,7 +96,7 @@ class TranslatorDetailPage extends ConsumerWidget {
                 scrolledUnderElevation: 1,
                 actions: <Widget>[
                   IconButton(
-                    icon: const Icon(Icons.edit_note_rounded),
+                    icon: const FaIcon(FontAwesomeIcons.penToSquare),
                     onPressed: () async {
                       await context.push('/translators/upsert', extra: translator);
                       ref.invalidate(translatorProvider(translatorId));
@@ -102,7 +104,7 @@ class TranslatorDetailPage extends ConsumerWidget {
                     tooltip: 'Edit',
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete_outline_rounded),
+                    icon: const FaIcon(FontAwesomeIcons.trash),
                     onPressed: () => _handleRemove(context, ref, translator),
                     tooltip: 'Remove',
                   ),
@@ -120,6 +122,7 @@ class TranslatorDetailPage extends ConsumerWidget {
                         child: Container(
                           width: 240,
                           height: 240,
+                          alignment: Alignment.center,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: Images.getAvatarBackgroundColor(theme),
@@ -131,8 +134,8 @@ class TranslatorDetailPage extends ConsumerWidget {
                                 : null,
                           ),
                           child: translator.image == null || translator.image!.isEmpty
-                              ? Icon(
-                                  Icons.translate_rounded,
+                              ? FaIcon(
+                                  FontAwesomeIcons.language,
                                   color: Images.getAvatarIconColor(theme),
                                   size: 120,
                                 )
@@ -148,43 +151,43 @@ class TranslatorDetailPage extends ConsumerWidget {
                           DetailTile(
                             label: 'Other Name',
                             value: translator.otherName!,
-                            leadingIcon: Icons.badge_rounded,
+                            leadingIcon: FontAwesomeIcons.idBadge,
                           ),
                         DetailTile(
                           label: 'Books Count',
                           value: '${translatorBooks.length} books',
-                          leadingIcon: Icons.book_rounded,
+                          leadingIcon: FontAwesomeIcons.book,
                         ),
                         DetailTile(
                           label: 'Works Count',
                           value: '${translatorWorks.length} works',
-                          leadingIcon: Icons.article_rounded,
+                          leadingIcon: FontAwesomeIcons.fileLines,
                         ),
                         if (translator.website != null && translator.website!.isNotEmpty)
                           DetailTile(
                             label: 'Website',
                             value: translator.website!,
-                            leadingIcon: Icons.language_rounded,
-                            trailingIcon: Icons.open_in_new_rounded,
+                            leadingIcon: FontAwesomeIcons.globe,
+                            trailingIcon: FontAwesomeIcons.arrowUpRightFromSquare,
                             onTap: () => ExternalLauncher.launchBrowser(translator.website!),
                           ),
                         if (translator.facebook != null && translator.facebook!.isNotEmpty)
                           DetailTile(
                             label: 'Facebook',
                             value: translator.facebook!,
-                            leadingIcon: Icons.facebook_rounded,
-                            trailingIcon: Icons.open_in_new_rounded,
+                            leadingIcon: FontAwesomeIcons.facebook,
+                            trailingIcon: FontAwesomeIcons.arrowUpRightFromSquare,
                             onTap: () => ExternalLauncher.launchBrowser(translator.facebook!),
                           ),
                         DetailTile(
                           label: 'Created',
                           value: DetailTile.formatDate(translator.createdDate),
-                          leadingIcon: Icons.calendar_today_rounded,
+                          leadingIcon: FontAwesomeIcons.calendar,
                         ),
                         DetailTile(
                           label: 'Last Updated',
                           value: DetailTile.formatDate(translator.lastUpdated),
-                          leadingIcon: Icons.update_rounded,
+                          leadingIcon: FontAwesomeIcons.clockRotateLeft,
                         ),
                       ],
                     ),

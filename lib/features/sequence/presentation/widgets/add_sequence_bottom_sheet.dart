@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
@@ -67,7 +67,7 @@ class _AddSequenceBottomSheetState extends ConsumerState<AddSequenceBottomSheet>
           onPressed: _save,
           isLoading: state.isLoading,
           label: 'Save Sequence',
-          icon: Icons.save_rounded,
+          icon: FontAwesomeIcons.floppyDisk,
         ),
       ],
       child: Form(
@@ -76,7 +76,7 @@ class _AddSequenceBottomSheetState extends ConsumerState<AddSequenceBottomSheet>
           controller: _nameController,
           label: 'Name',
           hint: 'Sequence Name',
-          prefixIcon: Icons.layers_rounded,
+          prefixIcon: FontAwesomeIcons.layerGroup,
           isRequired: true,
           maxLength: 200,
           autofocus: true,

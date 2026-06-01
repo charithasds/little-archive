@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/utils/dialogs.dart';
@@ -27,6 +28,34 @@ class SequenceDetailPage extends ConsumerWidget {
   const SequenceDetailPage({super.key, required this.sequenceId});
   final String sequenceId;
 
+  Future<void> _showAddBookVolumeSheet(
+    BuildContext context,
+    WidgetRef ref,
+    SequenceEntity sequence,
+  ) async {
+    await context.push(
+      '/books/upsert',
+      extra: <String, dynamic>{
+        'preselectedSequence': sequence,
+      },
+    );
+    ref.invalidate(sequenceVolumesStreamProvider(sequence.id));
+  }
+
+  Future<void> _showAddWorkVolumeSheet(
+    BuildContext context,
+    WidgetRef ref,
+    SequenceEntity sequence,
+  ) async {
+    await context.push(
+      '/works/upsert',
+      extra: <String, dynamic>{
+        'preselectedSequence': sequence,
+      },
+    );
+    ref.invalidate(sequenceVolumesStreamProvider(sequence.id));
+  }
+
   Future<void> _handleRemove(BuildContext context, WidgetRef ref, SequenceEntity sequence) async {
     await AppDialogs.removeEntity(
       context: context,
@@ -34,6 +63,7 @@ class SequenceDetailPage extends ConsumerWidget {
       entityName: sequence.name,
       onConfirm: () async {
         await ref.read(removeSequenceUseCaseProvider)(sequence.id);
+        ref.invalidate(sequenceCountProvider);
         if (context.mounted) {
           context.pop();
         }
@@ -51,7 +81,7 @@ class SequenceDetailPage extends ConsumerWidget {
         if (sequence == null) {
           return const Scaffold(
             body: ListEmptyState(
-              icon: Icons.layers_rounded,
+              icon: FontAwesomeIcons.layerGroup,
               title: 'Sequence Not Found',
               subtitle: 'This sequence may have been removed.',
             ),
@@ -64,6 +94,11 @@ class SequenceDetailPage extends ConsumerWidget {
         final AsyncValue<List<BookEntity>> booksAsync = ref.watch(booksStreamProvider);
         final AsyncValue<List<WorkEntity>> worksAsync = ref.watch(worksStreamProvider);
 
+        if (volumesAsync.hasError || booksAsync.hasError || worksAsync.hasError) {
+          final Object error = volumesAsync.error ?? booksAsync.error ?? worksAsync.error ?? 'Unknown error';
+          return Scaffold(body: ListErrorState(error: error));
+        }
+
         if (volumesAsync.value == null || booksAsync.value == null || worksAsync.value == null) {
           return const Scaffold(body: ListLoadingState());
         }
@@ -71,19 +106,17 @@ class SequenceDetailPage extends ConsumerWidget {
         final List<BookEntity> books = booksAsync.value!;
         final List<WorkEntity> works = worksAsync.value!;
 
-        final List<SequenceVolumeEntity> sequenceVolumes =
-            volumesAsync.value!
-                .toList()
-              ..sort((SequenceVolumeEntity a, SequenceVolumeEntity b) {
-                final double? aVal = double.tryParse(a.volume);
-                final double? bVal = double.tryParse(b.volume);
+        final List<SequenceVolumeEntity> sequenceVolumes = volumesAsync.value!.toList()
+          ..sort((SequenceVolumeEntity a, SequenceVolumeEntity b) {
+            final double? aVal = double.tryParse(a.volume);
+            final double? bVal = double.tryParse(b.volume);
 
-                if (aVal != null && bVal != null) {
-                  return aVal.compareTo(bVal);
-                }
+            if (aVal != null && bVal != null) {
+              return aVal.compareTo(bVal);
+            }
 
-                return a.volume.compareTo(b.volume);
-              });
+            return a.volume.compareTo(b.volume);
+          });
 
         return Scaffold(
           body: CustomScrollView(
@@ -96,7 +129,7 @@ class SequenceDetailPage extends ConsumerWidget {
                 scrolledUnderElevation: 1,
                 actions: <Widget>[
                   IconButton(
-                    icon: const Icon(Icons.edit_note_rounded),
+                    icon: const FaIcon(FontAwesomeIcons.penToSquare),
                     onPressed: () async {
                       await context.push('/sequences/upsert', extra: sequence);
                       ref.invalidate(sequenceProvider(sequenceId));
@@ -104,7 +137,7 @@ class SequenceDetailPage extends ConsumerWidget {
                     tooltip: 'Edit',
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete_outline_rounded),
+                    icon: const FaIcon(FontAwesomeIcons.trash),
                     onPressed: () => _handleRemove(context, ref, sequence),
                     tooltip: 'Remove',
                   ),
@@ -122,12 +155,13 @@ class SequenceDetailPage extends ConsumerWidget {
                         child: Container(
                           width: 240,
                           height: 240,
+                          alignment: Alignment.center,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: Images.getAvatarBackgroundColor(theme),
                           ),
-                          child: Icon(
-                            Icons.layers_rounded,
+                          child: FaIcon(
+                            FontAwesomeIcons.layerGroup,
                             color: Images.getAvatarIconColor(theme),
                             size: 120,
                           ),
@@ -141,29 +175,41 @@ class SequenceDetailPage extends ConsumerWidget {
                         DetailTile(
                           label: 'Volumes Count',
                           value: '${sequence.sequenceVolumeIds.length} volumes',
-                          leadingIcon: Icons.format_list_numbered_rounded,
+                          leadingIcon: FontAwesomeIcons.listOl,
                         ),
                         if (sequence.notes != null && sequence.notes!.isNotEmpty)
                           DetailTile(
                             label: 'Notes',
                             value: sequence.notes!,
-                            leadingIcon: Icons.notes_rounded,
+                            leadingIcon: FontAwesomeIcons.noteSticky,
                           ),
                         DetailTile(
                           label: 'Created',
                           value: DetailTile.formatDate(sequence.createdDate),
-                          leadingIcon: Icons.calendar_today_rounded,
+                          leadingIcon: FontAwesomeIcons.calendar,
                         ),
                         DetailTile(
                           label: 'Last Updated',
                           value: DetailTile.formatDate(sequence.lastUpdated),
-                          leadingIcon: Icons.update_rounded,
+                          leadingIcon: FontAwesomeIcons.clockRotateLeft,
                         ),
                       ],
                     ),
                     DetailSection(
                       title: 'VOLUMES (${sequenceVolumes.length})',
                       showDivider: false,
+                      actions: <Widget>[
+                        IconButton(
+                          icon: const FaIcon(FontAwesomeIcons.bookMedical, size: 20),
+                          tooltip: 'Add Book Volume',
+                          onPressed: () => _showAddBookVolumeSheet(context, ref, sequence),
+                        ),
+                        IconButton(
+                          icon: const FaIcon(FontAwesomeIcons.fileMedical, size: 20),
+                          tooltip: 'Add Work Volume',
+                          onPressed: () => _showAddWorkVolumeSheet(context, ref, sequence),
+                        ),
+                      ],
                       children: sequenceVolumes.map((SequenceVolumeEntity volume) {
                         final String volumeLabel = volume.volume.isEmpty
                             ? '??'

@@ -1,16 +1,23 @@
 import 'package:flutter/material.dart';
+import 'custom_icons.dart';
 
 InputDecoration buildFormDecoration(
   ColorScheme colorScheme, {
   String? labelText,
   String? hintText,
-  IconData? prefixIcon,
+  dynamic prefixIcon,
   EdgeInsetsGeometry? contentPadding,
   bool alignLabelWithHint = false,
 }) => InputDecoration(
   labelText: labelText,
   hintText: hintText,
-  prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
+  prefixIcon: prefixIcon != null
+      ? SizedBox(
+          width: 48,
+          height: 48,
+          child: Center(child: buildAppIcon(prefixIcon, size: 20)),
+        )
+      : null,
   prefixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 48),
   alignLabelWithHint: alignLabelWithHint,
   filled: true,

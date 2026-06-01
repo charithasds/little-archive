@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/utils/buttons.dart';
@@ -31,7 +32,10 @@ class _WorkListPageState extends ConsumerState<WorkListPage> {
       context: context,
       entityType: 'Work',
       entityName: workTitle,
-      onConfirm: () => ref.read(removeWorkUseCaseProvider)(workId),
+      onConfirm: () async {
+        await ref.read(removeWorkUseCaseProvider)(workId);
+        ref.invalidate(workCountProvider);
+      },
     );
   }
 
@@ -58,7 +62,7 @@ class _WorkListPageState extends ConsumerState<WorkListPage> {
 
           if (works.isEmpty && state.searchQuery.isEmpty) {
             return const ListEmptyState(
-              icon: Icons.article_rounded,
+              icon: FontAwesomeIcons.fileLines,
               title: 'No Works Yet',
               subtitle: 'Tap the button below to add your first work.',
             );
@@ -152,7 +156,7 @@ class _WorkListPageState extends ConsumerState<WorkListPage> {
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
         onPressed: () => context.go('/works/upsert'),
-        icon: const Icon(Icons.add_rounded),
+        icon: const FaIcon(FontAwesomeIcons.plus),
         label: const Text('Add Work'),
       ),
     );

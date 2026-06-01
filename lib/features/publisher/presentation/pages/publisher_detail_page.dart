@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/utils/dialogs.dart';
@@ -30,6 +31,7 @@ class PublisherDetailPage extends ConsumerWidget {
       entityName: publisher.name,
       onConfirm: () async {
         await ref.read(removePublisherUseCaseProvider)(publisher.id);
+        ref.invalidate(publisherCountProvider);
         if (context.mounted) {
           context.pop();
         }
@@ -47,7 +49,7 @@ class PublisherDetailPage extends ConsumerWidget {
         if (publisher == null) {
           return const Scaffold(
             body: ListEmptyState(
-              icon: Icons.business_rounded,
+              icon: FontAwesomeIcons.building,
               title: 'Publisher Not Found',
               subtitle: 'This publisher may have been removed.',
             ),
@@ -75,7 +77,7 @@ class PublisherDetailPage extends ConsumerWidget {
                 scrolledUnderElevation: 1,
                 actions: <Widget>[
                   IconButton(
-                    icon: const Icon(Icons.edit_note_rounded),
+                    icon: const FaIcon(FontAwesomeIcons.penToSquare),
                     onPressed: () async {
                       await context.push('/publishers/upsert', extra: publisher);
                       ref.invalidate(publisherProvider(publisherId));
@@ -83,7 +85,7 @@ class PublisherDetailPage extends ConsumerWidget {
                     tooltip: 'Edit',
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete_outline_rounded),
+                    icon: const FaIcon(FontAwesomeIcons.trash),
                     onPressed: () => _handleRemove(context, ref, publisher),
                     tooltip: 'Remove',
                   ),
@@ -101,6 +103,7 @@ class PublisherDetailPage extends ConsumerWidget {
                         child: Container(
                           width: 240,
                           height: 240,
+                          alignment: Alignment.center,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(32),
                             color: Images.getAvatarBackgroundColor(theme),
@@ -112,8 +115,8 @@ class PublisherDetailPage extends ConsumerWidget {
                                 : null,
                           ),
                           child: publisher.logo == null || publisher.logo!.isEmpty
-                              ? Icon(
-                                  Icons.business_rounded,
+                              ? FaIcon(
+                                  FontAwesomeIcons.building,
                                   color: Images.getAvatarIconColor(theme),
                                   size: 120,
                                 )
@@ -128,60 +131,60 @@ class PublisherDetailPage extends ConsumerWidget {
                         DetailTile(
                           label: 'Self Publisher',
                           value: publisher.isSelfPublisher ? 'Yes' : 'No',
-                          leadingIcon: Icons.business_center_rounded,
+                          leadingIcon: FontAwesomeIcons.briefcase,
                         ),
                         if (publisher.otherName != null && publisher.otherName!.isNotEmpty)
                           DetailTile(
                             label: 'Other Name',
                             value: publisher.otherName!,
-                            leadingIcon: Icons.badge_rounded,
+                            leadingIcon: FontAwesomeIcons.idBadge,
                           ),
                         DetailTile(
                           label: 'Books Count',
                           value: '${publisherBooks.length} books',
-                          leadingIcon: Icons.book_rounded,
+                          leadingIcon: FontAwesomeIcons.book,
                         ),
                         if (publisher.website != null && publisher.website!.isNotEmpty)
                           DetailTile(
                             label: 'Website',
                             value: publisher.website!,
-                            leadingIcon: Icons.language_rounded,
-                            trailingIcon: Icons.open_in_new_rounded,
+                            leadingIcon: FontAwesomeIcons.globe,
+                            trailingIcon: FontAwesomeIcons.arrowUpRightFromSquare,
                             onTap: () => ExternalLauncher.launchBrowser(publisher.website!),
                           ),
                         if (publisher.email != null && publisher.email!.isNotEmpty)
                           DetailTile(
                             label: 'Email',
                             value: publisher.email!,
-                            leadingIcon: Icons.email_rounded,
-                            trailingIcon: Icons.open_in_new_rounded,
+                            leadingIcon: FontAwesomeIcons.envelope,
+                            trailingIcon: FontAwesomeIcons.arrowUpRightFromSquare,
                             onTap: () => ExternalLauncher.launchEmail(publisher.email!),
                           ),
                         if (publisher.facebook != null && publisher.facebook!.isNotEmpty)
                           DetailTile(
                             label: 'Facebook',
                             value: publisher.facebook!,
-                            leadingIcon: Icons.facebook_rounded,
-                            trailingIcon: Icons.open_in_new_rounded,
+                            leadingIcon: FontAwesomeIcons.facebook,
+                            trailingIcon: FontAwesomeIcons.arrowUpRightFromSquare,
                             onTap: () => ExternalLauncher.launchBrowser(publisher.facebook!),
                           ),
                         if (publisher.phoneNumber != null && publisher.phoneNumber!.isNotEmpty)
                           DetailTile(
                             label: 'Phone Number',
                             value: publisher.phoneNumber!,
-                            leadingIcon: Icons.phone_rounded,
-                            trailingIcon: Icons.open_in_new_rounded,
+                            leadingIcon: FontAwesomeIcons.phone,
+                            trailingIcon: FontAwesomeIcons.arrowUpRightFromSquare,
                             onTap: () => ExternalLauncher.launchPhone(publisher.phoneNumber!),
                           ),
                         DetailTile(
                           label: 'Created',
                           value: DetailTile.formatDate(publisher.createdDate),
-                          leadingIcon: Icons.calendar_today_rounded,
+                          leadingIcon: FontAwesomeIcons.calendar,
                         ),
                         DetailTile(
                           label: 'Last Updated',
                           value: DetailTile.formatDate(publisher.lastUpdated),
-                          leadingIcon: Icons.update_rounded,
+                          leadingIcon: FontAwesomeIcons.clockRotateLeft,
                         ),
                       ],
                     ),

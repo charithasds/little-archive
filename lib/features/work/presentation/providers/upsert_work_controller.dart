@@ -11,6 +11,7 @@ import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../domain/entities/work_entity.dart';
 import '../../domain/usecases/work_usecases.dart';
+import 'work_provider.dart';
 
 part 'upsert_work_controller.g.dart';
 
@@ -117,7 +118,7 @@ class UpsertWorkController extends _$UpsertWorkController {
       );
 
       state = state.copyWith(isLoading: false);
-
+      ref.invalidate(workCountProvider);
       return savedWork;
     } on NoConnectionException catch (e) {
       state = state.copyWith(isLoading: false, error: Nullable<String?>(e.message));

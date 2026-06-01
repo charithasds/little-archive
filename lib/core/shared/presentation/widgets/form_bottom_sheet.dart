@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../theme/presentation/providers/theme_provider.dart';
@@ -46,7 +47,7 @@ class FormBottomSheet extends ConsumerWidget {
                       style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                     ),
                   ),
-                  IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.close_rounded)),
+                  IconButton(onPressed: () => context.pop(), icon: const FaIcon(FontAwesomeIcons.xmark)),
                 ],
               ),
               const SizedBox(height: 16),

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../theme/presentation/providers/theme_provider.dart';
+import 'custom_icons.dart';
 
 class FormSection extends ConsumerWidget {
   const FormSection({super.key, required this.title, this.icon, required this.children});
 
   final String title;
-  final IconData? icon;
+  final dynamic icon;
   final List<Widget> children;
 
   @override
@@ -24,7 +24,7 @@ class FormSection extends ConsumerWidget {
           Row(
             children: <Widget>[
               if (icon != null) ...<Widget>[
-                Icon(icon, size: 18, color: colorScheme.secondary),
+                buildAppIcon(icon, size: 18, color: colorScheme.secondary)!,
                 const SizedBox(width: 8),
               ],
               Text(

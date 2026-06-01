@@ -19,6 +19,7 @@ import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../domain/entities/book_entity.dart';
 import '../../domain/entities/scan/scanned_book_entity.dart';
 import '../../domain/usecases/book_usecases.dart';
+import 'book_provider.dart';
 
 part 'upsert_book_controller.g.dart';
 
@@ -263,7 +264,7 @@ class UpsertBookController extends _$UpsertBookController {
       }
 
       state = state.copyWith(isLoading: false);
-
+      ref.invalidate(bookCountProvider);
       return savedBook;
     } on NoConnectionException catch (e) {
       state = state.copyWith(isLoading: false, error: Nullable<String?>(e.message));

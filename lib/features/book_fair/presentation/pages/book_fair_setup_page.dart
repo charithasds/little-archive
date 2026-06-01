@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/auth/domain/entities/user_entity.dart';
 import '../../../../core/auth/presentation/providers/user_profile_provider.dart';
 import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
+import '../../../../core/shared/presentation/routes/router_service.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../book/domain/entities/book_entity.dart';
 import '../../../book/presentation/providers/book_provider.dart';
@@ -25,8 +28,8 @@ class BookFairSetupPage extends ConsumerStatefulWidget {
 }
 
 class _BookFairSetupPageState extends ConsumerState<BookFairSetupPage> {
-  final Map<String, String?> _publisherStallMap = <String, String?>{};
   final TextEditingController _searchController = TextEditingController();
+  final Map<String, String?> _publisherStallMap = <String, String?>{};
   String _searchQuery = '';
   bool _isSaving = false;
 
@@ -53,279 +56,329 @@ class _BookFairSetupPageState extends ConsumerState<BookFairSetupPage> {
     final bool isDark = theme.brightness == Brightness.dark;
     final Color purplePrimary = isDark ? const Color(0xFFCE93D8) : const Color(0xFF7B1FA2);
     final Color onPurplePrimary = isDark ? const Color(0xFF311B92) : Colors.white;
-    final AsyncValue<BookFairEventEntity> eventAsync = ref.watch(bookFairEventProvider);
-    final List<PublisherEntity> allPublishers =
-        ref.watch(publishersStreamProvider).value ?? <PublisherEntity>[];
-    final List<BookEntity> books = ref.watch(booksStreamProvider).value ?? <BookEntity>[];
-    final Set<String> publisherIdsInShoppingList = books
+
+    final AsyncValue<List<BookEntity>> booksAsync = ref.watch(booksStreamProvider);
+    final AsyncValue<List<PublisherEntity>> publishersAsync = ref.watch(publishersStreamProvider);
+    final AsyncValue<BookFairEventEntity> bookFairEventAsync = ref.watch(bookFairEventProvider);
+    final AsyncValue<UserEntity?> userAsync = ref.watch(userProfileProvider);
+
+    if (bookFairEventAsync.isLoading ||
+        publishersAsync.isLoading ||
+        booksAsync.isLoading ||
+        userAsync.isLoading) {
+      return Scaffold(
+        backgroundColor: colorScheme.surface,
+        appBar: AppBar(
+          title: const Text('CIBF Setup'),
+          backgroundColor: colorScheme.surface,
+          foregroundColor: colorScheme.onSurface,
+          elevation: 0,
+          centerTitle: false,
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (bookFairEventAsync.hasError ||
+        publishersAsync.hasError ||
+        booksAsync.hasError ||
+        userAsync.hasError) {
+      final Object error =
+          bookFairEventAsync.error ?? publishersAsync.error ?? booksAsync.error ?? userAsync.error!;
+
+      return Scaffold(
+        backgroundColor: colorScheme.surface,
+        appBar: AppBar(
+          title: const Text('Error'),
+          backgroundColor: colorScheme.surface,
+          foregroundColor: colorScheme.onSurface,
+          elevation: 0,
+          centerTitle: false,
+        ),
+        body: Center(
+          child: Text('Error: $error', style: TextStyle(color: colorScheme.error)),
+        ),
+      );
+    }
+
+    final List<BookEntity> books = booksAsync.value!;
+    final List<PublisherEntity> publishers = publishersAsync.value!;
+    final BookFairEventEntity bookFairEvent = bookFairEventAsync.value!;
+    final UserEntity? user = userAsync.value;
+    final String? lastConfiguredFairId = user?.lastConfiguredFairId;
+
+    final Set<String> allPublisherIdsInShoppingList = books
         .where(
           (BookEntity b) =>
               b.collectionStatus == CollectionStatus.shoppingList && b.publisherId != null,
         )
         .map((BookEntity b) => b.publisherId!)
         .toSet();
+    final List<PublisherEntity> unmappedPublisherIdsInShoppingList = publishers
+        .where(
+          (PublisherEntity p) =>
+              allPublisherIdsInShoppingList.contains(p.id) &&
+              p.bookFairPublisherId != 'none' &&
+              (p.bookFairPublisherId == null ||
+                  !p.bookFairPublisherId!.startsWith('CIBF_${bookFairEvent.year}_')),
+        )
+        .toList();
+
+    if (unmappedPublisherIdsInShoppingList.isEmpty && lastConfiguredFairId == bookFairEvent.id) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          context.goNamed(RouteConstants.shoppingPlan);
+        }
+      });
+
+      return Scaffold(
+        backgroundColor: colorScheme.surface,
+        appBar: AppBar(
+          title: const Text('Redirecting to Shopping Plan...'),
+          backgroundColor: colorScheme.surface,
+          foregroundColor: colorScheme.onSurface,
+          elevation: 0,
+          centerTitle: false,
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    for (final PublisherEntity publisher in publishers) {
+      if (!_publisherStallMap.containsKey(publisher.id)) {
+        if (publisher.bookFairPublisherId != null) {
+          _publisherStallMap[publisher.id] = publisher.bookFairPublisherId;
+        } else {
+          final BookFairStallEntity? bookFairStall = ref
+              .read(matchPublishersUseCaseProvider)
+              .findBestSuggestion(publisher, bookFairEvent.stalls);
+
+          _publisherStallMap[publisher.id] = bookFairStall?.id;
+        }
+      }
+    }
+
+    final List<PublisherEntity> filteredPublishers = publishers.where((PublisherEntity publisher) {
+      if (!allPublisherIdsInShoppingList.contains(publisher.id)) {
+        return false;
+      }
+
+      final String query = _searchQuery.toLowerCase().trim();
+
+      if (query.isEmpty) {
+        return true;
+      }
+
+      final bool nameMatches = publisher.name.toLowerCase().contains(query);
+      final bool otherNameMatches =
+          publisher.otherName != null && publisher.otherName!.toLowerCase().contains(query);
+
+      return nameMatches || otherNameMatches;
+    }).toList();
+
+    filteredPublishers.sort((PublisherEntity p1, PublisherEntity p2) {
+      final bool p1AlreadyConfigured =
+          p1.bookFairPublisherId == 'none' ||
+          (p1.bookFairPublisherId != null &&
+              p1.bookFairPublisherId!.startsWith('CIBF_${bookFairEvent.year}_'));
+      final bool p2AlreadyConfigured =
+          p2.bookFairPublisherId == 'none' ||
+          (p2.bookFairPublisherId != null &&
+              p2.bookFairPublisherId!.startsWith('CIBF_${bookFairEvent.year}_'));
+
+      final bool p1InShoppingList = allPublisherIdsInShoppingList.contains(p1.id);
+      final bool p2InShoppingList = allPublisherIdsInShoppingList.contains(p2.id);
+
+      final bool p1ToBeConfigured = !p1AlreadyConfigured && p1InShoppingList;
+      final bool p2ToBeConfigured = !p2AlreadyConfigured && p2InShoppingList;
+
+      if (p1ToBeConfigured && !p2ToBeConfigured) {
+        return -1;
+      }
+
+      if (!p1ToBeConfigured && p2ToBeConfigured) {
+        return 1;
+      }
+
+      return p1.name.compareTo(p2.name);
+    });
+
+    final int alreadyMappedCount = filteredPublishers
+        .where(
+          (PublisherEntity p) =>
+              p.bookFairPublisherId != null &&
+              p.bookFairPublisherId!.startsWith('CIBF_${bookFairEvent.year}_'),
+        )
+        .length;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        title: Text(
-          eventAsync.value?.year != null ? 'CIBF ${eventAsync.value!.year} Setup' : 'CIBF Setup',
-        ),
+        title: Text('CIBF ${bookFairEvent.year} Setup'),
         backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
         elevation: 0,
         centerTitle: false,
       ),
-      body: eventAsync.when(
-        data: (BookFairEventEntity bookFairEvent) {
-          for (final PublisherEntity publisher in allPublishers) {
-            if (!_publisherStallMap.containsKey(publisher.id)) {
-              if (publisher.bookFairPublisherId != null) {
-                _publisherStallMap[publisher.id] = publisher.bookFairPublisherId;
-              } else {
-                final BookFairStallEntity? bookFairStall = ref
-                    .read(matchPublishersUseCaseProvider)
-                    .findBestSuggestion(publisher, bookFairEvent.stalls);
-
-                _publisherStallMap[publisher.id] = bookFairStall?.id;
-              }
-            }
-          }
-
-          final List<PublisherEntity> filteredPublishers = allPublishers.where((
-            PublisherEntity publisher,
-          ) {
-            if (!publisherIdsInShoppingList.contains(publisher.id)) {
-              return false;
-            }
-
-            final String query = _searchQuery.toLowerCase().trim();
-
-            if (query.isEmpty) {
-              return true;
-            }
-
-            final bool nameMatches = publisher.name.toLowerCase().contains(query);
-            final bool otherNameMatches =
-                publisher.otherName != null && publisher.otherName!.toLowerCase().contains(query);
-
-            return nameMatches || otherNameMatches;
-          }).toList();
-
-          filteredPublishers.sort((PublisherEntity a, PublisherEntity b) {
-            final bool aConfigured =
-                a.bookFairPublisherId == 'none' ||
-                (a.bookFairPublisherId != null &&
-                 a.bookFairPublisherId!.startsWith('CIBF_${bookFairEvent.year}_'));
-            final bool bConfigured =
-                b.bookFairPublisherId == 'none' ||
-                (b.bookFairPublisherId != null &&
-                 b.bookFairPublisherId!.startsWith('CIBF_${bookFairEvent.year}_'));
-
-            final bool aInShopping = publisherIdsInShoppingList.contains(a.id);
-            final bool bInShopping = publisherIdsInShoppingList.contains(b.id);
-
-            final bool aUrgent = !aConfigured && aInShopping;
-            final bool bUrgent = !bConfigured && bInShopping;
-
-            if (aUrgent && !bUrgent) {
-              return -1;
-            }
-
-            if (!aUrgent && bUrgent) {
-              return 1;
-            }
-
-            final bool aUnmapped = !aConfigured;
-            final bool bUnmapped = !bConfigured;
-
-            if (aUnmapped && !bUnmapped) {
-              return -1;
-            }
-
-            if (!aUnmapped && bUnmapped) {
-              return 1;
-            }
-
-            return a.name.compareTo(b.name);
-          });
-
-          final int mappedCount = filteredPublishers
-              .where((PublisherEntity p) {
-                final String? mappingId = _publisherStallMap[p.id];
-                return mappingId != null &&
-                    mappingId != 'none' &&
-                    mappingId.startsWith('CIBF_${bookFairEvent.year}_');
-              })
-              .length;
-
-          return Column(
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: SearchBar(
-                  controller: _searchController,
-                  hintText: 'Search publishers',
-                  leading: const Icon(Icons.search_rounded),
-                  elevation: const WidgetStatePropertyAll<double>(0),
-                  backgroundColor: WidgetStatePropertyAll<Color>(colorScheme.surfaceContainerHigh),
-                  shape: WidgetStatePropertyAll<OutlinedBorder>(
-                    RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  ),
-                ),
+      body: Column(
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: SearchBar(
+              controller: _searchController,
+              hintText: 'Search publishers',
+              leading: const FaIcon(FontAwesomeIcons.magnifyingGlass),
+              elevation: const WidgetStatePropertyAll<double>(0),
+              backgroundColor: WidgetStatePropertyAll<Color>(colorScheme.surfaceContainerHigh),
+              shape: WidgetStatePropertyAll<OutlinedBorder>(
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
-              Expanded(
-                child: filteredPublishers.isEmpty
-                    ? Center(
-                        child: Text(
-                          _searchQuery.isEmpty
-                              ? 'No publishers yet. Add publishers to start mapping'
-                              : 'No publishers match your search.',
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        itemCount: filteredPublishers.length,
-                        itemBuilder: (BuildContext context, int index) {
-                          final PublisherEntity pub = filteredPublishers[index];
-                          final String? selectedStallId = _publisherStallMap[pub.id];
-                          final BookFairStallEntity? selectedStall =
-                              selectedStallId != null && selectedStallId != 'none'
-                              ? bookFairEvent.stalls.firstWhere(
-                                  (BookFairStallEntity s) => s.id == selectedStallId,
-                                  orElse: () => BookFairStallEntity(
-                                    id: selectedStallId,
-                                    name: 'Unknown Stall',
-                                    stallNo: 'N/A',
-                                    halls: const <String>[],
-                                  ),
-                                )
-                              : null;
-
-                          return PublisherStallMappingCard(
-                            publisher: pub,
-                            selectedStallId: selectedStallId,
-                            selectedStall: selectedStall,
-                            onTapStall: () =>
-                                _showSearchStallsSheet(context, pub, bookFairEvent.stalls),
-                          );
-                        },
+            ),
+          ),
+          Expanded(
+            child: filteredPublishers.isEmpty
+                ? Center(
+                    child: Text(
+                      _searchQuery.isEmpty
+                          ? 'No publishers yet. Add publishers to start mapping'
+                          : 'No publishers match your search.',
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        fontStyle: FontStyle.italic,
                       ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  boxShadow: <BoxShadow>[
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, -4),
                     ),
-                  ],
-                ),
-                child: SafeArea(
-                  child: Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Text(
-                          '$mappedCount of ${filteredPublishers.length} Mapped',
-                          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: purplePrimary,
-                          foregroundColor: onPurplePrimary,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        ),
-                        icon: _isSaving
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                ),
-                              )
-                            : const Icon(Icons.check_circle_rounded),
-                        label: Text(
-                          _isSaving
-                              ? 'Saving Mapped Publishers...'
-                              : 'Confirm & Go to Shopping Plan',
-                        ),
-                        onPressed: _isSaving
-                            ? null
-                            : () async {
-                                setState(() {
-                                  _isSaving = true;
-                                });
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    itemCount: filteredPublishers.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      final PublisherEntity publisher = filteredPublishers[index];
+                      final String? publisherStallId = _publisherStallMap[publisher.id];
+                      final BookFairStallEntity? selectedStall =
+                          publisherStallId != null && publisherStallId != 'none'
+                          ? bookFairEvent.stalls.firstWhere(
+                              (BookFairStallEntity bfs) => bfs.id == publisherStallId,
+                              orElse: () => BookFairStallEntity(
+                                id: publisherStallId,
+                                name: 'Unknown Stall',
+                                stallNo: 'N/A',
+                                halls: const <String>[],
+                              ),
+                            )
+                          : null;
 
-                                try {
-                                  await ref
-                                      .read(userProfileControllerProvider.notifier)
-                                      .updateLastConfiguredFairId(bookFairEvent.id);
-
-                                  final List<Future<void>> editFutures = <Future<void>>[];
-
-                                  for (final PublisherEntity publisher in filteredPublishers) {
-                                    final String? activeStallId = _publisherStallMap[publisher.id];
-
-                                    if (publisher.bookFairPublisherId != activeStallId) {
-                                      editFutures.add(
-                                        ref
-                                            .read(publisherRepositoryProvider)
-                                            .editPublisher(
-                                              publisher.copyWith(
-                                                bookFairPublisherId: Nullable<String?>(
-                                                  activeStallId,
-                                                ),
-                                              ),
-                                            ),
-                                      );
-                                    }
-                                  }
-
-                                  if (editFutures.isNotEmpty) {
-                                    await Future.wait(editFutures);
-                                  }
-
-                                  if (context.mounted) {
-                                    context.go('/shopping-plan');
-                                  }
-                                } catch (e) {
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Failed to save plan: $e'),
-                                        backgroundColor: colorScheme.error,
-                                      ),
-                                    );
-                                  }
-                                } finally {
-                                  if (mounted) {
-                                    setState(() {
-                                      _isSaving = false;
-                                    });
-                                  }
-                                }
-                              },
-                      ),
-                    ],
+                      return PublisherStallMappingCard(
+                        publisher: publisher,
+                        selectedStallId: publisherStallId,
+                        selectedStall: selectedStall,
+                        onTapStall: () =>
+                            _showSearchStallsSheet(context, publisher, bookFairEvent.stalls),
+                      );
+                    },
                   ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              boxShadow: <BoxShadow>[
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -4),
                 ),
+              ],
+            ),
+            child: SafeArea(
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Text(
+                      '$alreadyMappedCount of ${filteredPublishers.length} Mapped',
+                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: purplePrimary,
+                      foregroundColor: onPurplePrimary,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    icon: _isSaving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const FaIcon(FontAwesomeIcons.circleCheck),
+                    label: Text(
+                      _isSaving ? 'Saving Mapped Publishers...' : 'Confirm & Go to Shopping Plan',
+                    ),
+                    onPressed: _isSaving
+                        ? null
+                        : () async {
+                            setState(() {
+                              _isSaving = true;
+                            });
+
+                            try {
+                              await ref
+                                  .read(userProfileControllerProvider.notifier)
+                                  .updateLastConfiguredFairId(bookFairEvent.id);
+
+                              final List<Future<void>> editFutures = <Future<void>>[];
+
+                              for (final PublisherEntity publisher in filteredPublishers) {
+                                final String? activeStallId = _publisherStallMap[publisher.id];
+
+                                if (publisher.bookFairPublisherId != activeStallId) {
+                                  editFutures.add(
+                                    ref
+                                        .read(publisherRepositoryProvider)
+                                        .editPublisher(
+                                          publisher.copyWith(
+                                            bookFairPublisherId: Nullable<String?>(activeStallId),
+                                          ),
+                                        ),
+                                  );
+                                }
+                              }
+
+                              if (editFutures.isNotEmpty) {
+                                await Future.wait(editFutures);
+                              }
+
+                              if (context.mounted) {
+                                context.goNamed(RouteConstants.shoppingPlan);
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Failed to save plan: $e'),
+                                    backgroundColor: colorScheme.error,
+                                  ),
+                                );
+                              }
+                            } finally {
+                              if (mounted) {
+                                setState(() {
+                                  _isSaving = false;
+                                });
+                              }
+                            }
+                          },
+                  ),
+                ],
               ),
-            ],
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (Object e, StackTrace? s) => Center(child: Text('Error loading events: $e')),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -456,7 +509,7 @@ class _SearchStallsSheetState extends ConsumerState<_SearchStallsSheet> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded),
+                  icon: const FaIcon(FontAwesomeIcons.xmark),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -467,7 +520,7 @@ class _SearchStallsSheetState extends ConsumerState<_SearchStallsSheet> {
             child: SearchBar(
               controller: _searchController,
               hintText: 'Search stall or publisher name...',
-              leading: const Icon(Icons.search_rounded),
+              leading: const FaIcon(FontAwesomeIcons.magnifyingGlass),
               elevation: const WidgetStatePropertyAll<double>(0),
               backgroundColor: WidgetStatePropertyAll<Color>(cs.surfaceContainerHigh),
               shape: WidgetStatePropertyAll<OutlinedBorder>(
@@ -515,14 +568,14 @@ class _SearchStallsSheetState extends ConsumerState<_SearchStallsSheet> {
                         color: cs.errorContainer.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Icons.link_off_rounded, color: cs.error, size: 20),
+                      child: FaIcon(FontAwesomeIcons.linkSlash, color: cs.error, size: 20),
                     ),
                     title: Text(
                       'Select None',
                       style: TextStyle(color: cs.error, fontWeight: FontWeight.bold),
                     ),
                     subtitle: const Text('Do not map this publisher to any stall'),
-                    trailing: Icon(Icons.chevron_right_rounded, color: cs.error),
+                    trailing: FaIcon(FontAwesomeIcons.chevronRight, color: cs.error),
                     onTap: () => widget.onSelect('none'),
                   );
                 }
@@ -533,7 +586,11 @@ class _SearchStallsSheetState extends ConsumerState<_SearchStallsSheet> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        Icon(Icons.search_off_rounded, size: 48, color: cs.onSurfaceVariant),
+                        FaIcon(
+                          FontAwesomeIcons.magnifyingGlassMinus,
+                          size: 48,
+                          color: cs.onSurfaceVariant,
+                        ),
                         const SizedBox(height: 16),
                         Text(
                           'No stalls match your search.',
@@ -553,11 +610,11 @@ class _SearchStallsSheetState extends ConsumerState<_SearchStallsSheet> {
                       color: purpleContainer.withValues(alpha: 0.5),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.storefront_rounded, color: purplePrimary, size: 20),
+                    child: FaIcon(FontAwesomeIcons.store, color: purplePrimary, size: 20),
                   ),
                   title: Text(s.name, style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text('Hall ${s.halls.join(', ')} • Stall ${s.stallNo}'),
-                  trailing: const Icon(Icons.chevron_right_rounded),
+                  trailing: const FaIcon(FontAwesomeIcons.chevronRight),
                   onTap: () => widget.onSelect(s.id),
                 );
               },

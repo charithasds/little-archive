@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/domain/enums/compilation_type.dart';
@@ -36,9 +36,10 @@ import '../../domain/entities/work_entity.dart';
 import '../providers/upsert_work_controller.dart';
 
 class UpsertWorkPage extends ConsumerStatefulWidget {
-  const UpsertWorkPage({super.key, this.existingWork});
+  const UpsertWorkPage({super.key, this.existingWork, this.preselectedSequence});
 
   final WorkEntity? existingWork;
+  final SequenceEntity? preselectedSequence;
 
   @override
   ConsumerState<UpsertWorkPage> createState() => _UpsertWorkPageState();
@@ -104,6 +105,27 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
       _originalLanguage = work.originalLanguage;
       _isTranslation = work.isTranslation;
       _toBeTranslated = work.toBeTranslated;
+    }
+
+    final SequenceEntity? seq = widget.preselectedSequence;
+    if (seq != null) {
+      _selectedSequences[seq] = '';
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) {
+          return;
+        }
+        final String? number = await showDialog<String>(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => SequenceNumberDialog(sequenceName: seq.name),
+        );
+
+        if (number != null && number.isNotEmpty) {
+          setState(() => _selectedSequences[seq] = number);
+        } else {
+          setState(() => _selectedSequences.remove(seq));
+        }
+      });
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -273,26 +295,6 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
         foregroundColor: colorScheme.onSurface,
         surfaceTintColor: colorScheme.primary,
         scrolledUnderElevation: 1,
-        actions: <Widget>[
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Row(
-              children: <Widget>[
-                Icon(Icons.g_translate_rounded, size: 20, color: colorScheme.onSurfaceVariant),
-                const SizedBox(width: 8),
-                Switch(
-                  value: _isTranslation,
-                  onChanged: (_selectedBook?.isTranslation ?? false)
-                      ? null
-                      : _onIsTranslationChanged,
-                  inactiveThumbColor: colorScheme.onSurfaceVariant,
-                  inactiveTrackColor: colorScheme.surfaceContainerHighest,
-                  trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
       body: Form(
         key: _formKey,
@@ -307,6 +309,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                       child: Container(
                         width: 140,
                         height: 140 / Images.bookAspectRatio,
+                        alignment: Alignment.center,
                         decoration: Images.getPickerDecoration(
                           theme,
                           shape: ImageShape.rectangle,
@@ -318,8 +321,8 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                               : null,
                         ),
                         child: _selectedBook?.cover == null
-                            ? Icon(
-                                Icons.article_rounded,
+                            ? FaIcon(
+                                FontAwesomeIcons.fileLines,
                                 size: 48,
                                 color: Images.getPickerIconColor(theme),
                               )
@@ -329,13 +332,36 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                     const SizedBox(height: 24),
                     FormSection(
                       title: 'Primary Info',
-                      icon: Icons.info_outline_rounded,
+                      icon: FontAwesomeIcons.circleInfo,
                       children: <Widget>[
+                        // ── IsTranslation & ToBeTranslated ─────────────────────
+                        SwitchListTile.adaptive(
+                          value: _isTranslation,
+                          onChanged: (_selectedBook?.isTranslation ?? false)
+                              ? null
+                              : _onIsTranslationChanged,
+                          title: Text('Is Translation', style: theme.textTheme.bodyMedium),
+                          contentPadding: EdgeInsets.zero,
+                          secondary: FaIcon(FontAwesomeIcons.language, color: colorScheme.primary),
+                        ),
+                        if (_isTranslation) ...<Widget>[
+                          SwitchListTile.adaptive(
+                            value: _toBeTranslated,
+                            onChanged: (bool v) => setState(() => _toBeTranslated = v),
+                            title: Text(
+                              'To Be Translated',
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                            contentPadding: EdgeInsets.zero,
+                            secondary: FaIcon(FontAwesomeIcons.language, color: colorScheme.secondary),
+                          ),
+                        ],
+                        const SizedBox(height: 8),
                         FormTextField(
                           controller: _titleController,
                           label: 'Title',
                           hint: 'Work Title',
-                          prefixIcon: Icons.article_rounded,
+                          prefixIcon: FontAwesomeIcons.fileLines,
                           isRequired: true,
                           maxLength: 200,
                         ),
@@ -343,7 +369,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                         FormDropdownField<ContentCategory>(
                           value: _contentCategory,
                           label: 'Content Category',
-                          prefixIcon: Icons.topic_rounded,
+                          prefixIcon: FontAwesomeIcons.bookBookmark,
                           items: ContentCategory.values,
                           itemLabel: (ContentCategory e) => e.clientValue,
                           onChanged: (ContentCategory? v) {
@@ -357,7 +383,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                         if (_showAuthorFields) ...<Widget>[
                           SearchMultiPickerField<AuthorEntity>(
                             label: 'Authors',
-                            prefixIcon: Icons.person_rounded,
+                            prefixIcon: FontAwesomeIcons.user,
                             selectedItems: _selectedAuthors,
                             itemsProvider: authorsStreamProvider,
                             itemLabel: (AuthorEntity a) => a.name,
@@ -379,7 +405,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                           FormDropdownField<Language>(
                             value: _language,
                             label: 'Language',
-                            prefixIcon: Icons.language_rounded,
+                            prefixIcon: FontAwesomeIcons.globe,
                             items: Language.values,
                             itemLabel: (Language e) => e.clientValue,
                             onChanged: (Language? v) => setState(() => _language = v),
@@ -389,35 +415,24 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                         FormDropdownField<Genre>(
                           value: _genre,
                           label: 'Genre',
-                          prefixIcon: Icons.theater_comedy_rounded,
+                          prefixIcon: FontAwesomeIcons.masksTheater,
                           items: Genre.values,
                           itemLabel: (Genre e) => e.clientValue,
                           onChanged: (Genre? v) => setState(() => _genre = v),
-                        ),
-                        const SizedBox(height: 16),
-                        SwitchListTile.adaptive(
-                          value: _toBeTranslated,
-                          onChanged: (bool v) => setState(() => _toBeTranslated = v),
-                          title: Text(
-                            'To Be Translated',
-                            style: theme.textTheme.bodyMedium,
-                          ),
-                          contentPadding: EdgeInsets.zero,
-                          secondary: Icon(Icons.g_translate_rounded, color: colorScheme.primary),
                         ),
                       ],
                     ),
                     if (_showTranslatorIds || _showOriginalTitle || _showOriginalLanguage)
                       FormSection(
                         title: 'Translation Info',
-                        icon: Icons.translate_rounded,
+                        icon: FontAwesomeIcons.language,
                         children: <Widget>[
                           if (_showOriginalTitle) ...<Widget>[
                             FormTextField(
                               controller: _originalTitleController,
                               label: 'Original Title',
                               hint: 'Work Original Title',
-                              prefixIcon: Icons.translate_rounded,
+                              prefixIcon: FontAwesomeIcons.language,
                               maxLength: 200,
                             ),
                             if (_showTranslatorIds || _showOriginalLanguage)
@@ -426,7 +441,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                           if (_showTranslatorIds) ...<Widget>[
                             SearchMultiPickerField<TranslatorEntity>(
                               label: 'Translators',
-                              prefixIcon: Icons.translate_rounded,
+                              prefixIcon: FontAwesomeIcons.language,
                               selectedItems: _selectedTranslators,
                               itemsProvider: translatorsStreamProvider,
                               itemLabel: (TranslatorEntity t) => t.name,
@@ -448,7 +463,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                             FormDropdownField<OriginalLanguage>(
                               value: _originalLanguage,
                               label: 'Original Language',
-                              prefixIcon: Icons.language_rounded,
+                              prefixIcon: FontAwesomeIcons.globe,
                               items: OriginalLanguage.values,
                               itemLabel: (OriginalLanguage e) => e.clientValue,
                               onChanged: (OriginalLanguage? v) =>
@@ -458,11 +473,11 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                       ),
                     FormSection(
                       title: 'Reference Info',
-                      icon: Icons.layers_outlined,
+                      icon: FontAwesomeIcons.layerGroup,
                       children: <Widget>[
                         SearchMultiPickerField<SequenceEntity>(
                           label: 'Sequences',
-                          prefixIcon: Icons.layers_rounded,
+                          prefixIcon: FontAwesomeIcons.layerGroup,
                           selectedItems: _selectedSequences.keys.toList(),
                           itemsProvider: sequencesStreamProvider,
                           itemLabel: (SequenceEntity s) => s.name,
@@ -528,7 +543,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                         const SizedBox(height: 16),
                         SearchPickerField<BookEntity>(
                           label: 'Book',
-                          prefixIcon: Icons.collections_bookmark_rounded,
+                          prefixIcon: FontAwesomeIcons.book,
                           selectedItem: _selectedBook,
                           itemsProvider: booksStreamProvider,
                           itemLabel: (BookEntity b) => b.title,
@@ -555,7 +570,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                             alignment: Alignment.centerRight,
                             child: TextButton.icon(
                               onPressed: _fillFromBook,
-                              icon: const Icon(Icons.copy_rounded, size: 18),
+                              icon: const FaIcon(FontAwesomeIcons.copy, size: 18),
                               label: const Text('Fill from Book'),
                               style: TextButton.styleFrom(
                                 visualDensity: VisualDensity.compact,
@@ -568,13 +583,13 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                     ),
                     FormSection(
                       title: 'Additional Information',
-                      icon: Icons.notes_rounded,
+                      icon: FontAwesomeIcons.noteSticky,
                       children: <Widget>[
                         FormTextField(
                           controller: _notesController,
                           label: 'Notes',
                           hint: 'Notes about this Work',
-                          prefixIcon: Icons.notes_rounded,
+                          prefixIcon: FontAwesomeIcons.noteSticky,
                           maxLines: 3,
                           alignLabelWithHint: true,
                         ),
@@ -592,7 +607,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
                                 color: colorScheme.onPrimary,
                               ),
                             )
-                          : const Icon(Icons.save_rounded),
+                          : const FaIcon(FontAwesomeIcons.floppyDisk),
                       label: Text(
                         state.isLoading
                             ? 'Saving...'

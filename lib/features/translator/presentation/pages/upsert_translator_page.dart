@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/utils/buttons.dart';
@@ -107,6 +107,7 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
                 child: Container(
                   width: 120,
                   height: 120,
+                  alignment: Alignment.center,
                   decoration: Images.getPickerDecoration(
                     theme,
                     image: state.pickedBase64Image != null
@@ -117,8 +118,8 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
                         : null,
                   ),
                   child: state.pickedBase64Image == null
-                      ? Icon(
-                          Icons.translate_rounded,
+                      ? FaIcon(
+                          FontAwesomeIcons.language,
                           size: 56,
                           color: Images.getPickerIconColor(theme),
                         )
@@ -134,14 +135,14 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
                   TextButton.icon(
                     onPressed: () =>
                         ref.read(upsertTranslatorControllerProvider.notifier).pickImage(),
-                    icon: const Icon(Icons.camera_rounded),
+                    icon: const FaIcon(FontAwesomeIcons.camera),
                     label: Text(state.pickedBase64Image == null ? 'Add Image' : 'Change Image'),
                   ),
                   if (state.pickedBase64Image != null)
                     TextButton.icon(
                       onPressed: () =>
                           ref.read(upsertTranslatorControllerProvider.notifier).clearImage(),
-                      icon: const Icon(Icons.delete_rounded),
+                      icon: const FaIcon(FontAwesomeIcons.trash),
                       label: const Text('Remove Image'),
                       style: TextButton.styleFrom(foregroundColor: colorScheme.error),
                     ),
@@ -152,13 +153,13 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
 
             FormSection(
               title: 'Identity',
-              icon: Icons.person_outline_rounded,
+              icon: FontAwesomeIcons.user,
               children: <Widget>[
                 FormTextField(
                   controller: _nameController,
                   label: 'Name',
                   hint: 'Translator Name',
-                  prefixIcon: Icons.translate_rounded,
+                  prefixIcon: FontAwesomeIcons.language,
                   maxLength: 200,
                   isRequired: true,
                 ),
@@ -167,7 +168,7 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
                   controller: _otherNameController,
                   label: 'Other Name',
                   hint: 'Alternative Name',
-                  prefixIcon: Icons.badge_rounded,
+                  prefixIcon: FontAwesomeIcons.idBadge,
                   maxLength: 200,
                 ),
               ],
@@ -175,13 +176,13 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
 
             FormSection(
               title: 'Contact',
-              icon: Icons.public_rounded,
+              icon: FontAwesomeIcons.earthAmericas,
               children: <Widget>[
                 FormTextField(
                   controller: _websiteController,
                   label: 'Website',
                   hint: 'https://www.example.com',
-                  prefixIcon: Icons.language_rounded,
+                  prefixIcon: FontAwesomeIcons.globe,
                   maxLength: 200,
                   keyboardType: TextInputType.url,
                   validator: Validators.validateWebsiteUrl,
@@ -191,7 +192,7 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
                   controller: _facebookController,
                   label: 'Facebook',
                   hint: 'https://www.facebook.com/username',
-                  prefixIcon: Icons.facebook_rounded,
+                  prefixIcon: FontAwesomeIcons.facebook,
                   maxLength: 200,
                   keyboardType: TextInputType.url,
                   validator: Validators.validateFacebookUrl,
@@ -212,7 +213,7 @@ class _UpsertTranslatorPageState extends ConsumerState<UpsertTranslatorPage> {
                         color: colorScheme.onPrimary,
                       ),
                     )
-                  : const Icon(Icons.save_rounded),
+                  : const FaIcon(FontAwesomeIcons.floppyDisk),
               label: Text(
                 state.isLoading
                     ? 'Saving...'

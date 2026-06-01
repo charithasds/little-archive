@@ -11,6 +11,7 @@ import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../domain/entities/reader_entity.dart';
 import '../../domain/usecases/reader_usecases.dart';
+import 'reader_provider.dart';
 
 part 'upsert_reader_controller.g.dart';
 
@@ -136,7 +137,7 @@ class UpsertReaderController extends _$UpsertReaderController {
       }
 
       state = state.copyWith(isLoading: false);
-
+      ref.invalidate(readerCountProvider);
       return readerToSave;
     } on NoConnectionException catch (e) {
       state = state.copyWith(isLoading: false, error: Nullable<String?>(e.message));

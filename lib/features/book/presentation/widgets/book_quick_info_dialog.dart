@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/widgets/info_dialog_loading.dart';
@@ -35,7 +36,7 @@ class BookQuickInfoDialog extends ConsumerWidget {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            InfoDialogImageRectangle(image: book.cover, icon: Icons.book_rounded),
+            InfoDialogImageRectangle(image: book.cover, icon: FontAwesomeIcons.book),
             const SizedBox(height: 16),
             Text(book.title, style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
             if (book.originalTitle != null && book.originalTitle!.isNotEmpty)

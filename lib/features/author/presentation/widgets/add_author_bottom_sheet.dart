@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
@@ -67,7 +67,7 @@ class _AddAuthorBottomSheetState extends ConsumerState<AddAuthorBottomSheet> {
           onPressed: _save,
           isLoading: state.isLoading,
           label: 'Save Author',
-          icon: Icons.save_rounded,
+          icon: FontAwesomeIcons.floppyDisk,
         ),
       ],
       child: Form(
@@ -76,7 +76,7 @@ class _AddAuthorBottomSheetState extends ConsumerState<AddAuthorBottomSheet> {
           controller: _nameController,
           label: 'Name',
           hint: 'Author Name',
-          prefixIcon: Icons.person_rounded,
+          prefixIcon: FontAwesomeIcons.user,
           isRequired: true,
           maxLength: 200,
           autofocus: true,

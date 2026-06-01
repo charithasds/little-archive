@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/domain/enums/collection_status.dart';
@@ -144,8 +145,8 @@ class _StatusTabView extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Icon(
-              Icons.inventory_rounded,
+            FaIcon(
+              FontAwesomeIcons.boxesStacked,
               size: 64,
               color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
             ),
@@ -247,7 +248,7 @@ class _CollectionBookTile extends ConsumerWidget {
         actions.add(
           StatusActionChip(
             label: 'Shopping List',
-            icon: Icons.shopping_cart_rounded,
+            icon: FontAwesomeIcons.cartShopping,
             color: colorScheme.primary,
             onTap: isLoading
                 ? null
@@ -258,7 +259,7 @@ class _CollectionBookTile extends ConsumerWidget {
         actions.add(
           StatusActionChip(
             label: 'Collect',
-            icon: Icons.check_circle_rounded,
+            icon: FontAwesomeIcons.circleCheck,
             color: colorScheme.primary,
             onTap: isLoading ? null : () => _showCollectDialog(context, ref, book),
           ),
@@ -266,7 +267,7 @@ class _CollectionBookTile extends ConsumerWidget {
         actions.add(
           StatusActionChip(
             label: 'Order Online',
-            icon: Icons.local_shipping_rounded,
+            icon: FontAwesomeIcons.truck,
             color: colorScheme.primary,
             onTap: isLoading
                 ? null
@@ -277,7 +278,7 @@ class _CollectionBookTile extends ConsumerWidget {
         actions.add(
           StatusActionChip(
             label: 'Collect',
-            icon: Icons.check_circle_rounded,
+            icon: FontAwesomeIcons.circleCheck,
             color: colorScheme.primary,
             onTap: isLoading ? null : () => _showCollectDialog(context, ref, book),
           ),
@@ -286,7 +287,7 @@ class _CollectionBookTile extends ConsumerWidget {
         actions.add(
           StatusActionChip(
             label: 'Lend',
-            icon: Icons.handshake_rounded,
+            icon: FontAwesomeIcons.handshake,
             color: colorScheme.primary,
             onTap: isLoading ? null : () => _showLendDialog(context, ref, book),
           ),
@@ -295,7 +296,7 @@ class _CollectionBookTile extends ConsumerWidget {
         actions.add(
           StatusActionChip(
             label: 'Return',
-            icon: Icons.undo_rounded,
+            icon: FontAwesomeIcons.arrowRotateLeft,
             color: colorScheme.primary,
             onTap: isLoading
                 ? null
@@ -306,7 +307,7 @@ class _CollectionBookTile extends ConsumerWidget {
         actions.add(
           StatusActionChip(
             label: 'Announce',
-            icon: Icons.campaign_rounded,
+            icon: FontAwesomeIcons.bullhorn,
             color: colorScheme.primary,
             onTap: isLoading
                 ? null
@@ -470,7 +471,7 @@ class _LendDialogState extends ConsumerState<_LendDialog> {
                 value: _selectedReaderId,
                 decoration: InputDecoration(
                   labelText: 'Reader',
-                  prefixIcon: const Icon(Icons.face_rounded),
+                  prefixIcon: const FaIcon(FontAwesomeIcons.smile),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 items:

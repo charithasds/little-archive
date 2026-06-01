@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/domain/enums/reading_status.dart';
@@ -139,8 +140,8 @@ class _ReadingTabView extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Icon(
-              Icons.menu_book_rounded,
+            FaIcon(
+              FontAwesomeIcons.bookOpen,
               size: 64,
               color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
             ),
@@ -242,7 +243,7 @@ class _ReadingBookTile extends ConsumerWidget {
         actions.add(
           StatusActionChip(
             label: 'Start Reading',
-            icon: Icons.play_arrow_rounded,
+            icon: FontAwesomeIcons.play,
             color: colorScheme.tertiary,
             onTap: isLoading ? null : () => ctrl.changeReadingStatus(book, ReadingStatus.reading),
           ),
@@ -251,7 +252,7 @@ class _ReadingBookTile extends ConsumerWidget {
         actions.add(
           StatusActionChip(
             label: 'Pause',
-            icon: Icons.pause_rounded,
+            icon: FontAwesomeIcons.pause,
             color: colorScheme.tertiary,
             onTap: isLoading ? null : () => _showPauseDialog(context, ref, book),
           ),
@@ -259,7 +260,7 @@ class _ReadingBookTile extends ConsumerWidget {
         actions.add(
           StatusActionChip(
             label: 'Complete',
-            icon: Icons.check_circle_rounded,
+            icon: FontAwesomeIcons.circleCheck,
             color: colorScheme.tertiary,
             onTap: isLoading ? null : () => _showCompleteDialog(context, ref, book),
           ),
@@ -267,7 +268,7 @@ class _ReadingBookTile extends ConsumerWidget {
         actions.add(
           StatusActionChip(
             label: 'Abandon',
-            icon: Icons.close_rounded,
+            icon: FontAwesomeIcons.xmark,
             color: colorScheme.error,
             onTap: isLoading ? null : () => ctrl.changeReadingStatus(book, ReadingStatus.abandoned),
           ),
@@ -276,7 +277,7 @@ class _ReadingBookTile extends ConsumerWidget {
         actions.add(
           StatusActionChip(
             label: 'Resume',
-            icon: Icons.play_arrow_rounded,
+            icon: FontAwesomeIcons.play,
             color: colorScheme.tertiary,
             onTap: isLoading ? null : () => ctrl.changeReadingStatus(book, ReadingStatus.reading),
           ),
@@ -284,7 +285,7 @@ class _ReadingBookTile extends ConsumerWidget {
         actions.add(
           StatusActionChip(
             label: 'Abandon',
-            icon: Icons.close_rounded,
+            icon: FontAwesomeIcons.xmark,
             color: colorScheme.error,
             onTap: isLoading ? null : () => ctrl.changeReadingStatus(book, ReadingStatus.abandoned),
           ),
@@ -293,7 +294,7 @@ class _ReadingBookTile extends ConsumerWidget {
         actions.add(
           StatusActionChip(
             label: 'Re-read',
-            icon: Icons.replay_rounded,
+            icon: FontAwesomeIcons.rotateLeft,
             color: colorScheme.tertiary,
             onTap: isLoading ? null : () => ctrl.changeReadingStatus(book, ReadingStatus.reading),
           ),
@@ -302,7 +303,7 @@ class _ReadingBookTile extends ConsumerWidget {
         actions.add(
           StatusActionChip(
             label: 'Restart',
-            icon: Icons.refresh_rounded,
+            icon: FontAwesomeIcons.rotateRight,
             color: colorScheme.tertiary,
             onTap: isLoading
                 ? null
@@ -384,7 +385,7 @@ class _PauseDialogState extends ConsumerState<_PauseDialog> {
                 autofocus: true,
                 decoration: InputDecoration(
                   labelText: 'Paused Page',
-                  prefixIcon: const Icon(Icons.bookmark_border_rounded),
+                  prefixIcon: const FaIcon(FontAwesomeIcons.bookmark),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   suffixText: widget.book.noOfPages != null ? '/ ${widget.book.noOfPages}' : null,
                 ),

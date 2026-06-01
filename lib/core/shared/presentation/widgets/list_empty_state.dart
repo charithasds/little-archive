@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
+import 'custom_icons.dart';
 
 class ListEmptyState extends ConsumerWidget {
   const ListEmptyState({
@@ -11,7 +12,7 @@ class ListEmptyState extends ConsumerWidget {
     super.key,
   });
 
-  final IconData icon;
+  final dynamic icon;
   final String title;
   final String subtitle;
 
@@ -32,7 +33,7 @@ class ListEmptyState extends ConsumerWidget {
                 color: colorScheme.primaryContainer,
                 borderRadius: BorderRadius.circular(28),
               ),
-              child: Icon(icon, size: 52, color: colorScheme.onPrimaryContainer),
+              child: buildAppIcon(icon, size: 52, color: colorScheme.onPrimaryContainer),
             ),
             const SizedBox(height: 24),
             Text(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../theme/presentation/providers/theme_provider.dart';
 
@@ -34,10 +35,18 @@ class _SearchFieldState extends ConsumerState<SearchField> {
         onChanged: widget.onChanged,
         decoration: InputDecoration(
           hintText: widget.hintText,
-          prefixIcon: Icon(Icons.search_rounded, color: cs.primary),
+          prefixIcon: Padding(
+            padding: const EdgeInsets.only(left: 16, right: 12),
+            child: Align(
+              widthFactor: 1.0,
+              heightFactor: 1.0,
+              child: FaIcon(FontAwesomeIcons.magnifyingGlass, color: cs.primary),
+            ),
+          ),
+          prefixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 48),
           suffixIcon: _controller.text.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.clear_rounded),
+                  icon: const FaIcon(FontAwesomeIcons.xmark),
                   onPressed: () {
                     _controller.clear();
                     widget.onChanged('');

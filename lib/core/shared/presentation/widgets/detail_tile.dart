@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
+import 'custom_icons.dart';
 
 class DetailTile extends ConsumerWidget {
   const DetailTile({
@@ -17,9 +18,9 @@ class DetailTile extends ConsumerWidget {
 
   final String label;
   final String value;
-  final IconData leadingIcon;
+  final dynamic leadingIcon;
   final VoidCallback? onTap;
-  final IconData? trailingIcon;
+  final dynamic trailingIcon;
 
   static String formatDate(DateTime date) {
     final DateFormat formatter = DateFormat('MMM d, yyyy, HH:mm:ss');
@@ -37,8 +38,8 @@ class DetailTile extends ConsumerWidget {
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
     final bool isInteractive = onTap != null;
-    final IconData? trailingIconData =
-        trailingIcon ?? (onTap != null ? Icons.chevron_right_rounded : null);
+    final dynamic trailingIconData =
+        trailingIcon ?? (onTap != null ? FontAwesomeIcons.chevronRight : null);
     final Color trailingIconColor = trailingIcon != null
         ? colorScheme.primary
         : colorScheme.onSurfaceVariant;
@@ -55,7 +56,7 @@ class DetailTile extends ConsumerWidget {
           child: Row(
             children: <Widget>[
               ...<Widget>[
-                Icon(leadingIcon, size: 20, color: colorScheme.onSurfaceVariant),
+                buildAppIcon(leadingIcon, size: 20, color: colorScheme.onSurfaceVariant)!,
                 const SizedBox(width: 16),
               ],
               Expanded(
@@ -83,7 +84,7 @@ class DetailTile extends ConsumerWidget {
               if (trailingIconData != null)
                 Padding(
                   padding: const EdgeInsets.only(left: 8),
-                  child: Icon(trailingIconData, size: 18, color: trailingIconColor),
+                  child: buildAppIcon(trailingIconData, size: 18, color: trailingIconColor),
                 ),
             ],
           ),

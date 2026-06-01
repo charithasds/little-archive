@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../providers/theme_provider.dart';
 
@@ -25,8 +25,8 @@ class ThemeToggle extends ConsumerWidget {
             child: child,
           ),
         ),
-        child: Icon(
-          isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+        child: FaIcon(
+          isDark ? FontAwesomeIcons.sun : FontAwesomeIcons.moon,
           key: ValueKey<bool>(isDark),
         ),
       ),
