@@ -239,8 +239,8 @@ class _DashboardCardState extends ConsumerState<DashboardCard> with SingleTicker
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: FittedBox(
-          child: Text(
-            widget.count.toString(),
+          child: AnimatedCountText(
+            count: widget.count!,
             style: theme.textTheme.displayLarge?.copyWith(
               fontWeight: FontWeight.w900,
               color: fg,
@@ -469,5 +469,57 @@ class _DashboardCardState extends ConsumerState<DashboardCard> with SingleTicker
         ),
       ],
     ),
+  );
+}
+
+class AnimatedCountText extends StatefulWidget {
+  const AnimatedCountText({super.key, required this.count, required this.style});
+
+  final int count;
+  final TextStyle? style;
+
+  @override
+  State<AnimatedCountText> createState() => _AnimatedCountTextState();
+}
+
+class _AnimatedCountTextState extends State<AnimatedCountText> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<int> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(duration: const Duration(milliseconds: 3000), vsync: this);
+    _animation = IntTween(
+      begin: 0,
+      end: widget.count,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+    _controller.forward();
+  }
+
+  @override
+  void didUpdateWidget(covariant AnimatedCountText oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.count != widget.count) {
+      _animation = IntTween(
+        begin: oldWidget.count,
+        end: widget.count,
+      ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+      _controller.reset();
+      _controller.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: _animation,
+    builder: (BuildContext context, Widget? child) =>
+        Text(_animation.value.toString(), style: widget.style),
   );
 }

@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/shared/presentation/routes/route_constants.dart';
+
 import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/dialogs.dart';
 import '../../../../core/shared/presentation/widgets/list_empty_state.dart';
@@ -113,8 +115,8 @@ class _SequenceListPageState extends ConsumerState<SequenceListPage> {
 
                               return SequenceListTile(
                                 sequence: sequence,
-                                onTap: () => context.go('/sequences/${sequence.id}'),
-                                onEdit: () => context.push('/sequences/upsert', extra: sequence),
+                                onTap: () => context.goNamed(RouteConstants.sequenceDetail, pathParameters: <String, String>{'id': sequence.id}),
+                                onEdit: () => context.pushNamed(RouteConstants.upsertSequence, extra: sequence),
                                 onRemove: () => _handleRemove(sequence.id, sequence.name),
                               );
                             },
@@ -134,8 +136,8 @@ class _SequenceListPageState extends ConsumerState<SequenceListPage> {
 
                               return SequenceListTile(
                                 sequence: sequence,
-                                onTap: () => context.go('/sequences/${sequence.id}'),
-                                onEdit: () => context.push('/sequences/upsert', extra: sequence),
+                                onTap: () => context.goNamed(RouteConstants.sequenceDetail, pathParameters: <String, String>{'id': sequence.id}),
+                                onEdit: () => context.pushNamed(RouteConstants.upsertSequence, extra: sequence),
                                 onRemove: () => _handleRemove(sequence.id, sequence.name),
                               );
                             },
@@ -155,7 +157,7 @@ class _SequenceListPageState extends ConsumerState<SequenceListPage> {
         isExtended: _isExtended,
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
-        onPressed: () => context.go('/sequences/upsert'),
+        onPressed: () => context.pushNamed(RouteConstants.upsertSequence),
         icon: const FaIcon(FontAwesomeIcons.plus),
         label: const Text('Add Sequence'),
       ),

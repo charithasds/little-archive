@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../../domain/entities/author_entity.dart';
 
 class AuthorModel extends AuthorEntity {
@@ -15,30 +13,4 @@ class AuthorModel extends AuthorEntity {
     required super.createdDate,
     required super.lastUpdated,
   });
-
-  factory AuthorModel.fromMap(Map<String, dynamic> map, String documentId) => AuthorModel(
-    id: documentId,
-    name: (map['name'] as String?) ?? '',
-    image: map['image'] as String?,
-    otherName: map['otherName'] as String?,
-    website: map['website'] as String?,
-    facebook: map['facebook'] as String?,
-    bookIds: List<String>.from(map['bookIds'] as Iterable<dynamic>? ?? <String>[]),
-    workIds: List<String>.from(map['workIds'] as Iterable<dynamic>? ?? <String>[]),
-    createdDate: (map['createdDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
-    lastUpdated: (map['lastUpdated'] as Timestamp?)?.toDate() ?? DateTime.now(),
-  );
-
-  Map<String, dynamic> toMap() => <String, dynamic>{
-    'id': id,
-    'name': name,
-    'image': image,
-    'otherName': otherName,
-    'website': website,
-    'facebook': facebook,
-    'bookIds': bookIds,
-    'workIds': workIds,
-    'createdDate': Timestamp.fromDate(createdDate),
-    'lastUpdated': Timestamp.fromDate(lastUpdated),
-  };
 }

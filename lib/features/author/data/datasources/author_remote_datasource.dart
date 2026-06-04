@@ -1,9 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:drift/drift.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/auth/presentation/providers/auth_provider.dart';
-import '../../../../core/shared/data/services/firestore_service.dart';
-import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/database/app_database.dart';
 import '../models/author_model.dart';
 
 part 'author_remote_datasource.g.dart';
@@ -13,117 +14,107 @@ abstract class AuthorRemoteDataSource {
   Future<List<AuthorModel>> fetchAuthors();
   Future<AuthorModel?> fetchAuthorById(String id);
   Stream<List<AuthorModel>> watchAuthors();
-  Future<void> addAuthor(AuthorModel author, {WriteBatch? batch});
-  Future<void> editAuthor(AuthorModel author, {WriteBatch? batch});
-  Future<void> removeAuthor(String id, {WriteBatch? batch});
+  Future<void> addAuthor(AuthorModel author);
+  Future<void> editAuthor(AuthorModel author);
+  Future<void> removeAuthor(String id);
 }
 
 class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
-  AuthorRemoteDataSourceImpl({required this.firestoreService, required this.userId});
+  AuthorRemoteDataSourceImpl({required this.db});
 
-  final FirestoreService firestoreService;
-  final String userId;
-
-  FirebaseFirestore get _firestore => firestoreService.firebaseFirestore;
-  String get _collectionPath => 'users/$userId/authors';
+  final AppDatabase db;
 
   @override
-  String generateId() => firestoreService.generateId('authors');
+  String generateId() {
+    final Random random = Random();
+    final List<int> bytes = List<int>.generate(16, (_) => random.nextInt(256));
+    return base64Url.encode(bytes).replaceAll('=', '').replaceAll('-', '').replaceAll('_', '').substring(0, 20);
+  }
+
+  Future<AuthorModel> _mapToAuthorModel(Author row) async {
+    // Resolve bookIds from bookAuthorsJoin table
+    final SimpleSelectStatement<$BookAuthorsJoinTable, BookAuthorsJoinData> booksQuery = db.select(db.bookAuthorsJoin)..where(($BookAuthorsJoinTable t) => t.authorId.equals(row.id));
+    final List<BookAuthorsJoinData> books = await booksQuery.get();
+    final List<String> bookIds = books.map((BookAuthorsJoinData b) => b.bookId).toList();
+
+    // Resolve workIds from workAuthorsJoin table
+    final SimpleSelectStatement<$WorkAuthorsJoinTable, WorkAuthorsJoinData> worksQuery = db.select(db.workAuthorsJoin)..where(($WorkAuthorsJoinTable t) => t.authorId.equals(row.id));
+    final List<WorkAuthorsJoinData> works = await worksQuery.get();
+    final List<String> workIds = works.map((WorkAuthorsJoinData w) => w.workId).toList();
+
+    return AuthorModel(
+      id: row.id,
+      name: row.name,
+      image: row.image,
+      otherName: row.otherName,
+      website: row.website,
+      facebook: row.facebook,
+      bookIds: bookIds,
+      workIds: workIds,
+      createdDate: row.createdDate,
+      lastUpdated: row.lastUpdated,
+    );
+  }
 
   @override
   Future<List<AuthorModel>> fetchAuthors() async {
-    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(_firestore.collection(_collectionPath).orderBy('name'));
-
-    return docs
-        .map(
-          (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-              AuthorModel.fromMap(doc.data(), doc.id),
-        )
-        .toList();
+    final SimpleSelectStatement<$AuthorsTable, Author> query = db.select(db.authors)..orderBy(<OrderClauseGenerator<$AuthorsTable>>[($AuthorsTable t) => OrderingTerm(expression: t.name)]);
+    final List<Author> rows = await query.get();
+    final List<AuthorModel> authors = <AuthorModel>[];
+    for (final Author row in rows) {
+      authors.add(await _mapToAuthorModel(row));
+    }
+    return authors;
   }
 
   @override
   Future<AuthorModel?> fetchAuthorById(String id) async {
-    final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
-      _firestore.collection(_collectionPath).doc(id),
-    );
-
-    if (doc == null || !doc.exists) {
+    final SimpleSelectStatement<$AuthorsTable, Author> query = db.select(db.authors)..where(($AuthorsTable t) => t.id.equals(id));
+    final Author? row = await query.getSingleOrNull();
+    if (row == null) {
       return null;
     }
-
-    return AuthorModel.fromMap(doc.data()!, doc.id);
+    return _mapToAuthorModel(row);
   }
 
   @override
-  Stream<List<AuthorModel>> watchAuthors() => _firestore
-      .collection(_collectionPath)
-      .orderBy('name')
-      .snapshots()
-      .map(
-        (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
-            .map(
-              (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-                  AuthorModel.fromMap(doc.data(), doc.id),
-            )
-            .toList(),
-      );
+  Stream<List<AuthorModel>> watchAuthors() => db.select(db.authors).watch().asyncMap((List<Author> rows) async {
+      final List<AuthorModel> authors = <AuthorModel>[];
+      for (final Author row in rows) {
+        authors.add(await _mapToAuthorModel(row));
+      }
+      return authors;
+    });
 
   @override
-  Future<void> addAuthor(AuthorModel author, {WriteBatch? batch}) async {
-    final DocumentReference<Map<String, dynamic>> docRef = _firestore
-        .collection(_collectionPath)
-        .doc(author.id.isEmpty ? null : author.id);
-
-    if (batch != null) {
-      batch.set(docRef, author.toMap());
-      return;
-    }
-
-    await firestoreService.requireConnectivity();
-    await docRef.set(author.toMap());
+  Future<void> addAuthor(AuthorModel author) async {
+    await db.into(db.authors).insertOnConflictUpdate(
+      Author(
+        id: author.id,
+        name: author.name,
+        image: author.image,
+        otherName: author.otherName,
+        website: author.website,
+        facebook: author.facebook,
+        createdDate: author.createdDate,
+        lastUpdated: author.lastUpdated,
+      ),
+    );
   }
 
   @override
-  Future<void> editAuthor(AuthorModel author, {WriteBatch? batch}) async {
-    final DocumentReference<Map<String, dynamic>> docRef = _firestore
-        .collection(_collectionPath)
-        .doc(author.id);
-
-    if (batch != null) {
-      batch.update(docRef, author.toMap());
-      return;
-    }
-
-    await firestoreService.requireConnectivity();
-    await docRef.update(author.toMap());
+  Future<void> editAuthor(AuthorModel author) async {
+    await addAuthor(author);
   }
 
   @override
-  Future<void> removeAuthor(String id, {WriteBatch? batch}) async {
-    final DocumentReference<Map<String, dynamic>> docRef = _firestore
-        .collection(_collectionPath)
-        .doc(id);
-
-    if (batch != null) {
-      batch.delete(docRef);
-      return;
-    }
-
-    await firestoreService.requireConnectivity();
-    await docRef.delete();
+  Future<void> removeAuthor(String id) async {
+    await (db.delete(db.authors)..where(($AuthorsTable t) => t.id.equals(id))).go();
   }
 }
 
 @riverpod
 AuthorRemoteDataSource authorRemoteDataSource(Ref ref) {
-  final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
-  final String? userId = ref.watch(currentUidProvider);
-
-  if (userId == null) {
-    throw const UnauthorizedException();
-  }
-
-  return AuthorRemoteDataSourceImpl(firestoreService: firestoreService, userId: userId);
+  final AppDatabase db = ref.watch(appDatabaseProvider);
+  return AuthorRemoteDataSourceImpl(db: db);
 }

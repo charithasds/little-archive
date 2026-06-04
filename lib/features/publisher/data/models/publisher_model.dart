@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../../domain/entities/publisher_entity.dart';
 
 class PublisherModel extends PublisherEntity {
@@ -18,36 +16,4 @@ class PublisherModel extends PublisherEntity {
     required super.createdDate,
     required super.lastUpdated,
   });
-
-  factory PublisherModel.fromMap(Map<String, dynamic> map, String documentId) => PublisherModel(
-    id: documentId,
-    name: (map['name'] as String?) ?? '',
-    isSelfPublisher: (map['isSelfPublisher'] as bool?) ?? false,
-    logo: map['logo'] as String?,
-    otherName: map['otherName'] as String?,
-    website: map['website'] as String?,
-    email: map['email'] as String?,
-    facebook: map['facebook'] as String?,
-    phoneNumber: map['phoneNumber'] as String?,
-    bookIds: List<String>.from(map['bookIds'] as Iterable<dynamic>? ?? <String>[]),
-    bookFairPublisherId: map['bookFairPublisherId'] as String?,
-    createdDate: (map['createdDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
-    lastUpdated: (map['lastUpdated'] as Timestamp?)?.toDate() ?? DateTime.now(),
-  );
-
-  Map<String, dynamic> toMap() => <String, dynamic>{
-    'id': id,
-    'name': name,
-    'isSelfPublisher': isSelfPublisher,
-    'logo': logo,
-    'otherName': otherName,
-    'website': website,
-    'email': email,
-    'facebook': facebook,
-    'phoneNumber': phoneNumber,
-    'bookIds': bookIds,
-    'bookFairPublisherId': bookFairPublisherId,
-    'createdDate': Timestamp.fromDate(createdDate),
-    'lastUpdated': Timestamp.fromDate(lastUpdated),
-  };
 }

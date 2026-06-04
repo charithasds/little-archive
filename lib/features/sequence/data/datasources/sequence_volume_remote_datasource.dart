@@ -1,9 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:drift/drift.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/auth/presentation/providers/auth_provider.dart';
-import '../../../../core/shared/data/services/firestore_service.dart';
-import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/database/app_database.dart';
 import '../models/sequence_volume_model.dart';
 
 part 'sequence_volume_remote_datasource.g.dart';
@@ -17,168 +18,102 @@ abstract class SequenceVolumeRemoteDataSource {
   Future<List<SequenceVolumeModel>> fetchSequenceVolumesByWorkId(String workId);
   Stream<List<SequenceVolumeModel>> watchSequenceVolumes(String sequenceId);
   Stream<List<SequenceVolumeModel>> watchAllSequenceVolumes();
-  Future<void> addSequenceVolume(SequenceVolumeModel volume, {WriteBatch? batch});
-  Future<void> editSequenceVolume(SequenceVolumeModel volume, {WriteBatch? batch});
-  Future<void> removeSequenceVolume(String id, {WriteBatch? batch});
+  Future<void> addSequenceVolume(SequenceVolumeModel volume);
+  Future<void> editSequenceVolume(SequenceVolumeModel volume);
+  Future<void> removeSequenceVolume(String id);
 }
 
 class SequenceVolumeRemoteDataSourceImpl implements SequenceVolumeRemoteDataSource {
-  SequenceVolumeRemoteDataSourceImpl({required this.firestoreService, required this.userId});
+  SequenceVolumeRemoteDataSourceImpl({required this.db});
 
-  final FirestoreService firestoreService;
-  final String userId;
-
-  FirebaseFirestore get _firestore => firestoreService.firebaseFirestore;
-  String get _collectionPath => 'users/$userId/sequence_volumes';
+  final AppDatabase db;
 
   @override
-  String generateId() => firestoreService.generateId('sequence_volumes');
+  String generateId() {
+    final Random random = Random();
+    final List<int> bytes = List<int>.generate(16, (_) => random.nextInt(256));
+    return base64Url.encode(bytes).replaceAll('=', '').replaceAll('-', '').replaceAll('_', '').substring(0, 20);
+  }
+
+  SequenceVolumeModel _mapToSequenceVolumeModel(SequenceVolume row) => SequenceVolumeModel(
+      id: row.id,
+      volume: row.volume,
+      sequenceId: row.sequenceId,
+      bookId: row.bookId,
+      workId: row.workId,
+      createdDate: row.createdDate,
+      lastUpdated: row.lastUpdated,
+    );
 
   @override
   Future<List<SequenceVolumeModel>> fetchSequenceVolumes(String sequenceId) async {
-    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(
-          _firestore
-              .collection(_collectionPath)
-              .where('sequenceId', isEqualTo: sequenceId),
-        );
-
-    return docs
-        .map(
-          (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-              SequenceVolumeModel.fromMap(doc.data(), doc.id),
-        )
-        .toList();
+    final SimpleSelectStatement<$SequenceVolumesTable, SequenceVolume> query = db.select(db.sequenceVolumes)..where(($SequenceVolumesTable t) => t.sequenceId.equals(sequenceId));
+    final List<SequenceVolume> rows = await query.get();
+    return rows.map(_mapToSequenceVolumeModel).toList();
   }
 
   @override
   Future<SequenceVolumeModel?> fetchSequenceVolumeById(String id) async {
-    final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
-      _firestore.collection(_collectionPath).doc(id),
-    );
-
-    if (doc == null || !doc.exists) {
+    final SimpleSelectStatement<$SequenceVolumesTable, SequenceVolume> query = db.select(db.sequenceVolumes)..where(($SequenceVolumesTable t) => t.id.equals(id));
+    final SequenceVolume? row = await query.getSingleOrNull();
+    if (row == null) {
       return null;
     }
-
-    return SequenceVolumeModel.fromMap(doc.data()!, doc.id);
+    return _mapToSequenceVolumeModel(row);
   }
 
   @override
   Future<List<SequenceVolumeModel>> fetchSequenceVolumesByBookId(String bookId) async {
-    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(
-          _firestore
-              .collection(_collectionPath)
-              .where('bookId', isEqualTo: bookId),
-        );
-
-    return docs
-        .map(
-          (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-              SequenceVolumeModel.fromMap(doc.data(), doc.id),
-        )
-        .toList();
+    final SimpleSelectStatement<$SequenceVolumesTable, SequenceVolume> query = db.select(db.sequenceVolumes)..where(($SequenceVolumesTable t) => t.bookId.equals(bookId));
+    final List<SequenceVolume> rows = await query.get();
+    return rows.map(_mapToSequenceVolumeModel).toList();
   }
 
   @override
   Future<List<SequenceVolumeModel>> fetchSequenceVolumesByWorkId(String workId) async {
-    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(
-          _firestore
-              .collection(_collectionPath)
-              .where('workId', isEqualTo: workId),
-        );
-
-    return docs
-        .map(
-          (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-              SequenceVolumeModel.fromMap(doc.data(), doc.id),
-        )
-        .toList();
+    final SimpleSelectStatement<$SequenceVolumesTable, SequenceVolume> query = db.select(db.sequenceVolumes)..where(($SequenceVolumesTable t) => t.workId.equals(workId));
+    final List<SequenceVolume> rows = await query.get();
+    return rows.map(_mapToSequenceVolumeModel).toList();
   }
 
   @override
-  Stream<List<SequenceVolumeModel>> watchSequenceVolumes(String sequenceId) => _firestore
-      .collection(_collectionPath)
-      .where('sequenceId', isEqualTo: sequenceId)
-      .snapshots()
-      .map(
-        (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
-            .map(
-              (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-                  SequenceVolumeModel.fromMap(doc.data(), doc.id),
-            )
-            .toList(),
-      );
+  Stream<List<SequenceVolumeModel>> watchSequenceVolumes(String sequenceId) => (db.select(db.sequenceVolumes)..where(($SequenceVolumesTable t) => t.sequenceId.equals(sequenceId)))
+        .watch()
+        .map((List<SequenceVolume> rows) => rows.map(_mapToSequenceVolumeModel).toList());
 
   @override
-  Stream<List<SequenceVolumeModel>> watchAllSequenceVolumes() => _firestore
-      .collection(_collectionPath)
-      .snapshots()
-      .map(
-        (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
-            .map(
-              (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-                  SequenceVolumeModel.fromMap(doc.data(), doc.id),
-            )
-            .toList(),
-      );
+  Stream<List<SequenceVolumeModel>> watchAllSequenceVolumes() => db.select(db.sequenceVolumes)
+        .watch()
+        .map((List<SequenceVolume> rows) => rows.map(_mapToSequenceVolumeModel).toList());
 
   @override
-  Future<void> addSequenceVolume(SequenceVolumeModel volume, {WriteBatch? batch}) async {
-    final DocumentReference<Map<String, dynamic>> docRef = _firestore
-        .collection(_collectionPath)
-        .doc(volume.id.isEmpty ? null : volume.id);
-
-    if (batch != null) {
-      batch.set(docRef, volume.toMap());
-      return;
-    }
-
-    await firestoreService.requireConnectivity();
-    await docRef.set(volume.toMap());
+  Future<void> addSequenceVolume(SequenceVolumeModel volume) async {
+    await db.into(db.sequenceVolumes).insertOnConflictUpdate(
+      SequenceVolume(
+        id: volume.id,
+        volume: volume.volume,
+        sequenceId: volume.sequenceId,
+        bookId: volume.bookId,
+        workId: volume.workId,
+        createdDate: volume.createdDate,
+        lastUpdated: volume.lastUpdated,
+      ),
+    );
   }
 
   @override
-  Future<void> editSequenceVolume(SequenceVolumeModel volume, {WriteBatch? batch}) async {
-    final DocumentReference<Map<String, dynamic>> docRef = _firestore
-        .collection(_collectionPath)
-        .doc(volume.id);
-
-    if (batch != null) {
-      batch.update(docRef, volume.toMap());
-      return;
-    }
-
-    await firestoreService.requireConnectivity();
-    await docRef.update(volume.toMap());
+  Future<void> editSequenceVolume(SequenceVolumeModel volume) async {
+    await addSequenceVolume(volume);
   }
 
   @override
-  Future<void> removeSequenceVolume(String id, {WriteBatch? batch}) async {
-    final DocumentReference<Map<String, dynamic>> docRef = _firestore
-        .collection(_collectionPath)
-        .doc(id);
-
-    if (batch != null) {
-      batch.delete(docRef);
-      return;
-    }
-
-    await firestoreService.requireConnectivity();
-    await docRef.delete();
+  Future<void> removeSequenceVolume(String id) async {
+    await (db.delete(db.sequenceVolumes)..where(($SequenceVolumesTable t) => t.id.equals(id))).go();
   }
 }
 
 @riverpod
 SequenceVolumeRemoteDataSource sequenceVolumeRemoteDataSource(Ref ref) {
-  final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
-  final String? userId = ref.watch(currentUidProvider);
-
-  if (userId == null) {
-    throw const UnauthorizedException();
-  }
-
-  return SequenceVolumeRemoteDataSourceImpl(firestoreService: firestoreService, userId: userId);
+  final AppDatabase db = ref.watch(appDatabaseProvider);
+  return SequenceVolumeRemoteDataSourceImpl(db: db);
 }

@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/shared/presentation/routes/route_constants.dart';
+
 import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/dialogs.dart';
 import '../../../../core/shared/presentation/widgets/list_empty_state.dart';
@@ -113,8 +115,8 @@ class _AuthorListPageState extends ConsumerState<AuthorListPage> {
 
                               return AuthorListTile(
                                 author: author,
-                                onTap: () => context.go('/authors/${author.id}'),
-                                onEdit: () => context.push('/authors/upsert', extra: author),
+                                onTap: () => context.goNamed(RouteConstants.authorDetail, pathParameters: <String, String>{'id': author.id}),
+                                onEdit: () => context.pushNamed(RouteConstants.upsertAuthor, extra: author),
                                 onRemove: () => _handleRemove(author.id, author.name),
                               );
                             },
@@ -134,8 +136,8 @@ class _AuthorListPageState extends ConsumerState<AuthorListPage> {
 
                               return AuthorListTile(
                                 author: author,
-                                onTap: () => context.go('/authors/${author.id}'),
-                                onEdit: () => context.push('/authors/upsert', extra: author),
+                                onTap: () => context.goNamed(RouteConstants.authorDetail, pathParameters: <String, String>{'id': author.id}),
+                                onEdit: () => context.pushNamed(RouteConstants.upsertAuthor, extra: author),
                                 onRemove: () => _handleRemove(author.id, author.name),
                               );
                             },
@@ -155,7 +157,7 @@ class _AuthorListPageState extends ConsumerState<AuthorListPage> {
         isExtended: _isExtended,
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
-        onPressed: () => context.go('/authors/upsert'),
+        onPressed: () => context.pushNamed(RouteConstants.upsertAuthor),
         icon: const FaIcon(FontAwesomeIcons.plus),
         label: const Text('Add Author'),
       ),

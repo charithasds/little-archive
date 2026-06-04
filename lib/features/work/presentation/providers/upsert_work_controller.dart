@@ -1,7 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/auth/domain/entities/user_entity.dart';
-import '../../../../core/auth/presentation/providers/auth_provider.dart';
+
 import '../../../../core/shared/domain/enums/content_category.dart';
 import '../../../../core/shared/domain/enums/genre.dart';
 import '../../../../core/shared/domain/enums/language.dart';
@@ -59,16 +58,7 @@ class UpsertWorkController extends _$UpsertWorkController {
   }) async {
     state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
-    final UserEntity? user = ref.read(authStateProvider).value;
 
-    if (user == null) {
-      state = state.copyWith(
-        isLoading: false,
-        error: const Nullable<String?>('User not authenticated'),
-      );
-
-      return null;
-    }
 
     try {
       final WorkEntity? existingWork = state.existingWork;

@@ -4,8 +4,7 @@ import 'dart:typed_data';
 import 'package:image_picker/image_picker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/auth/domain/entities/user_entity.dart';
-import '../../../../core/auth/presentation/providers/auth_provider.dart';
+
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
@@ -73,15 +72,7 @@ class UpsertReaderController extends _$UpsertReaderController {
   }) async {
     state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
-    final UserEntity? user = ref.read(authStateProvider).value;
 
-    if (user == null) {
-      state = state.copyWith(
-        isLoading: false,
-        error: const Nullable<String?>('User not authenticated'),
-      );
-      return null;
-    }
 
     final ReaderEntity? existingReader = state.existingReader;
     final String generatedId = ref.read(generateReaderIdUseCaseProvider)();
@@ -115,7 +106,7 @@ class UpsertReaderController extends _$UpsertReaderController {
           await ref.read(editReaderUseCaseProvider)(readerToSave);
         } catch (e) {
           if (e.toString().contains('longer than 1048487 bytes')) {
-            final String? compressedImage = Images.ensureFitsFirestore(state.pickedBase64Image);
+            final String? compressedImage = Images.compressImageIfNeeded(state.pickedBase64Image);
             readerToSave = readerToSave.copyWith(image: Nullable<String?>(compressedImage));
             await ref.read(editReaderUseCaseProvider)(readerToSave);
           } else {
@@ -127,7 +118,7 @@ class UpsertReaderController extends _$UpsertReaderController {
           await ref.read(addReaderUseCaseProvider)(readerToSave);
         } catch (e) {
           if (e.toString().contains('longer than 1048487 bytes')) {
-            final String? compressedImage = Images.ensureFitsFirestore(state.pickedBase64Image);
+            final String? compressedImage = Images.compressImageIfNeeded(state.pickedBase64Image);
             readerToSave = readerToSave.copyWith(image: Nullable<String?>(compressedImage));
             await ref.read(addReaderUseCaseProvider)(readerToSave);
           } else {

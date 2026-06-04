@@ -4,8 +4,7 @@ import 'dart:typed_data';
 import 'package:image_picker/image_picker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/auth/domain/entities/user_entity.dart';
-import '../../../../core/auth/presentation/providers/auth_provider.dart';
+
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
@@ -72,15 +71,7 @@ class UpsertAuthorController extends _$UpsertAuthorController {
   }) async {
     state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
-    final UserEntity? user = ref.read(authStateProvider).value;
 
-    if (user == null) {
-      state = state.copyWith(
-        isLoading: false,
-        error: const Nullable<String?>('User not authenticated'),
-      );
-      return null;
-    }
 
     final AuthorEntity? existingAuthor = state.existingAuthor;
     final String generatedId = ref.read(generateAuthorIdUseCaseProvider)();
@@ -113,7 +104,7 @@ class UpsertAuthorController extends _$UpsertAuthorController {
           await ref.read(editAuthorUseCaseProvider)(authorToSave);
         } catch (e) {
           if (e.toString().contains('longer than 1048487 bytes')) {
-            final String? compressedImage = Images.ensureFitsFirestore(state.pickedBase64Image);
+            final String? compressedImage = Images.compressImageIfNeeded(state.pickedBase64Image);
             authorToSave = authorToSave.copyWith(image: Nullable<String?>(compressedImage));
             await ref.read(editAuthorUseCaseProvider)(authorToSave);
           } else {
@@ -125,7 +116,7 @@ class UpsertAuthorController extends _$UpsertAuthorController {
           await ref.read(addAuthorUseCaseProvider)(authorToSave);
         } catch (e) {
           if (e.toString().contains('longer than 1048487 bytes')) {
-            final String? compressedImage = Images.ensureFitsFirestore(state.pickedBase64Image);
+            final String? compressedImage = Images.compressImageIfNeeded(state.pickedBase64Image);
             authorToSave = authorToSave.copyWith(image: Nullable<String?>(compressedImage));
             await ref.read(addAuthorUseCaseProvider)(authorToSave);
           } else {

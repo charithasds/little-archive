@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/shared/presentation/routes/route_constants.dart';
+
 import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/dialogs.dart';
 import '../../../../core/shared/presentation/widgets/list_empty_state.dart';
@@ -115,9 +117,9 @@ class _TranslatorListPageState extends ConsumerState<TranslatorListPage> {
 
                               return TranslatorListTile(
                                 translator: translator,
-                                onTap: () => context.go('/translators/${translator.id}'),
+                                onTap: () => context.goNamed(RouteConstants.translatorDetail, pathParameters: <String, String>{'id': translator.id}),
                                 onEdit: () =>
-                                    context.push('/translators/upsert', extra: translator),
+                                    context.pushNamed(RouteConstants.upsertTranslator, extra: translator),
                                 onRemove: () => _handleRemove(translator.id, translator.name),
                               );
                             },
@@ -137,9 +139,9 @@ class _TranslatorListPageState extends ConsumerState<TranslatorListPage> {
 
                               return TranslatorListTile(
                                 translator: translator,
-                                onTap: () => context.go('/translators/${translator.id}'),
+                                onTap: () => context.goNamed(RouteConstants.translatorDetail, pathParameters: <String, String>{'id': translator.id}),
                                 onEdit: () =>
-                                    context.push('/translators/upsert', extra: translator),
+                                    context.pushNamed(RouteConstants.upsertTranslator, extra: translator),
                                 onRemove: () => _handleRemove(translator.id, translator.name),
                               );
                             },
@@ -159,7 +161,7 @@ class _TranslatorListPageState extends ConsumerState<TranslatorListPage> {
         isExtended: _isExtended,
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
-        onPressed: () => context.go('/translators/upsert'),
+        onPressed: () => context.pushNamed(RouteConstants.upsertTranslator),
         icon: const FaIcon(FontAwesomeIcons.plus),
         label: const Text('Add Translator'),
       ),

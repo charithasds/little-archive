@@ -1,0 +1,65 @@
+abstract class RouteConstants {
+  // Route Names
+  static const String loading = 'loading';
+  static const String error = 'error';
+  static const String home = 'home';
+  static const String works = 'works';
+  static const String upsertWork = 'upsertWork';
+  static const String workDetail = 'workDetail';
+  static const String books = 'books';
+  static const String upsertBook = 'upsertBook';
+  static const String bookDetail = 'bookDetail';
+  static const String authors = 'authors';
+  static const String upsertAuthor = 'upsertAuthor';
+  static const String authorDetail = 'authorDetail';
+  static const String translators = 'translators';
+  static const String upsertTranslator = 'upsertTranslator';
+  static const String translatorDetail = 'translatorDetail';
+  static const String publishers = 'publishers';
+  static const String upsertPublisher = 'upsertPublisher';
+  static const String publisherDetail = 'publisherDetail';
+  static const String sequences = 'sequences';
+  static const String upsertSequence = 'upsertSequence';
+  static const String sequenceDetail = 'sequenceDetail';
+  static const String readers = 'readers';
+  static const String upsertReader = 'upsertReader';
+  static const String readerDetail = 'readerDetail';
+  static const String settings = 'settings';
+  static const String collectionStatus = 'collectionStatus';
+  static const String readingStatus = 'readingStatus';
+  static const String dataQuality = 'dataQuality';
+  static const String bookFair = 'bookFair';
+  static const String shoppingPlan = 'shoppingPlan';
+
+  // Route Paths
+  static const String pathLoading = '/loading';
+  static const String pathError = '/error';
+  static const String pathHome = '/';
+  static const String pathWorks = 'works';
+  static const String pathUpsertWork = 'upsert';
+  static const String pathWorkDetail = ':id';
+  static const String pathBooks = 'books';
+  static const String pathUpsertBook = 'upsert';
+  static const String pathBookDetail = ':id';
+  static const String pathAuthors = 'authors';
+  static const String pathUpsertAuthor = 'upsert';
+  static const String pathAuthorDetail = ':id';
+  static const String pathTranslators = 'translators';
+  static const String pathUpsertTranslator = 'upsert';
+  static const String pathTranslatorDetail = ':id';
+  static const String pathPublishers = 'publishers';
+  static const String pathUpsertPublisher = 'upsert';
+  static const String pathPublisherDetail = ':id';
+  static const String pathSequences = 'sequences';
+  static const String pathUpsertSequence = 'upsert';
+  static const String pathSequenceDetail = ':id';
+  static const String pathReaders = 'readers';
+  static const String pathUpsertReader = 'upsert';
+  static const String pathReaderDetail = ':id';
+  static const String pathSettings = 'settings';
+  static const String pathCollectionStatus = 'collection-status';
+  static const String pathReadingStatus = 'reading-status';
+  static const String pathDataQuality = 'data-quality';
+  static const String pathBookFair = 'book-fair';
+  static const String pathShoppingPlan = 'shopping-plan';
+}

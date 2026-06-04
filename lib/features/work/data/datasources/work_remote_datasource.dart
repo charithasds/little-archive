@@ -1,9 +1,14 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:drift/drift.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/auth/presentation/providers/auth_provider.dart';
-import '../../../../core/shared/data/services/firestore_service.dart';
-import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/database/app_database.dart';
+import '../../../../core/shared/domain/enums/content_category.dart';
+import '../../../../core/shared/domain/enums/genre.dart';
+import '../../../../core/shared/domain/enums/language.dart';
+import '../../../../core/shared/domain/enums/original_language.dart';
 import '../models/work_model.dart';
 
 part 'work_remote_datasource.g.dart';
@@ -13,117 +18,145 @@ abstract class WorkRemoteDataSource {
   Future<List<WorkModel>> fetchWorks();
   Future<WorkModel?> fetchWorkById(String id);
   Stream<List<WorkModel>> watchWorks();
-  Future<void> addWork(WorkModel work, {WriteBatch? batch});
-  Future<void> editWork(WorkModel work, {WriteBatch? batch});
-  Future<void> removeWork(String id, {WriteBatch? batch});
+  Future<void> addWork(WorkModel work);
+  Future<void> editWork(WorkModel work);
+  Future<void> removeWork(String id);
 }
 
 class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
-  WorkRemoteDataSourceImpl({required this.firestoreService, required this.userId});
+  WorkRemoteDataSourceImpl({required this.db});
 
-  final FirestoreService firestoreService;
-  final String userId;
-
-  FirebaseFirestore get _firestore => firestoreService.firebaseFirestore;
-  String get _collectionPath => 'users/$userId/works';
+  final AppDatabase db;
 
   @override
-  String generateId() => firestoreService.generateId('works');
+  String generateId() {
+    final Random random = Random();
+    final List<int> bytes = List<int>.generate(16, (_) => random.nextInt(256));
+    return base64Url.encode(bytes).replaceAll('=', '').replaceAll('-', '').replaceAll('_', '').substring(0, 20);
+  }
+
+  Future<WorkModel> _mapToWorkModel(Work row) async {
+    // Resolve authorIds from workAuthorsJoin table
+    final SimpleSelectStatement<$WorkAuthorsJoinTable, WorkAuthorsJoinData> authorsQuery = db.select(db.workAuthorsJoin)..where(($WorkAuthorsJoinTable t) => t.workId.equals(row.id));
+    final List<WorkAuthorsJoinData> authors = await authorsQuery.get();
+    final List<String> authorIds = authors.map((WorkAuthorsJoinData a) => a.authorId).toList();
+
+    // Resolve translatorIds from workTranslatorsJoin table
+    final SimpleSelectStatement<$WorkTranslatorsJoinTable, WorkTranslatorsJoinData> translatorsQuery = db.select(db.workTranslatorsJoin)..where(($WorkTranslatorsJoinTable t) => t.workId.equals(row.id));
+    final List<WorkTranslatorsJoinData> translators = await translatorsQuery.get();
+    final List<String> translatorIds = translators.map((WorkTranslatorsJoinData t) => t.translatorId).toList();
+
+    // Resolve sequenceVolumeIds from sequenceVolumes table
+    final SimpleSelectStatement<$SequenceVolumesTable, SequenceVolume> volumesQuery = db.select(db.sequenceVolumes)..where(($SequenceVolumesTable t) => t.workId.equals(row.id));
+    final List<SequenceVolume> volumes = await volumesQuery.get();
+    final List<String> sequenceVolumeIds = volumes.map((SequenceVolume v) => v.id).toList();
+
+    return WorkModel(
+      id: row.id,
+      title: row.title,
+      contentCategory: ContentCategory.values.asNameMap()[row.contentCategory] ?? ContentCategory.shortStory,
+      isTranslation: row.isTranslation,
+      toBeTranslated: row.toBeTranslated,
+      language: Language.values.asNameMap()[row.language ?? ''],
+      genre: Genre.values.asNameMap()[row.genre ?? ''],
+      originalTitle: row.originalTitle,
+      originalLanguage: OriginalLanguage.values.asNameMap()[row.originalLanguage ?? ''],
+      notes: row.notes,
+      authorIds: authorIds,
+      translatorIds: translatorIds,
+      sequenceVolumeIds: sequenceVolumeIds,
+      bookId: row.bookId,
+      createdDate: row.createdDate,
+      lastUpdated: row.lastUpdated,
+    );
+  }
 
   @override
   Future<List<WorkModel>> fetchWorks() async {
-    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(_firestore.collection(_collectionPath).orderBy('title'));
-
-    return docs
-        .map(
-          (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-              WorkModel.fromMap(doc.data(), doc.id),
-        )
-        .toList();
+    final SimpleSelectStatement<$WorksTable, Work> query = db.select(db.works)..orderBy(<OrderClauseGenerator<$WorksTable>>[($WorksTable t) => OrderingTerm(expression: t.title)]);
+    final List<Work> rows = await query.get();
+    final List<WorkModel> works = <WorkModel>[];
+    for (final Work row in rows) {
+      works.add(await _mapToWorkModel(row));
+    }
+    return works;
   }
 
   @override
   Future<WorkModel?> fetchWorkById(String id) async {
-    final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
-      _firestore.collection(_collectionPath).doc(id),
-    );
-
-    if (doc == null || !doc.exists) {
+    final SimpleSelectStatement<$WorksTable, Work> query = db.select(db.works)..where(($WorksTable t) => t.id.equals(id));
+    final Work? row = await query.getSingleOrNull();
+    if (row == null) {
       return null;
     }
-
-    return WorkModel.fromMap(doc.data()!, doc.id);
+    return _mapToWorkModel(row);
   }
 
   @override
-  Stream<List<WorkModel>> watchWorks() => _firestore
-      .collection(_collectionPath)
-      .orderBy('title')
-      .snapshots()
-      .map(
-        (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
-            .map(
-              (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-                  WorkModel.fromMap(doc.data(), doc.id),
-            )
-            .toList(),
+  Stream<List<WorkModel>> watchWorks() => db.select(db.works).watch().asyncMap((List<Work> rows) async {
+      final List<WorkModel> works = <WorkModel>[];
+      for (final Work row in rows) {
+        works.add(await _mapToWorkModel(row));
+      }
+      return works;
+    });
+
+  @override
+  Future<void> addWork(WorkModel work) async {
+    await db.transaction(() async {
+      await db.into(db.works).insertOnConflictUpdate(
+        Work(
+          id: work.id,
+          title: work.title,
+          contentCategory: work.contentCategory.name,
+          isTranslation: work.isTranslation,
+          toBeTranslated: work.toBeTranslated,
+          language: work.language?.name,
+          genre: work.genre?.name,
+          originalTitle: work.originalTitle,
+          originalLanguage: work.originalLanguage?.name,
+          notes: work.notes,
+          bookId: work.bookId,
+          createdDate: work.createdDate,
+          lastUpdated: work.lastUpdated,
+        ),
       );
 
-  @override
-  Future<void> addWork(WorkModel work, {WriteBatch? batch}) async {
-    final DocumentReference<Map<String, dynamic>> docRef = _firestore
-        .collection(_collectionPath)
-        .doc(work.id.isEmpty ? null : work.id);
+      // Sync Work-Author Joins
+      await (db.delete(db.workAuthorsJoin)..where(($WorkAuthorsJoinTable t) => t.workId.equals(work.id))).go();
+      for (final String authorId in work.authorIds) {
+        await db.into(db.workAuthorsJoin).insertOnConflictUpdate(
+          WorkAuthorsJoinCompanion.insert(workId: work.id, authorId: authorId),
+        );
+      }
 
-    if (batch != null) {
-      batch.set(docRef, work.toMap());
-      return;
-    }
-
-    await firestoreService.requireConnectivity();
-    await docRef.set(work.toMap());
+      // Sync Work-Translator Joins
+      await (db.delete(db.workTranslatorsJoin)..where(($WorkTranslatorsJoinTable t) => t.workId.equals(work.id))).go();
+      for (final String translatorId in work.translatorIds) {
+        await db.into(db.workTranslatorsJoin).insertOnConflictUpdate(
+          WorkTranslatorsJoinCompanion.insert(workId: work.id, translatorId: translatorId),
+        );
+      }
+    });
   }
 
   @override
-  Future<void> editWork(WorkModel work, {WriteBatch? batch}) async {
-    final DocumentReference<Map<String, dynamic>> docRef = _firestore
-        .collection(_collectionPath)
-        .doc(work.id);
-
-    if (batch != null) {
-      batch.update(docRef, work.toMap());
-      return;
-    }
-
-    await firestoreService.requireConnectivity();
-    await docRef.update(work.toMap());
+  Future<void> editWork(WorkModel work) async {
+    await addWork(work);
   }
 
   @override
-  Future<void> removeWork(String id, {WriteBatch? batch}) async {
-    final DocumentReference<Map<String, dynamic>> docRef = _firestore
-        .collection(_collectionPath)
-        .doc(id);
-
-    if (batch != null) {
-      batch.delete(docRef);
-      return;
-    }
-
-    await firestoreService.requireConnectivity();
-    await docRef.delete();
+  Future<void> removeWork(String id) async {
+    await db.transaction(() async {
+      await (db.delete(db.works)..where(($WorksTable t) => t.id.equals(id))).go();
+      await (db.delete(db.workAuthorsJoin)..where(($WorkAuthorsJoinTable t) => t.workId.equals(id))).go();
+      await (db.delete(db.workTranslatorsJoin)..where(($WorkTranslatorsJoinTable t) => t.workId.equals(id))).go();
+    });
   }
 }
 
 @riverpod
 WorkRemoteDataSource workRemoteDataSource(Ref ref) {
-  final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
-  final String? userId = ref.watch(currentUidProvider);
-
-  if (userId == null) {
-    throw const UnauthorizedException();
-  }
-
-  return WorkRemoteDataSourceImpl(firestoreService: firestoreService, userId: userId);
+  final AppDatabase db = ref.watch(appDatabaseProvider);
+  return WorkRemoteDataSourceImpl(db: db);
 }

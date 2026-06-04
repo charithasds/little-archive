@@ -39,11 +39,3 @@ class ServerException implements Exception {
   @override
   String toString() => message;
 }
-
-class UnauthorizedException implements Exception {
-  const UnauthorizedException([this.message = 'You must be logged in to perform this operation.']);
-  final String message;
-
-  @override
-  String toString() => message;
-}

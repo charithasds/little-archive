@@ -37,85 +37,44 @@ import '../../../../features/work/domain/entities/work_entity.dart';
 import '../../../../features/work/presentation/pages/upsert_work_page.dart';
 import '../../../../features/work/presentation/pages/work_detail_page.dart';
 import '../../../../features/work/presentation/pages/work_list_page.dart';
-import '../../../auth/domain/entities/user_entity.dart';
-import '../../../auth/presentation/pages/login_page.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../presentation/providers/initialization_provider.dart';
 import '../pages/error_page.dart';
 import '../pages/loading_page.dart';
+import 'route_constants.dart';
 
 part 'router_service.g.dart';
 
-abstract class RouteConstants {
-  static const String loading = 'loading';
-  static const String error = 'error';
-  static const String login = 'login';
-  static const String home = 'home';
-  static const String works = 'works';
-  static const String upsertWork = 'upsert-work';
-  static const String workDetail = 'work-detail';
-  static const String books = 'books';
-  static const String upsertBook = 'upsert-book';
-  static const String bookDetail = 'book-detail';
-  static const String authors = 'authors';
-  static const String upsertAuthor = 'upsert-author';
-  static const String authorDetail = 'author-detail';
-  static const String translators = 'translators';
-  static const String upsertTranslator = 'upsert-translator';
-  static const String translatorDetail = 'translator-detail';
-  static const String publishers = 'publishers';
-  static const String upsertPublisher = 'upsert-publisher';
-  static const String publisherDetail = 'publisher-detail';
-  static const String sequences = 'sequences';
-  static const String upsertSequence = 'upsert-sequence';
-  static const String sequenceDetail = 'sequence-detail';
-  static const String readers = 'readers';
-  static const String upsertReader = 'upsert-reader';
-  static const String readerDetail = 'reader-detail';
-  static const String settings = 'settings';
-  static const String collectionStatus = 'collection-status';
-  static const String readingStatus = 'reading-status';
-  static const String dataQuality = 'data-quality';
-  static const String bookFair = 'book-fair';
-  static const String shoppingPlan = 'shopping-plan';
-}
-
 class RouterService {
-  GoRouter createRouter(AsyncValue<void> init, AsyncValue<UserEntity?> auth) => GoRouter(
-    initialLocation: '/loading',
+  GoRouter createRouter(AsyncValue<void> init) => GoRouter(
+    initialLocation: RouteConstants.pathLoading,
     routes: _routes,
-    redirect: (_, GoRouterState state) => _redirect(init, auth, state),
+    redirect: (_, GoRouterState state) => _redirect(init, state),
   );
 
   List<RouteBase> get _routes => <RouteBase>[
     GoRoute(
-      path: '/loading',
+      path: RouteConstants.pathLoading,
       name: RouteConstants.loading,
       builder: (BuildContext context, GoRouterState state) => const LoadingPage(),
     ),
     GoRoute(
-      path: '/error',
+      path: RouteConstants.pathError,
       name: RouteConstants.error,
       builder: (BuildContext context, GoRouterState state) =>
           ErrorPage(error: state.extra ?? 'Unknown initialization error'),
     ),
     GoRoute(
-      path: '/login',
-      name: RouteConstants.login,
-      builder: (BuildContext context, GoRouterState state) => const LoginPage(),
-    ),
-    GoRoute(
-      path: '/',
+      path: RouteConstants.pathHome,
       name: RouteConstants.home,
       builder: (BuildContext context, GoRouterState state) => const HomePage(),
       routes: <RouteBase>[
         GoRoute(
-          path: 'works',
+          path: RouteConstants.pathWorks,
           name: RouteConstants.works,
           builder: (BuildContext context, GoRouterState state) => const WorkListPage(),
           routes: <RouteBase>[
             GoRoute(
-              path: 'upsert',
+              path: RouteConstants.pathUpsertWork,
               name: RouteConstants.upsertWork,
               builder: (BuildContext context, GoRouterState state) {
                 final Object? extra = state.extra;
@@ -129,7 +88,7 @@ class RouterService {
               },
             ),
             GoRoute(
-              path: ':id',
+              path: RouteConstants.pathWorkDetail,
               name: RouteConstants.workDetail,
               builder: (BuildContext context, GoRouterState state) {
                 final String id = state.pathParameters['id']!;
@@ -140,12 +99,12 @@ class RouterService {
         ),
 
         GoRoute(
-          path: 'books',
+          path: RouteConstants.pathBooks,
           name: RouteConstants.books,
           builder: (BuildContext context, GoRouterState state) => const BookListPage(),
           routes: <RouteBase>[
             GoRoute(
-              path: 'upsert',
+              path: RouteConstants.pathUpsertBook,
               name: RouteConstants.upsertBook,
               builder: (BuildContext context, GoRouterState state) {
                 final Object? extra = state.extra;
@@ -159,7 +118,7 @@ class RouterService {
               },
             ),
             GoRoute(
-              path: ':id',
+              path: RouteConstants.pathBookDetail,
               name: RouteConstants.bookDetail,
               builder: (BuildContext context, GoRouterState state) {
                 final String id = state.pathParameters['id']!;
@@ -170,18 +129,18 @@ class RouterService {
         ),
 
         GoRoute(
-          path: 'authors',
+          path: RouteConstants.pathAuthors,
           name: RouteConstants.authors,
           builder: (BuildContext context, GoRouterState state) => const AuthorListPage(),
           routes: <RouteBase>[
             GoRoute(
-              path: 'upsert',
+              path: RouteConstants.pathUpsertAuthor,
               name: RouteConstants.upsertAuthor,
               builder: (BuildContext context, GoRouterState state) =>
                   UpsertAuthorPage(existingAuthor: state.extra as AuthorEntity?),
             ),
             GoRoute(
-              path: ':id',
+              path: RouteConstants.pathAuthorDetail,
               name: RouteConstants.authorDetail,
               builder: (BuildContext context, GoRouterState state) {
                 final String id = state.pathParameters['id']!;
@@ -192,18 +151,18 @@ class RouterService {
         ),
 
         GoRoute(
-          path: 'translators',
+          path: RouteConstants.pathTranslators,
           name: RouteConstants.translators,
           builder: (BuildContext context, GoRouterState state) => const TranslatorListPage(),
           routes: <RouteBase>[
             GoRoute(
-              path: 'upsert',
+              path: RouteConstants.pathUpsertTranslator,
               name: RouteConstants.upsertTranslator,
               builder: (BuildContext context, GoRouterState state) =>
                   UpsertTranslatorPage(existingTranslator: state.extra as TranslatorEntity?),
             ),
             GoRoute(
-              path: ':id',
+              path: RouteConstants.pathTranslatorDetail,
               name: RouteConstants.translatorDetail,
               builder: (BuildContext context, GoRouterState state) {
                 final String id = state.pathParameters['id']!;
@@ -214,18 +173,18 @@ class RouterService {
         ),
 
         GoRoute(
-          path: 'publishers',
+          path: RouteConstants.pathPublishers,
           name: RouteConstants.publishers,
           builder: (BuildContext context, GoRouterState state) => const PublisherListPage(),
           routes: <RouteBase>[
             GoRoute(
-              path: 'upsert',
+              path: RouteConstants.pathUpsertPublisher,
               name: RouteConstants.upsertPublisher,
               builder: (BuildContext context, GoRouterState state) =>
                   UpsertPublisherPage(existingPublisher: state.extra as PublisherEntity?),
             ),
             GoRoute(
-              path: ':id',
+              path: RouteConstants.pathPublisherDetail,
               name: RouteConstants.publisherDetail,
               builder: (BuildContext context, GoRouterState state) {
                 final String id = state.pathParameters['id']!;
@@ -236,18 +195,18 @@ class RouterService {
         ),
 
         GoRoute(
-          path: 'sequences',
+          path: RouteConstants.pathSequences,
           name: RouteConstants.sequences,
           builder: (BuildContext context, GoRouterState state) => const SequenceListPage(),
           routes: <RouteBase>[
             GoRoute(
-              path: 'upsert',
+              path: RouteConstants.pathUpsertSequence,
               name: RouteConstants.upsertSequence,
               builder: (BuildContext context, GoRouterState state) =>
                   UpsertSequencePage(existingSequence: state.extra as SequenceEntity?),
             ),
             GoRoute(
-              path: ':id',
+              path: RouteConstants.pathSequenceDetail,
               name: RouteConstants.sequenceDetail,
               builder: (BuildContext context, GoRouterState state) {
                 final String id = state.pathParameters['id']!;
@@ -258,18 +217,18 @@ class RouterService {
         ),
 
         GoRoute(
-          path: 'readers',
+          path: RouteConstants.pathReaders,
           name: RouteConstants.readers,
           builder: (BuildContext context, GoRouterState state) => const ReaderListPage(),
           routes: <RouteBase>[
             GoRoute(
-              path: 'upsert',
+              path: RouteConstants.pathUpsertReader,
               name: RouteConstants.upsertReader,
               builder: (BuildContext context, GoRouterState state) =>
                   UpsertReaderPage(existingReader: state.extra as ReaderEntity?),
             ),
             GoRoute(
-              path: ':id',
+              path: RouteConstants.pathReaderDetail,
               name: RouteConstants.readerDetail,
               builder: (BuildContext context, GoRouterState state) {
                 final String id = state.pathParameters['id']!;
@@ -280,38 +239,38 @@ class RouterService {
         ),
 
         GoRoute(
-          path: 'settings',
+          path: RouteConstants.pathSettings,
           name: RouteConstants.settings,
           builder: (BuildContext context, GoRouterState state) => const SettingsPage(),
         ),
 
         GoRoute(
-          path: 'collection-status',
+          path: RouteConstants.pathCollectionStatus,
           name: RouteConstants.collectionStatus,
           builder: (BuildContext context, GoRouterState state) =>
               const BookCollectionStatusManagePage(),
         ),
 
         GoRoute(
-          path: 'reading-status',
+          path: RouteConstants.pathReadingStatus,
           name: RouteConstants.readingStatus,
           builder: (BuildContext context, GoRouterState state) =>
               const BookReadingStatusManagePage(),
         ),
 
         GoRoute(
-          path: 'data-quality',
+          path: RouteConstants.pathDataQuality,
           name: RouteConstants.dataQuality,
           builder: (BuildContext context, GoRouterState state) => const BookDataQualityManagePage(),
         ),
 
         GoRoute(
-          path: 'book-fair',
+          path: RouteConstants.pathBookFair,
           name: RouteConstants.bookFair,
           builder: (BuildContext context, GoRouterState state) => const BookFairSetupPage(),
         ),
         GoRoute(
-          path: 'shopping-plan',
+          path: RouteConstants.pathShoppingPlan,
           name: RouteConstants.shoppingPlan,
           builder: (BuildContext context, GoRouterState state) => const BookFairShoppingPlanPage(),
         ),
@@ -319,25 +278,19 @@ class RouterService {
     ),
   ];
 
-  String? _redirect(AsyncValue<void> init, AsyncValue<UserEntity?> auth, GoRouterState state) {
+  String? _redirect(AsyncValue<void> init, GoRouterState state) {
     final String path = state.uri.path;
 
-    if (init.isLoading || auth.isLoading) {
-      return path == '/loading' ? null : '/loading';
+    if (init.isLoading) {
+      return path == RouteConstants.pathLoading ? null : RouteConstants.pathLoading;
     }
 
-    if (init.hasError || auth.hasError) {
-      return path == '/error' ? null : '/error';
+    if (init.hasError) {
+      return path == RouteConstants.pathError ? null : RouteConstants.pathError;
     }
 
-    final bool isLoggedIn = auth.value != null;
-
-    if (!isLoggedIn) {
-      return path == '/login' ? null : '/login';
-    }
-
-    if (path == '/login' || path == '/loading' || path == '/error') {
-      return '/';
+    if (path == RouteConstants.pathLoading || path == RouteConstants.pathError) {
+      return RouteConstants.pathHome;
     }
 
     return null;
@@ -351,11 +304,10 @@ RouterService routerService(Ref ref) => RouterService();
 GoRouter goRouter(Ref ref) {
   final AsyncValue<void> init = ref.watch(initializationProvider);
   final RouterService routerService = ref.watch(routerServiceProvider);
-  final AsyncValue<UserEntity?> auth = ref.watch(authStateProvider);
 
   if (!init.hasValue && init.isLoading) {
-    return routerService.createRouter(init, const AsyncValue<UserEntity?>.loading());
+    return routerService.createRouter(init);
   }
 
-  return routerService.createRouter(init, auth);
+  return routerService.createRouter(init);
 }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/shared/presentation/routes/route_constants.dart';
 import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/dialogs.dart';
 import '../../../../core/shared/presentation/widgets/list_empty_state.dart';
@@ -113,8 +114,11 @@ class _WorkListPageState extends ConsumerState<WorkListPage> {
 
                               return WorkListTile(
                                 work: work,
-                                onTap: () => context.go('/works/${work.id}'),
-                                onEdit: () => context.push('/works/upsert', extra: work),
+                                onTap: () => context.goNamed(
+                                  RouteConstants.workDetail,
+                                  pathParameters: <String, String>{'id': work.id},
+                                ),
+                                onEdit: () => context.pushNamed(RouteConstants.upsertWork, extra: work),
                                 onRemove: () => _handleRemove(work.id, work.title),
                               );
                             },
@@ -134,8 +138,11 @@ class _WorkListPageState extends ConsumerState<WorkListPage> {
 
                               return WorkListTile(
                                 work: work,
-                                onTap: () => context.go('/works/${work.id}'),
-                                onEdit: () => context.push('/works/upsert', extra: work),
+                                onTap: () => context.goNamed(
+                                  RouteConstants.workDetail,
+                                  pathParameters: <String, String>{'id': work.id},
+                                ),
+                                onEdit: () => context.pushNamed(RouteConstants.upsertWork, extra: work),
                                 onRemove: () => _handleRemove(work.id, work.title),
                               );
                             },
@@ -155,7 +162,7 @@ class _WorkListPageState extends ConsumerState<WorkListPage> {
         isExtended: _isExtended,
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
-        onPressed: () => context.go('/works/upsert'),
+        onPressed: () => context.goNamed(RouteConstants.upsertWork),
         icon: const FaIcon(FontAwesomeIcons.plus),
         label: const Text('Add Work'),
       ),

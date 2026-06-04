@@ -12,17 +12,6 @@ class ClearAllDataUseCase {
   Future<void> call() => repository.clearAllData();
 }
 
-class DeleteAccountUseCase {
-  const DeleteAccountUseCase(this.repository);
-  final SettingsRepository repository;
-
-  Future<void> call() => repository.deleteAccount();
-}
-
 @riverpod
 ClearAllDataUseCase clearAllDataUseCase(Ref ref) =>
     ClearAllDataUseCase(ref.watch(settingsRepositoryProvider));
-
-@riverpod
-DeleteAccountUseCase deleteAccountUseCase(Ref ref) =>
-    DeleteAccountUseCase(ref.watch(settingsRepositoryProvider));

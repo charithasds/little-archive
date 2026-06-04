@@ -21,9 +21,7 @@ const double _kCompact = 600;
 const double _kExpanded = 900;
 
 class Dashboard extends ConsumerWidget {
-  const Dashboard({required this.firstName, super.key});
-
-  final String? firstName;
+  const Dashboard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,14 +32,22 @@ class Dashboard extends ConsumerWidget {
     final bool isExpanded = width >= _kExpanded;
 
     // ── Entity counts ──────────────────────────────────────────────────
-    final int? bookCount = ref.watch(bookCountProvider).value;
-    final int? workCount = ref.watch(workCountProvider).value;
-    final int? authorCount = ref.watch(authorCountProvider).value;
-    final int? translatorCount = ref.watch(translatorCountProvider).value;
-    final int? publisherCount = ref.watch(publisherCountProvider).value;
-    final int? sequenceCount = ref.watch(sequenceCountProvider).value;
-    final int? readerCount = ref.watch(readerCountProvider).value;
+    final AsyncValue<int> bookCountAsync = ref.watch(bookCountProvider);
+    final AsyncValue<int> workCountAsync = ref.watch(workCountProvider);
+    final AsyncValue<int> authorCountAsync = ref.watch(authorCountProvider);
+    final AsyncValue<int> translatorCountAsync = ref.watch(translatorCountProvider);
+    final AsyncValue<int> publisherCountAsync = ref.watch(publisherCountProvider);
+    final AsyncValue<int> sequenceCountAsync = ref.watch(sequenceCountProvider);
+    final AsyncValue<int> readerCountAsync = ref.watch(readerCountProvider);
     final AsyncValue<BookFairEventEntity> eventAsync = ref.watch(bookFairEventProvider);
+
+    final int? bookCount = bookCountAsync.asData?.value;
+    final int? workCount = workCountAsync.asData?.value;
+    final int? authorCount = authorCountAsync.asData?.value;
+    final int? translatorCount = translatorCountAsync.asData?.value;
+    final int? publisherCount = publisherCountAsync.asData?.value;
+    final int? sequenceCount = sequenceCountAsync.asData?.value;
+    final int? readerCount = readerCountAsync.asData?.value;
 
     // Check visibility based on dates from event entity
     const bool isFairTileVisible = true;
@@ -186,10 +192,6 @@ class Dashboard extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    // ── Greeting ────────────────────────────────────────
-                    _Greeting(firstName: firstName),
-                    SizedBox(height: isCompact ? 20 : 28),
-
                     // ── Entity grid ─────────────────────────────────────
                     Text(
                       'Library',
@@ -298,38 +300,4 @@ class _CardDef {
   final String? subtitle;
   final DateTime? countdownTarget;
   final String? countdownSuffix;
-}
-
-// ── Greeting ───────────────────────────────────────────────────────────────
-
-class _Greeting extends ConsumerWidget {
-  const _Greeting({required this.firstName});
-  final String? firstName;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final ThemeData theme = ref.watch(activeThemeDataProvider);
-    final ColorScheme cs = theme.colorScheme;
-    final double width = MediaQuery.sizeOf(context).width;
-    final bool isCompact = width < _kCompact;
-
-    final String name = (firstName != null && firstName!.isNotEmpty) ? firstName! : 'there';
-
-    return Text.rich(
-      TextSpan(
-        children: <InlineSpan>[
-          TextSpan(
-            text: 'Welcome back, ',
-            style: (isCompact ? theme.textTheme.headlineSmall : theme.textTheme.headlineMedium)
-                ?.copyWith(color: cs.onSurfaceVariant, fontWeight: FontWeight.w500),
-          ),
-          TextSpan(
-            text: name,
-            style: (isCompact ? theme.textTheme.headlineLarge : theme.textTheme.displaySmall)
-                ?.copyWith(color: cs.onSurface, fontWeight: FontWeight.w900),
-          ),
-        ],
-      ),
-    );
-  }
 }

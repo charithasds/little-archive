@@ -31,7 +31,11 @@ class BookStatusController extends _$BookStatusController {
         case CollectionStatus.announced:
           updated = book.copyWith(collectionStatus: status, lastUpdated: DateTime.now());
         case CollectionStatus.shoppingList:
-          updated = book.copyWith(collectionStatus: status, lastUpdated: DateTime.now());
+          updated = book.copyWith(
+            collectionStatus: status,
+            collectedDate: const Nullable<DateTime?>(null),
+            lastUpdated: DateTime.now(),
+          );
         case CollectionStatus.onTheWay:
           updated = book.copyWith(collectionStatus: status, lastUpdated: DateTime.now());
         case CollectionStatus.collected:

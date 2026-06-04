@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load();
 
-  runApp(const ProviderScope(child: LittleArchiveApp()));
+  runApp(
+    Phoenix(
+      child: const ProviderScope(child: LittleArchiveApp()),
+    ),
+  );
 }

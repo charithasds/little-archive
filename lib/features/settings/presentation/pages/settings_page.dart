@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -19,13 +20,11 @@ class SettingsPage extends ConsumerWidget {
 
     ref.listen(settingsControllerProvider, (AsyncValue<void>? previous, AsyncValue<void> next) {
       next.whenOrNull(
-        data: (_) =>
-            SnackBars.showSuccess('All application data cleared successfully', context: context),
         error: (Object error, _) => SnackBars.showError(error.toString(), context: context),
       );
     });
 
-    final bool isClearing = ref.watch(settingsControllerProvider).isLoading;
+    final bool isLoading = ref.watch(settingsControllerProvider).isLoading;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -62,6 +61,130 @@ class SettingsPage extends ConsumerWidget {
                 ),
               ],
             ),
+            // ── Backup & Restore ─────────────────────────────────────────
+            FormSection(
+              title: 'Backup & Restore',
+              icon: FontAwesomeIcons.floppyDisk,
+              children: <Widget>[
+                Card(
+                  elevation: 0,
+                  color: colorScheme.surfaceContainerHigh,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: Column(
+                    children: <Widget>[
+                      // Local Backup
+                      ListTile(
+                        leading: FaIcon(FontAwesomeIcons.fileExport, color: colorScheme.primary),
+                        title: const Text('Export Local Backup'),
+                        subtitle: const Text('Save a copy of your library to local storage'),
+                        onTap: isLoading
+                            ? null
+                            : () async {
+                                final bool success = await ref
+                                    .read(settingsControllerProvider.notifier)
+                                    .exportLocalBackup();
+                                if (success && context.mounted) {
+                                  SnackBars.showSuccess('Local backup exported successfully!', context: context);
+                                }
+                              },
+                      ),
+                      Divider(
+                        height: 1,
+                        indent: 16,
+                        endIndent: 16,
+                        color: colorScheme.outlineVariant,
+                      ),
+                      // Local Restore
+                      ListTile(
+                        leading: FaIcon(FontAwesomeIcons.fileImport, color: colorScheme.primary),
+                        title: const Text('Import Local Restore'),
+                        subtitle: const Text('Restore your library from a local backup file'),
+                        onTap: isLoading
+                            ? null
+                            : () async {
+                                final bool confirmed = await AppDialogs.showDestructiveDialog(
+                                  context,
+                                  title: 'Restore Library?',
+                                  content:
+                                      'Importing a local backup will replace your current active library data. This action is irreversible.',
+                                  confirmLabel: 'Start Import',
+                                );
+                                if (confirmed) {
+                                  final bool success = await ref
+                                      .read(settingsControllerProvider.notifier)
+                                      .importLocalRestore();
+                                  if (success && context.mounted) {
+                                    SnackBars.showSuccess('Library restored successfully! Restarting app...', context: context);
+                                    await Future<void>.delayed(const Duration(milliseconds: 1500));
+                                    if (context.mounted) {
+                                      Phoenix.rebirth(context);
+                                    }
+                                  }
+                                }
+                              },
+                      ),
+                      Divider(
+                        height: 1,
+                        indent: 16,
+                        endIndent: 16,
+                        color: colorScheme.outlineVariant,
+                      ),
+                      // Google Drive Backup
+                      ListTile(
+                        leading: FaIcon(FontAwesomeIcons.googleDrive, color: colorScheme.primary),
+                        title: const Text('Backup to Google Drive'),
+                        subtitle: const Text('Upload your library to your personal Google Drive'),
+                        onTap: isLoading
+                            ? null
+                            : () async {
+                                final bool success = await ref
+                                    .read(settingsControllerProvider.notifier)
+                                    .backupToGoogleDrive();
+                                if (success && context.mounted) {
+                                  SnackBars.showSuccess('Uploaded library to Google Drive successfully!', context: context);
+                                }
+                              },
+                      ),
+                      Divider(
+                        height: 1,
+                        indent: 16,
+                        endIndent: 16,
+                        color: colorScheme.outlineVariant,
+                      ),
+                      // Google Drive Restore
+                      ListTile(
+                        leading: FaIcon(FontAwesomeIcons.cloudArrowDown, color: colorScheme.primary),
+                        title: const Text('Restore from Google Drive'),
+                        subtitle: const Text('Download your library from Google Drive'),
+                        onTap: isLoading
+                            ? null
+                            : () async {
+                                final bool confirmed = await AppDialogs.showDestructiveDialog(
+                                  context,
+                                  title: 'Restore from Google Drive?',
+                                  content:
+                                      'Restoring will completely overwrite your current active local database with the backup saved on your Google Drive. This action cannot be undone.',
+                                  confirmLabel: 'Start Restore',
+                                );
+                                if (confirmed) {
+                                  final bool success = await ref
+                                      .read(settingsControllerProvider.notifier)
+                                      .restoreFromGoogleDrive();
+                                  if (success && context.mounted) {
+                                    SnackBars.showSuccess('Library restored successfully! Restarting app...', context: context);
+                                    await Future<void>.delayed(const Duration(milliseconds: 1500));
+                                    if (context.mounted) {
+                                      Phoenix.rebirth(context);
+                                    }
+                                  }
+                                }
+                              },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
             // ── Data & Privacy ───────────────────────────────────────────
             FormSection(
               title: 'Data & Privacy',
@@ -75,10 +198,10 @@ class SettingsPage extends ConsumerWidget {
                     children: <Widget>[
                       // Clear All Data
                       ListTile(
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        leading: isClearing
+                        leading: isLoading
                             ? SizedBox(
                                 width: 24,
                                 height: 24,
@@ -101,7 +224,7 @@ class SettingsPage extends ConsumerWidget {
                             color: colorScheme.onSurfaceVariant,
                           ),
                         ),
-                        onTap: isClearing
+                        onTap: isLoading
                             ? null
                             : () async {
                                 final bool confirmed = await AppDialogs.showDestructiveDialog(
@@ -115,46 +238,14 @@ class SettingsPage extends ConsumerWidget {
                                   await ref
                                       .read(settingsControllerProvider.notifier)
                                       .clearAllData();
+                                  if (context.mounted && !ref.read(settingsControllerProvider).hasError) {
+                                    SnackBars.showSuccess(
+                                      'All application data cleared successfully',
+                                      context: context,
+                                    );
+                                  }
                                 }
                               },
-                      ),
-                      Divider(
-                        height: 1,
-                        indent: 16,
-                        endIndent: 16,
-                        color: colorScheme.outlineVariant,
-                      ),
-                      // Delete Account
-                      ListTile(
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
-                        ),
-                        leading: FaIcon(FontAwesomeIcons.userMinus, color: colorScheme.error),
-                        title: Text(
-                          'Delete Account',
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: colorScheme.error,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        subtitle: Text(
-                          'Permanently deletes your account and all associated data',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        onTap: () async {
-                          final bool confirmed = await AppDialogs.showDestructiveDialog(
-                            context,
-                            title: 'Delete Account?',
-                            content:
-                                'Are you sure you want to permanently delete your account? This action cannot be undone and all your data will be lost.',
-                            confirmLabel: 'Delete Permanently',
-                          );
-                          if (confirmed) {
-                            await ref.read(settingsControllerProvider.notifier).deleteAccount();
-                          }
-                        },
                       ),
                     ],
                   ),

@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../sequence/domain/entities/sequence_entity.dart';
@@ -67,13 +66,11 @@ class UpsertWorkUseCase {
     required Map<SequenceEntity, String> sequenceEntries,
     required bool isEdit,
     bool applyToBooks = false,
-    WriteBatch? batch,
   }) => repository.upsertWork(
     work,
     sequenceEntries.map((SequenceEntity k, String v) => MapEntry<String, String>(k.id, v)),
     isEdit,
     applyToBooks,
-    batch: batch,
   );
 }
 

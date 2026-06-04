@@ -1,11 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/shared/data/services/relationship_sync_service.dart';
 import '../../../../core/shared/domain/enums/language.dart';
 import '../../../../core/shared/domain/enums/original_language.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
-import '../../../../core/shared/presentation/providers/firebase_provider.dart';
 import '../../../book/data/datasources/book_remote_datasource.dart';
 import '../../../book/data/models/book_model.dart';
 import '../../../book/domain/entities/book_entity.dart';
@@ -21,15 +18,11 @@ part 'work_repository_impl.g.dart';
 class WorkRepositoryImpl implements WorkRepository {
   WorkRepositoryImpl({
     required this.remoteDataSource,
-    required this.relationshipSyncService,
-    required this.firestore,
     required this.sequenceVolumeRepository,
     required this.bookRemoteDataSource,
   });
 
   final WorkRemoteDataSource remoteDataSource;
-  final RelationshipSyncService relationshipSyncService;
-  final FirebaseFirestore firestore;
   final SequenceVolumeRepository sequenceVolumeRepository;
   final BookRemoteDataSource bookRemoteDataSource;
 
@@ -46,7 +39,7 @@ class WorkRepositoryImpl implements WorkRepository {
   Stream<List<WorkEntity>> watchWorks() => remoteDataSource.watchWorks();
 
   @override
-  Future<void> addWork(WorkEntity work, {WriteBatch? batch}) async {
+  Future<void> addWork(WorkEntity work) async {
     await remoteDataSource.addWork(
       WorkModel(
         id: work.id,
@@ -66,39 +59,11 @@ class WorkRepositoryImpl implements WorkRepository {
         createdDate: work.createdDate,
         lastUpdated: work.lastUpdated,
       ),
-      batch: batch,
-    );
-
-    await relationshipSyncService.syncWorkRelationships(
-      workId: work.id,
-      newAuthorIds: work.authorIds,
-      newTranslatorIds: work.translatorIds,
-      newSequenceVolumeIds: work.sequenceVolumeIds,
-      newBookId: work.bookId,
-      batch: batch,
     );
   }
 
   @override
-  Future<void> editWork(WorkEntity work, {WorkEntity? oldWork, WriteBatch? batch}) async {
-    final List<String> oldAuthorIds;
-    final List<String> oldTranslatorIds;
-    final List<String> oldSequenceVolumeIds;
-    final String? oldBookId;
-
-    if (oldWork != null) {
-      oldAuthorIds = oldWork.authorIds;
-      oldTranslatorIds = oldWork.translatorIds;
-      oldSequenceVolumeIds = oldWork.sequenceVolumeIds;
-      oldBookId = oldWork.bookId;
-    } else {
-      final WorkModel? existingWork = await remoteDataSource.fetchWorkById(work.id);
-      oldAuthorIds = existingWork?.authorIds ?? <String>[];
-      oldTranslatorIds = existingWork?.translatorIds ?? <String>[];
-      oldSequenceVolumeIds = existingWork?.sequenceVolumeIds ?? <String>[];
-      oldBookId = existingWork?.bookId;
-    }
-
+  Future<void> editWork(WorkEntity work, {WorkEntity? oldWork}) async {
     await remoteDataSource.editWork(
       WorkModel(
         id: work.id,
@@ -118,48 +83,19 @@ class WorkRepositoryImpl implements WorkRepository {
         createdDate: work.createdDate,
         lastUpdated: work.lastUpdated,
       ),
-      batch: batch,
-    );
-
-    await relationshipSyncService.syncWorkRelationships(
-      workId: work.id,
-      newAuthorIds: work.authorIds,
-      newTranslatorIds: work.translatorIds,
-      newSequenceVolumeIds: work.sequenceVolumeIds,
-      newBookId: work.bookId,
-      oldAuthorIds: oldAuthorIds,
-      oldTranslatorIds: oldTranslatorIds,
-      oldSequenceVolumeIds: oldSequenceVolumeIds,
-      oldBookId: oldBookId,
-      batch: batch,
     );
   }
 
   @override
-  Future<void> removeWork(String id, {WriteBatch? batch}) async {
+  Future<void> removeWork(String id) async {
     final WorkModel? existingWork = await remoteDataSource.fetchWorkById(id);
 
     if (existingWork != null) {
-      final WriteBatch effectiveBatch = batch ?? firestore.batch();
-
       for (final String volumeId in existingWork.sequenceVolumeIds) {
-        await sequenceVolumeRepository.removeSequenceVolume(volumeId, batch: effectiveBatch);
+        await sequenceVolumeRepository.removeSequenceVolume(volumeId);
       }
 
-      await relationshipSyncService.removeWorkRelationships(
-        workId: id,
-        authorIds: existingWork.authorIds,
-        translatorIds: existingWork.translatorIds,
-        sequenceVolumeIds: existingWork.sequenceVolumeIds,
-        bookId: existingWork.bookId,
-        batch: effectiveBatch,
-      );
-
-      await remoteDataSource.removeWork(id, batch: effectiveBatch);
-
-      if (batch == null) {
-        await effectiveBatch.commit();
-      }
+      await remoteDataSource.removeWork(id);
     }
   }
 
@@ -168,22 +104,19 @@ class WorkRepositoryImpl implements WorkRepository {
     WorkEntity work,
     Map<String, String> sequenceIdToVolume,
     bool isEdit,
-    bool applyToBooks, {
-    WriteBatch? batch,
-  }) async {
-    final WriteBatch effectiveBatch = batch ?? firestore.batch();
+    bool applyToBooks,
+  ) async {
     final List<String> sequenceVolumeIds = await sequenceVolumeRepository.syncWorkVolumes(
       work.id,
       sequenceIdToVolume,
       isEdit,
-      batch: effectiveBatch,
     );
     final WorkEntity workToSave = work.copyWith(sequenceVolumeIds: sequenceVolumeIds);
 
     if (isEdit) {
-      await editWork(workToSave, batch: effectiveBatch);
+      await editWork(workToSave);
     } else {
-      await addWork(workToSave, batch: effectiveBatch);
+      await addWork(workToSave);
     }
 
     if (applyToBooks && workToSave.bookId != null) {
@@ -229,12 +162,8 @@ class WorkRepositoryImpl implements WorkRepository {
           lastUpdated: updatedBookEntity.lastUpdated,
         );
 
-        await bookRemoteDataSource.editBook(updatedBook, batch: effectiveBatch);
+        await bookRemoteDataSource.editBook(updatedBook);
       }
-    }
-
-    if (batch == null) {
-      await effectiveBatch.commit();
     }
 
     return workToSave;
@@ -244,10 +173,6 @@ class WorkRepositoryImpl implements WorkRepository {
 @riverpod
 WorkRepository workRepository(Ref ref) {
   final WorkRemoteDataSource remoteDataSource = ref.watch(workRemoteDataSourceProvider);
-  final RelationshipSyncService relationshipSyncService = ref.watch(
-    relationshipSyncServiceProvider,
-  );
-  final FirebaseFirestore firestore = ref.watch(firebaseFirestoreProvider);
   final SequenceVolumeRepository sequenceVolumeRepository = ref.watch(
     sequenceVolumeRepositoryProvider,
   );
@@ -255,8 +180,6 @@ WorkRepository workRepository(Ref ref) {
 
   return WorkRepositoryImpl(
     remoteDataSource: remoteDataSource,
-    relationshipSyncService: relationshipSyncService,
-    firestore: firestore,
     sequenceVolumeRepository: sequenceVolumeRepository,
     bookRemoteDataSource: bookRemoteDataSource,
   );

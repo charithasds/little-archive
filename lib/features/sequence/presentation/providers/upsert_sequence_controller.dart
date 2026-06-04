@@ -1,7 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/auth/domain/entities/user_entity.dart';
-import '../../../../core/auth/presentation/providers/auth_provider.dart';
+
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../domain/entities/sequence_entity.dart';
@@ -40,15 +39,7 @@ class UpsertSequenceController extends _$UpsertSequenceController {
   Future<SequenceEntity?> saveSequence({required String name, String? notes}) async {
     state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
-    final UserEntity? user = ref.read(authStateProvider).value;
 
-    if (user == null) {
-      state = state.copyWith(
-        isLoading: false,
-        error: const Nullable<String?>('User not authenticated'),
-      );
-      return null;
-    }
 
     final SequenceEntity? existingSequence = state.existingSequence;
     final String generatedId = ref.read(generateSequenceIdUseCaseProvider)();

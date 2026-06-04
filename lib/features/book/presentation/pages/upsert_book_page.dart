@@ -663,44 +663,44 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                 ),
               ),
               const SizedBox(height: 24),
-                  FormSection(
-                 title: 'Primary Info',
-                 icon: FontAwesomeIcons.circleInfo,
-                 children: <Widget>[
-                   // ── IsTranslation & ToBeTranslated ─────────────────────
-                   SwitchListTile.adaptive(
-                     value: _isTranslation,
-                     onChanged: _onIsTranslationChanged,
-                     title: Text('Is Translation', style: theme.textTheme.bodyMedium),
-                     contentPadding: EdgeInsets.zero,
-                     secondary: FaIcon(FontAwesomeIcons.language, color: colorScheme.primary),
-                   ),
-                   if (_isTranslation) ...<Widget>[
-                     SwitchListTile.adaptive(
-                       value: _toBeTranslated,
-                       onChanged: (bool v) {
-                         setState(() {
-                           _toBeTranslated = v;
-                           if (v) {
-                             _collectionStatus = CollectionStatus.announced;
-                             _onCollectionStatusChanged(CollectionStatus.announced);
-                           }
-                         });
-                       },
-                       title: Text('To Be Translated', style: theme.textTheme.bodyMedium),
-                       contentPadding: EdgeInsets.zero,
-                       secondary: FaIcon(FontAwesomeIcons.language, color: colorScheme.secondary),
-                     ),
-                   ],
-                   const SizedBox(height: 8),
-                   FormTextField(
-                     controller: _titleController,
-                     label: 'Title',
-                     hint: 'Book Title',
-                     prefixIcon: FontAwesomeIcons.book,
-                     isRequired: true,
-                     maxLength: 200,
-                   ),
+              FormSection(
+                title: 'Primary Info',
+                icon: FontAwesomeIcons.circleInfo,
+                children: <Widget>[
+                  // ── IsTranslation & ToBeTranslated ─────────────────────
+                  SwitchListTile.adaptive(
+                    value: _isTranslation,
+                    onChanged: _onIsTranslationChanged,
+                    title: Text('Is Translation', style: theme.textTheme.bodyMedium),
+                    contentPadding: EdgeInsets.zero,
+                    secondary: FaIcon(FontAwesomeIcons.language, color: colorScheme.primary),
+                  ),
+                  if (_isTranslation) ...<Widget>[
+                    SwitchListTile.adaptive(
+                      value: _toBeTranslated,
+                      onChanged: (bool v) {
+                        setState(() {
+                          _toBeTranslated = v;
+                          if (v) {
+                            _collectionStatus = CollectionStatus.announced;
+                            _onCollectionStatusChanged(CollectionStatus.announced);
+                          }
+                        });
+                      },
+                      title: Text('To Be Translated', style: theme.textTheme.bodyMedium),
+                      contentPadding: EdgeInsets.zero,
+                      secondary: FaIcon(FontAwesomeIcons.language, color: colorScheme.secondary),
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  FormTextField(
+                    controller: _titleController,
+                    label: 'Title',
+                    hint: 'Book Title',
+                    prefixIcon: FontAwesomeIcons.book,
+                    isRequired: true,
+                    maxLength: 200,
+                  ),
                   const SizedBox(height: 16),
                   FormDropdownField<CompilationType>(
                     value: _compilationType,
@@ -773,9 +773,9 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       onChanged: (Language? v) => setState(() => _language = v),
                     ),
                   ],
-                   // ToBeTranslated is now shown above Title — removed from here
-                 ],
-               ),
+                  // ToBeTranslated is now shown above Title — removed from here
+                ],
+              ),
               if (_showTranslatorIds || _showOriginalTitle || _showOriginalLanguage)
                 FormSection(
                   title: 'Translation Info',
@@ -908,6 +908,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                         builder: (_) => AddWorkBottomSheet(isTranslation: _isTranslation),
                       ),
                     ),
+                    const SizedBox(height: 8),
                     if (_selectedWorks.isNotEmpty) ...<Widget>[
                       const SizedBox(height: 16),
                       SwitchListTile.adaptive(
@@ -924,7 +925,10 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                           ),
                         ),
                         contentPadding: EdgeInsets.zero,
-                        secondary: FaIcon(FontAwesomeIcons.arrowsRotate, color: colorScheme.primary),
+                        secondary: FaIcon(
+                          FontAwesomeIcons.arrowsRotate,
+                          color: colorScheme.primary,
+                        ),
                       ),
                     ],
                   ],

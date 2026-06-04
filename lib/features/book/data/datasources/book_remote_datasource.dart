@@ -1,15 +1,17 @@
 import 'dart:convert';
-import 'dart:typed_data';
+import 'dart:math';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:drift/drift.dart';
 import 'package:firebase_ai/firebase_ai.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/auth/presentation/providers/auth_provider.dart';
-import '../../../../core/shared/data/services/firestore_service.dart';
+import '../../../../core/database/app_database.dart';
+import '../../../../core/shared/domain/enums/collection_status.dart';
+import '../../../../core/shared/domain/enums/compilation_type.dart';
+import '../../../../core/shared/domain/enums/genre.dart';
 import '../../../../core/shared/domain/enums/language.dart';
 import '../../../../core/shared/domain/enums/original_language.dart';
-import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../models/book_model.dart';
 
 part 'book_remote_datasource.g.dart';
@@ -19,107 +21,173 @@ abstract class BookRemoteDataSource {
   Future<List<BookModel>> fetchBooks();
   Future<BookModel?> fetchBookById(String id);
   Stream<List<BookModel>> watchBooks();
-  Future<void> addBook(BookModel book, {WriteBatch? batch});
-  Future<void> editBook(BookModel book, {WriteBatch? batch});
-  Future<void> removeBook(String id, {WriteBatch? batch});
+  Future<void> addBook(BookModel book);
+  Future<void> editBook(BookModel book);
+  Future<void> removeBook(String id);
   Future<Map<String, dynamic>> scanBookCover(Uint8List imageBytes);
 }
 
 class BookRemoteDataSourceImpl implements BookRemoteDataSource {
-  BookRemoteDataSourceImpl({required this.firestoreService, required this.userId});
+  BookRemoteDataSourceImpl({required this.db});
 
-  final FirestoreService firestoreService;
-  final String userId;
-
-  FirebaseFirestore get _firestore => firestoreService.firebaseFirestore;
-  String get _collectionPath => 'users/$userId/books';
+  final AppDatabase db;
 
   @override
-  String generateId() => firestoreService.generateId('books');
+  String generateId() {
+    // Generates a unique offline-compatible random ID
+    final Random random = Random();
+    final List<int> bytes = List<int>.generate(16, (_) => random.nextInt(256));
+    return base64Url.encode(bytes).replaceAll('=', '').replaceAll('-', '').replaceAll('_', '').substring(0, 20);
+  }
+
+  Future<BookModel> _mapToBookModel(Book row) async {
+    // Fetch associated relations from join tables
+    final SimpleSelectStatement<$BookAuthorsJoinTable, BookAuthorsJoinData> authorsQuery = db.select(db.bookAuthorsJoin)..where(($BookAuthorsJoinTable t) => t.bookId.equals(row.id));
+    final List<BookAuthorsJoinData> authors = await authorsQuery.get();
+    final List<String> authorIds = authors.map((BookAuthorsJoinData a) => a.authorId).toList();
+
+    final SimpleSelectStatement<$BookTranslatorsJoinTable, BookTranslatorsJoinData> translatorsQuery = db.select(db.bookTranslatorsJoin)..where(($BookTranslatorsJoinTable t) => t.bookId.equals(row.id));
+    final List<BookTranslatorsJoinData> translators = await translatorsQuery.get();
+    final List<String> translatorIds = translators.map((BookTranslatorsJoinData t) => t.translatorId).toList();
+
+    // WorkIds: query work relation if applicable
+    final SimpleSelectStatement<$WorksTable, Work> worksQuery = db.select(db.works)..where(($WorksTable t) => t.bookId.equals(row.id));
+    final List<Work> works = await worksQuery.get();
+    final List<String> workIds = works.map((Work w) => w.id).toList();
+
+    // SequenceVolumeIds: query sequence volume relation
+    final SimpleSelectStatement<$SequenceVolumesTable, SequenceVolume> volumesQuery = db.select(db.sequenceVolumes)..where(($SequenceVolumesTable t) => t.bookId.equals(row.id));
+    final List<SequenceVolume> volumes = await volumesQuery.get();
+    final List<String> sequenceVolumeIds = volumes.map((SequenceVolume v) => v.id).toList();
+
+    return BookModel(
+      id: row.id,
+      title: row.title,
+      compilationType: CompilationType.values.asNameMap()[row.compilationType] ?? CompilationType.single,
+      isTranslation: row.isTranslation,
+      toBeTranslated: row.toBeTranslated,
+      cover: row.cover,
+      language: Language.values.asNameMap()[row.language ?? ''],
+      genre: Genre.values.asNameMap()[row.genre ?? ''],
+      isbn: row.isbn,
+      publishedDate: row.publishedDate,
+      noOfPages: row.noOfPages,
+      originalTitle: row.originalTitle,
+      originalLanguage: OriginalLanguage.values.asNameMap()[row.originalLanguage ?? ''],
+      collectionStatus: CollectionStatus.values.asNameMap()[row.collectionStatus] ?? CollectionStatus.collected,
+      collectedDate: row.collectedDate,
+      lendedDate: row.lendedDate,
+      dueDate: row.dueDate,
+      readingStatus: ReadingStatus.values.asNameMap()[row.readingStatus] ?? ReadingStatus.notStarted,
+      pausedPage: row.pausedPage,
+      completedDate: row.completedDate,
+      notes: row.notes,
+      authorIds: authorIds,
+      translatorIds: translatorIds,
+      workIds: workIds,
+      sequenceVolumeIds: sequenceVolumeIds,
+      publisherId: row.publisherId,
+      readerId: row.readerId,
+      createdDate: row.createdDate,
+      lastUpdated: row.lastUpdated,
+    );
+  }
 
   @override
   Future<List<BookModel>> fetchBooks() async {
-    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(_firestore.collection(_collectionPath).orderBy('title'));
-
-    return docs
-        .map(
-          (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-              BookModel.fromMap(doc.data(), doc.id),
-        )
-        .toList();
+    final SimpleSelectStatement<$BooksTable, Book> query = db.select(db.books)..orderBy(<OrderClauseGenerator<$BooksTable>>[($BooksTable t) => OrderingTerm(expression: t.title)]);
+    final List<Book> rows = await query.get();
+    final List<BookModel> books = <BookModel>[];
+    for (final Book row in rows) {
+      books.add(await _mapToBookModel(row));
+    }
+    return books;
   }
 
   @override
   Future<BookModel?> fetchBookById(String id) async {
-    final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
-      _firestore.collection(_collectionPath).doc(id),
-    );
-
-    if (doc == null || !doc.exists) {
+    final SimpleSelectStatement<$BooksTable, Book> query = db.select(db.books)..where(($BooksTable t) => t.id.equals(id));
+    final Book? row = await query.getSingleOrNull();
+    if (row == null) {
       return null;
     }
-
-    return BookModel.fromMap(doc.data()!, doc.id);
+    return _mapToBookModel(row);
   }
 
   @override
-  Stream<List<BookModel>> watchBooks() => _firestore
-      .collection(_collectionPath)
-      .orderBy('title')
-      .snapshots()
-      .map(
-        (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
-            .map(
-              (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-                  BookModel.fromMap(doc.data(), doc.id),
-            )
-            .toList(),
+  Stream<List<BookModel>> watchBooks() =>
+      // Drift automatically reacts to any updates to Books or associated Join tables
+      db.select(db.books).watch().asyncMap((List<Book> rows) async {
+        final List<BookModel> books = <BookModel>[];
+        for (final Book row in rows) {
+          books.add(await _mapToBookModel(row));
+        }
+        return books;
+      });
+
+  @override
+  Future<void> addBook(BookModel book) async {
+    await db.transaction(() async {
+      await db.into(db.books).insertOnConflictUpdate(
+        Book(
+          id: book.id,
+          title: book.title,
+          compilationType: book.compilationType.name,
+          isTranslation: book.isTranslation,
+          toBeTranslated: book.toBeTranslated,
+          cover: book.cover,
+          language: book.language?.name,
+          genre: book.genre?.name,
+          isbn: book.isbn,
+          publishedDate: book.publishedDate,
+          noOfPages: book.noOfPages,
+          originalTitle: book.originalTitle,
+          originalLanguage: book.originalLanguage?.name,
+          collectionStatus: book.collectionStatus.name,
+          collectedDate: book.collectedDate,
+          lendedDate: book.lendedDate,
+          dueDate: book.dueDate,
+          readingStatus: book.readingStatus.name,
+          pausedPage: book.pausedPage,
+          completedDate: book.completedDate,
+          notes: book.notes,
+          publisherId: book.publisherId,
+          readerId: book.readerId,
+          createdDate: book.createdDate,
+          lastUpdated: book.lastUpdated,
+        ),
       );
 
-  @override
-  Future<void> addBook(BookModel book, {WriteBatch? batch}) async {
-    final DocumentReference<Map<String, dynamic>> docRef = _firestore
-        .collection(_collectionPath)
-        .doc(book.id.isEmpty ? null : book.id);
+      // Sync Author Joins
+      await (db.delete(db.bookAuthorsJoin)..where(($BookAuthorsJoinTable t) => t.bookId.equals(book.id))).go();
+      for (final String authorId in book.authorIds) {
+        await db.into(db.bookAuthorsJoin).insertOnConflictUpdate(
+          BookAuthorsJoinCompanion.insert(bookId: book.id, authorId: authorId),
+        );
+      }
 
-    if (batch != null) {
-      batch.set(docRef, book.toMap());
-      return;
-    }
-
-    await firestoreService.requireConnectivity();
-    await docRef.set(book.toMap());
+      // Sync Translator Joins
+      await (db.delete(db.bookTranslatorsJoin)..where(($BookTranslatorsJoinTable t) => t.bookId.equals(book.id))).go();
+      for (final String translatorId in book.translatorIds) {
+        await db.into(db.bookTranslatorsJoin).insertOnConflictUpdate(
+          BookTranslatorsJoinCompanion.insert(bookId: book.id, translatorId: translatorId),
+        );
+      }
+    });
   }
 
   @override
-  Future<void> editBook(BookModel book, {WriteBatch? batch}) async {
-    final DocumentReference<Map<String, dynamic>> docRef = _firestore
-        .collection(_collectionPath)
-        .doc(book.id);
-
-    if (batch != null) {
-      batch.update(docRef, book.toMap());
-      return;
-    }
-
-    await firestoreService.requireConnectivity();
-    await docRef.update(book.toMap());
+  Future<void> editBook(BookModel book) async {
+    await addBook(book); // SQLite insertOnConflictUpdate acts as clean upsert
   }
 
   @override
-  Future<void> removeBook(String id, {WriteBatch? batch}) async {
-    final DocumentReference<Map<String, dynamic>> docRef = _firestore
-        .collection(_collectionPath)
-        .doc(id);
-
-    if (batch != null) {
-      batch.delete(docRef);
-      return;
-    }
-
-    await firestoreService.requireConnectivity();
-    await docRef.delete();
+  Future<void> removeBook(String id) async {
+    await db.transaction(() async {
+      await (db.delete(db.books)..where(($BooksTable t) => t.id.equals(id))).go();
+      await (db.delete(db.bookAuthorsJoin)..where(($BookAuthorsJoinTable t) => t.bookId.equals(id))).go();
+      await (db.delete(db.bookTranslatorsJoin)..where(($BookTranslatorsJoinTable t) => t.bookId.equals(id))).go();
+    });
   }
 
   @override
@@ -144,7 +212,7 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
       },
     );
     final GenerativeModel model = FirebaseAI.googleAI().generativeModel(
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.1-flash-lite',
       generationConfig: GenerationConfig(
         responseMimeType: 'application/json',
         responseSchema: Schema.object(
@@ -186,12 +254,6 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
 
 @riverpod
 BookRemoteDataSource bookRemoteDataSource(Ref ref) {
-  final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
-  final String? userId = ref.watch(currentUidProvider);
-
-  if (userId == null) {
-    throw const UnauthorizedException();
-  }
-
-  return BookRemoteDataSourceImpl(firestoreService: firestoreService, userId: userId);
+  final AppDatabase db = ref.watch(appDatabaseProvider);
+  return BookRemoteDataSourceImpl(db: db);
 }

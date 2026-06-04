@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/shared/presentation/routes/route_constants.dart';
+
 import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/dialogs.dart';
 import '../../../../core/shared/presentation/widgets/list_empty_state.dart';
@@ -113,8 +115,8 @@ class _PublisherListPageState extends ConsumerState<PublisherListPage> {
 
                               return PublisherListTile(
                                 publisher: publisher,
-                                onTap: () => context.go('/publishers/${publisher.id}'),
-                                onEdit: () => context.push('/publishers/upsert', extra: publisher),
+                                onTap: () => context.goNamed(RouteConstants.publisherDetail, pathParameters: <String, String>{'id': publisher.id}),
+                                onEdit: () => context.pushNamed(RouteConstants.upsertPublisher, extra: publisher),
                                 onRemove: () => _handleRemove(publisher.id, publisher.name),
                               );
                             },
@@ -134,8 +136,8 @@ class _PublisherListPageState extends ConsumerState<PublisherListPage> {
 
                               return PublisherListTile(
                                 publisher: publisher,
-                                onTap: () => context.go('/publishers/${publisher.id}'),
-                                onEdit: () => context.push('/publishers/upsert', extra: publisher),
+                                onTap: () => context.goNamed(RouteConstants.publisherDetail, pathParameters: <String, String>{'id': publisher.id}),
+                                onEdit: () => context.pushNamed(RouteConstants.upsertPublisher, extra: publisher),
                                 onRemove: () => _handleRemove(publisher.id, publisher.name),
                               );
                             },
@@ -155,7 +157,7 @@ class _PublisherListPageState extends ConsumerState<PublisherListPage> {
         isExtended: _isExtended,
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
-        onPressed: () => context.go('/publishers/upsert'),
+        onPressed: () => context.pushNamed(RouteConstants.upsertPublisher),
         icon: const FaIcon(FontAwesomeIcons.plus),
         label: const Text('Add Publisher'),
       ),

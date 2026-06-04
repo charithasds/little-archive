@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../entities/sequence_entity.dart';
 
 abstract class SequenceRepository {
@@ -7,7 +5,7 @@ abstract class SequenceRepository {
   Future<List<SequenceEntity>> fetchSequences();
   Future<SequenceEntity?> fetchSequenceById(String id);
   Stream<List<SequenceEntity>> watchSequences();
-  Future<void> addSequence(SequenceEntity sequence, {WriteBatch? batch});
-  Future<void> editSequence(SequenceEntity sequence, {SequenceEntity? oldSequence, WriteBatch? batch});
-  Future<void> removeSequence(String id, {WriteBatch? batch});
+  Future<void> addSequence(SequenceEntity sequence);
+  Future<void> editSequence(SequenceEntity sequence, {SequenceEntity? oldSequence});
+  Future<void> removeSequence(String id);
 }

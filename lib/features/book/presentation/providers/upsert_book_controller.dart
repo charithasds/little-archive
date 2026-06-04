@@ -4,8 +4,7 @@ import 'dart:typed_data';
 import 'package:image_picker/image_picker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/auth/domain/entities/user_entity.dart';
-import '../../../../core/auth/presentation/providers/auth_provider.dart';
+
 import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/enums/compilation_type.dart';
 import '../../../../core/shared/domain/enums/genre.dart';
@@ -162,16 +161,7 @@ class UpsertBookController extends _$UpsertBookController {
   }) async {
     state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
-    final UserEntity? user = ref.read(authStateProvider).value;
 
-    if (user == null) {
-      state = state.copyWith(
-        isLoading: false,
-        error: const Nullable<String?>('User not authenticated'),
-      );
-
-      return null;
-    }
 
     try {
       final BookEntity? existingBook = state.existingBook;
@@ -250,7 +240,7 @@ class UpsertBookController extends _$UpsertBookController {
         );
       } catch (e) {
         if (e.toString().contains('longer than 1048487 bytes')) {
-          final String? compressedCover = Images.ensureFitsFirestore(state.pickedBase64Image);
+          final String? compressedCover = Images.compressImageIfNeeded(state.pickedBase64Image);
           bookToSave = bookToSave.copyWith(cover: Nullable<String?>(compressedCover));
 
           savedBook = await ref.read(upsertBookUseCaseProvider)(

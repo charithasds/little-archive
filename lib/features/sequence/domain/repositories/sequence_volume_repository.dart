@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../entities/sequence_volume_entity.dart';
 
 abstract class SequenceVolumeRepository {
@@ -10,19 +8,17 @@ abstract class SequenceVolumeRepository {
   Future<List<SequenceVolumeEntity>> fetchSequenceVolumesByWorkId(String workId);
   Stream<List<SequenceVolumeEntity>> watchSequenceVolumes(String sequenceId);
   Stream<List<SequenceVolumeEntity>> watchAllSequenceVolumes();
-  Future<void> addSequenceVolume(SequenceVolumeEntity volume, {WriteBatch? batch});
-  Future<void> editSequenceVolume(SequenceVolumeEntity volume, {SequenceVolumeEntity? oldVolume, WriteBatch? batch});
-  Future<void> removeSequenceVolume(String id, {WriteBatch? batch});
+  Future<void> addSequenceVolume(SequenceVolumeEntity volume);
+  Future<void> editSequenceVolume(SequenceVolumeEntity volume, {SequenceVolumeEntity? oldVolume});
+  Future<void> removeSequenceVolume(String id);
   Future<List<String>> syncBookVolumes(
     String bookId,
     Map<String, String> sequenceIdToVolume,
-    bool isEdit, {
-    WriteBatch? batch,
-  });
+    bool isEdit,
+  );
   Future<List<String>> syncWorkVolumes(
     String workId,
     Map<String, String> sequenceIdToVolume,
-    bool isEdit, {
-    WriteBatch? batch,
-  });
+    bool isEdit,
+  );
 }

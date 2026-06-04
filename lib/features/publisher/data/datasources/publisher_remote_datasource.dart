@@ -1,9 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:drift/drift.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/auth/presentation/providers/auth_provider.dart';
-import '../../../../core/shared/data/services/firestore_service.dart';
-import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/database/app_database.dart';
 import '../models/publisher_model.dart';
 
 part 'publisher_remote_datasource.g.dart';
@@ -13,117 +14,109 @@ abstract class PublisherRemoteDataSource {
   Future<List<PublisherModel>> fetchPublishers();
   Future<PublisherModel?> fetchPublisherById(String id);
   Stream<List<PublisherModel>> watchPublishers();
-  Future<void> addPublisher(PublisherModel publisher, {WriteBatch? batch});
-  Future<void> editPublisher(PublisherModel publisher, {WriteBatch? batch});
-  Future<void> removePublisher(String id, {WriteBatch? batch});
+  Future<void> addPublisher(PublisherModel publisher);
+  Future<void> editPublisher(PublisherModel publisher);
+  Future<void> removePublisher(String id);
 }
 
 class PublisherRemoteDataSourceImpl implements PublisherRemoteDataSource {
-  PublisherRemoteDataSourceImpl({required this.firestoreService, required this.userId});
+  PublisherRemoteDataSourceImpl({required this.db});
 
-  final FirestoreService firestoreService;
-  final String userId;
-
-  FirebaseFirestore get _firestore => firestoreService.firebaseFirestore;
-  String get _collectionPath => 'users/$userId/publishers';
+  final AppDatabase db;
 
   @override
-  String generateId() => firestoreService.generateId('publishers');
+  String generateId() {
+    final Random random = Random();
+    final List<int> bytes = List<int>.generate(16, (_) => random.nextInt(256));
+    return base64Url.encode(bytes).replaceAll('=', '').replaceAll('-', '').replaceAll('_', '').substring(0, 20);
+  }
+
+  Future<PublisherModel> _mapToPublisherModel(Publisher row) async {
+    // Resolve bookIds where publisherId == row.id
+    final SimpleSelectStatement<$BooksTable, Book> booksQuery = db.select(db.books)..where(($BooksTable t) => t.publisherId.equals(row.id));
+    final List<Book> books = await booksQuery.get();
+    final List<String> bookIds = books.map((Book b) => b.id).toList();
+
+    return PublisherModel(
+      id: row.id,
+      name: row.name,
+      isSelfPublisher: row.isSelfPublisher,
+      logo: row.logo,
+      otherName: row.otherName,
+      website: row.website,
+      email: row.email,
+      facebook: row.facebook,
+      phoneNumber: row.phoneNumber,
+      bookIds: bookIds,
+      bookFairPublisherId: row.bookFairPublisherId,
+      createdDate: row.createdDate,
+      lastUpdated: row.lastUpdated,
+    );
+  }
 
   @override
   Future<List<PublisherModel>> fetchPublishers() async {
-    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(_firestore.collection(_collectionPath).orderBy('name'));
-
-    return docs
-        .map(
-          (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-              PublisherModel.fromMap(doc.data(), doc.id),
-        )
-        .toList();
+    final SimpleSelectStatement<$PublishersTable, Publisher> query = db.select(db.publishers)..orderBy(<OrderClauseGenerator<$PublishersTable>>[($PublishersTable t) => OrderingTerm(expression: t.name)]);
+    final List<Publisher> rows = await query.get();
+    final List<PublisherModel> publishers = <PublisherModel>[];
+    for (final Publisher row in rows) {
+      publishers.add(await _mapToPublisherModel(row));
+    }
+    return publishers;
   }
 
   @override
   Future<PublisherModel?> fetchPublisherById(String id) async {
-    final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
-      _firestore.collection(_collectionPath).doc(id),
-    );
-
-    if (doc == null || !doc.exists) {
+    final SimpleSelectStatement<$PublishersTable, Publisher> query = db.select(db.publishers)..where(($PublishersTable t) => t.id.equals(id));
+    final Publisher? row = await query.getSingleOrNull();
+    if (row == null) {
       return null;
     }
-
-    return PublisherModel.fromMap(doc.data()!, doc.id);
+    return _mapToPublisherModel(row);
   }
 
   @override
-  Stream<List<PublisherModel>> watchPublishers() => _firestore
-      .collection(_collectionPath)
-      .orderBy('name')
-      .snapshots()
-      .map(
-        (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
-            .map(
-              (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-                  PublisherModel.fromMap(doc.data(), doc.id),
-            )
-            .toList(),
-      );
+  Stream<List<PublisherModel>> watchPublishers() => db.select(db.publishers).watch().asyncMap((List<Publisher> rows) async {
+      final List<PublisherModel> publishers = <PublisherModel>[];
+      for (final Publisher row in rows) {
+        publishers.add(await _mapToPublisherModel(row));
+      }
+      return publishers;
+    });
 
   @override
-  Future<void> addPublisher(PublisherModel publisher, {WriteBatch? batch}) async {
-    final DocumentReference<Map<String, dynamic>> docRef = _firestore
-        .collection(_collectionPath)
-        .doc(publisher.id.isEmpty ? null : publisher.id);
-
-    if (batch != null) {
-      batch.set(docRef, publisher.toMap());
-      return;
-    }
-
-    await firestoreService.requireConnectivity();
-    await docRef.set(publisher.toMap());
+  Future<void> addPublisher(PublisherModel publisher) async {
+    await db.into(db.publishers).insertOnConflictUpdate(
+      Publisher(
+        id: publisher.id,
+        name: publisher.name,
+        isSelfPublisher: publisher.isSelfPublisher,
+        logo: publisher.logo,
+        otherName: publisher.otherName,
+        website: publisher.website,
+        email: publisher.email,
+        facebook: publisher.facebook,
+        phoneNumber: publisher.phoneNumber,
+        bookFairPublisherId: publisher.bookFairPublisherId,
+        createdDate: publisher.createdDate,
+        lastUpdated: publisher.lastUpdated,
+      ),
+    );
   }
 
   @override
-  Future<void> editPublisher(PublisherModel publisher, {WriteBatch? batch}) async {
-    final DocumentReference<Map<String, dynamic>> docRef = _firestore
-        .collection(_collectionPath)
-        .doc(publisher.id);
-
-    if (batch != null) {
-      batch.update(docRef, publisher.toMap());
-      return;
-    }
-
-    await firestoreService.requireConnectivity();
-    await docRef.update(publisher.toMap());
+  Future<void> editPublisher(PublisherModel publisher) async {
+    await addPublisher(publisher);
   }
 
   @override
-  Future<void> removePublisher(String id, {WriteBatch? batch}) async {
-    final DocumentReference<Map<String, dynamic>> docRef = _firestore
-        .collection(_collectionPath)
-        .doc(id);
-
-    if (batch != null) {
-      batch.delete(docRef);
-      return;
-    }
-
-    await firestoreService.requireConnectivity();
-    await docRef.delete();
+  Future<void> removePublisher(String id) async {
+    await (db.delete(db.publishers)..where(($PublishersTable t) => t.id.equals(id))).go();
   }
 }
 
 @riverpod
 PublisherRemoteDataSource publisherRemoteDataSource(Ref ref) {
-  final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
-  final String? userId = ref.watch(currentUidProvider);
-
-  if (userId == null) {
-    throw const UnauthorizedException();
-  }
-
-  return PublisherRemoteDataSourceImpl(firestoreService: firestoreService, userId: userId);
+  final AppDatabase db = ref.watch(appDatabaseProvider);
+  return PublisherRemoteDataSourceImpl(db: db);
 }

@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../data/repositories/sequence_volume_repository_impl.dart';
@@ -91,12 +90,10 @@ class SyncBookSequenceVolumesUseCase {
     required String bookId,
     required Map<SequenceEntity, String> entries,
     bool isEdit = false,
-    WriteBatch? batch,
   }) => repository.syncBookVolumes(
     bookId,
     entries.map((SequenceEntity k, String v) => MapEntry<String, String>(k.id, v)),
     isEdit,
-    batch: batch,
   );
 }
 
@@ -108,12 +105,10 @@ class SyncWorkSequenceVolumesUseCase {
     required String workId,
     required Map<SequenceEntity, String> entries,
     bool isEdit = false,
-    WriteBatch? batch,
   }) => repository.syncWorkVolumes(
     workId,
     entries.map((SequenceEntity k, String v) => MapEntry<String, String>(k.id, v)),
     isEdit,
-    batch: batch,
   );
 }
 

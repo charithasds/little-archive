@@ -4,8 +4,7 @@ import 'dart:typed_data';
 import 'package:image_picker/image_picker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/auth/domain/entities/user_entity.dart';
-import '../../../../core/auth/presentation/providers/auth_provider.dart';
+
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
@@ -77,15 +76,7 @@ class UpsertTranslatorController extends _$UpsertTranslatorController {
   }) async {
     state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
-    final UserEntity? user = ref.read(authStateProvider).value;
 
-    if (user == null) {
-      state = state.copyWith(
-        isLoading: false,
-        error: const Nullable<String?>('User not authenticated'),
-      );
-      return null;
-    }
 
     final TranslatorEntity? existingTranslator = state.existingTranslator;
     final String generatedId = ref.read(generateTranslatorIdUseCaseProvider)();
@@ -118,7 +109,7 @@ class UpsertTranslatorController extends _$UpsertTranslatorController {
           await ref.read(editTranslatorUseCaseProvider)(translatorToSave);
         } catch (e) {
           if (e.toString().contains('longer than 1048487 bytes')) {
-            final String? compressedImage = Images.ensureFitsFirestore(state.pickedBase64Image);
+            final String? compressedImage = Images.compressImageIfNeeded(state.pickedBase64Image);
             translatorToSave = translatorToSave.copyWith(image: Nullable<String?>(compressedImage));
             await ref.read(editTranslatorUseCaseProvider)(translatorToSave);
           } else {
@@ -130,7 +121,7 @@ class UpsertTranslatorController extends _$UpsertTranslatorController {
           await ref.read(addTranslatorUseCaseProvider)(translatorToSave);
         } catch (e) {
           if (e.toString().contains('longer than 1048487 bytes')) {
-            final String? compressedImage = Images.ensureFitsFirestore(state.pickedBase64Image);
+            final String? compressedImage = Images.compressImageIfNeeded(state.pickedBase64Image);
             translatorToSave = translatorToSave.copyWith(image: Nullable<String?>(compressedImage));
             await ref.read(addTranslatorUseCaseProvider)(translatorToSave);
           } else {

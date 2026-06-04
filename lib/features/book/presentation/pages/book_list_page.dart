@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/shared/presentation/routes/route_constants.dart';
+
 import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/dialogs.dart';
 import '../../../../core/shared/presentation/widgets/list_empty_state.dart';
@@ -113,8 +115,8 @@ class _BookListPageState extends ConsumerState<BookListPage> {
 
                               return BookListTile(
                                 book: book,
-                                onTap: () => context.go('/books/${book.id}'),
-                                onEdit: () => context.push('/books/upsert', extra: book),
+                                onTap: () => context.goNamed(RouteConstants.bookDetail, pathParameters: <String, String>{'id': book.id}),
+                                onEdit: () => context.pushNamed(RouteConstants.upsertBook, extra: book),
                                 onRemove: () => _handleRemove(book.id, book.title),
                               );
                             },
@@ -134,8 +136,8 @@ class _BookListPageState extends ConsumerState<BookListPage> {
 
                               return BookListTile(
                                 book: book,
-                                onTap: () => context.go('/books/${book.id}'),
-                                onEdit: () => context.push('/books/upsert', extra: book),
+                                onTap: () => context.goNamed(RouteConstants.bookDetail, pathParameters: <String, String>{'id': book.id}),
+                                onEdit: () => context.pushNamed(RouteConstants.upsertBook, extra: book),
                                 onRemove: () => _handleRemove(book.id, book.title),
                               );
                             },
@@ -155,7 +157,7 @@ class _BookListPageState extends ConsumerState<BookListPage> {
         isExtended: _isExtended,
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
-        onPressed: () => context.go('/books/upsert'),
+        onPressed: () => context.pushNamed(RouteConstants.upsertBook),
         icon: const FaIcon(FontAwesomeIcons.plus),
         label: const Text('Add Book'),
       ),

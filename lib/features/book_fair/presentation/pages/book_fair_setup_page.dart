@@ -3,11 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/auth/domain/entities/user_entity.dart';
-import '../../../../core/auth/presentation/providers/user_profile_provider.dart';
+
 import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
-import '../../../../core/shared/presentation/routes/router_service.dart';
+import '../../../../core/shared/presentation/routes/route_constants.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../book/domain/entities/book_entity.dart';
 import '../../../book/presentation/providers/book_provider.dart';
@@ -60,12 +59,11 @@ class _BookFairSetupPageState extends ConsumerState<BookFairSetupPage> {
     final AsyncValue<List<BookEntity>> booksAsync = ref.watch(booksStreamProvider);
     final AsyncValue<List<PublisherEntity>> publishersAsync = ref.watch(publishersStreamProvider);
     final AsyncValue<BookFairEventEntity> bookFairEventAsync = ref.watch(bookFairEventProvider);
-    final AsyncValue<UserEntity?> userAsync = ref.watch(userProfileProvider);
+    final String? lastConfiguredFairId = ref.watch(lastConfiguredFairIdProvider);
 
     if (bookFairEventAsync.isLoading ||
         publishersAsync.isLoading ||
-        booksAsync.isLoading ||
-        userAsync.isLoading) {
+        booksAsync.isLoading) {
       return Scaffold(
         backgroundColor: colorScheme.surface,
         appBar: AppBar(
@@ -81,10 +79,9 @@ class _BookFairSetupPageState extends ConsumerState<BookFairSetupPage> {
 
     if (bookFairEventAsync.hasError ||
         publishersAsync.hasError ||
-        booksAsync.hasError ||
-        userAsync.hasError) {
+        booksAsync.hasError) {
       final Object error =
-          bookFairEventAsync.error ?? publishersAsync.error ?? booksAsync.error ?? userAsync.error!;
+          bookFairEventAsync.error ?? publishersAsync.error ?? booksAsync.error!;
 
       return Scaffold(
         backgroundColor: colorScheme.surface,
@@ -104,8 +101,6 @@ class _BookFairSetupPageState extends ConsumerState<BookFairSetupPage> {
     final List<BookEntity> books = booksAsync.value!;
     final List<PublisherEntity> publishers = publishersAsync.value!;
     final BookFairEventEntity bookFairEvent = bookFairEventAsync.value!;
-    final UserEntity? user = userAsync.value;
-    final String? lastConfiguredFairId = user?.lastConfiguredFairId;
 
     final Set<String> allPublisherIdsInShoppingList = books
         .where(
@@ -328,8 +323,8 @@ class _BookFairSetupPageState extends ConsumerState<BookFairSetupPage> {
 
                             try {
                               await ref
-                                  .read(userProfileControllerProvider.notifier)
-                                  .updateLastConfiguredFairId(bookFairEvent.id);
+                                  .read(lastConfiguredFairIdProvider.notifier)
+                                  .update(bookFairEvent.id);
 
                               final List<Future<void>> editFutures = <Future<void>>[];
 
@@ -399,7 +394,7 @@ class _BookFairSetupPageState extends ConsumerState<BookFairSetupPage> {
           setState(() {
             _publisherStallMap[publisher.id] = stallId;
           });
-          Navigator.pop(context);
+          context.pop();
         },
       ),
     );
@@ -510,7 +505,7 @@ class _SearchStallsSheetState extends ConsumerState<_SearchStallsSheet> {
                 ),
                 IconButton(
                   icon: const FaIcon(FontAwesomeIcons.xmark),
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: () => context.pop(),
                 ),
               ],
             ),

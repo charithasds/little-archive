@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-import '../../../../core/auth/presentation/providers/user_profile_provider.dart';
+
 import '../../../../core/shared/domain/enums/collection_status.dart';
+import '../../../../core/shared/presentation/routes/route_constants.dart';
 import '../../../../core/shared/presentation/routes/router_service.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../book/domain/entities/book_entity.dart';
@@ -29,8 +30,8 @@ class BookFairShoppingPlanPage extends ConsumerWidget {
       data: (BookFairEventEntity event) => _BookFairShoppingPlanView(
         event: event,
         onEditMappings: () {
-          ref.read(goRouterProvider).go('/book-fair');
-          ref.read(userProfileControllerProvider.notifier).updateLastConfiguredFairId(null);
+          ref.read(goRouterProvider).goNamed(RouteConstants.bookFair);
+          ref.read(lastConfiguredFairIdProvider.notifier).update(null);
         },
       ),
       loading: () => Scaffold(
@@ -68,8 +69,6 @@ class _BookFairShoppingPlanView extends ConsumerStatefulWidget {
 }
 
 class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlanView> {
-  final Set<String> _visitedStalls = <String>{};
-
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = ref.watch(activeThemeDataProvider);
@@ -83,6 +82,8 @@ class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlan
     final List<PublisherEntity> publishers =
         ref.watch(publishersStreamProvider).value ?? <PublisherEntity>[];
     final List<BookEntity> books = ref.watch(booksStreamProvider).value ?? <BookEntity>[];
+
+    final DateTime now = DateTime.now();
     final Set<String> publisherIdsInShoppingList = books
         .where(
           (BookEntity b) =>
@@ -90,6 +91,7 @@ class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlan
         )
         .map((BookEntity b) => b.publisherId!)
         .toSet();
+
     final List<PublisherEntity> mapped = publishers.where((PublisherEntity p) {
       final String? bookFairPublisherId = p.bookFairPublisherId;
       final bool hasStallMapped =
@@ -113,8 +115,8 @@ class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlan
 
     if (unmappedInShoppingList.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(goRouterProvider).go('/book-fair');
-        ref.read(userProfileControllerProvider.notifier).updateLastConfiguredFairId(null);
+        ref.read(goRouterProvider).goNamed(RouteConstants.bookFair);
+        ref.read(lastConfiguredFairIdProvider.notifier).update(null);
       });
 
       return Scaffold(
@@ -198,9 +200,57 @@ class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlan
     }
 
     final List<String> sortedHalls = grouped.keys.toList()..sort();
-    final Set<String> allStallIds = pairs.map((PublisherStallPair p) => p.stall.id).toSet();
-    final int totalStalls = allStallIds.length;
-    final int visitedCount = allStallIds.intersection(_visitedStalls).length;
+
+    // For progress calculation, check all publishers who had books in shopping list today
+    final List<PublisherEntity> mappedForProgress = publishers.where((PublisherEntity p) {
+      final String? bookFairPublisherId = p.bookFairPublisherId;
+      final bool hasStallMapped =
+          bookFairPublisherId != null &&
+          bookFairPublisherId.startsWith('CIBF_${widget.event.year}_');
+      final bool hasBooksInPlan = books.any((BookEntity b) =>
+          b.publisherId == p.id &&
+          (b.collectionStatus == CollectionStatus.shoppingList ||
+           (b.collectionStatus == CollectionStatus.collected &&
+            b.collectedDate != null &&
+            now.difference(b.collectedDate!).inHours < 24)));
+      return hasStallMapped && hasBooksInPlan;
+    }).toList();
+
+    final List<PublisherStallPair> progressPairs = mappedForProgress.map((PublisherEntity p) {
+      final String stallId = p.bookFairPublisherId!;
+      final BookFairStallEntity stall = widget.event.stalls.firstWhere(
+        (BookFairStallEntity s) => s.id == stallId,
+        orElse: () => BookFairStallEntity(
+          id: stallId,
+          name: 'Unknown Stall',
+          stallNo: 'N/A',
+          halls: const <String>[],
+        ),
+      );
+      return PublisherStallPair(p, stall);
+    }).toList();
+
+    final Set<String> allProgressStallIds = progressPairs.map((PublisherStallPair p) => p.stall.id).toSet();
+    final int totalStalls = allProgressStallIds.length;
+
+    // Calculate dynamically which stalls are completed (all mapped books are in collected state)
+    final Set<String> completedStallIds = <String>{};
+    for (final PublisherStallPair pair in progressPairs) {
+      final List<BookEntity> publisherBooks = books
+          .where((BookEntity b) =>
+              b.publisherId == pair.publisher.id &&
+              (b.collectionStatus == CollectionStatus.shoppingList ||
+               (b.collectionStatus == CollectionStatus.collected &&
+                b.collectedDate != null &&
+                now.difference(b.collectedDate!).inHours < 24)))
+          .toList();
+      if (publisherBooks.isNotEmpty &&
+          publisherBooks.every((BookEntity b) => b.collectionStatus == CollectionStatus.collected)) {
+        completedStallIds.add(pair.stall.id);
+      }
+    }
+
+    final int visitedCount = completedStallIds.length;
     final double progress = totalStalls > 0 ? visitedCount / totalStalls : 0.0;
 
     return Scaffold(
@@ -241,16 +291,7 @@ class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlan
                 return BookFairHallGroupCard(
                   hallId: hallId,
                   groupPairs: groupPairs,
-                  visitedStalls: _visitedStalls,
-                  onToggleVisited: (String stallId) {
-                    setState(() {
-                      if (_visitedStalls.contains(stallId)) {
-                        _visitedStalls.remove(stallId);
-                      } else {
-                        _visitedStalls.add(stallId);
-                      }
-                    });
-                  },
+                  completedStallIds: completedStallIds,
                 );
               },
             ),

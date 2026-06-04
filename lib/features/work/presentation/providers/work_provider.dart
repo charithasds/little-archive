@@ -1,8 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/auth/presentation/providers/auth_provider.dart';
-import '../../../../core/shared/data/services/firestore_service.dart';
 import '../../domain/entities/work_entity.dart';
 import '../../domain/usecases/work_usecases.dart';
 
@@ -11,36 +8,29 @@ part 'work_provider.g.dart';
 @riverpod
 Stream<List<WorkEntity>> worksStream(Ref ref) {
   final WatchWorksUseCase watchWorks = ref.watch(watchWorksUseCaseProvider);
-  final String? userId = ref.watch(currentUidProvider);
-
-  if (userId == null) {
-    return Stream<List<WorkEntity>>.value(<WorkEntity>[]);
-  }
-
   return watchWorks();
 }
 
-
 @riverpod
 Future<int> workCount(Ref ref) async {
-  final String? userId = ref.watch(currentUidProvider);
-  if (userId == null) {
-    return 0;
-  }
-  final FirebaseFirestore firestore = ref.watch(firestoreServiceProvider).firebaseFirestore;
-  final AggregateQuerySnapshot snap = await firestore.collection('users/$userId/works').count().get();
-  return snap.count ?? 0;
+  final List<WorkEntity> works = await ref.watch(worksStreamProvider.future);
+  return works.length;
 }
 
 @riverpod
-Future<WorkEntity?> work(Ref ref, String id) async {
-  final List<WorkEntity> works = await ref.watch(worksStreamProvider.future);
-
-  try {
-    return works.firstWhere((WorkEntity w) => w.id == id);
-  } catch (_) {
-    return null;
-  }
+AsyncValue<WorkEntity?> work(Ref ref, String id) {
+  final AsyncValue<List<WorkEntity>> stream = ref.watch(worksStreamProvider);
+  return stream.when(
+    data: (List<WorkEntity> list) {
+      try {
+        return AsyncValue<WorkEntity?>.data(list.firstWhere((WorkEntity w) => w.id == id));
+      } catch (_) {
+        return const AsyncValue<WorkEntity?>.data(null);
+      }
+    },
+    error: (Object e, StackTrace s) => AsyncValue<WorkEntity?>.error(e, s),
+    loading: () => const AsyncValue<WorkEntity?>.loading(),
+  );
 }
 
 // ── Work missing-info provider ─────────────────────────────────────────────

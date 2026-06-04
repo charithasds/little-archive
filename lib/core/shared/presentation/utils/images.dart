@@ -45,6 +45,8 @@ class Images {
 
   static Color getAvatarIconColor(ThemeData theme) => theme.colorScheme.primary;
 
+  static final Map<String, MemoryImage> _memoryImageCache = <String, MemoryImage>{};
+
   static ImageProvider getImageProvider(
     String? imageSource, {
     String fallbackAsset = 'assets/icon/app_icon.png',
@@ -57,7 +59,10 @@ class Images {
       return NetworkImage(imageSource);
     } else {
       try {
-        return MemoryImage(base64Decode(imageSource));
+        return _memoryImageCache.putIfAbsent(
+          imageSource,
+          () => MemoryImage(base64Decode(imageSource)),
+        );
       } catch (e) {
         return AssetImage(fallbackAsset);
       }
@@ -82,7 +87,7 @@ class Images {
             Image.asset(fallbackAsset, fit: fit, width: width, height: height),
   );
 
-  static String? ensureFitsFirestore(String? base64Image) {
+  static String? compressImageIfNeeded(String? base64Image) {
     if (base64Image == null || base64Image.isEmpty) {
       return base64Image;
     }

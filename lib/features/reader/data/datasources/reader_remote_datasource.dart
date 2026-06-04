@@ -1,9 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:drift/drift.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/auth/presentation/providers/auth_provider.dart';
-import '../../../../core/shared/data/services/firestore_service.dart';
-import '../../../../core/shared/domain/error/exceptions.dart';
+import '../../../../core/database/app_database.dart';
 import '../models/reader_model.dart';
 
 part 'reader_remote_datasource.g.dart';
@@ -13,117 +14,103 @@ abstract class ReaderRemoteDataSource {
   Future<List<ReaderModel>> fetchReaders();
   Future<ReaderModel?> fetchReaderById(String id);
   Stream<List<ReaderModel>> watchReaders();
-  Future<void> addReader(ReaderModel reader, {WriteBatch? batch});
-  Future<void> editReader(ReaderModel reader, {WriteBatch? batch});
-  Future<void> removeReader(String id, {WriteBatch? batch});
+  Future<void> addReader(ReaderModel reader);
+  Future<void> editReader(ReaderModel reader);
+  Future<void> removeReader(String id);
 }
 
 class ReaderRemoteDataSourceImpl implements ReaderRemoteDataSource {
-  ReaderRemoteDataSourceImpl({required this.firestoreService, required this.userId});
+  ReaderRemoteDataSourceImpl({required this.db});
 
-  final FirestoreService firestoreService;
-  final String userId;
-
-  FirebaseFirestore get _firestore => firestoreService.firebaseFirestore;
-  String get _collectionPath => 'users/$userId/readers';
+  final AppDatabase db;
 
   @override
-  String generateId() => firestoreService.generateId('readers');
+  String generateId() {
+    final Random random = Random();
+    final List<int> bytes = List<int>.generate(16, (_) => random.nextInt(256));
+    return base64Url.encode(bytes).replaceAll('=', '').replaceAll('-', '').replaceAll('_', '').substring(0, 20);
+  }
+
+  Future<ReaderModel> _mapToReaderModel(Reader row) async {
+    // Resolve bookIds where readerId == row.id
+    final SimpleSelectStatement<$BooksTable, Book> booksQuery = db.select(db.books)..where(($BooksTable t) => t.readerId.equals(row.id));
+    final List<Book> books = await booksQuery.get();
+    final List<String> bookIds = books.map((Book b) => b.id).toList();
+
+    return ReaderModel(
+      id: row.id,
+      name: row.name,
+      image: row.image,
+      otherName: row.otherName,
+      email: row.email,
+      facebook: row.facebook,
+      phoneNumber: row.phoneNumber,
+      bookIds: bookIds,
+      createdDate: row.createdDate,
+      lastUpdated: row.lastUpdated,
+    );
+  }
 
   @override
   Future<List<ReaderModel>> fetchReaders() async {
-    final List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = await firestoreService
-        .safeGetDocs(_firestore.collection(_collectionPath).orderBy('name'));
-
-    return docs
-        .map(
-          (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-              ReaderModel.fromMap(doc.data(), doc.id),
-        )
-        .toList();
+    final SimpleSelectStatement<$ReadersTable, Reader> query = db.select(db.readers)..orderBy(<OrderClauseGenerator<$ReadersTable>>[($ReadersTable t) => OrderingTerm(expression: t.name)]);
+    final List<Reader> rows = await query.get();
+    final List<ReaderModel> readerModels = <ReaderModel>[];
+    for (final Reader row in rows) {
+      readerModels.add(await _mapToReaderModel(row));
+    }
+    return readerModels;
   }
 
   @override
   Future<ReaderModel?> fetchReaderById(String id) async {
-    final DocumentSnapshot<Map<String, dynamic>>? doc = await firestoreService.safeGetDoc(
-      _firestore.collection(_collectionPath).doc(id),
-    );
-
-    if (doc == null || !doc.exists) {
+    final SimpleSelectStatement<$ReadersTable, Reader> query = db.select(db.readers)..where(($ReadersTable t) => t.id.equals(id));
+    final Reader? row = await query.getSingleOrNull();
+    if (row == null) {
       return null;
     }
-
-    return ReaderModel.fromMap(doc.data()!, doc.id);
+    return _mapToReaderModel(row);
   }
 
   @override
-  Stream<List<ReaderModel>> watchReaders() => _firestore
-      .collection(_collectionPath)
-      .orderBy('name')
-      .snapshots()
-      .map(
-        (QuerySnapshot<Map<String, dynamic>> snapshot) => snapshot.docs
-            .map(
-              (QueryDocumentSnapshot<Map<String, dynamic>> doc) =>
-                  ReaderModel.fromMap(doc.data(), doc.id),
-            )
-            .toList(),
-      );
+  Stream<List<ReaderModel>> watchReaders() => db.select(db.readers).watch().asyncMap((List<Reader> rows) async {
+      final List<ReaderModel> readerModels = <ReaderModel>[];
+      for (final Reader row in rows) {
+        readerModels.add(await _mapToReaderModel(row));
+      }
+      return readerModels;
+    });
 
   @override
-  Future<void> addReader(ReaderModel reader, {WriteBatch? batch}) async {
-    final DocumentReference<Map<String, dynamic>> docRef = _firestore
-        .collection(_collectionPath)
-        .doc(reader.id.isEmpty ? null : reader.id);
-
-    if (batch != null) {
-      batch.set(docRef, reader.toMap());
-      return;
-    }
-
-    await firestoreService.requireConnectivity();
-    await docRef.set(reader.toMap());
+  Future<void> addReader(ReaderModel reader) async {
+    await db.into(db.readers).insertOnConflictUpdate(
+      Reader(
+        id: reader.id,
+        name: reader.name,
+        image: reader.image,
+        otherName: reader.otherName,
+        email: reader.email,
+        facebook: reader.facebook,
+        phoneNumber: reader.phoneNumber,
+        createdDate: reader.createdDate,
+        lastUpdated: reader.lastUpdated,
+      ),
+    );
   }
 
   @override
-  Future<void> editReader(ReaderModel reader, {WriteBatch? batch}) async {
-    final DocumentReference<Map<String, dynamic>> docRef = _firestore
-        .collection(_collectionPath)
-        .doc(reader.id);
-
-    if (batch != null) {
-      batch.update(docRef, reader.toMap());
-      return;
-    }
-
-    await firestoreService.requireConnectivity();
-    await docRef.update(reader.toMap());
+  Future<void> editReader(ReaderModel reader) async {
+    await addReader(reader);
   }
 
   @override
-  Future<void> removeReader(String id, {WriteBatch? batch}) async {
-    final DocumentReference<Map<String, dynamic>> docRef = _firestore
-        .collection(_collectionPath)
-        .doc(id);
-
-    if (batch != null) {
-      batch.delete(docRef);
-      return;
-    }
-
-    await firestoreService.requireConnectivity();
-    await docRef.delete();
+  Future<void> removeReader(String id) async {
+    await (db.delete(db.readers)..where(($ReadersTable t) => t.id.equals(id))).go();
   }
 }
 
 @riverpod
 ReaderRemoteDataSource readerRemoteDataSource(Ref ref) {
-  final FirestoreService firestoreService = ref.watch(firestoreServiceProvider);
-  final String? userId = ref.watch(currentUidProvider);
-
-  if (userId == null) {
-    throw const UnauthorizedException();
-  }
-
-  return ReaderRemoteDataSourceImpl(firestoreService: firestoreService, userId: userId);
+  final AppDatabase db = ref.watch(appDatabaseProvider);
+  return ReaderRemoteDataSourceImpl(db: db);
 }

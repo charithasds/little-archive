@@ -1,8 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/auth/presentation/providers/auth_provider.dart';
-import '../../../../core/shared/data/services/firestore_service.dart';
 import '../../domain/entities/sequence_entity.dart';
 import '../../domain/entities/sequence_volume_entity.dart';
 import '../../domain/usecases/sequence_usecases.dart';
@@ -13,36 +10,29 @@ part 'sequence_provider.g.dart';
 @riverpod
 Stream<List<SequenceEntity>> sequencesStream(Ref ref) {
   final WatchSequencesUseCase watchSequences = ref.watch(watchSequencesUseCaseProvider);
-  final String? userId = ref.watch(currentUidProvider);
-
-  if (userId == null) {
-    return Stream<List<SequenceEntity>>.value(<SequenceEntity>[]);
-  }
-
   return watchSequences();
 }
 
 @riverpod
 Future<int> sequenceCount(Ref ref) async {
-  final String? userId = ref.watch(currentUidProvider);
-  if (userId == null) {
-    return 0;
-  }
-  final FirebaseFirestore firestore = ref.watch(firestoreServiceProvider).firebaseFirestore;
-  final AggregateQuerySnapshot snap = await firestore.collection('users/$userId/sequences').count().get();
-  return snap.count ?? 0;
+  final List<SequenceEntity> sequences = await ref.watch(sequencesStreamProvider.future);
+  return sequences.length;
 }
 
-
 @riverpod
-Future<SequenceEntity?> sequence(Ref ref, String id) async {
-  final List<SequenceEntity> sequences = await ref.watch(sequencesStreamProvider.future);
-
-  try {
-    return sequences.firstWhere((SequenceEntity s) => s.id == id);
-  } catch (_) {
-    return null;
-  }
+AsyncValue<SequenceEntity?> sequence(Ref ref, String id) {
+  final AsyncValue<List<SequenceEntity>> stream = ref.watch(sequencesStreamProvider);
+  return stream.when(
+    data: (List<SequenceEntity> list) {
+      try {
+        return AsyncValue<SequenceEntity?>.data(list.firstWhere((SequenceEntity s) => s.id == id));
+      } catch (_) {
+        return const AsyncValue<SequenceEntity?>.data(null);
+      }
+    },
+    error: (Object e, StackTrace s) => AsyncValue<SequenceEntity?>.error(e, s),
+    loading: () => const AsyncValue<SequenceEntity?>.loading(),
+  );
 }
 
 // ── Sequence missing-info provider ───────────────────────────────────
@@ -78,12 +68,6 @@ Future<SequenceVolumeEntity?> sequenceVolume(Ref ref, String id) async {
 @riverpod
 Stream<List<SequenceVolumeEntity>> sequenceVolumesStream(Ref ref, String sequenceId) {
   final WatchSequenceVolumesUseCase watchVolumes = ref.watch(watchSequenceVolumesUseCaseProvider);
-  final String? userId = ref.watch(currentUidProvider);
-
-  if (userId == null) {
-    return Stream<List<SequenceVolumeEntity>>.value(<SequenceVolumeEntity>[]);
-  }
-
   return watchVolumes(sequenceId);
 }
 
@@ -92,12 +76,6 @@ Stream<List<SequenceVolumeEntity>> allSequenceVolumesStream(Ref ref) {
   final WatchAllSequenceVolumesUseCase watchVolumes = ref.watch(
     watchAllSequenceVolumesUseCaseProvider,
   );
-  final String? userId = ref.watch(currentUidProvider);
-
-  if (userId == null) {
-    return Stream<List<SequenceVolumeEntity>>.value(<SequenceVolumeEntity>[]);
-  }
-
   return watchVolumes();
 }
 

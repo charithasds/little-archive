@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/shared/presentation/routes/route_constants.dart';
+
 import '../../../../core/shared/presentation/utils/buttons.dart';
 import '../../../../core/shared/presentation/utils/dialogs.dart';
 import '../../../../core/shared/presentation/widgets/list_empty_state.dart';
@@ -113,8 +115,8 @@ class _ReaderListPageState extends ConsumerState<ReaderListPage> {
 
                               return ReaderListTile(
                                 reader: reader,
-                                onTap: () => context.go('/readers/${reader.id}'),
-                                onEdit: () => context.push('/readers/upsert', extra: reader),
+                                onTap: () => context.goNamed(RouteConstants.readerDetail, pathParameters: <String, String>{'id': reader.id}),
+                                onEdit: () => context.pushNamed(RouteConstants.upsertReader, extra: reader),
                                 onRemove: () => _handleRemove(reader.id, reader.name),
                               );
                             },
@@ -134,8 +136,8 @@ class _ReaderListPageState extends ConsumerState<ReaderListPage> {
 
                               return ReaderListTile(
                                 reader: reader,
-                                onTap: () => context.go('/readers/${reader.id}'),
-                                onEdit: () => context.push('/readers/upsert', extra: reader),
+                                onTap: () => context.goNamed(RouteConstants.readerDetail, pathParameters: <String, String>{'id': reader.id}),
+                                onEdit: () => context.pushNamed(RouteConstants.upsertReader, extra: reader),
                                 onRemove: () => _handleRemove(reader.id, reader.name),
                               );
                             },
@@ -155,7 +157,7 @@ class _ReaderListPageState extends ConsumerState<ReaderListPage> {
         isExtended: _isExtended,
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
-        onPressed: () => context.go('/readers/upsert'),
+        onPressed: () => context.pushNamed(RouteConstants.upsertReader),
         icon: const FaIcon(FontAwesomeIcons.plus),
         label: const Text('Add Reader'),
       ),

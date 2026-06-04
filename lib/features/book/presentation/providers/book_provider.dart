@@ -1,8 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/auth/presentation/providers/auth_provider.dart';
-import '../../../../core/shared/data/services/firestore_service.dart';
 import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../domain/entities/book_entity.dart';
@@ -13,36 +10,29 @@ part 'book_provider.g.dart';
 @riverpod
 Stream<List<BookEntity>> booksStream(Ref ref) {
   final WatchBooksUseCase watchBooks = ref.watch(watchBooksUseCaseProvider);
-  final String? userId = ref.watch(currentUidProvider);
-
-  if (userId == null) {
-    return Stream<List<BookEntity>>.value(<BookEntity>[]);
-  }
-
   return watchBooks();
 }
 
-
 @riverpod
 Future<int> bookCount(Ref ref) async {
-  final String? userId = ref.watch(currentUidProvider);
-  if (userId == null) {
-    return 0;
-  }
-  final FirebaseFirestore firestore = ref.watch(firestoreServiceProvider).firebaseFirestore;
-  final AggregateQuerySnapshot snap = await firestore.collection('users/$userId/books').count().get();
-  return snap.count ?? 0;
+  final List<BookEntity> books = await ref.watch(booksStreamProvider.future);
+  return books.length;
 }
 
 @riverpod
-Future<BookEntity?> book(Ref ref, String id) async {
-  final List<BookEntity> books = await ref.watch(booksStreamProvider.future);
-
-  try {
-    return books.firstWhere((BookEntity b) => b.id == id);
-  } catch (_) {
-    return null;
-  }
+AsyncValue<BookEntity?> book(Ref ref, String id) {
+  final AsyncValue<List<BookEntity>> stream = ref.watch(booksStreamProvider);
+  return stream.when(
+    data: (List<BookEntity> list) {
+      try {
+        return AsyncValue<BookEntity?>.data(list.firstWhere((BookEntity b) => b.id == id));
+      } catch (_) {
+        return const AsyncValue<BookEntity?>.data(null);
+      }
+    },
+    error: (Object e, StackTrace s) => AsyncValue<BookEntity?>.error(e, s),
+    loading: () => const AsyncValue<BookEntity?>.loading(),
+  );
 }
 
 // ── Book statistics providers ──────────────────────────────────────────────

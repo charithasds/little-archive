@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../entities/reader_entity.dart';
 
 abstract class ReaderRepository {
@@ -7,7 +5,7 @@ abstract class ReaderRepository {
   Future<List<ReaderEntity>> fetchReaders();
   Future<ReaderEntity?> fetchReaderById(String id);
   Stream<List<ReaderEntity>> watchReaders();
-  Future<void> addReader(ReaderEntity reader, {WriteBatch? batch});
-  Future<void> editReader(ReaderEntity reader, {ReaderEntity? oldReader, WriteBatch? batch});
-  Future<void> removeReader(String id, {WriteBatch? batch});
+  Future<void> addReader(ReaderEntity reader);
+  Future<void> editReader(ReaderEntity reader, {ReaderEntity? oldReader});
+  Future<void> removeReader(String id);
 }

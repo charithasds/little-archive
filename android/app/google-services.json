@@ -20,10 +20,6 @@
             "package_name": "com.charithasds.little_archive",
             "certificate_hash": "bfedcf1e52e92f873301143433770dec07f843df"
           }
-        },
-        {
-          "client_id": "959815093644-mdq9akkmrevrafqb863cup4go3ss5jud.apps.googleusercontent.com",
-          "client_type": 3
         }
       ],
       "api_key": [
@@ -31,16 +27,7 @@
           "current_key": "AIzaSyBuV92mgptjnof2iykqDOB5_ZvZzGs66ek"
         }
       ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "959815093644-mdq9akkmrevrafqb863cup4go3ss5jud.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
+      "services": {}
     }
   ],
   "configuration_version": "1"
