@@ -8,6 +8,7 @@ import '../../../../core/shared/domain/enums/compilation_type.dart';
 import '../../../../core/shared/domain/enums/entity.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../../../core/shared/presentation/widgets/custom_icons.dart';
+import '../../../../core/shared/presentation/widgets/search_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../author/domain/entities/author_entity.dart';
 import '../../../author/presentation/providers/author_provider.dart';
@@ -564,18 +565,25 @@ List<String> _missingForSequenceVolume(SequenceVolumeEntity sv) {
   return missing;
 }
 
-class _EntityQualityTab extends ConsumerWidget {
+class _EntityQualityTab extends ConsumerStatefulWidget {
   const _EntityQualityTab({required this.entity});
 
   final Entity entity;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_EntityQualityTab> createState() => _EntityQualityTabState();
+}
+
+class _EntityQualityTabState extends ConsumerState<_EntityQualityTab> {
+  String _searchQuery = '';
+
+  @override
+  Widget build(BuildContext context) {
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final bool isDark = theme.brightness == Brightness.dark;
     final Color redText = isDark ? const Color(0xFFEF9A9A) : const Color(0xFFC62828);
 
-    switch (entity) {
+    switch (widget.entity) {
       case Entity.book:
         final List<BookEntity>? books = ref.watch(booksStreamProvider).value;
 
@@ -587,8 +595,26 @@ class _EntityQualityTab extends ConsumerWidget {
             .where((BookEntity b) => _missingForBook(b).isNotEmpty)
             .toList();
 
-        return _QualityListView<BookEntity>(
-          items: incomplete,
+        if (incomplete.isEmpty) {
+          return _QualityListView<BookEntity>(
+            items: incomplete,
+            emptyLabel: 'All books have complete data',
+            tileBuilder: (BuildContext context, BookEntity book) => const SizedBox.shrink(),
+          );
+        }
+
+        final List<BookEntity> sortedAndFiltered = incomplete
+            .where((BookEntity b) {
+              if (_searchQuery.isEmpty) {
+                return true;
+              }
+              return b.title.toLowerCase().contains(_searchQuery.toLowerCase());
+            })
+            .toList()
+          ..sort((BookEntity a, BookEntity b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+
+        return _buildLayout<BookEntity>(
+          items: sortedAndFiltered,
           emptyLabel: 'All books have complete data',
           tileBuilder: (BuildContext context, BookEntity book) => _QualityTile(
             name: book.title,
@@ -608,8 +634,26 @@ class _EntityQualityTab extends ConsumerWidget {
             .where((WorkEntity w) => _missingForWork(w).isNotEmpty)
             .toList();
 
-        return _QualityListView<WorkEntity>(
-          items: incomplete,
+        if (incomplete.isEmpty) {
+          return _QualityListView<WorkEntity>(
+            items: incomplete,
+            emptyLabel: 'All works have complete data',
+            tileBuilder: (BuildContext context, WorkEntity work) => const SizedBox.shrink(),
+          );
+        }
+
+        final List<WorkEntity> sortedAndFiltered = incomplete
+            .where((WorkEntity w) {
+              if (_searchQuery.isEmpty) {
+                return true;
+              }
+              return w.title.toLowerCase().contains(_searchQuery.toLowerCase());
+            })
+            .toList()
+          ..sort((WorkEntity a, WorkEntity b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+
+        return _buildLayout<WorkEntity>(
+          items: sortedAndFiltered,
           emptyLabel: 'All works have complete data',
           tileBuilder: (BuildContext context, WorkEntity work) => _QualityTile(
             name: work.title,
@@ -629,8 +673,26 @@ class _EntityQualityTab extends ConsumerWidget {
             .where((AuthorEntity a) => _missingForAuthor(a).isNotEmpty)
             .toList();
 
-        return _QualityListView<AuthorEntity>(
-          items: incomplete,
+        if (incomplete.isEmpty) {
+          return _QualityListView<AuthorEntity>(
+            items: incomplete,
+            emptyLabel: 'All authors have complete data',
+            tileBuilder: (BuildContext context, AuthorEntity author) => const SizedBox.shrink(),
+          );
+        }
+
+        final List<AuthorEntity> sortedAndFiltered = incomplete
+            .where((AuthorEntity a) {
+              if (_searchQuery.isEmpty) {
+                return true;
+              }
+              return a.name.toLowerCase().contains(_searchQuery.toLowerCase());
+            })
+            .toList()
+          ..sort((AuthorEntity a, AuthorEntity b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+
+        return _buildLayout<AuthorEntity>(
+          items: sortedAndFiltered,
           emptyLabel: 'All authors have complete data',
           tileBuilder: (BuildContext context, AuthorEntity author) => _QualityTile(
             name: author.name,
@@ -650,8 +712,26 @@ class _EntityQualityTab extends ConsumerWidget {
             .where((TranslatorEntity t) => _missingForTranslator(t).isNotEmpty)
             .toList();
 
-        return _QualityListView<TranslatorEntity>(
-          items: incomplete,
+        if (incomplete.isEmpty) {
+          return _QualityListView<TranslatorEntity>(
+            items: incomplete,
+            emptyLabel: 'All translators have complete data',
+            tileBuilder: (BuildContext context, TranslatorEntity translator) => const SizedBox.shrink(),
+          );
+        }
+
+        final List<TranslatorEntity> sortedAndFiltered = incomplete
+            .where((TranslatorEntity t) {
+              if (_searchQuery.isEmpty) {
+                return true;
+              }
+              return t.name.toLowerCase().contains(_searchQuery.toLowerCase());
+            })
+            .toList()
+          ..sort((TranslatorEntity a, TranslatorEntity b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+
+        return _buildLayout<TranslatorEntity>(
+          items: sortedAndFiltered,
           emptyLabel: 'All translators have complete data',
           tileBuilder: (BuildContext context, TranslatorEntity translator) => _QualityTile(
             name: translator.name,
@@ -671,8 +751,26 @@ class _EntityQualityTab extends ConsumerWidget {
             .where((PublisherEntity p) => _missingForPublisher(p).isNotEmpty)
             .toList();
 
-        return _QualityListView<PublisherEntity>(
-          items: incomplete,
+        if (incomplete.isEmpty) {
+          return _QualityListView<PublisherEntity>(
+            items: incomplete,
+            emptyLabel: 'All publishers have complete data',
+            tileBuilder: (BuildContext context, PublisherEntity publisher) => const SizedBox.shrink(),
+          );
+        }
+
+        final List<PublisherEntity> sortedAndFiltered = incomplete
+            .where((PublisherEntity p) {
+              if (_searchQuery.isEmpty) {
+                return true;
+              }
+              return p.name.toLowerCase().contains(_searchQuery.toLowerCase());
+            })
+            .toList()
+          ..sort((PublisherEntity a, PublisherEntity b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+
+        return _buildLayout<PublisherEntity>(
+          items: sortedAndFiltered,
           emptyLabel: 'All publishers have complete data',
           tileBuilder: (BuildContext context, PublisherEntity publisher) => _QualityTile(
             name: publisher.name,
@@ -692,8 +790,26 @@ class _EntityQualityTab extends ConsumerWidget {
             .where((ReaderEntity r) => _missingForReader(r).isNotEmpty)
             .toList();
 
-        return _QualityListView<ReaderEntity>(
-          items: incomplete,
+        if (incomplete.isEmpty) {
+          return _QualityListView<ReaderEntity>(
+            items: incomplete,
+            emptyLabel: 'All readers have complete data',
+            tileBuilder: (BuildContext context, ReaderEntity reader) => const SizedBox.shrink(),
+          );
+        }
+
+        final List<ReaderEntity> sortedAndFiltered = incomplete
+            .where((ReaderEntity r) {
+              if (_searchQuery.isEmpty) {
+                return true;
+              }
+              return r.name.toLowerCase().contains(_searchQuery.toLowerCase());
+            })
+            .toList()
+          ..sort((ReaderEntity a, ReaderEntity b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+
+        return _buildLayout<ReaderEntity>(
+          items: sortedAndFiltered,
           emptyLabel: 'All readers have complete data',
           tileBuilder: (BuildContext context, ReaderEntity reader) => _QualityTile(
             name: reader.name,
@@ -713,8 +829,26 @@ class _EntityQualityTab extends ConsumerWidget {
             .where((SequenceEntity s) => _missingForSequence(s).isNotEmpty)
             .toList();
 
-        return _QualityListView<SequenceEntity>(
-          items: incomplete,
+        if (incomplete.isEmpty) {
+          return _QualityListView<SequenceEntity>(
+            items: incomplete,
+            emptyLabel: 'All sequences have complete data',
+            tileBuilder: (BuildContext context, SequenceEntity sequence) => const SizedBox.shrink(),
+          );
+        }
+
+        final List<SequenceEntity> sortedAndFiltered = incomplete
+            .where((SequenceEntity s) {
+              if (_searchQuery.isEmpty) {
+                return true;
+              }
+              return s.name.toLowerCase().contains(_searchQuery.toLowerCase());
+            })
+            .toList()
+          ..sort((SequenceEntity a, SequenceEntity b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+
+        return _buildLayout<SequenceEntity>(
+          items: sortedAndFiltered,
           emptyLabel: 'All sequences have complete data',
           tileBuilder: (BuildContext context, SequenceEntity sequence) => _QualityTile(
             name: sequence.name,
@@ -736,8 +870,26 @@ class _EntityQualityTab extends ConsumerWidget {
             .where((SequenceVolumeEntity sv) => _missingForSequenceVolume(sv).isNotEmpty)
             .toList();
 
-        return _QualityListView<SequenceVolumeEntity>(
-          items: incomplete,
+        if (incomplete.isEmpty) {
+          return _QualityListView<SequenceVolumeEntity>(
+            items: incomplete,
+            emptyLabel: 'All sequence volumes have complete data',
+            tileBuilder: (BuildContext context, SequenceVolumeEntity sequenceVolume) => const SizedBox.shrink(),
+          );
+        }
+
+        final List<SequenceVolumeEntity> sortedAndFiltered = incomplete
+            .where((SequenceVolumeEntity sv) {
+              if (_searchQuery.isEmpty) {
+                return true;
+              }
+              return sv.volume.toLowerCase().contains(_searchQuery.toLowerCase());
+            })
+            .toList()
+          ..sort((SequenceVolumeEntity a, SequenceVolumeEntity b) => a.volume.toLowerCase().compareTo(b.volume.toLowerCase()));
+
+        return _buildLayout<SequenceVolumeEntity>(
+          items: sortedAndFiltered,
           emptyLabel: 'All sequence volumes have complete data',
           tileBuilder: (BuildContext context, SequenceVolumeEntity sequenceVolume) => _QualityTile(
             name: sequenceVolume.volume,
@@ -747,5 +899,45 @@ class _EntityQualityTab extends ConsumerWidget {
           ),
         );
     }
+  }
+
+  Widget _buildLayout<T>({
+    required List<T> items,
+    required Widget Function(BuildContext context, T item) tileBuilder,
+    required String emptyLabel,
+  }) {
+    final ThemeData theme = ref.watch(activeThemeDataProvider);
+    final ColorScheme colorScheme = theme.colorScheme;
+
+    return Column(
+      children: <Widget>[
+        SearchField(
+          onChanged: (String val) {
+            setState(() {
+              _searchQuery = val;
+            });
+          },
+        ),
+        if (items.isEmpty)
+          Expanded(
+            child: Center(
+              child: Text(
+                'No results match your search.',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          )
+        else
+          Expanded(
+            child: _QualityListView<T>(
+              items: items,
+              emptyLabel: emptyLabel,
+              tileBuilder: tileBuilder,
+            ),
+          ),
+      ],
+    );
   }
 }

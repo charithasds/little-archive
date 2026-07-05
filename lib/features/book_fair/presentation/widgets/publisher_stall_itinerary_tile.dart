@@ -75,18 +75,19 @@ class _PublisherStallItineraryTileState extends ConsumerState<PublisherStallItin
                 : colorScheme.onSurface,
           ),
         ),
-        subtitle: Text(
-          widget.publisher.name,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: widget.isVisited
-                ? colorScheme.onSurfaceVariant.withValues(alpha: 0.4)
-                : colorScheme.onSurfaceVariant,
-            decoration: widget.isVisited ? TextDecoration.lineThrough : null,
-          ),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
+            Text(
+              widget.publisher.name,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: widget.isVisited
+                    ? colorScheme.onSurfaceVariant.withValues(alpha: 0.4)
+                    : colorScheme.onSurfaceVariant,
+                decoration: widget.isVisited ? TextDecoration.lineThrough : null,
+              ),
+            ),
+            const SizedBox(height: 6),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
@@ -105,21 +106,20 @@ class _PublisherStallItineraryTileState extends ConsumerState<PublisherStallItin
                 ),
               ),
             ),
-            if (hasBooks) ...<Widget>[
-              const SizedBox(width: 8),
-              AnimatedRotation(
+          ],
+        ),
+        trailing: hasBooks
+            ? AnimatedRotation(
                 turns: _isExpanded ? 0.5 : 0,
                 duration: const Duration(milliseconds: 200),
                 child: FaIcon(FontAwesomeIcons.chevronDown, size: 14, color: purplePrimary),
-              ),
-            ],
-          ],
-        ),
+              )
+            : null,
         showTrailingIcon: hasBooks,
         children: hasBooks
             ? <Widget>[
                 Container(
-                  margin: const EdgeInsets.only(left: 52, right: 16, bottom: 10),
+                  margin: const EdgeInsets.only(left: 16, right: 16, bottom: 10),
                   decoration: BoxDecoration(
                     color: purpleContainer.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(12),
@@ -139,24 +139,12 @@ class _PublisherStallItineraryTileState extends ConsumerState<PublisherStallItin
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               child: Row(
                                 children: <Widget>[
-                                  Expanded(
-                                    child: Text(
-                                      book.title,
-                                      style: theme.textTheme.bodySmall?.copyWith(
-                                        color: isChecked
-                                            ? onPurpleContainer.withValues(alpha: 0.5)
-                                            : onPurpleContainer,
-                                        fontWeight: FontWeight.w500,
-                                        decoration: isChecked ? TextDecoration.lineThrough : null,
-                                      ),
-                                    ),
-                                  ),
                                   if (isChecked)
                                     IconButton(
                                       icon: FaIcon(
-                                        FontAwesomeIcons.rotateLeft,
-                                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                                        size: 18,
+                                        FontAwesomeIcons.circleCheck,
+                                        color: purplePrimary,
+                                        size: 20,
                                       ),
                                       onPressed: () {
                                         setState(() {
@@ -170,8 +158,8 @@ class _PublisherStallItineraryTileState extends ConsumerState<PublisherStallItin
                                   else
                                     IconButton(
                                       icon: FaIcon(
-                                        FontAwesomeIcons.squareCheck,
-                                        color: purplePrimary,
+                                        FontAwesomeIcons.circle,
+                                        color: purplePrimary.withValues(alpha: 0.6),
                                         size: 20,
                                       ),
                                       onPressed: () {
@@ -183,6 +171,19 @@ class _PublisherStallItineraryTileState extends ConsumerState<PublisherStallItin
                                       constraints: const BoxConstraints(),
                                       padding: const EdgeInsets.all(4),
                                     ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      book.title,
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: isChecked
+                                            ? onPurpleContainer.withValues(alpha: 0.5)
+                                            : onPurpleContainer,
+                                        fontWeight: FontWeight.w500,
+                                        decoration: isChecked ? TextDecoration.lineThrough : null,
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),

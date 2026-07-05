@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:drift/drift.dart';
@@ -26,9 +25,9 @@ class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
 
   @override
   String generateId() {
+    const String chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final Random random = Random();
-    final List<int> bytes = List<int>.generate(16, (_) => random.nextInt(256));
-    return base64Url.encode(bytes).replaceAll('=', '').replaceAll('-', '').replaceAll('_', '').substring(0, 20);
+    return List<String>.generate(20, (_) => chars[random.nextInt(chars.length)]).join();
   }
 
   Future<TranslatorModel> _mapToTranslatorModel(Translator row) async {
@@ -78,13 +77,17 @@ class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
   }
 
   @override
-  Stream<List<TranslatorModel>> watchTranslators() => db.select(db.translators).watch().asyncMap((List<Translator> rows) async {
-      final List<TranslatorModel> translators = <TranslatorModel>[];
-      for (final Translator row in rows) {
-        translators.add(await _mapToTranslatorModel(row));
-      }
-      return translators;
-    });
+  Stream<List<TranslatorModel>> watchTranslators() async* {
+    yield await fetchTranslators();
+    await for (final Set<TableUpdate> _ in db.tableUpdates().where((Set<TableUpdate> updates) => updates.any((TableUpdate update) =>
+        update.table == db.translators.actualTableName ||
+        update.table == db.bookTranslatorsJoin.actualTableName ||
+        update.table == db.workTranslatorsJoin.actualTableName ||
+        update.table == db.books.actualTableName ||
+        update.table == db.works.actualTableName))) {
+      yield await fetchTranslators();
+    }
+  }
 
   @override
   Future<void> addTranslator(TranslatorModel translator) async {
@@ -98,7 +101,7 @@ class TranslatorRemoteDataSourceImpl implements TranslatorRemoteDataSource {
         facebook: translator.facebook,
         createdDate: translator.createdDate,
         lastUpdated: translator.lastUpdated,
-      ),
+      ).toCompanion(false),
     );
   }
 

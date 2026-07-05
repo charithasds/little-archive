@@ -59,6 +59,9 @@ class Images {
       return NetworkImage(imageSource);
     } else {
       try {
+        if (_memoryImageCache.length > 50) {
+          _memoryImageCache.clear();
+        }
         return _memoryImageCache.putIfAbsent(
           imageSource,
           () => MemoryImage(base64Decode(imageSource)),
@@ -92,7 +95,7 @@ class Images {
       return base64Image;
     }
 
-    const int threshold = 800000;
+    const int threshold = 50000;
 
     if (base64Image.length < threshold) {
       return base64Image;
@@ -105,38 +108,17 @@ class Images {
         return base64Image;
       }
 
-      Uint8List compressed = Uint8List.fromList(img.encodeJpg(decodedImage, quality: 90));
-      String encoded = base64Encode(compressed);
-
-      if (encoded.length < threshold) {
-        return encoded;
-      }
-
-      if (decodedImage.width > 1024 || decodedImage.height > 1024) {
+      if (decodedImage.width > 400 || decodedImage.height > 400) {
         decodedImage = img.copyResize(
           decodedImage,
-          width: decodedImage.width > decodedImage.height ? 1024 : null,
-          height: decodedImage.height >= decodedImage.width ? 1024 : null,
+          width: decodedImage.width > decodedImage.height ? 400 : null,
+          height: decodedImage.height >= decodedImage.width ? 400 : null,
           interpolation: img.Interpolation.average,
         );
       }
-      compressed = Uint8List.fromList(img.encodeJpg(decodedImage, quality: 80));
-      encoded = base64Encode(compressed);
 
-      if (encoded.length < threshold) {
-        return encoded;
-      }
-
-      decodedImage = img.copyResize(
-        decodedImage,
-        width: decodedImage.width > decodedImage.height ? 600 : null,
-        height: decodedImage.height >= decodedImage.width ? 600 : null,
-        interpolation: img.Interpolation.average,
-      );
-      compressed = Uint8List.fromList(img.encodeJpg(decodedImage, quality: 70));
-      encoded = base64Encode(compressed);
-
-      return encoded;
+      final Uint8List compressed = Uint8List.fromList(img.encodeJpg(decodedImage, quality: 70));
+      return base64Encode(compressed);
     } catch (e) {
       return base64Image;
     }

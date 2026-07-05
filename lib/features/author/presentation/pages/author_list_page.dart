@@ -28,6 +28,25 @@ class AuthorListPage extends ConsumerStatefulWidget {
 
 class _AuthorListPageState extends ConsumerState<AuthorListPage> {
   bool _isExtended = true;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    ref.read(authorListControllerProvider.notifier).setSearchQuery('');
+  }
+
+  Future<void> _navigateTo(Future<void> Function() navigation) async {
+    await navigation();
+    if (mounted) {
+      _clearSearch();
+    }
+  }
 
   Future<void> _handleRemove(String authorId, String authorName) async {
     await AppDialogs.removeEntity(
@@ -36,7 +55,6 @@ class _AuthorListPageState extends ConsumerState<AuthorListPage> {
       entityName: authorName,
       onConfirm: () async {
         await ref.read(removeAuthorUseCaseProvider)(authorId);
-        ref.invalidate(authorCountProvider);
       },
     );
   }
@@ -87,6 +105,7 @@ class _AuthorListPageState extends ConsumerState<AuthorListPage> {
             child: Column(
               children: <Widget>[
                 SearchField(
+                  controller: _searchController,
                   hintText: 'Search',
                   onChanged: (String query) =>
                       ref.read(authorListControllerProvider.notifier).setSearchQuery(query),
@@ -115,8 +134,8 @@ class _AuthorListPageState extends ConsumerState<AuthorListPage> {
 
                               return AuthorListTile(
                                 author: author,
-                                onTap: () => context.goNamed(RouteConstants.authorDetail, pathParameters: <String, String>{'id': author.id}),
-                                onEdit: () => context.pushNamed(RouteConstants.upsertAuthor, extra: author),
+                                onTap: () => _navigateTo(() => context.pushNamed(RouteConstants.authorDetail, pathParameters: <String, String>{'id': author.id})),
+                                onEdit: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertAuthor, extra: author)),
                                 onRemove: () => _handleRemove(author.id, author.name),
                               );
                             },
@@ -136,8 +155,8 @@ class _AuthorListPageState extends ConsumerState<AuthorListPage> {
 
                               return AuthorListTile(
                                 author: author,
-                                onTap: () => context.goNamed(RouteConstants.authorDetail, pathParameters: <String, String>{'id': author.id}),
-                                onEdit: () => context.pushNamed(RouteConstants.upsertAuthor, extra: author),
+                                onTap: () => _navigateTo(() => context.pushNamed(RouteConstants.authorDetail, pathParameters: <String, String>{'id': author.id})),
+                                onEdit: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertAuthor, extra: author)),
                                 onRemove: () => _handleRemove(author.id, author.name),
                               );
                             },
@@ -157,7 +176,7 @@ class _AuthorListPageState extends ConsumerState<AuthorListPage> {
         isExtended: _isExtended,
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
-        onPressed: () => context.pushNamed(RouteConstants.upsertAuthor),
+        onPressed: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertAuthor)),
         icon: const FaIcon(FontAwesomeIcons.plus),
         label: const Text('Add Author'),
       ),

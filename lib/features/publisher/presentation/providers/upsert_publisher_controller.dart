@@ -10,7 +10,6 @@ import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../domain/entities/publisher_entity.dart';
 import '../../domain/usecases/publisher_usecases.dart';
-import 'publisher_provider.dart';
 
 part 'upsert_publisher_controller.g.dart';
 
@@ -74,12 +73,18 @@ class UpsertPublisherController extends _$UpsertPublisherController {
   }) async {
     state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
-
+    await Future<void>.delayed(Duration.zero);
 
     final PublisherEntity? existingPublisher = state.existingPublisher;
     final String generatedId = ref.read(generatePublisherIdUseCaseProvider)();
 
-    PublisherEntity publisherToSave = existingPublisher != null
+    // Eagerly compress the logo if it exists to prevent SQLite OOM and large documents.
+    final String? compressedLogo = Images.compressImageIfNeeded(state.pickedBase64Logo);
+    if (compressedLogo != state.pickedBase64Logo) {
+      state = state.copyWith(pickedBase64Logo: Nullable<String?>(compressedLogo));
+    }
+
+    final PublisherEntity publisherToSave = existingPublisher != null
         ? existingPublisher.copyWith(
             name: name,
             isSelfPublisher: isSelfPublisher,
@@ -88,7 +93,7 @@ class UpsertPublisherController extends _$UpsertPublisherController {
             email: Nullable<String?>(email?.isEmpty ?? true ? null : email),
             facebook: Nullable<String?>(facebook?.isEmpty ?? true ? null : facebook),
             phoneNumber: Nullable<String?>(phone?.isEmpty ?? true ? null : phone),
-            logo: Nullable<String?>(state.pickedBase64Logo),
+            logo: Nullable<String?>(compressedLogo),
             lastUpdated: DateTime.now(),
           )
         : PublisherEntity(
@@ -100,7 +105,7 @@ class UpsertPublisherController extends _$UpsertPublisherController {
             email: email?.isEmpty ?? true ? null : email,
             facebook: facebook?.isEmpty ?? true ? null : facebook,
             phoneNumber: phone?.isEmpty ?? true ? null : phone,
-            logo: state.pickedBase64Logo,
+            logo: compressedLogo,
             bookIds: const <String>[],
             createdDate: DateTime.now(),
             lastUpdated: DateTime.now(),
@@ -108,33 +113,12 @@ class UpsertPublisherController extends _$UpsertPublisherController {
 
     try {
       if (existingPublisher != null) {
-        try {
-          await ref.read(editPublisherUseCaseProvider)(publisherToSave);
-        } catch (e) {
-          if (e.toString().contains('longer than 1048487 bytes')) {
-            final String? compressedLogo = Images.compressImageIfNeeded(state.pickedBase64Logo);
-            publisherToSave = publisherToSave.copyWith(logo: Nullable<String?>(compressedLogo));
-            await ref.read(editPublisherUseCaseProvider)(publisherToSave);
-          } else {
-            rethrow;
-          }
-        }
+        await ref.read(editPublisherUseCaseProvider)(publisherToSave);
       } else {
-        try {
-          await ref.read(addPublisherUseCaseProvider)(publisherToSave);
-        } catch (e) {
-          if (e.toString().contains('longer than 1048487 bytes')) {
-            final String? compressedLogo = Images.compressImageIfNeeded(state.pickedBase64Logo);
-            publisherToSave = publisherToSave.copyWith(logo: Nullable<String?>(compressedLogo));
-            await ref.read(addPublisherUseCaseProvider)(publisherToSave);
-          } else {
-            rethrow;
-          }
-        }
+        await ref.read(addPublisherUseCaseProvider)(publisherToSave);
       }
 
       state = state.copyWith(isLoading: false);
-      ref.invalidate(publisherCountProvider);
       return publisherToSave;
     } on NoConnectionException catch (e) {
       state = state.copyWith(isLoading: false, error: Nullable<String?>(e.message));

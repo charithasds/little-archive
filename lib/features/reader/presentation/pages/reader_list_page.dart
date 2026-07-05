@@ -28,6 +28,25 @@ class ReaderListPage extends ConsumerStatefulWidget {
 
 class _ReaderListPageState extends ConsumerState<ReaderListPage> {
   bool _isExtended = true;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    ref.read(readerListControllerProvider.notifier).setSearchQuery('');
+  }
+
+  Future<void> _navigateTo(Future<void> Function() navigation) async {
+    await navigation();
+    if (mounted) {
+      _clearSearch();
+    }
+  }
 
   Future<void> _handleRemove(String readerId, String readerName) async {
     await AppDialogs.removeEntity(
@@ -36,7 +55,6 @@ class _ReaderListPageState extends ConsumerState<ReaderListPage> {
       entityName: readerName,
       onConfirm: () async {
         await ref.read(removeReaderUseCaseProvider)(readerId);
-        ref.invalidate(readerCountProvider);
       },
     );
   }
@@ -87,6 +105,7 @@ class _ReaderListPageState extends ConsumerState<ReaderListPage> {
             child: Column(
               children: <Widget>[
                 SearchField(
+                  controller: _searchController,
                   hintText: 'Search',
                   onChanged: (String query) =>
                       ref.read(readerListControllerProvider.notifier).setSearchQuery(query),
@@ -115,8 +134,8 @@ class _ReaderListPageState extends ConsumerState<ReaderListPage> {
 
                               return ReaderListTile(
                                 reader: reader,
-                                onTap: () => context.goNamed(RouteConstants.readerDetail, pathParameters: <String, String>{'id': reader.id}),
-                                onEdit: () => context.pushNamed(RouteConstants.upsertReader, extra: reader),
+                                onTap: () => _navigateTo(() => context.pushNamed(RouteConstants.readerDetail, pathParameters: <String, String>{'id': reader.id})),
+                                onEdit: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertReader, extra: reader)),
                                 onRemove: () => _handleRemove(reader.id, reader.name),
                               );
                             },
@@ -136,8 +155,8 @@ class _ReaderListPageState extends ConsumerState<ReaderListPage> {
 
                               return ReaderListTile(
                                 reader: reader,
-                                onTap: () => context.goNamed(RouteConstants.readerDetail, pathParameters: <String, String>{'id': reader.id}),
-                                onEdit: () => context.pushNamed(RouteConstants.upsertReader, extra: reader),
+                                onTap: () => _navigateTo(() => context.pushNamed(RouteConstants.readerDetail, pathParameters: <String, String>{'id': reader.id})),
+                                onEdit: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertReader, extra: reader)),
                                 onRemove: () => _handleRemove(reader.id, reader.name),
                               );
                             },
@@ -157,7 +176,7 @@ class _ReaderListPageState extends ConsumerState<ReaderListPage> {
         isExtended: _isExtended,
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
-        onPressed: () => context.pushNamed(RouteConstants.upsertReader),
+        onPressed: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertReader)),
         icon: const FaIcon(FontAwesomeIcons.plus),
         label: const Text('Add Reader'),
       ),

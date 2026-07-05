@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-
+import '../../../../core/shared/domain/utils/nullable.dart';
+import '../../../../core/shared/presentation/utils/images.dart';
 import '../../domain/entities/reader_entity.dart';
 import '../../domain/repositories/reader_repository.dart';
 import '../datasources/reader_remote_datasource.dart';
@@ -12,11 +13,40 @@ class ReaderRepositoryImpl implements ReaderRepository {
 
   final ReaderRemoteDataSource remoteDataSource;
 
+  final Set<String> _processedImageReaderIds = <String>{};
+
   @override
   String generateId() => remoteDataSource.generateId();
 
   @override
-  Future<List<ReaderEntity>> fetchReaders() => remoteDataSource.fetchReaders();
+  Future<List<ReaderEntity>> fetchReaders() async {
+    final List<ReaderEntity> readers = await remoteDataSource.fetchReaders();
+    _compressExistingLargeImages(readers);
+    return readers;
+  }
+
+  void _compressExistingLargeImages(List<ReaderEntity> readers) {
+    Future<void>.microtask(() async {
+      for (final ReaderEntity reader in readers) {
+        if (_processedImageReaderIds.contains(reader.id)) {
+          continue;
+        }
+        _processedImageReaderIds.add(reader.id);
+
+        final String? image = reader.image;
+        if (image != null && image.length > 50000) {
+          final String? compressed = Images.compressImageIfNeeded(image);
+          if (compressed != null && compressed != image) {
+            final ReaderEntity updated = reader.copyWith(
+              image: Nullable<String?>(compressed),
+              lastUpdated: DateTime.now(),
+            );
+            await editReader(updated);
+          }
+        }
+      }
+    });
+  }
 
   @override
   Future<ReaderEntity?> fetchReaderById(String id) => remoteDataSource.fetchReaderById(id);

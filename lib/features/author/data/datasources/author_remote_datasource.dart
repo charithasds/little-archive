@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:drift/drift.dart';
@@ -26,9 +25,9 @@ class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
 
   @override
   String generateId() {
+    const String chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final Random random = Random();
-    final List<int> bytes = List<int>.generate(16, (_) => random.nextInt(256));
-    return base64Url.encode(bytes).replaceAll('=', '').replaceAll('-', '').replaceAll('_', '').substring(0, 20);
+    return List<String>.generate(20, (_) => chars[random.nextInt(chars.length)]).join();
   }
 
   Future<AuthorModel> _mapToAuthorModel(Author row) async {
@@ -78,13 +77,17 @@ class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
   }
 
   @override
-  Stream<List<AuthorModel>> watchAuthors() => db.select(db.authors).watch().asyncMap((List<Author> rows) async {
-      final List<AuthorModel> authors = <AuthorModel>[];
-      for (final Author row in rows) {
-        authors.add(await _mapToAuthorModel(row));
-      }
-      return authors;
-    });
+  Stream<List<AuthorModel>> watchAuthors() async* {
+    yield await fetchAuthors();
+    await for (final Set<TableUpdate> _ in db.tableUpdates().where((Set<TableUpdate> updates) => updates.any((TableUpdate update) =>
+        update.table == db.authors.actualTableName ||
+        update.table == db.bookAuthorsJoin.actualTableName ||
+        update.table == db.workAuthorsJoin.actualTableName ||
+        update.table == db.books.actualTableName ||
+        update.table == db.works.actualTableName))) {
+      yield await fetchAuthors();
+    }
+  }
 
   @override
   Future<void> addAuthor(AuthorModel author) async {
@@ -98,7 +101,7 @@ class AuthorRemoteDataSourceImpl implements AuthorRemoteDataSource {
         facebook: author.facebook,
         createdDate: author.createdDate,
         lastUpdated: author.lastUpdated,
-      ),
+      ).toCompanion(false),
     );
   }
 

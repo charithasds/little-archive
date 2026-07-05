@@ -28,6 +28,25 @@ class TranslatorListPage extends ConsumerStatefulWidget {
 
 class _TranslatorListPageState extends ConsumerState<TranslatorListPage> {
   bool _isExtended = true;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    ref.read(translatorListControllerProvider.notifier).setSearchQuery('');
+  }
+
+  Future<void> _navigateTo(Future<void> Function() navigation) async {
+    await navigation();
+    if (mounted) {
+      _clearSearch();
+    }
+  }
 
   Future<void> _handleRemove(String translatorId, String translatorName) async {
     await AppDialogs.removeEntity(
@@ -36,7 +55,6 @@ class _TranslatorListPageState extends ConsumerState<TranslatorListPage> {
       entityName: translatorName,
       onConfirm: () async {
         await ref.read(removeTranslatorUseCaseProvider)(translatorId);
-        ref.invalidate(translatorCountProvider);
       },
     );
   }
@@ -89,6 +107,7 @@ class _TranslatorListPageState extends ConsumerState<TranslatorListPage> {
             child: Column(
               children: <Widget>[
                 SearchField(
+                  controller: _searchController,
                   hintText: 'Search',
                   onChanged: (String query) =>
                       ref.read(translatorListControllerProvider.notifier).setSearchQuery(query),
@@ -117,9 +136,9 @@ class _TranslatorListPageState extends ConsumerState<TranslatorListPage> {
 
                               return TranslatorListTile(
                                 translator: translator,
-                                onTap: () => context.goNamed(RouteConstants.translatorDetail, pathParameters: <String, String>{'id': translator.id}),
-                                onEdit: () =>
-                                    context.pushNamed(RouteConstants.upsertTranslator, extra: translator),
+                                onTap: () => _navigateTo(() => context.pushNamed(RouteConstants.translatorDetail, pathParameters: <String, String>{'id': translator.id})),
+                                onEdit: () => _navigateTo(() =>
+                                    context.pushNamed(RouteConstants.upsertTranslator, extra: translator)),
                                 onRemove: () => _handleRemove(translator.id, translator.name),
                               );
                             },
@@ -139,9 +158,9 @@ class _TranslatorListPageState extends ConsumerState<TranslatorListPage> {
 
                               return TranslatorListTile(
                                 translator: translator,
-                                onTap: () => context.goNamed(RouteConstants.translatorDetail, pathParameters: <String, String>{'id': translator.id}),
-                                onEdit: () =>
-                                    context.pushNamed(RouteConstants.upsertTranslator, extra: translator),
+                                onTap: () => _navigateTo(() => context.pushNamed(RouteConstants.translatorDetail, pathParameters: <String, String>{'id': translator.id})),
+                                onEdit: () => _navigateTo(() =>
+                                    context.pushNamed(RouteConstants.upsertTranslator, extra: translator)),
                                 onRemove: () => _handleRemove(translator.id, translator.name),
                               );
                             },
@@ -161,7 +180,7 @@ class _TranslatorListPageState extends ConsumerState<TranslatorListPage> {
         isExtended: _isExtended,
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
-        onPressed: () => context.pushNamed(RouteConstants.upsertTranslator),
+        onPressed: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertTranslator)),
         icon: const FaIcon(FontAwesomeIcons.plus),
         label: const Text('Add Translator'),
       ),

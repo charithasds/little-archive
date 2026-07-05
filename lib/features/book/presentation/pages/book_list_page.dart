@@ -28,6 +28,25 @@ class BookListPage extends ConsumerStatefulWidget {
 
 class _BookListPageState extends ConsumerState<BookListPage> {
   bool _isExtended = true;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    ref.read(bookListControllerProvider.notifier).setSearchQuery('');
+  }
+
+  Future<void> _navigateTo(Future<void> Function() navigation) async {
+    await navigation();
+    if (mounted) {
+      _clearSearch();
+    }
+  }
 
   Future<void> _handleRemove(String bookId, String bookTitle) async {
     await AppDialogs.removeEntity(
@@ -36,7 +55,6 @@ class _BookListPageState extends ConsumerState<BookListPage> {
       entityName: bookTitle,
       onConfirm: () async {
         await ref.read(removeBookUseCaseProvider)(bookId);
-        ref.invalidate(bookCountProvider);
       },
     );
   }
@@ -87,6 +105,7 @@ class _BookListPageState extends ConsumerState<BookListPage> {
             child: Column(
               children: <Widget>[
                 SearchField(
+                  controller: _searchController,
                   hintText: 'Search',
                   onChanged: (String query) =>
                       ref.read(bookListControllerProvider.notifier).setSearchQuery(query),
@@ -115,8 +134,8 @@ class _BookListPageState extends ConsumerState<BookListPage> {
 
                               return BookListTile(
                                 book: book,
-                                onTap: () => context.goNamed(RouteConstants.bookDetail, pathParameters: <String, String>{'id': book.id}),
-                                onEdit: () => context.pushNamed(RouteConstants.upsertBook, extra: book),
+                                onTap: () => _navigateTo(() => context.pushNamed(RouteConstants.bookDetail, pathParameters: <String, String>{'id': book.id})),
+                                onEdit: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertBook, extra: book)),
                                 onRemove: () => _handleRemove(book.id, book.title),
                               );
                             },
@@ -136,8 +155,8 @@ class _BookListPageState extends ConsumerState<BookListPage> {
 
                               return BookListTile(
                                 book: book,
-                                onTap: () => context.goNamed(RouteConstants.bookDetail, pathParameters: <String, String>{'id': book.id}),
-                                onEdit: () => context.pushNamed(RouteConstants.upsertBook, extra: book),
+                                onTap: () => _navigateTo(() => context.pushNamed(RouteConstants.bookDetail, pathParameters: <String, String>{'id': book.id})),
+                                onEdit: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertBook, extra: book)),
                                 onRemove: () => _handleRemove(book.id, book.title),
                               );
                             },
@@ -157,7 +176,7 @@ class _BookListPageState extends ConsumerState<BookListPage> {
         isExtended: _isExtended,
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
-        onPressed: () => context.pushNamed(RouteConstants.upsertBook),
+        onPressed: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertBook)),
         icon: const FaIcon(FontAwesomeIcons.plus),
         label: const Text('Add Book'),
       ),

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:drift/drift.dart';
@@ -30,9 +29,9 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
 
   @override
   String generateId() {
+    const String chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final Random random = Random();
-    final List<int> bytes = List<int>.generate(16, (_) => random.nextInt(256));
-    return base64Url.encode(bytes).replaceAll('=', '').replaceAll('-', '').replaceAll('_', '').substring(0, 20);
+    return List<String>.generate(20, (_) => chars[random.nextInt(chars.length)]).join();
   }
 
   Future<WorkModel> _mapToWorkModel(Work row) async {
@@ -93,13 +92,17 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
   }
 
   @override
-  Stream<List<WorkModel>> watchWorks() => db.select(db.works).watch().asyncMap((List<Work> rows) async {
-      final List<WorkModel> works = <WorkModel>[];
-      for (final Work row in rows) {
-        works.add(await _mapToWorkModel(row));
-      }
-      return works;
-    });
+  Stream<List<WorkModel>> watchWorks() async* {
+    yield await fetchWorks();
+    await for (final Set<TableUpdate> _ in db.tableUpdates().where((Set<TableUpdate> updates) => updates.any((TableUpdate update) =>
+        update.table == db.works.actualTableName ||
+        update.table == db.workAuthorsJoin.actualTableName ||
+        update.table == db.workTranslatorsJoin.actualTableName ||
+        update.table == db.sequenceVolumes.actualTableName ||
+        update.table == db.books.actualTableName))) {
+      yield await fetchWorks();
+    }
+  }
 
   @override
   Future<void> addWork(WorkModel work) async {
@@ -119,7 +122,7 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
           bookId: work.bookId,
           createdDate: work.createdDate,
           lastUpdated: work.lastUpdated,
-        ),
+        ).toCompanion(false),
       );
 
       // Sync Work-Author Joins

@@ -10,7 +10,6 @@ import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../domain/entities/translator_entity.dart';
 import '../../domain/usecases/translator_usecases.dart';
-import 'translator_provider.dart';
 
 part 'upsert_translator_controller.g.dart';
 
@@ -76,18 +75,24 @@ class UpsertTranslatorController extends _$UpsertTranslatorController {
   }) async {
     state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
-
+    await Future<void>.delayed(Duration.zero);
 
     final TranslatorEntity? existingTranslator = state.existingTranslator;
     final String generatedId = ref.read(generateTranslatorIdUseCaseProvider)();
 
-    TranslatorEntity translatorToSave = existingTranslator != null
+    // Eagerly compress the image if it exists to prevent SQLite OOM and large documents.
+    final String? compressedImage = Images.compressImageIfNeeded(state.pickedBase64Image);
+    if (compressedImage != state.pickedBase64Image) {
+      state = state.copyWith(pickedBase64Image: Nullable<String?>(compressedImage));
+    }
+
+    final TranslatorEntity translatorToSave = existingTranslator != null
         ? existingTranslator.copyWith(
             name: name,
             otherName: Nullable<String?>(otherName?.isEmpty ?? true ? null : otherName),
             website: Nullable<String?>(website?.isEmpty ?? true ? null : website),
             facebook: Nullable<String?>(facebook?.isEmpty ?? true ? null : facebook),
-            image: Nullable<String?>(state.pickedBase64Image),
+            image: Nullable<String?>(compressedImage),
             lastUpdated: DateTime.now(),
           )
         : TranslatorEntity(
@@ -96,7 +101,7 @@ class UpsertTranslatorController extends _$UpsertTranslatorController {
             otherName: otherName?.isEmpty ?? true ? null : otherName,
             website: website?.isEmpty ?? true ? null : website,
             facebook: facebook?.isEmpty ?? true ? null : facebook,
-            image: state.pickedBase64Image,
+            image: compressedImage,
             bookIds: const <String>[],
             workIds: const <String>[],
             createdDate: DateTime.now(),
@@ -105,33 +110,12 @@ class UpsertTranslatorController extends _$UpsertTranslatorController {
 
     try {
       if (existingTranslator != null) {
-        try {
-          await ref.read(editTranslatorUseCaseProvider)(translatorToSave);
-        } catch (e) {
-          if (e.toString().contains('longer than 1048487 bytes')) {
-            final String? compressedImage = Images.compressImageIfNeeded(state.pickedBase64Image);
-            translatorToSave = translatorToSave.copyWith(image: Nullable<String?>(compressedImage));
-            await ref.read(editTranslatorUseCaseProvider)(translatorToSave);
-          } else {
-            rethrow;
-          }
-        }
+        await ref.read(editTranslatorUseCaseProvider)(translatorToSave);
       } else {
-        try {
-          await ref.read(addTranslatorUseCaseProvider)(translatorToSave);
-        } catch (e) {
-          if (e.toString().contains('longer than 1048487 bytes')) {
-            final String? compressedImage = Images.compressImageIfNeeded(state.pickedBase64Image);
-            translatorToSave = translatorToSave.copyWith(image: Nullable<String?>(compressedImage));
-            await ref.read(addTranslatorUseCaseProvider)(translatorToSave);
-          } else {
-            rethrow;
-          }
-        }
+        await ref.read(addTranslatorUseCaseProvider)(translatorToSave);
       }
 
       state = state.copyWith(isLoading: false);
-      ref.invalidate(translatorCountProvider);
       return translatorToSave;
     } on NoConnectionException catch (e) {
       state = state.copyWith(isLoading: false, error: Nullable<String?>(e.message));

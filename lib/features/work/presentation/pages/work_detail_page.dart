@@ -43,7 +43,6 @@ class WorkDetailPage extends ConsumerWidget {
       entityName: work.title,
       onConfirm: () async {
         await ref.read(removeWorkUseCaseProvider)(work.id);
-        ref.invalidate(workCountProvider);
         if (context.mounted) {
           context.pop();
         }
@@ -94,7 +93,6 @@ class WorkDetailPage extends ConsumerWidget {
                     icon: const FaIcon(FontAwesomeIcons.penToSquare),
                     onPressed: () async {
                       await context.push('/works/upsert', extra: work);
-                      ref.invalidate(workProvider(workId));
                     },
                     tooltip: 'Edit',
                   ),

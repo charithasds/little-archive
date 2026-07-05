@@ -28,6 +28,25 @@ class SequenceListPage extends ConsumerStatefulWidget {
 
 class _SequenceListPageState extends ConsumerState<SequenceListPage> {
   bool _isExtended = true;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    ref.read(sequenceListControllerProvider.notifier).setSearchQuery('');
+  }
+
+  Future<void> _navigateTo(Future<void> Function() navigation) async {
+    await navigation();
+    if (mounted) {
+      _clearSearch();
+    }
+  }
 
   Future<void> _handleRemove(String sequenceId, String sequenceName) async {
     await AppDialogs.removeEntity(
@@ -36,7 +55,6 @@ class _SequenceListPageState extends ConsumerState<SequenceListPage> {
       entityName: sequenceName,
       onConfirm: () async {
         await ref.read(removeSequenceUseCaseProvider)(sequenceId);
-        ref.invalidate(sequenceCountProvider);
       },
     );
   }
@@ -87,6 +105,7 @@ class _SequenceListPageState extends ConsumerState<SequenceListPage> {
             child: Column(
               children: <Widget>[
                 SearchField(
+                  controller: _searchController,
                   hintText: 'Search',
                   onChanged: (String query) =>
                       ref.read(sequenceListControllerProvider.notifier).setSearchQuery(query),
@@ -115,8 +134,8 @@ class _SequenceListPageState extends ConsumerState<SequenceListPage> {
 
                               return SequenceListTile(
                                 sequence: sequence,
-                                onTap: () => context.goNamed(RouteConstants.sequenceDetail, pathParameters: <String, String>{'id': sequence.id}),
-                                onEdit: () => context.pushNamed(RouteConstants.upsertSequence, extra: sequence),
+                                onTap: () => _navigateTo(() => context.pushNamed(RouteConstants.sequenceDetail, pathParameters: <String, String>{'id': sequence.id})),
+                                onEdit: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertSequence, extra: sequence)),
                                 onRemove: () => _handleRemove(sequence.id, sequence.name),
                               );
                             },
@@ -136,8 +155,8 @@ class _SequenceListPageState extends ConsumerState<SequenceListPage> {
 
                               return SequenceListTile(
                                 sequence: sequence,
-                                onTap: () => context.goNamed(RouteConstants.sequenceDetail, pathParameters: <String, String>{'id': sequence.id}),
-                                onEdit: () => context.pushNamed(RouteConstants.upsertSequence, extra: sequence),
+                                onTap: () => _navigateTo(() => context.pushNamed(RouteConstants.sequenceDetail, pathParameters: <String, String>{'id': sequence.id})),
+                                onEdit: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertSequence, extra: sequence)),
                                 onRemove: () => _handleRemove(sequence.id, sequence.name),
                               );
                             },
@@ -157,7 +176,7 @@ class _SequenceListPageState extends ConsumerState<SequenceListPage> {
         isExtended: _isExtended,
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
-        onPressed: () => context.pushNamed(RouteConstants.upsertSequence),
+        onPressed: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertSequence)),
         icon: const FaIcon(FontAwesomeIcons.plus),
         label: const Text('Add Sequence'),
       ),

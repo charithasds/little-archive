@@ -18,7 +18,6 @@ import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../domain/entities/book_entity.dart';
 import '../../domain/entities/scan/scanned_book_entity.dart';
 import '../../domain/usecases/book_usecases.dart';
-import 'book_provider.dart';
 
 part 'upsert_book_controller.g.dart';
 
@@ -161,18 +160,24 @@ class UpsertBookController extends _$UpsertBookController {
   }) async {
     state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
-
+    await Future<void>.delayed(Duration.zero);
 
     try {
       final BookEntity? existingBook = state.existingBook;
       final String bookId = existingBook?.id ?? ref.read(generateBookIdUseCaseProvider)();
-      BookEntity bookToSave = existingBook != null
+      // Eagerly compress the cover image if it exists to prevent SQLite OOM and large documents.
+      final String? compressedCover = Images.compressImageIfNeeded(state.pickedBase64Image);
+      if (compressedCover != state.pickedBase64Image) {
+        state = state.copyWith(pickedBase64Image: Nullable<String?>(compressedCover));
+      }
+
+      final BookEntity bookToSave = existingBook != null
           ? existingBook.copyWith(
               title: title,
               compilationType: compilationType,
               isTranslation: isTranslation,
               toBeTranslated: toBeTranslated,
-              cover: Nullable<String?>(state.pickedBase64Image),
+              cover: Nullable<String?>(compressedCover),
               language: Nullable<Language?>(language),
               genre: Nullable<Genre?>(genre),
               isbn: Nullable<String?>((isbn?.isEmpty ?? true) ? null : isbn),
@@ -204,7 +209,7 @@ class UpsertBookController extends _$UpsertBookController {
               compilationType: compilationType,
               isTranslation: isTranslation,
               toBeTranslated: toBeTranslated,
-              cover: state.pickedBase64Image,
+              cover: compressedCover,
               language: language,
               genre: genre,
               isbn: isbn,
@@ -230,31 +235,14 @@ class UpsertBookController extends _$UpsertBookController {
               lastUpdated: DateTime.now(),
             );
 
-      BookEntity savedBook;
-      try {
-        savedBook = await ref.read(upsertBookUseCaseProvider)(
-          book: bookToSave,
-          sequenceEntries: sequenceEntries,
-          isEdit: existingBook != null,
-          applyToWorks: applyToWorks,
-        );
-      } catch (e) {
-        if (e.toString().contains('longer than 1048487 bytes')) {
-          final String? compressedCover = Images.compressImageIfNeeded(state.pickedBase64Image);
-          bookToSave = bookToSave.copyWith(cover: Nullable<String?>(compressedCover));
-
-          savedBook = await ref.read(upsertBookUseCaseProvider)(
-            book: bookToSave,
-            sequenceEntries: sequenceEntries,
-            isEdit: existingBook != null,
-          );
-        } else {
-          rethrow;
-        }
-      }
+      final BookEntity savedBook = await ref.read(upsertBookUseCaseProvider)(
+        book: bookToSave,
+        sequenceEntries: sequenceEntries,
+        isEdit: existingBook != null,
+        applyToWorks: applyToWorks,
+      );
 
       state = state.copyWith(isLoading: false);
-      ref.invalidate(bookCountProvider);
       return savedBook;
     } on NoConnectionException catch (e) {
       state = state.copyWith(isLoading: false, error: Nullable<String?>(e.message));

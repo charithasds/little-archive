@@ -39,7 +39,6 @@ class TranslatorDetailPage extends ConsumerWidget {
       entityName: translator.name,
       onConfirm: () async {
         await ref.read(removeTranslatorUseCaseProvider)(translator.id);
-        ref.invalidate(translatorCountProvider);
         if (context.mounted) {
           context.pop();
         }
@@ -99,7 +98,6 @@ class TranslatorDetailPage extends ConsumerWidget {
                     icon: const FaIcon(FontAwesomeIcons.penToSquare),
                     onPressed: () async {
                       await context.push('/translators/upsert', extra: translator);
-                      ref.invalidate(translatorProvider(translatorId));
                     },
                     tooltip: 'Edit',
                   ),

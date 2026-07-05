@@ -10,7 +10,6 @@ import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../domain/entities/author_entity.dart';
 import '../../domain/usecases/author_usecases.dart';
-import 'author_provider.dart';
 
 part 'upsert_author_controller.g.dart';
 
@@ -71,18 +70,24 @@ class UpsertAuthorController extends _$UpsertAuthorController {
   }) async {
     state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
-
+    await Future<void>.delayed(Duration.zero);
 
     final AuthorEntity? existingAuthor = state.existingAuthor;
     final String generatedId = ref.read(generateAuthorIdUseCaseProvider)();
 
-    AuthorEntity authorToSave = existingAuthor != null
+    // Eagerly compress the image if it exists to prevent SQLite OOM and large documents.
+    final String? compressedImage = Images.compressImageIfNeeded(state.pickedBase64Image);
+    if (compressedImage != state.pickedBase64Image) {
+      state = state.copyWith(pickedBase64Image: Nullable<String?>(compressedImage));
+    }
+
+    final AuthorEntity authorToSave = existingAuthor != null
         ? existingAuthor.copyWith(
             name: name,
             otherName: Nullable<String?>(otherName?.isEmpty ?? true ? null : otherName),
             website: Nullable<String?>(website?.isEmpty ?? true ? null : website),
             facebook: Nullable<String?>(facebook?.isEmpty ?? true ? null : facebook),
-            image: Nullable<String?>(state.pickedBase64Image),
+            image: Nullable<String?>(compressedImage),
             lastUpdated: DateTime.now(),
           )
         : AuthorEntity(
@@ -91,7 +96,7 @@ class UpsertAuthorController extends _$UpsertAuthorController {
             otherName: otherName?.isEmpty ?? true ? null : otherName,
             website: website?.isEmpty ?? true ? null : website,
             facebook: facebook?.isEmpty ?? true ? null : facebook,
-            image: state.pickedBase64Image,
+            image: compressedImage,
             bookIds: const <String>[],
             workIds: const <String>[],
             createdDate: DateTime.now(),
@@ -100,33 +105,12 @@ class UpsertAuthorController extends _$UpsertAuthorController {
 
     try {
       if (existingAuthor != null) {
-        try {
-          await ref.read(editAuthorUseCaseProvider)(authorToSave);
-        } catch (e) {
-          if (e.toString().contains('longer than 1048487 bytes')) {
-            final String? compressedImage = Images.compressImageIfNeeded(state.pickedBase64Image);
-            authorToSave = authorToSave.copyWith(image: Nullable<String?>(compressedImage));
-            await ref.read(editAuthorUseCaseProvider)(authorToSave);
-          } else {
-            rethrow;
-          }
-        }
+        await ref.read(editAuthorUseCaseProvider)(authorToSave);
       } else {
-        try {
-          await ref.read(addAuthorUseCaseProvider)(authorToSave);
-        } catch (e) {
-          if (e.toString().contains('longer than 1048487 bytes')) {
-            final String? compressedImage = Images.compressImageIfNeeded(state.pickedBase64Image);
-            authorToSave = authorToSave.copyWith(image: Nullable<String?>(compressedImage));
-            await ref.read(addAuthorUseCaseProvider)(authorToSave);
-          } else {
-            rethrow;
-          }
-        }
+        await ref.read(addAuthorUseCaseProvider)(authorToSave);
       }
 
       state = state.copyWith(isLoading: false);
-      ref.invalidate(authorCountProvider);
       return authorToSave;
     } on NoConnectionException catch (e) {
       state = state.copyWith(isLoading: false, error: Nullable<String?>(e.message));

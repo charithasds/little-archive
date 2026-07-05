@@ -31,7 +31,6 @@ class ReaderDetailPage extends ConsumerWidget {
       entityName: reader.name,
       onConfirm: () async {
         await ref.read(removeReaderUseCaseProvider)(reader.id);
-        ref.invalidate(readerCountProvider);
         if (context.mounted) {
           context.pop();
         }
@@ -80,7 +79,6 @@ class ReaderDetailPage extends ConsumerWidget {
                     icon: const FaIcon(FontAwesomeIcons.penToSquare),
                     onPressed: () async {
                       await context.push('/readers/upsert', extra: reader);
-                      ref.invalidate(readerProvider(readerId));
                     },
                     tooltip: 'Edit',
                   ),

@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-
+import '../../../../core/shared/domain/utils/nullable.dart';
+import '../../../../core/shared/presentation/utils/images.dart';
 import '../../domain/entities/author_entity.dart';
 import '../../domain/repositories/author_repository.dart';
 import '../datasources/author_remote_datasource.dart';
@@ -12,11 +13,40 @@ class AuthorRepositoryImpl implements AuthorRepository {
 
   final AuthorRemoteDataSource remoteDataSource;
 
+  final Set<String> _processedImageAuthorIds = <String>{};
+
   @override
   String generateId() => remoteDataSource.generateId();
 
   @override
-  Future<List<AuthorEntity>> fetchAuthors() => remoteDataSource.fetchAuthors();
+  Future<List<AuthorEntity>> fetchAuthors() async {
+    final List<AuthorEntity> authors = await remoteDataSource.fetchAuthors();
+    _compressExistingLargeImages(authors);
+    return authors;
+  }
+
+  void _compressExistingLargeImages(List<AuthorEntity> authors) {
+    Future<void>.microtask(() async {
+      for (final AuthorEntity author in authors) {
+        if (_processedImageAuthorIds.contains(author.id)) {
+          continue;
+        }
+        _processedImageAuthorIds.add(author.id);
+
+        final String? image = author.image;
+        if (image != null && image.length > 50000) {
+          final String? compressed = Images.compressImageIfNeeded(image);
+          if (compressed != null && compressed != image) {
+            final AuthorEntity updated = author.copyWith(
+              image: Nullable<String?>(compressed),
+              lastUpdated: DateTime.now(),
+            );
+            await editAuthor(updated);
+          }
+        }
+      }
+    });
+  }
 
   @override
   Future<AuthorEntity?> fetchAuthorById(String id) => remoteDataSource.fetchAuthorById(id);

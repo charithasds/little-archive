@@ -54,14 +54,15 @@ class ThemeNotifier extends Notifier<ThemeMode> {
 
   Future<void> toggleTheme() async {
     final SetThemeModeUseCase? setThemeModeUseCase = ref.read(setThemeModeUseCaseProvider);
-    final bool newIsDark;
-
     if (setThemeModeUseCase == null) {
       return;
     }
 
-    newIsDark = state != ThemeMode.dark;
-    state = newIsDark ? ThemeMode.dark : ThemeMode.light;
+    final bool newIsDark = state != ThemeMode.dark;
+    
+    Future<void>.microtask(() {
+      state = newIsDark ? ThemeMode.dark : ThemeMode.light;
+    });
 
     await setThemeModeUseCase(isDarkMode: newIsDark);
   }

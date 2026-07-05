@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:drift/drift.dart';
@@ -26,9 +25,9 @@ class PublisherRemoteDataSourceImpl implements PublisherRemoteDataSource {
 
   @override
   String generateId() {
+    const String chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final Random random = Random();
-    final List<int> bytes = List<int>.generate(16, (_) => random.nextInt(256));
-    return base64Url.encode(bytes).replaceAll('=', '').replaceAll('-', '').replaceAll('_', '').substring(0, 20);
+    return List<String>.generate(20, (_) => chars[random.nextInt(chars.length)]).join();
   }
 
   Future<PublisherModel> _mapToPublisherModel(Publisher row) async {
@@ -76,13 +75,14 @@ class PublisherRemoteDataSourceImpl implements PublisherRemoteDataSource {
   }
 
   @override
-  Stream<List<PublisherModel>> watchPublishers() => db.select(db.publishers).watch().asyncMap((List<Publisher> rows) async {
-      final List<PublisherModel> publishers = <PublisherModel>[];
-      for (final Publisher row in rows) {
-        publishers.add(await _mapToPublisherModel(row));
-      }
-      return publishers;
-    });
+  Stream<List<PublisherModel>> watchPublishers() async* {
+    yield await fetchPublishers();
+    await for (final Set<TableUpdate> _ in db.tableUpdates().where((Set<TableUpdate> updates) => updates.any((TableUpdate update) =>
+        update.table == db.publishers.actualTableName ||
+        update.table == db.books.actualTableName))) {
+      yield await fetchPublishers();
+    }
+  }
 
   @override
   Future<void> addPublisher(PublisherModel publisher) async {
@@ -100,7 +100,7 @@ class PublisherRemoteDataSourceImpl implements PublisherRemoteDataSource {
         bookFairPublisherId: publisher.bookFairPublisherId,
         createdDate: publisher.createdDate,
         lastUpdated: publisher.lastUpdated,
-      ),
+      ).toCompanion(false),
     );
   }
 

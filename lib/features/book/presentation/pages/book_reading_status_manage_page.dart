@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/domain/enums/reading_status.dart';
+import '../../../../core/shared/presentation/widgets/search_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
 import '../../domain/entities/book_entity.dart';
@@ -116,13 +117,20 @@ class _BookReadingStatusManagePageState extends ConsumerState<BookReadingStatusM
   }
 }
 
-class _ReadingTabView extends ConsumerWidget {
+class _ReadingTabView extends ConsumerStatefulWidget {
   const _ReadingTabView({required this.status});
 
   final ReadingStatus status;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ReadingTabView> createState() => _ReadingTabViewState();
+}
+
+class _ReadingTabViewState extends ConsumerState<_ReadingTabView> {
+  String _searchQuery = '';
+
+  @override
+  Widget build(BuildContext context) {
     final List<BookEntity>? allBooks = ref.watch(booksStreamProvider).value;
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
@@ -132,7 +140,7 @@ class _ReadingTabView extends ConsumerWidget {
     }
 
     final List<BookEntity> books = allBooks
-        .where((BookEntity b) => b.readingStatus == status)
+        .where((BookEntity b) => b.readingStatus == widget.status)
         .toList();
 
     if (books.isEmpty) {
@@ -147,7 +155,7 @@ class _ReadingTabView extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'No books with "${status.clientValue}" status',
+              'No books with "${widget.status.clientValue}" status',
               style: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
             ),
           ],
@@ -155,10 +163,47 @@ class _ReadingTabView extends ConsumerWidget {
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      itemCount: books.length,
-      itemBuilder: (BuildContext context, int index) => _ReadingBookTile(book: books[index]),
+    final List<BookEntity> sortedAndFilteredBooks = books
+        .where((BookEntity b) {
+          if (_searchQuery.isEmpty) {
+            return true;
+          }
+          return b.title.toLowerCase().contains(_searchQuery.toLowerCase());
+        })
+        .toList()
+      ..sort((BookEntity a, BookEntity b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+
+    return Column(
+      children: <Widget>[
+        SearchField(
+          hintText: 'Search books...',
+          onChanged: (String val) {
+            setState(() {
+              _searchQuery = val;
+            });
+          },
+        ),
+        if (sortedAndFilteredBooks.isEmpty)
+          Expanded(
+            child: Center(
+              child: Text(
+                'No books match your search.',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          )
+        else
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              itemCount: sortedAndFilteredBooks.length,
+              itemBuilder: (BuildContext context, int index) =>
+                  _ReadingBookTile(book: sortedAndFilteredBooks[index]),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -385,7 +430,14 @@ class _PauseDialogState extends ConsumerState<_PauseDialog> {
                 autofocus: true,
                 decoration: InputDecoration(
                   labelText: 'Paused Page',
-                  prefixIcon: const FaIcon(FontAwesomeIcons.bookmark),
+                  prefixIcon: const SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: Center(
+                      child: FaIcon(FontAwesomeIcons.bookmark, size: 20),
+                    ),
+                  ),
+                  prefixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   suffixText: widget.book.noOfPages != null ? '/ ${widget.book.noOfPages}' : null,
                 ),
@@ -456,7 +508,7 @@ class _CompleteDialog extends ConsumerStatefulWidget {
 
 class _CompleteDialogState extends ConsumerState<_CompleteDialog> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  DateTime _completedDate = DateTime.now();
+  DateTime? _completedDate = DateTime.now();
   bool _isLoading = false;
 
   @override
@@ -480,7 +532,7 @@ class _CompleteDialogState extends ConsumerState<_CompleteDialog> {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 20),
-              FormField<DateTime>(
+              FormField<DateTime?>(
                 initialValue: _completedDate,
                 validator: (DateTime? val) {
                   if (val == null) {
@@ -489,14 +541,20 @@ class _CompleteDialogState extends ConsumerState<_CompleteDialog> {
 
                   return null;
                 },
-                builder: (FormFieldState<DateTime> state) => StatusDateField(
+                builder: (FormFieldState<DateTime?> state) => StatusDateField(
                   label: 'Completed Date',
                   value: _completedDate,
-                  onChanged: (DateTime d) {
+                  onChanged: (DateTime? d) {
                     setState(() => _completedDate = d);
                     state.didChange(d);
                     _formKey.currentState?.validate();
                   },
+                  onCleared: () {
+                    setState(() => _completedDate = null);
+                    state.didChange(null);
+                    _formKey.currentState?.validate();
+                  },
+                  isClearable: true,
                   theme: theme,
                   errorText: state.errorText,
                 ),
@@ -530,7 +588,11 @@ class _CompleteDialogState extends ConsumerState<_CompleteDialog> {
 
     await ref
         .read(bookStatusControllerProvider.notifier)
-        .changeReadingStatus(widget.book, ReadingStatus.completed, completedDate: _completedDate);
+        .changeReadingStatus(
+          widget.book,
+          ReadingStatus.completed,
+          completedDate: _completedDate,
+        );
 
     if (mounted) {
       context.pop();

@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/domain/enums/collection_status.dart';
+import '../../../../core/shared/presentation/widgets/search_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
 import '../../../reader/domain/entities/reader_entity.dart';
@@ -121,13 +122,20 @@ class _BookCollectionStatusManagePageState extends ConsumerState<BookCollectionS
   }
 }
 
-class _StatusTabView extends ConsumerWidget {
+class _StatusTabView extends ConsumerStatefulWidget {
   const _StatusTabView({required this.status});
 
   final CollectionStatus status;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_StatusTabView> createState() => _StatusTabViewState();
+}
+
+class _StatusTabViewState extends ConsumerState<_StatusTabView> {
+  String _searchQuery = '';
+
+  @override
+  Widget build(BuildContext context) {
     final List<BookEntity>? allBooks = ref.watch(booksStreamProvider).value;
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
@@ -137,7 +145,7 @@ class _StatusTabView extends ConsumerWidget {
     }
 
     final List<BookEntity> books = allBooks
-        .where((BookEntity b) => b.collectionStatus == status)
+        .where((BookEntity b) => b.collectionStatus == widget.status)
         .toList();
 
     if (books.isEmpty) {
@@ -152,7 +160,7 @@ class _StatusTabView extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'No books with "${status.clientValue}" status',
+              'No books with "${widget.status.clientValue}" status',
               style: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
             ),
           ],
@@ -160,10 +168,47 @@ class _StatusTabView extends ConsumerWidget {
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      itemCount: books.length,
-      itemBuilder: (BuildContext context, int index) => _CollectionBookTile(book: books[index]),
+    final List<BookEntity> sortedAndFilteredBooks = books
+        .where((BookEntity b) {
+          if (_searchQuery.isEmpty) {
+            return true;
+          }
+          return b.title.toLowerCase().contains(_searchQuery.toLowerCase());
+        })
+        .toList()
+      ..sort((BookEntity a, BookEntity b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+
+    return Column(
+      children: <Widget>[
+        SearchField(
+          hintText: 'Search books...',
+          onChanged: (String val) {
+            setState(() {
+              _searchQuery = val;
+            });
+          },
+        ),
+        if (sortedAndFilteredBooks.isEmpty)
+          Expanded(
+            child: Center(
+              child: Text(
+                'No books match your search.',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          )
+        else
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              itemCount: sortedAndFilteredBooks.length,
+              itemBuilder: (BuildContext context, int index) =>
+                  _CollectionBookTile(book: sortedAndFilteredBooks[index]),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -344,7 +389,7 @@ class _CollectDialog extends ConsumerStatefulWidget {
 
 class _CollectDialogState extends ConsumerState<_CollectDialog> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  DateTime _collectedDate = DateTime.now();
+  DateTime? _collectedDate = DateTime.now();
   bool _isLoading = false;
 
   @override
@@ -368,7 +413,7 @@ class _CollectDialogState extends ConsumerState<_CollectDialog> {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 20),
-              FormField<DateTime>(
+              FormField<DateTime?>(
                 initialValue: _collectedDate,
                 validator: (DateTime? val) {
                   if (val == null) {
@@ -377,14 +422,20 @@ class _CollectDialogState extends ConsumerState<_CollectDialog> {
 
                   return null;
                 },
-                builder: (FormFieldState<DateTime> state) => StatusDateField(
+                builder: (FormFieldState<DateTime?> state) => StatusDateField(
                   label: 'Collected Date',
                   value: _collectedDate,
-                  onChanged: (DateTime d) {
+                  onChanged: (DateTime? d) {
                     setState(() => _collectedDate = d);
                     state.didChange(d);
                     _formKey.currentState?.validate();
                   },
+                  onCleared: () {
+                    setState(() => _collectedDate = null);
+                    state.didChange(null);
+                    _formKey.currentState?.validate();
+                  },
+                  isClearable: true,
                   theme: theme,
                   errorText: state.errorText,
                 ),
@@ -441,8 +492,8 @@ class _LendDialog extends ConsumerStatefulWidget {
 class _LendDialogState extends ConsumerState<_LendDialog> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String? _selectedReaderId;
-  DateTime _lendedDate = DateTime.now();
-  DateTime _dueDate = DateTime.now().add(const Duration(days: 30));
+  DateTime? _lendedDate = DateTime.now();
+  DateTime? _dueDate = DateTime.now().add(const Duration(days: 30));
   bool _isLoading = false;
 
   @override
@@ -471,7 +522,14 @@ class _LendDialogState extends ConsumerState<_LendDialog> {
                 value: _selectedReaderId,
                 decoration: InputDecoration(
                   labelText: 'Reader',
-                  prefixIcon: const FaIcon(FontAwesomeIcons.smile),
+                  prefixIcon: const SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: Center(
+                      child: FaIcon(FontAwesomeIcons.smile, size: 20),
+                    ),
+                  ),
+                  prefixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 items:
@@ -486,7 +544,7 @@ class _LendDialogState extends ConsumerState<_LendDialog> {
                 onChanged: (String? v) => setState(() => _selectedReaderId = v),
               ),
               const SizedBox(height: 16),
-              FormField<DateTime>(
+              FormField<DateTime?>(
                 initialValue: _lendedDate,
                 validator: (DateTime? val) {
                   if (val == null) {
@@ -495,40 +553,53 @@ class _LendDialogState extends ConsumerState<_LendDialog> {
 
                   return null;
                 },
-                builder: (FormFieldState<DateTime> state) => StatusDateField(
+                builder: (FormFieldState<DateTime?> state) => StatusDateField(
                   label: 'Lended Date',
                   value: _lendedDate,
-                  onChanged: (DateTime d) {
+                  onChanged: (DateTime? d) {
                     setState(() => _lendedDate = d);
                     state.didChange(d);
                     _formKey.currentState?.validate();
                   },
+                  onCleared: () {
+                    setState(() => _lendedDate = null);
+                    state.didChange(null);
+                    _formKey.currentState?.validate();
+                  },
+                  isClearable: true,
                   theme: theme,
                   errorText: state.errorText,
                 ),
               ),
               const SizedBox(height: 12),
-              FormField<DateTime>(
+              FormField<DateTime?>(
                 initialValue: _dueDate,
                 validator: (DateTime? val) {
                   if (val == null) {
                     return 'Due date is required';
                   }
 
-                  if (val.isBefore(_lendedDate) || val.isAtSameMomentAs(_lendedDate)) {
+                  final DateTime? lended = _lendedDate;
+                  if (lended != null && (val.isBefore(lended) || val.isAtSameMomentAs(lended))) {
                     return 'Due date must be after lended date';
                   }
 
                   return null;
                 },
-                builder: (FormFieldState<DateTime> state) => StatusDateField(
+                builder: (FormFieldState<DateTime?> state) => StatusDateField(
                   label: 'Due Date',
                   value: _dueDate,
-                  onChanged: (DateTime d) {
+                  onChanged: (DateTime? d) {
                     setState(() => _dueDate = d);
                     state.didChange(d);
                     _formKey.currentState?.validate();
                   },
+                  onCleared: () {
+                    setState(() => _dueDate = null);
+                    state.didChange(null);
+                    _formKey.currentState?.validate();
+                  },
+                  isClearable: true,
                   theme: theme,
                   errorText: state.errorText,
                 ),

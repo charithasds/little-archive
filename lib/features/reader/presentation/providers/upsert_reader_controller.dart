@@ -10,7 +10,6 @@ import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../domain/entities/reader_entity.dart';
 import '../../domain/usecases/reader_usecases.dart';
-import 'reader_provider.dart';
 
 part 'upsert_reader_controller.g.dart';
 
@@ -72,19 +71,25 @@ class UpsertReaderController extends _$UpsertReaderController {
   }) async {
     state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
-
+    await Future<void>.delayed(Duration.zero);
 
     final ReaderEntity? existingReader = state.existingReader;
     final String generatedId = ref.read(generateReaderIdUseCaseProvider)();
 
-    ReaderEntity readerToSave = existingReader != null
+    // Eagerly compress the image if it exists to prevent SQLite OOM and large documents.
+    final String? compressedImage = Images.compressImageIfNeeded(state.pickedBase64Image);
+    if (compressedImage != state.pickedBase64Image) {
+      state = state.copyWith(pickedBase64Image: Nullable<String?>(compressedImage));
+    }
+
+    final ReaderEntity readerToSave = existingReader != null
         ? existingReader.copyWith(
             name: name,
             otherName: Nullable<String?>(otherName?.isEmpty ?? true ? null : otherName),
             email: Nullable<String?>(email?.isEmpty ?? true ? null : email),
             facebook: Nullable<String?>(facebook?.isEmpty ?? true ? null : facebook),
             phoneNumber: Nullable<String?>(phoneNumber?.isEmpty ?? true ? null : phoneNumber),
-            image: Nullable<String?>(state.pickedBase64Image),
+            image: Nullable<String?>(compressedImage),
             lastUpdated: DateTime.now(),
           )
         : ReaderEntity(
@@ -94,7 +99,7 @@ class UpsertReaderController extends _$UpsertReaderController {
             email: email?.isEmpty ?? true ? null : email,
             facebook: facebook?.isEmpty ?? true ? null : facebook,
             phoneNumber: phoneNumber?.isEmpty ?? true ? null : phoneNumber,
-            image: state.pickedBase64Image,
+            image: compressedImage,
             bookIds: const <String>[],
             createdDate: DateTime.now(),
             lastUpdated: DateTime.now(),
@@ -102,33 +107,12 @@ class UpsertReaderController extends _$UpsertReaderController {
 
     try {
       if (existingReader != null) {
-        try {
-          await ref.read(editReaderUseCaseProvider)(readerToSave);
-        } catch (e) {
-          if (e.toString().contains('longer than 1048487 bytes')) {
-            final String? compressedImage = Images.compressImageIfNeeded(state.pickedBase64Image);
-            readerToSave = readerToSave.copyWith(image: Nullable<String?>(compressedImage));
-            await ref.read(editReaderUseCaseProvider)(readerToSave);
-          } else {
-            rethrow;
-          }
-        }
+        await ref.read(editReaderUseCaseProvider)(readerToSave);
       } else {
-        try {
-          await ref.read(addReaderUseCaseProvider)(readerToSave);
-        } catch (e) {
-          if (e.toString().contains('longer than 1048487 bytes')) {
-            final String? compressedImage = Images.compressImageIfNeeded(state.pickedBase64Image);
-            readerToSave = readerToSave.copyWith(image: Nullable<String?>(compressedImage));
-            await ref.read(addReaderUseCaseProvider)(readerToSave);
-          } else {
-            rethrow;
-          }
-        }
+        await ref.read(addReaderUseCaseProvider)(readerToSave);
       }
 
       state = state.copyWith(isLoading: false);
-      ref.invalidate(readerCountProvider);
       return readerToSave;
     } on NoConnectionException catch (e) {
       state = state.copyWith(isLoading: false, error: Nullable<String?>(e.message));

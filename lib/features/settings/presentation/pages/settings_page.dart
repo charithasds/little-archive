@@ -18,13 +18,15 @@ class SettingsPage extends ConsumerWidget {
     final ColorScheme colorScheme = theme.colorScheme;
     final bool isDark = ref.watch(themeModeProvider) == ThemeMode.dark;
 
-    ref.listen(settingsControllerProvider, (AsyncValue<void>? previous, AsyncValue<void> next) {
-      next.whenOrNull(
+    ref.listen(settingsControllerProvider, (SettingsState? previous, SettingsState next) {
+      next.status.whenOrNull(
         error: (Object error, _) => SnackBars.showError(error.toString(), context: context),
       );
     });
 
-    final bool isLoading = ref.watch(settingsControllerProvider).isLoading;
+    final SettingsState settingsState = ref.watch(settingsControllerProvider);
+    final bool isLoading = settingsState.status.isLoading;
+    final SettingsOperation? activeOp = settingsState.currentOperation;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -51,11 +53,13 @@ class SettingsPage extends ConsumerWidget {
                   color: colorScheme.surfaceContainerHigh,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   child: SwitchListTile(
-                    title: const Text('Dark Mode'),
+                    title: const Text('Change Theme'),
                     subtitle: Text(isDark ? 'Dark theme active' : 'Light theme active'),
                     secondary: FaIcon(isDark ? FontAwesomeIcons.moon : FontAwesomeIcons.sun),
                     value: isDark,
-                    onChanged: (bool value) => ref.read(themeModeProvider.notifier).toggleTheme(),
+                    onChanged: isLoading
+                        ? null
+                        : (bool value) => ref.read(themeModeProvider.notifier).toggleTheme(),
                     activeColor: colorScheme.primary,
                   ),
                 ),
@@ -74,19 +78,30 @@ class SettingsPage extends ConsumerWidget {
                     children: <Widget>[
                       // Local Backup
                       ListTile(
-                        leading: FaIcon(FontAwesomeIcons.fileExport, color: colorScheme.primary),
+                        enabled: !isLoading,
+                        leading: activeOp == SettingsOperation.exportLocal
+                            ? SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: colorScheme.primary,
+                                ),
+                              )
+                            : FaIcon(FontAwesomeIcons.fileExport, color: colorScheme.primary),
                         title: const Text('Export Local Backup'),
                         subtitle: const Text('Save a copy of your library to local storage'),
-                        onTap: isLoading
-                            ? null
-                            : () async {
-                                final bool success = await ref
-                                    .read(settingsControllerProvider.notifier)
-                                    .exportLocalBackup();
-                                if (success && context.mounted) {
-                                  SnackBars.showSuccess('Local backup exported successfully!', context: context);
-                                }
-                              },
+                        onTap: isLoading ? null : () async {
+                          final bool success = await ref
+                              .read(settingsControllerProvider.notifier)
+                              .exportLocalBackup();
+                          if (success && context.mounted) {
+                            SnackBars.showSuccess(
+                              'Local backup exported successfully!',
+                              context: context,
+                            );
+                          }
+                        },
                       ),
                       Divider(
                         height: 1,
@@ -96,32 +111,43 @@ class SettingsPage extends ConsumerWidget {
                       ),
                       // Local Restore
                       ListTile(
-                        leading: FaIcon(FontAwesomeIcons.fileImport, color: colorScheme.primary),
+                        enabled: !isLoading,
+                        leading: activeOp == SettingsOperation.importLocal
+                            ? SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: colorScheme.primary,
+                                ),
+                              )
+                            : FaIcon(FontAwesomeIcons.fileImport, color: colorScheme.primary),
                         title: const Text('Import Local Restore'),
                         subtitle: const Text('Restore your library from a local backup file'),
-                        onTap: isLoading
-                            ? null
-                            : () async {
-                                final bool confirmed = await AppDialogs.showDestructiveDialog(
-                                  context,
-                                  title: 'Restore Library?',
-                                  content:
-                                      'Importing a local backup will replace your current active library data. This action is irreversible.',
-                                  confirmLabel: 'Start Import',
-                                );
-                                if (confirmed) {
-                                  final bool success = await ref
-                                      .read(settingsControllerProvider.notifier)
-                                      .importLocalRestore();
-                                  if (success && context.mounted) {
-                                    SnackBars.showSuccess('Library restored successfully! Restarting app...', context: context);
-                                    await Future<void>.delayed(const Duration(milliseconds: 1500));
-                                    if (context.mounted) {
-                                      Phoenix.rebirth(context);
-                                    }
-                                  }
-                                }
-                              },
+                        onTap: isLoading ? null : () async {
+                          final bool confirmed = await AppDialogs.showDestructiveDialog(
+                            context,
+                            title: 'Restore Library?',
+                            content:
+                                'Importing a local backup will replace your current active library data. This action is irreversible.',
+                            confirmLabel: 'Start Import',
+                          );
+                          if (confirmed) {
+                            final bool success = await ref
+                                .read(settingsControllerProvider.notifier)
+                                .importLocalRestore();
+                            if (success && context.mounted) {
+                              SnackBars.showSuccess(
+                                'Library restored successfully! Restarting app...',
+                                context: context,
+                              );
+                              await Future<void>.delayed(const Duration(milliseconds: 1500));
+                              if (context.mounted) {
+                                Phoenix.rebirth(context);
+                              }
+                            }
+                          }
+                        },
                       ),
                       Divider(
                         height: 1,
@@ -131,19 +157,30 @@ class SettingsPage extends ConsumerWidget {
                       ),
                       // Google Drive Backup
                       ListTile(
-                        leading: FaIcon(FontAwesomeIcons.googleDrive, color: colorScheme.primary),
+                        enabled: !isLoading,
+                        leading: activeOp == SettingsOperation.backupDrive
+                            ? SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: colorScheme.primary,
+                                ),
+                              )
+                            : FaIcon(FontAwesomeIcons.googleDrive, color: colorScheme.primary),
                         title: const Text('Backup to Google Drive'),
                         subtitle: const Text('Upload your library to your personal Google Drive'),
-                        onTap: isLoading
-                            ? null
-                            : () async {
-                                final bool success = await ref
-                                    .read(settingsControllerProvider.notifier)
-                                    .backupToGoogleDrive();
-                                if (success && context.mounted) {
-                                  SnackBars.showSuccess('Uploaded library to Google Drive successfully!', context: context);
-                                }
-                              },
+                        onTap: isLoading ? null : () async {
+                          final bool success = await ref
+                              .read(settingsControllerProvider.notifier)
+                              .backupToGoogleDrive();
+                          if (success && context.mounted) {
+                            SnackBars.showSuccess(
+                              'Uploaded library to Google Drive successfully!',
+                              context: context,
+                            );
+                          }
+                        },
                       ),
                       Divider(
                         height: 1,
@@ -153,32 +190,43 @@ class SettingsPage extends ConsumerWidget {
                       ),
                       // Google Drive Restore
                       ListTile(
-                        leading: FaIcon(FontAwesomeIcons.cloudArrowDown, color: colorScheme.primary),
+                        enabled: !isLoading,
+                        leading: activeOp == SettingsOperation.restoreDrive
+                            ? SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: colorScheme.primary,
+                                ),
+                              )
+                            : FaIcon(FontAwesomeIcons.cloudArrowDown, color: colorScheme.primary),
                         title: const Text('Restore from Google Drive'),
                         subtitle: const Text('Download your library from Google Drive'),
-                        onTap: isLoading
-                            ? null
-                            : () async {
-                                final bool confirmed = await AppDialogs.showDestructiveDialog(
-                                  context,
-                                  title: 'Restore from Google Drive?',
-                                  content:
-                                      'Restoring will completely overwrite your current active local database with the backup saved on your Google Drive. This action cannot be undone.',
-                                  confirmLabel: 'Start Restore',
-                                );
-                                if (confirmed) {
-                                  final bool success = await ref
-                                      .read(settingsControllerProvider.notifier)
-                                      .restoreFromGoogleDrive();
-                                  if (success && context.mounted) {
-                                    SnackBars.showSuccess('Library restored successfully! Restarting app...', context: context);
-                                    await Future<void>.delayed(const Duration(milliseconds: 1500));
-                                    if (context.mounted) {
-                                      Phoenix.rebirth(context);
-                                    }
-                                  }
-                                }
-                              },
+                        onTap: isLoading ? null : () async {
+                          final bool confirmed = await AppDialogs.showDestructiveDialog(
+                            context,
+                            title: 'Restore from Google Drive?',
+                            content:
+                                'Restoring will completely overwrite your current active local database with the backup saved on your Google Drive. This action cannot be undone.',
+                            confirmLabel: 'Start Restore',
+                          );
+                          if (confirmed) {
+                            final bool success = await ref
+                                .read(settingsControllerProvider.notifier)
+                                .restoreFromGoogleDrive();
+                            if (success && context.mounted) {
+                              SnackBars.showSuccess(
+                                'Library restored successfully! Restarting app...',
+                                context: context,
+                              );
+                              await Future<void>.delayed(const Duration(milliseconds: 1500));
+                              if (context.mounted) {
+                                Phoenix.rebirth(context);
+                              }
+                            }
+                          }
+                        },
                       ),
                     ],
                   ),
@@ -198,10 +246,9 @@ class SettingsPage extends ConsumerWidget {
                     children: <Widget>[
                       // Clear All Data
                       ListTile(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        leading: isLoading
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        enabled: !isLoading,
+                        leading: activeOp == SettingsOperation.clearData
                             ? SizedBox(
                                 width: 24,
                                 height: 24,
@@ -224,28 +271,25 @@ class SettingsPage extends ConsumerWidget {
                             color: colorScheme.onSurfaceVariant,
                           ),
                         ),
-                        onTap: isLoading
-                            ? null
-                            : () async {
-                                final bool confirmed = await AppDialogs.showDestructiveDialog(
-                                  context,
-                                  title: 'Clear All Data?',
-                                  content:
-                                      'This will permanently delete all your books, authors, publishers, and other data. This action is irreversible.',
-                                  confirmLabel: 'Clear Everything',
-                                );
-                                if (confirmed) {
-                                  await ref
-                                      .read(settingsControllerProvider.notifier)
-                                      .clearAllData();
-                                  if (context.mounted && !ref.read(settingsControllerProvider).hasError) {
-                                    SnackBars.showSuccess(
-                                      'All application data cleared successfully',
-                                      context: context,
-                                    );
-                                  }
-                                }
-                              },
+                        onTap: isLoading ? null : () async {
+                          final bool confirmed = await AppDialogs.showDestructiveDialog(
+                            context,
+                            title: 'Clear All Data?',
+                            content:
+                                'This will permanently delete all your books, authors, publishers, and other data. This action is irreversible.',
+                            confirmLabel: 'Clear Everything',
+                          );
+                          if (confirmed) {
+                            await ref.read(settingsControllerProvider.notifier).clearAllData();
+                            if (context.mounted &&
+                                !ref.read(settingsControllerProvider).status.hasError) {
+                              SnackBars.showSuccess(
+                                'All application data cleared successfully',
+                                context: context,
+                              );
+                            }
+                          }
+                        },
                       ),
                     ],
                   ),

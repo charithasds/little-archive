@@ -27,6 +27,25 @@ class WorkListPage extends ConsumerStatefulWidget {
 
 class _WorkListPageState extends ConsumerState<WorkListPage> {
   bool _isExtended = true;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    ref.read(workListControllerProvider.notifier).setSearchQuery('');
+  }
+
+  Future<void> _navigateTo(Future<void> Function() navigation) async {
+    await navigation();
+    if (mounted) {
+      _clearSearch();
+    }
+  }
 
   Future<void> _handleRemove(String workId, String workTitle) async {
     await AppDialogs.removeEntity(
@@ -35,7 +54,6 @@ class _WorkListPageState extends ConsumerState<WorkListPage> {
       entityName: workTitle,
       onConfirm: () async {
         await ref.read(removeWorkUseCaseProvider)(workId);
-        ref.invalidate(workCountProvider);
       },
     );
   }
@@ -86,6 +104,7 @@ class _WorkListPageState extends ConsumerState<WorkListPage> {
             child: Column(
               children: <Widget>[
                 SearchField(
+                  controller: _searchController,
                   hintText: 'Search',
                   onChanged: (String query) =>
                       ref.read(workListControllerProvider.notifier).setSearchQuery(query),
@@ -94,7 +113,7 @@ class _WorkListPageState extends ConsumerState<WorkListPage> {
                   Expanded(
                     child: Center(
                       child: Text(
-                        'No works match your search.',
+                         'No works match your search.',
                         style: theme.textTheme.bodyLarge?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -114,11 +133,11 @@ class _WorkListPageState extends ConsumerState<WorkListPage> {
 
                               return WorkListTile(
                                 work: work,
-                                onTap: () => context.goNamed(
+                                onTap: () => _navigateTo(() => context.pushNamed(
                                   RouteConstants.workDetail,
                                   pathParameters: <String, String>{'id': work.id},
-                                ),
-                                onEdit: () => context.pushNamed(RouteConstants.upsertWork, extra: work),
+                                )),
+                                onEdit: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertWork, extra: work)),
                                 onRemove: () => _handleRemove(work.id, work.title),
                               );
                             },
@@ -138,11 +157,11 @@ class _WorkListPageState extends ConsumerState<WorkListPage> {
 
                               return WorkListTile(
                                 work: work,
-                                onTap: () => context.goNamed(
+                                onTap: () => _navigateTo(() => context.pushNamed(
                                   RouteConstants.workDetail,
                                   pathParameters: <String, String>{'id': work.id},
-                                ),
-                                onEdit: () => context.pushNamed(RouteConstants.upsertWork, extra: work),
+                                )),
+                                onEdit: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertWork, extra: work)),
                                 onRemove: () => _handleRemove(work.id, work.title),
                               );
                             },
@@ -162,7 +181,7 @@ class _WorkListPageState extends ConsumerState<WorkListPage> {
         isExtended: _isExtended,
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
-        onPressed: () => context.goNamed(RouteConstants.upsertWork),
+        onPressed: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertWork)),
         icon: const FaIcon(FontAwesomeIcons.plus),
         label: const Text('Add Work'),
       ),

@@ -39,7 +39,6 @@ class SequenceDetailPage extends ConsumerWidget {
         'preselectedSequence': sequence,
       },
     );
-    ref.invalidate(sequenceVolumesStreamProvider(sequence.id));
   }
 
   Future<void> _showAddWorkVolumeSheet(
@@ -53,7 +52,6 @@ class SequenceDetailPage extends ConsumerWidget {
         'preselectedSequence': sequence,
       },
     );
-    ref.invalidate(sequenceVolumesStreamProvider(sequence.id));
   }
 
   Future<void> _handleRemove(BuildContext context, WidgetRef ref, SequenceEntity sequence) async {
@@ -63,7 +61,6 @@ class SequenceDetailPage extends ConsumerWidget {
       entityName: sequence.name,
       onConfirm: () async {
         await ref.read(removeSequenceUseCaseProvider)(sequence.id);
-        ref.invalidate(sequenceCountProvider);
         if (context.mounted) {
           context.pop();
         }
@@ -132,7 +129,6 @@ class SequenceDetailPage extends ConsumerWidget {
                     icon: const FaIcon(FontAwesomeIcons.penToSquare),
                     onPressed: () async {
                       await context.push('/sequences/upsert', extra: sequence);
-                      ref.invalidate(sequenceProvider(sequenceId));
                     },
                     tooltip: 'Edit',
                   ),

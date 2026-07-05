@@ -6,6 +6,7 @@ import '../../../../core/shared/domain/enums/compilation_type.dart';
 import '../../../../core/shared/domain/enums/language.dart';
 import '../../../../core/shared/domain/enums/original_language.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
+import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../sequence/data/repositories/sequence_volume_repository_impl.dart';
 import '../../../sequence/domain/repositories/sequence_volume_repository.dart';
 import '../../../work/data/repositories/work_repository_impl.dart';
@@ -31,11 +32,40 @@ class BookRepositoryImpl implements BookRepository {
   final SequenceVolumeRepository sequenceVolumeRepository;
   final WorkRepository workRepository;
 
+  final Set<String> _processedCoverBookIds = <String>{};
+
   @override
   String generateId() => remoteDataSource.generateId();
 
   @override
-  Future<List<BookEntity>> fetchBooks() => remoteDataSource.fetchBooks();
+  Future<List<BookEntity>> fetchBooks() async {
+    final List<BookEntity> books = await remoteDataSource.fetchBooks();
+    _compressExistingLargeCovers(books);
+    return books;
+  }
+
+  void _compressExistingLargeCovers(List<BookEntity> books) {
+    Future<void>.microtask(() async {
+      for (final BookEntity book in books) {
+        if (_processedCoverBookIds.contains(book.id)) {
+          continue;
+        }
+        _processedCoverBookIds.add(book.id);
+
+        final String? cover = book.cover;
+        if (cover != null && cover.length > 50000) {
+          final String? compressed = Images.compressImageIfNeeded(cover);
+          if (compressed != null && compressed != cover) {
+            final BookEntity updated = book.copyWith(
+              cover: Nullable<String?>(compressed),
+              lastUpdated: DateTime.now(),
+            );
+            await editBook(updated);
+          }
+        }
+      }
+    });
+  }
 
   @override
   Future<BookEntity?> fetchBookById(String id) => remoteDataSource.fetchBookById(id);

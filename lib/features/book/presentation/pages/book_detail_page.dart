@@ -53,7 +53,6 @@ class BookDetailPage extends ConsumerWidget {
       entityName: book.title,
       onConfirm: () async {
         await ref.read(removeBookUseCaseProvider)(book.id);
-        ref.invalidate(bookCountProvider);
         if (context.mounted) {
           context.pop();
         }
@@ -116,7 +115,6 @@ class BookDetailPage extends ConsumerWidget {
                     icon: const FaIcon(FontAwesomeIcons.penToSquare),
                     onPressed: () async {
                       await context.push('/books/upsert', extra: book);
-                      ref.invalidate(bookProvider(bookId));
                     },
                     tooltip: 'Edit',
                   ),

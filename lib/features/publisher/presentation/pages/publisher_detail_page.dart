@@ -31,7 +31,6 @@ class PublisherDetailPage extends ConsumerWidget {
       entityName: publisher.name,
       onConfirm: () async {
         await ref.read(removePublisherUseCaseProvider)(publisher.id);
-        ref.invalidate(publisherCountProvider);
         if (context.mounted) {
           context.pop();
         }
@@ -80,7 +79,6 @@ class PublisherDetailPage extends ConsumerWidget {
                     icon: const FaIcon(FontAwesomeIcons.penToSquare),
                     onPressed: () async {
                       await context.push('/publishers/upsert', extra: publisher);
-                      ref.invalidate(publisherProvider(publisherId));
                     },
                     tooltip: 'Edit',
                   ),

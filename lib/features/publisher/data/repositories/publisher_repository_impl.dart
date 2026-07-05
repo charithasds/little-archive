@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-
+import '../../../../core/shared/domain/utils/nullable.dart';
+import '../../../../core/shared/presentation/utils/images.dart';
 import '../../domain/entities/publisher_entity.dart';
 import '../../domain/repositories/publisher_repository.dart';
 import '../datasources/publisher_remote_datasource.dart';
@@ -12,11 +13,40 @@ class PublisherRepositoryImpl implements PublisherRepository {
 
   final PublisherRemoteDataSource remoteDataSource;
 
+  final Set<String> _processedLogoPublisherIds = <String>{};
+
   @override
   String generateId() => remoteDataSource.generateId();
 
   @override
-  Future<List<PublisherEntity>> fetchPublishers() => remoteDataSource.fetchPublishers();
+  Future<List<PublisherEntity>> fetchPublishers() async {
+    final List<PublisherEntity> publishers = await remoteDataSource.fetchPublishers();
+    _compressExistingLargeLogos(publishers);
+    return publishers;
+  }
+
+  void _compressExistingLargeLogos(List<PublisherEntity> publishers) {
+    Future<void>.microtask(() async {
+      for (final PublisherEntity publisher in publishers) {
+        if (_processedLogoPublisherIds.contains(publisher.id)) {
+          continue;
+        }
+        _processedLogoPublisherIds.add(publisher.id);
+
+        final String? logo = publisher.logo;
+        if (logo != null && logo.length > 50000) {
+          final String? compressed = Images.compressImageIfNeeded(logo);
+          if (compressed != null && compressed != logo) {
+            final PublisherEntity updated = publisher.copyWith(
+              logo: Nullable<String?>(compressed),
+              lastUpdated: DateTime.now(),
+            );
+            await editPublisher(updated);
+          }
+        }
+      }
+    });
+  }
 
   @override
   Future<PublisherEntity?> fetchPublisherById(String id) => remoteDataSource.fetchPublisherById(id);

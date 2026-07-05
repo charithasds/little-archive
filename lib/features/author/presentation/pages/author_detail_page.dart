@@ -35,7 +35,6 @@ class AuthorDetailPage extends ConsumerWidget {
       entityName: author.name,
       onConfirm: () async {
         await ref.read(removeAuthorUseCaseProvider)(author.id);
-        ref.invalidate(authorCountProvider);
         if (context.mounted) {
           context.pop();
         }
@@ -93,7 +92,6 @@ class AuthorDetailPage extends ConsumerWidget {
                     icon: const FaIcon(FontAwesomeIcons.penToSquare),
                     onPressed: () async {
                       await context.push('/authors/upsert', extra: author);
-                      ref.invalidate(authorProvider(authorId));
                     },
                     tooltip: 'Edit',
                   ),

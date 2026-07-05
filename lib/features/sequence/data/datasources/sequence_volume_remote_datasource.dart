@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:drift/drift.dart';
@@ -30,9 +29,9 @@ class SequenceVolumeRemoteDataSourceImpl implements SequenceVolumeRemoteDataSour
 
   @override
   String generateId() {
+    const String chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final Random random = Random();
-    final List<int> bytes = List<int>.generate(16, (_) => random.nextInt(256));
-    return base64Url.encode(bytes).replaceAll('=', '').replaceAll('-', '').replaceAll('_', '').substring(0, 20);
+    return List<String>.generate(20, (_) => chars[random.nextInt(chars.length)]).join();
   }
 
   SequenceVolumeModel _mapToSequenceVolumeModel(SequenceVolume row) => SequenceVolumeModel(
@@ -97,7 +96,7 @@ class SequenceVolumeRemoteDataSourceImpl implements SequenceVolumeRemoteDataSour
         workId: volume.workId,
         createdDate: volume.createdDate,
         lastUpdated: volume.lastUpdated,
-      ),
+      ).toCompanion(false),
     );
   }
 

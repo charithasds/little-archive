@@ -5,7 +5,6 @@ import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../domain/entities/sequence_entity.dart';
 import '../../domain/usecases/sequence_usecases.dart';
-import 'sequence_provider.dart';
 
 part 'upsert_sequence_controller.g.dart';
 
@@ -39,7 +38,7 @@ class UpsertSequenceController extends _$UpsertSequenceController {
   Future<SequenceEntity?> saveSequence({required String name, String? notes}) async {
     state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
-
+    await Future<void>.delayed(Duration.zero);
 
     final SequenceEntity? existingSequence = state.existingSequence;
     final String generatedId = ref.read(generateSequenceIdUseCaseProvider)();
@@ -67,7 +66,6 @@ class UpsertSequenceController extends _$UpsertSequenceController {
       }
 
       state = state.copyWith(isLoading: false);
-      ref.invalidate(sequenceCountProvider);
       return sequenceToSave;
     } on NoConnectionException catch (e) {
       state = state.copyWith(isLoading: false, error: Nullable<String?>(e.message));

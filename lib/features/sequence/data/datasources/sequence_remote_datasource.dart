@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:drift/drift.dart';
@@ -26,9 +25,9 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
 
   @override
   String generateId() {
+    const String chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final Random random = Random();
-    final List<int> bytes = List<int>.generate(16, (_) => random.nextInt(256));
-    return base64Url.encode(bytes).replaceAll('=', '').replaceAll('-', '').replaceAll('_', '').substring(0, 20);
+    return List<String>.generate(20, (_) => chars[random.nextInt(chars.length)]).join();
   }
 
   Future<SequenceModel> _mapToSequenceModel(Sequence row) async {
@@ -69,13 +68,16 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
   }
 
   @override
-  Stream<List<SequenceModel>> watchSequences() => db.select(db.sequences).watch().asyncMap((List<Sequence> rows) async {
-      final List<SequenceModel> sequences = <SequenceModel>[];
-      for (final Sequence row in rows) {
-        sequences.add(await _mapToSequenceModel(row));
-      }
-      return sequences;
-    });
+  Stream<List<SequenceModel>> watchSequences() async* {
+    yield await fetchSequences();
+    await for (final Set<TableUpdate> _ in db.tableUpdates().where((Set<TableUpdate> updates) => updates.any((TableUpdate update) =>
+        update.table == db.sequences.actualTableName ||
+        update.table == db.sequenceVolumes.actualTableName ||
+        update.table == db.books.actualTableName ||
+        update.table == db.works.actualTableName))) {
+      yield await fetchSequences();
+    }
+  }
 
   @override
   Future<void> addSequence(SequenceModel sequence) async {
@@ -86,7 +88,7 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
         notes: sequence.notes,
         createdDate: sequence.createdDate,
         lastUpdated: sequence.lastUpdated,
-      ),
+      ).toCompanion(false),
     );
   }
 

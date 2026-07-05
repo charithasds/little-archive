@@ -28,6 +28,25 @@ class PublisherListPage extends ConsumerStatefulWidget {
 
 class _PublisherListPageState extends ConsumerState<PublisherListPage> {
   bool _isExtended = true;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    ref.read(publisherListControllerProvider.notifier).setSearchQuery('');
+  }
+
+  Future<void> _navigateTo(Future<void> Function() navigation) async {
+    await navigation();
+    if (mounted) {
+      _clearSearch();
+    }
+  }
 
   Future<void> _handleRemove(String publisherId, String publisherName) async {
     await AppDialogs.removeEntity(
@@ -36,7 +55,6 @@ class _PublisherListPageState extends ConsumerState<PublisherListPage> {
       entityName: publisherName,
       onConfirm: () async {
         await ref.read(removePublisherUseCaseProvider)(publisherId);
-        ref.invalidate(publisherCountProvider);
       },
     );
   }
@@ -87,6 +105,7 @@ class _PublisherListPageState extends ConsumerState<PublisherListPage> {
             child: Column(
               children: <Widget>[
                 SearchField(
+                  controller: _searchController,
                   hintText: 'Search',
                   onChanged: (String query) =>
                       ref.read(publisherListControllerProvider.notifier).setSearchQuery(query),
@@ -115,8 +134,8 @@ class _PublisherListPageState extends ConsumerState<PublisherListPage> {
 
                               return PublisherListTile(
                                 publisher: publisher,
-                                onTap: () => context.goNamed(RouteConstants.publisherDetail, pathParameters: <String, String>{'id': publisher.id}),
-                                onEdit: () => context.pushNamed(RouteConstants.upsertPublisher, extra: publisher),
+                                onTap: () => _navigateTo(() => context.pushNamed(RouteConstants.publisherDetail, pathParameters: <String, String>{'id': publisher.id})),
+                                onEdit: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertPublisher, extra: publisher)),
                                 onRemove: () => _handleRemove(publisher.id, publisher.name),
                               );
                             },
@@ -136,8 +155,8 @@ class _PublisherListPageState extends ConsumerState<PublisherListPage> {
 
                               return PublisherListTile(
                                 publisher: publisher,
-                                onTap: () => context.goNamed(RouteConstants.publisherDetail, pathParameters: <String, String>{'id': publisher.id}),
-                                onEdit: () => context.pushNamed(RouteConstants.upsertPublisher, extra: publisher),
+                                onTap: () => _navigateTo(() => context.pushNamed(RouteConstants.publisherDetail, pathParameters: <String, String>{'id': publisher.id})),
+                                onEdit: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertPublisher, extra: publisher)),
                                 onRemove: () => _handleRemove(publisher.id, publisher.name),
                               );
                             },
@@ -157,7 +176,7 @@ class _PublisherListPageState extends ConsumerState<PublisherListPage> {
         isExtended: _isExtended,
         backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
         foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
-        onPressed: () => context.pushNamed(RouteConstants.upsertPublisher),
+        onPressed: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertPublisher)),
         icon: const FaIcon(FontAwesomeIcons.plus),
         label: const Text('Add Publisher'),
       ),

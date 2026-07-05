@@ -5,21 +5,38 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../theme/presentation/providers/theme_provider.dart';
 
 class SearchField extends ConsumerStatefulWidget {
-  const SearchField({required this.onChanged, this.hintText = 'Search...', super.key});
+  const SearchField({required this.onChanged, this.hintText = 'Search...', this.controller, super.key});
 
   final ValueChanged<String> onChanged;
   final String hintText;
+  final TextEditingController? controller;
 
   @override
   ConsumerState<SearchField> createState() => _SearchFieldState();
 }
 
 class _SearchFieldState extends ConsumerState<SearchField> {
-  final TextEditingController _controller = TextEditingController();
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = widget.controller ?? TextEditingController();
+    _controller.addListener(_onControllerChanged);
+  }
+
+  void _onControllerChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller.removeListener(_onControllerChanged);
+    if (widget.controller == null) {
+      _controller.dispose();
+    }
     super.dispose();
   }
 

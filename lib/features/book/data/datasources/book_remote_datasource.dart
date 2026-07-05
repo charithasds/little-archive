@@ -34,10 +34,9 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
 
   @override
   String generateId() {
-    // Generates a unique offline-compatible random ID
+    const String chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final Random random = Random();
-    final List<int> bytes = List<int>.generate(16, (_) => random.nextInt(256));
-    return base64Url.encode(bytes).replaceAll('=', '').replaceAll('-', '').replaceAll('_', '').substring(0, 20);
+    return List<String>.generate(20, (_) => chars[random.nextInt(chars.length)]).join();
   }
 
   Future<BookModel> _mapToBookModel(Book row) async {
@@ -115,15 +114,17 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
   }
 
   @override
-  Stream<List<BookModel>> watchBooks() =>
-      // Drift automatically reacts to any updates to Books or associated Join tables
-      db.select(db.books).watch().asyncMap((List<Book> rows) async {
-        final List<BookModel> books = <BookModel>[];
-        for (final Book row in rows) {
-          books.add(await _mapToBookModel(row));
-        }
-        return books;
-      });
+  Stream<List<BookModel>> watchBooks() async* {
+    yield await fetchBooks();
+    await for (final Set<TableUpdate> _ in db.tableUpdates().where((Set<TableUpdate> updates) => updates.any((TableUpdate update) =>
+        update.table == db.books.actualTableName ||
+        update.table == db.bookAuthorsJoin.actualTableName ||
+        update.table == db.bookTranslatorsJoin.actualTableName ||
+        update.table == db.works.actualTableName ||
+        update.table == db.sequenceVolumes.actualTableName))) {
+      yield await fetchBooks();
+    }
+  }
 
   @override
   Future<void> addBook(BookModel book) async {
@@ -155,7 +156,7 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
           readerId: book.readerId,
           createdDate: book.createdDate,
           lastUpdated: book.lastUpdated,
-        ),
+        ).toCompanion(false),
       );
 
       // Sync Author Joins

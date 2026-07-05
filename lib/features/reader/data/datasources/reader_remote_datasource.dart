@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:drift/drift.dart';
@@ -26,9 +25,9 @@ class ReaderRemoteDataSourceImpl implements ReaderRemoteDataSource {
 
   @override
   String generateId() {
+    const String chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final Random random = Random();
-    final List<int> bytes = List<int>.generate(16, (_) => random.nextInt(256));
-    return base64Url.encode(bytes).replaceAll('=', '').replaceAll('-', '').replaceAll('_', '').substring(0, 20);
+    return List<String>.generate(20, (_) => chars[random.nextInt(chars.length)]).join();
   }
 
   Future<ReaderModel> _mapToReaderModel(Reader row) async {
@@ -73,13 +72,14 @@ class ReaderRemoteDataSourceImpl implements ReaderRemoteDataSource {
   }
 
   @override
-  Stream<List<ReaderModel>> watchReaders() => db.select(db.readers).watch().asyncMap((List<Reader> rows) async {
-      final List<ReaderModel> readerModels = <ReaderModel>[];
-      for (final Reader row in rows) {
-        readerModels.add(await _mapToReaderModel(row));
-      }
-      return readerModels;
-    });
+  Stream<List<ReaderModel>> watchReaders() async* {
+    yield await fetchReaders();
+    await for (final Set<TableUpdate> _ in db.tableUpdates().where((Set<TableUpdate> updates) => updates.any((TableUpdate update) =>
+        update.table == db.readers.actualTableName ||
+        update.table == db.books.actualTableName))) {
+      yield await fetchReaders();
+    }
+  }
 
   @override
   Future<void> addReader(ReaderModel reader) async {
@@ -94,7 +94,7 @@ class ReaderRemoteDataSourceImpl implements ReaderRemoteDataSource {
         phoneNumber: reader.phoneNumber,
         createdDate: reader.createdDate,
         lastUpdated: reader.lastUpdated,
-      ),
+      ).toCompanion(false),
     );
   }
 
