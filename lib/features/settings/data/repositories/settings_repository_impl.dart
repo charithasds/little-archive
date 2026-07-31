@@ -11,7 +11,8 @@ class SettingsRepositoryImpl implements SettingsRepository {
   final SettingsRemoteDataSource _remoteDataSource;
 
   @override
-  Future<void> clearAllData() => _remoteDataSource.clearAllData();
+  Future<void> clearAllData({void Function(double progress)? onProgress}) =>
+      _remoteDataSource.clearAllData(onProgress: onProgress);
 }
 
 @riverpod

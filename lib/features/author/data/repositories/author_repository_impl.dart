@@ -60,7 +60,7 @@ class AuthorRepositoryImpl implements AuthorRepository {
       AuthorModel(
         id: author.id,
         name: author.name,
-        image: author.image,
+        image: Images.compressImageIfNeeded(author.image),
         otherName: author.otherName,
         website: author.website,
         facebook: author.facebook,
@@ -78,7 +78,7 @@ class AuthorRepositoryImpl implements AuthorRepository {
       AuthorModel(
         id: author.id,
         name: author.name,
-        image: author.image,
+        image: Images.compressImageIfNeeded(author.image),
         otherName: author.otherName,
         website: author.website,
         facebook: author.facebook,

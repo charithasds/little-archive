@@ -7,15 +7,24 @@ import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/presentation/routes/route_constants.dart';
 import '../../../../core/shared/presentation/routes/router_service.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
+import '../../../author/domain/entities/author_entity.dart';
+import '../../../author/presentation/providers/author_provider.dart';
 import '../../../book/domain/entities/book_entity.dart';
 import '../../../book/presentation/providers/book_provider.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
+import '../../../translator/domain/entities/translator_entity.dart';
+import '../../../translator/presentation/providers/translator_provider.dart';
+import '../../data/services/book_fair_sheets_service.dart';
 import '../../domain/entities/book_fair_event_entity.dart';
 import '../../domain/entities/book_fair_stall_entity.dart';
 import '../providers/book_fair_event_provider.dart';
+import '../providers/book_fair_sync_controller.dart';
 import '../widgets/book_fair_hall_group_card.dart';
 import '../widgets/book_fair_progress_card.dart';
+import '../widgets/book_fair_sheet_qr_dialog.dart';
+import '../widgets/book_fair_stall_selection_dialog.dart';
+import '../widgets/book_fair_sync_dialog.dart';
 
 class BookFairShoppingPlanPage extends ConsumerWidget {
   const BookFairShoppingPlanPage({super.key});
@@ -82,6 +91,10 @@ class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlan
     final List<PublisherEntity> publishers =
         ref.watch(publishersStreamProvider).value ?? <PublisherEntity>[];
     final List<BookEntity> books = ref.watch(booksStreamProvider).value ?? <BookEntity>[];
+    final List<AuthorEntity> authors =
+        ref.watch(authorsStreamProvider).value ?? <AuthorEntity>[];
+    final List<TranslatorEntity> translators =
+        ref.watch(translatorsStreamProvider).value ?? <TranslatorEntity>[];
 
     final DateTime now = DateTime.now();
     final Set<String> publisherIdsInShoppingList = books
@@ -262,14 +275,233 @@ class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlan
         surfaceTintColor: purplePrimary,
         elevation: 0,
         actions: <Widget>[
-          TextButton.icon(
-            icon: const FaIcon(FontAwesomeIcons.road, size: 18),
-            label: const Text('Edit Plan'),
-            onPressed: widget.onEditMappings,
-            style: TextButton.styleFrom(
-              foregroundColor: purplePrimary,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-            ),
+          // --- Sync / Share button -------------------------------------------
+          // Builds the book list from the already-loaded books, exports to a
+          // new Google Sheet, then opens the QR dialog on success.
+          Builder(
+            builder: (BuildContext ctx) {
+              final BookFairSyncState syncState =
+                  ref.watch(bookFairSyncControllerProvider);
+              final bool isExporting =
+                  syncState.status == BookFairSyncStatus.exporting;
+
+              if (isExporting) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Center(
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                );
+              }
+
+              return PopupMenuButton<int>(
+                icon: FaIcon(
+                  FontAwesomeIcons.ellipsisVertical,
+                  size: 20,
+                  color: purplePrimary,
+                ),
+                onSelected: (int value) async {
+                  if (value == 0) {
+                    widget.onEditMappings();
+                  } else if (value == 1 || value == 2) {
+                    // Collect only shopping-list books with full entity
+                    // context needed for the enriched sheet export (and sync).
+                    final List<BookFairExportEntry> entries = books
+                        .where(
+                          (BookEntity b) =>
+                              b.collectionStatus ==
+                              CollectionStatus.shoppingList,
+                        )
+                        .map((BookEntity book) {
+                      // Resolve author names from authorIds.
+                      final List<String> authorNames = book.authorIds
+                          .map(
+                            (String id) => authors
+                                .where((AuthorEntity a) => a.id == id)
+                                .map((AuthorEntity a) => a.name)
+                                .firstOrNull ?? '',
+                          )
+                          .where((String n) => n.isNotEmpty)
+                          .toList();
+
+                      // Resolve translator names from translatorIds.
+                      final List<String> translatorNames =
+                          book.translatorIds
+                              .map(
+                                (String id) => translators
+                                    .where(
+                                      (TranslatorEntity t) => t.id == id,
+                                    )
+                                    .map((TranslatorEntity t) => t.name)
+                                    .firstOrNull ?? '',
+                              )
+                              .where((String n) => n.isNotEmpty)
+                              .toList();
+
+                      // Combine authors and translators into Creators
+                      String creators = '';
+                      final String authorStr = authorNames.join(', ');
+                      final String translatorStr = translatorNames.join(', ');
+                      if (translatorStr.isNotEmpty) {
+                        creators = '$translatorStr ($authorStr)';
+                      } else {
+                        creators = authorStr;
+                      }
+
+                      // Resolve publisher + stall info via publisherId.
+                      final PublisherEntity? publisher = publishers
+                          .where(
+                            (PublisherEntity p) =>
+                                p.id == book.publisherId,
+                          )
+                          .cast<PublisherEntity?>()
+                          .firstOrNull;
+
+                      BookFairStallEntity? stall;
+                      if (publisher?.bookFairPublisherId != null) {
+                        stall = widget.event.stalls
+                            .where(
+                              (BookFairStallEntity s) =>
+                                  s.id ==
+                                  publisher!.bookFairPublisherId,
+                            )
+                            .cast<BookFairStallEntity?>()
+                            .firstOrNull;
+                      }
+
+                      return BookFairExportEntry(
+                        book: book,
+                        creators: creators,
+                        publisherName: publisher?.name ?? '',
+                        halls: stall?.halls ?? <String>[],
+                        stallNo: stall?.stallNo ?? '',
+                        stallName: stall?.name ?? '',
+                      );
+                    }).toList();
+
+                    // Sort the entries: Hall -> Stall -> Title
+                    entries.sort((BookFairExportEntry a, BookFairExportEntry b) {
+                      final String hallA = a.halls.isNotEmpty ? a.halls.first : '';
+                      final String hallB = b.halls.isNotEmpty ? b.halls.first : '';
+                      int cmp = hallA.compareTo(hallB);
+                      if (cmp != 0) {
+                        return cmp;
+                      }
+
+                      cmp = a.stallNo.compareTo(b.stallNo);
+                      if (cmp != 0) {
+                        return cmp;
+                      }
+
+                      return a.book.title.compareTo(b.book.title);
+                    });
+
+                    // Keep a plain BookEntity list for the pull dialog.
+                    final List<BookEntity> allShoppingBooks = entries
+                        .map((BookFairExportEntry e) => e.book)
+                        .toList();
+
+                    if (value == 1) {
+                      // Show stall selection dialog
+                      final List<BookFairExportEntry>? selectedEntries =
+                          await BookFairStallSelectionDialog.show(
+                        ctx,
+                        entries,
+                      );
+
+                      // If user cancelled the dialog, abort export
+                      if (selectedEntries == null || !ctx.mounted) {
+                        return;
+                      }
+
+                      // Keep a plain BookEntity list for the QR dialog.
+                      final List<BookEntity> selectedShoppingBooks =
+                          selectedEntries
+                              .map((BookFairExportEntry e) => e.book)
+                              .toList();
+
+                      // Reset any previous sync state before starting.
+                      ref
+                          .read(bookFairSyncControllerProvider.notifier)
+                          .reset();
+
+                      // Kick off export; controller updates its own state.
+                      await ref
+                          .read(bookFairSyncControllerProvider.notifier)
+                          .exportAndShare(selectedEntries);
+
+                      final BookFairSyncState result =
+                          ref.read(bookFairSyncControllerProvider);
+
+                      if (!ctx.mounted) {
+                        return;
+                      }
+
+                      if (result.status == BookFairSyncStatus.done &&
+                          result.sheetUrl != null) {
+                        // Open the QR dialog on success.
+                        await BookFairSheetQrDialog.show(
+                          ctx,
+                          selectedShoppingBooks,
+                        );
+                      } else if (result.status == BookFairSyncStatus.error) {
+                        // Surface the error as a snack bar.
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              result.error ??
+                                  'Export failed. Please try again.',
+                            ),
+                            backgroundColor:
+                                Theme.of(ctx).colorScheme.error,
+                          ),
+                        );
+                      }
+                    } else if (value == 2) {
+                      // Sync - we sync all shopping list items, not filtered
+                      ref.read(bookFairSyncControllerProvider.notifier).reset();
+                      await BookFairSyncDialog.show(ctx, allShoppingBooks);
+                    }
+                  }
+                },
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<int>>[
+                  PopupMenuItem<int>(
+                    value: 0,
+                    child: Row(
+                      children: <Widget>[
+                        FaIcon(FontAwesomeIcons.road, size: 18, color: purplePrimary),
+                        const SizedBox(width: 12),
+                        const Text('Edit Plan'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem<int>(
+                    value: 1,
+                    child: Row(
+                      children: <Widget>[
+                        FaIcon(FontAwesomeIcons.shareNodes, size: 18, color: purplePrimary),
+                        const SizedBox(width: 12),
+                        const Text('Share'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem<int>(
+                    value: 2,
+                    child: Row(
+                      children: <Widget>[
+                        FaIcon(FontAwesomeIcons.arrowsRotate, size: 18, color: purplePrimary),
+                        const SizedBox(width: 12),
+                        const Text('Sync'),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),

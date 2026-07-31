@@ -1,7 +1,7 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
@@ -43,7 +43,7 @@ class BackupService {
   /// Android opens the SAF ACTION_CREATE_DOCUMENT picker — the user can choose
   /// any writable destination (Downloads, Drive, SD card, etc.) without needing
   /// any storage permissions.
-  Future<bool> exportLocalBackup() async {
+  Future<bool> exportLocalBackup({void Function(double)? onProgress}) async {
     try {
       final File dbFile = await _getDatabaseFile();
       if (!dbFile.existsSync()) {
@@ -51,12 +51,29 @@ class BackupService {
         return false;
       }
 
-      final Uint8List bytes = await dbFile.readAsBytes();
+      int bytesRead = 0;
+      final int totalBytes = dbFile.lengthSync();
+      final BytesBuilder builder = BytesBuilder(copy: false);
+      
+      await for (final List<int> chunk in dbFile.openRead()) {
+        builder.add(chunk);
+        bytesRead += chunk.length;
+        if (totalBytes > 0) {
+          onProgress?.call((bytesRead / totalBytes) * 0.9); // Reserve 10% for the save operation
+        }
+      }
+      
+      final Uint8List bytes = builder.toBytes();
       final String? savePath = await FilePicker.saveFile(
         dialogTitle: 'Save database backup',
         fileName: 'little_archive_backup.db',
         bytes: bytes,
       );
+      
+      if (savePath != null) {
+        onProgress?.call(1.0);
+      }
+      
       // savePath is null only when the user cancels the picker.
       return savePath != null;
     } catch (e) {
@@ -67,13 +84,13 @@ class BackupService {
 
   /// Restores the local database from a user-selected backup file.
   ///
-  /// Uses [withData: true] to load the file bytes directly through the
-  /// FilePicker content URI — no raw path permission needed on Android.
-  Future<bool> importLocalRestore() async {
+  /// Uses [withReadStream: true] to read the file in chunks instead of loading
+  /// the entire file into memory with [withData: true], avoiding OutOfMemoryError.
+  Future<bool> importLocalRestore({void Function(double)? onProgress}) async {
     try {
-      final FilePickerResult? result = await FilePicker.pickFiles(withData: true);
+      final FilePickerResult? result = await FilePicker.pickFiles(withReadStream: true);
 
-      if (result == null || result.files.single.bytes == null) {
+      if (result == null || result.files.single.readStream == null) {
         return false; // User cancelled or file unreadable
       }
 
@@ -82,10 +99,24 @@ class BackupService {
       if (dbFile.existsSync()) {
         await dbFile.delete();
       }
-      await dbFile.writeAsBytes(result.files.single.bytes!);
+      
+      final IOSink sink = dbFile.openWrite();
+      int bytesWritten = 0;
+      final int totalBytes = result.files.single.size;
+      
+      final Stream<List<int>> progressStream = result.files.single.readStream!.map((List<int> chunk) {
+        bytesWritten += chunk.length;
+        if (totalBytes > 0) {
+          onProgress?.call(bytesWritten / totalBytes);
+        }
+        return chunk;
+      });
+      
+      await sink.addStream(progressStream);
+      await sink.close();
+      
       return true;
     } catch (e) {
-
       return false;
     }
   }
@@ -123,7 +154,7 @@ class BackupService {
   }
 
   /// Backs up the Drift SQLite database to the private Drive AppData folder.
-  Future<bool> backupToGoogleDrive() async {
+  Future<bool> backupToGoogleDrive({void Function(double)? onProgress}) async {
     try {
       final Map<String, String>? authHeaders = await _getAuthHeaders();
       if (authHeaders == null) {
@@ -147,7 +178,18 @@ class BackupService {
       final drive.File driveFile = drive.File()
         ..name = 'little_archive_backup.db';
 
-      final drive.Media media = drive.Media(dbFile.openRead(), dbFile.lengthSync());
+      int bytesUploaded = 0;
+      final int totalBytes = dbFile.lengthSync();
+      
+      final Stream<List<int>> progressStream = dbFile.openRead().map((List<int> chunk) {
+        bytesUploaded += chunk.length;
+        if (totalBytes > 0) {
+          onProgress?.call(bytesUploaded / totalBytes);
+        }
+        return chunk;
+      });
+
+      final drive.Media media = drive.Media(progressStream, totalBytes);
 
       if (existingFiles.files != null && existingFiles.files!.isNotEmpty) {
         // Overwrite existing backup file
@@ -165,7 +207,7 @@ class BackupService {
   }
 
   /// Restores the Drift database from the private Drive AppData folder.
-  Future<bool> restoreFromGoogleDrive() async {
+  Future<bool> restoreFromGoogleDrive({void Function(double)? onProgress}) async {
     try {
       final Map<String, String>? authHeaders = await _getAuthHeaders();
       if (authHeaders == null) {
@@ -185,19 +227,36 @@ class BackupService {
         return false; // No backup file found
       }
 
-      final String fileId = existingFiles.files!.first.id!;
+      final drive.File fileMeta = existingFiles.files!.first;
+      final String fileId = fileMeta.id!;
+      
+      // Need to fetch file size because fullMedia download doesn't include it in Media.length if not known
+      final drive.File fullMeta = await driveApi.files.get(fileId, $fields: 'size') as drive.File;
+      final int totalBytes = int.tryParse(fullMeta.size ?? '0') ?? 0;
+
       final drive.Media response =
           await driveApi.files.get(fileId, downloadOptions: drive.DownloadOptions.fullMedia)
               as drive.Media;
-
-      final List<int> dataBytes = <int>[];
-      await response.stream.forEach(dataBytes.addAll);
 
       final File dbFile = await _getDatabaseFile();
       if (dbFile.existsSync()) {
         await dbFile.delete();
       }
-      await dbFile.writeAsBytes(dataBytes);
+      
+      final IOSink sink = dbFile.openWrite();
+      int bytesWritten = 0;
+      
+      final Stream<List<int>> progressStream = response.stream.map((List<int> chunk) {
+        bytesWritten += chunk.length;
+        if (totalBytes > 0) {
+          onProgress?.call(bytesWritten / totalBytes);
+        }
+        return chunk;
+      });
+      
+      await sink.addStream(progressStream);
+      await sink.close();
+      
       return true;
     } catch (e) {
       return false;

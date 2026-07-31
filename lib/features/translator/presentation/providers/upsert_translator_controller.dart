@@ -55,11 +55,18 @@ class UpsertTranslatorController extends _$UpsertTranslatorController {
 
   Future<void> pickImage() async {
     final ImagePicker picker = ImagePicker();
-    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800,
+      maxHeight: 800,
+      imageQuality: 80,
+    );
 
     if (pickedFile != null) {
       final Uint8List bytes = await pickedFile.readAsBytes();
-      state = state.copyWith(pickedBase64Image: Nullable<String?>(base64Encode(bytes)));
+      final String rawBase64 = base64Encode(bytes);
+      final String compressed = Images.compressImageIfNeeded(rawBase64) ?? rawBase64;
+      state = state.copyWith(pickedBase64Image: Nullable<String?>(compressed));
     }
   }
 

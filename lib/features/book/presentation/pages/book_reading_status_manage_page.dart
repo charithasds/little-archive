@@ -6,7 +6,9 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../../../core/shared/presentation/widgets/search_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
+import '../../../author/presentation/providers/author_provider.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
+import '../../../translator/presentation/providers/translator_provider.dart';
 import '../../domain/entities/book_entity.dart';
 import '../providers/book_provider.dart';
 import '../providers/book_status_controller.dart';
@@ -163,15 +165,15 @@ class _ReadingTabViewState extends ConsumerState<_ReadingTabView> {
       );
     }
 
-    final List<BookEntity> sortedAndFilteredBooks = books
-        .where((BookEntity b) {
+    final List<BookEntity> sortedAndFilteredBooks =
+        books.where((BookEntity b) {
           if (_searchQuery.isEmpty) {
             return true;
           }
           return b.title.toLowerCase().contains(_searchQuery.toLowerCase());
-        })
-        .toList()
-      ..sort((BookEntity a, BookEntity b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+        }).toList()..sort(
+          (BookEntity a, BookEntity b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+        );
 
     return Column(
       children: <Widget>[
@@ -188,9 +190,7 @@ class _ReadingTabViewState extends ConsumerState<_ReadingTabView> {
             child: Center(
               child: Text(
                 'No books match your search.',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+                style: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
               ),
             ),
           )
@@ -223,6 +223,12 @@ class _ReadingBookTile extends ConsumerWidget {
         : null;
     final ReadingStatus status = book.readingStatus;
 
+    final String? creatorName = book.isTranslation && book.translatorIds.isNotEmpty
+        ? ref.watch(translatorProvider(book.translatorIds.first)).value?.name
+        : book.authorIds.isNotEmpty
+        ? ref.watch(authorProvider(book.authorIds.first)).value?.name
+        : null;
+
     final bool isDark = theme.brightness == Brightness.dark;
     final Color blueContainer = isDark
         ? const Color(0xFF0D47A1).withValues(alpha: 0.18)
@@ -251,10 +257,13 @@ class _ReadingBookTile extends ConsumerWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            if (publisherName != null) ...<Widget>[
+            if (creatorName != null || publisherName != null) ...<Widget>[
               const SizedBox(height: 2),
               Text(
-                publisherName,
+                <String>[
+                  if (creatorName != null) creatorName,
+                  if (publisherName != null) publisherName,
+                ].join(' • '),
                 style: theme.textTheme.bodySmall?.copyWith(color: blueText),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -433,9 +442,7 @@ class _PauseDialogState extends ConsumerState<_PauseDialog> {
                   prefixIcon: const SizedBox(
                     width: 48,
                     height: 48,
-                    child: Center(
-                      child: FaIcon(FontAwesomeIcons.bookmark, size: 20),
-                    ),
+                    child: Center(child: FaIcon(FontAwesomeIcons.bookmark, size: 20)),
                   ),
                   prefixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -588,11 +595,7 @@ class _CompleteDialogState extends ConsumerState<_CompleteDialog> {
 
     await ref
         .read(bookStatusControllerProvider.notifier)
-        .changeReadingStatus(
-          widget.book,
-          ReadingStatus.completed,
-          completedDate: _completedDate,
-        );
+        .changeReadingStatus(widget.book, ReadingStatus.completed, completedDate: _completedDate);
 
     if (mounted) {
       context.pop();

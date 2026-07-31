@@ -45,7 +45,7 @@ class Images {
 
   static Color getAvatarIconColor(ThemeData theme) => theme.colorScheme.primary;
 
-  static final Map<String, MemoryImage> _memoryImageCache = <String, MemoryImage>{};
+  static final Map<int, MemoryImage> _memoryImageCache = <int, MemoryImage>{};
 
   static ImageProvider getImageProvider(
     String? imageSource, {
@@ -59,17 +59,24 @@ class Images {
       return NetworkImage(imageSource);
     } else {
       try {
-        if (_memoryImageCache.length > 50) {
+        final int key = Object.hash(imageSource.length, imageSource.hashCode);
+        if (_memoryImageCache.length > 30) {
           _memoryImageCache.clear();
         }
         return _memoryImageCache.putIfAbsent(
-          imageSource,
+          key,
           () => MemoryImage(base64Decode(imageSource)),
         );
       } catch (e) {
         return AssetImage(fallbackAsset);
       }
     }
+  }
+
+  static void clearCache() {
+    _memoryImageCache.clear();
+    PaintingBinding.instance.imageCache.clear();
+    PaintingBinding.instance.imageCache.clearLiveImages();
   }
 
   static Widget getImage(

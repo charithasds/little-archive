@@ -67,12 +67,19 @@ class UpsertBookController extends _$UpsertBookController {
   Future<void> pickImage() async {
     try {
       final ImagePicker picker = ImagePicker();
-      final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+      final XFile? pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 80,
+      );
 
       if (pickedFile != null) {
         final Uint8List bytes = await pickedFile.readAsBytes();
+        final String rawBase64 = base64Encode(bytes);
+        final String compressed = Images.compressImageIfNeeded(rawBase64) ?? rawBase64;
         state = state.copyWith(
-          pickedBase64Image: Nullable<String?>(base64Encode(bytes)),
+          pickedBase64Image: Nullable<String?>(compressed),
           error: const Nullable<String?>(null),
         );
       }
@@ -82,7 +89,8 @@ class UpsertBookController extends _$UpsertBookController {
   }
 
   void setCover(String base64Image) {
-    state = state.copyWith(pickedBase64Image: Nullable<String?>(base64Image));
+    final String compressed = Images.compressImageIfNeeded(base64Image) ?? base64Image;
+    state = state.copyWith(pickedBase64Image: Nullable<String?>(compressed));
   }
 
   void clearCover() {

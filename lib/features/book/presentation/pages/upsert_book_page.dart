@@ -258,11 +258,18 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
 
   Future<void> _scanBook() async {
     final ImagePicker picker = ImagePicker();
-    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800,
+      maxHeight: 800,
+      imageQuality: 80,
+    );
     if (pickedFile != null) {
       final Uint8List imageBytes = await pickedFile.readAsBytes();
-      ref.read(upsertBookControllerProvider.notifier).setCover(base64Encode(imageBytes));
-      await ref.read(upsertBookControllerProvider.notifier).scanBook(imageBytes);
+      final String rawBase64 = base64Encode(imageBytes);
+      final String compressed = Images.compressImageIfNeeded(rawBase64) ?? rawBase64;
+      ref.read(upsertBookControllerProvider.notifier).setCover(compressed);
+      await ref.read(upsertBookControllerProvider.notifier).scanBook(base64Decode(compressed));
     }
   }
 

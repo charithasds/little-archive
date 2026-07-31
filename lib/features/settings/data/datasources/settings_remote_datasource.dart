@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/database/app_database.dart';
@@ -5,7 +6,7 @@ import '../../../../core/database/app_database.dart';
 part 'settings_remote_datasource.g.dart';
 
 abstract class SettingsRemoteDataSource {
-  Future<void> clearAllData();
+  Future<void> clearAllData({void Function(double progress)? onProgress});
 }
 
 class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
@@ -14,21 +15,26 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
   final AppDatabase db;
 
   @override
-  Future<void> clearAllData() async {
-    // Delete all rows from every table inside a single SQL transaction
+  Future<void> clearAllData({void Function(double progress)? onProgress}) async {
+    final List<TableInfo<Table, DataClass>> tables = <TableInfo<Table, DataClass>>[
+      db.books,
+      db.publishers,
+      db.authors,
+      db.translators,
+      db.works,
+      db.sequences,
+      db.sequenceVolumes,
+      db.readers,
+      db.bookAuthorsJoin,
+      db.bookTranslatorsJoin,
+      db.workAuthorsJoin,
+      db.workTranslatorsJoin,
+    ];
     await db.transaction(() async {
-      await db.delete(db.books).go();
-      await db.delete(db.publishers).go();
-      await db.delete(db.authors).go();
-      await db.delete(db.translators).go();
-      await db.delete(db.works).go();
-      await db.delete(db.sequences).go();
-      await db.delete(db.sequenceVolumes).go();
-      await db.delete(db.readers).go();
-      await db.delete(db.bookAuthorsJoin).go();
-      await db.delete(db.bookTranslatorsJoin).go();
-      await db.delete(db.workAuthorsJoin).go();
-      await db.delete(db.workTranslatorsJoin).go();
+      for (int i = 0; i < tables.length; i++) {
+        await db.delete(tables[i]).go();
+        onProgress?.call((i + 1) / tables.length);
+      }
     });
   }
 }

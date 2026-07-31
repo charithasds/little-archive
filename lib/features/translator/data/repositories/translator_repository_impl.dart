@@ -61,7 +61,7 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
       TranslatorModel(
         id: translator.id,
         name: translator.name,
-        image: translator.image,
+        image: Images.compressImageIfNeeded(translator.image),
         otherName: translator.otherName,
         website: translator.website,
         facebook: translator.facebook,
@@ -79,7 +79,7 @@ class TranslatorRepositoryImpl implements TranslatorRepository {
       TranslatorModel(
         id: translator.id,
         name: translator.name,
-        image: translator.image,
+        image: Images.compressImageIfNeeded(translator.image),
         otherName: translator.otherName,
         website: translator.website,
         facebook: translator.facebook,

@@ -9,7 +9,8 @@ class ClearAllDataUseCase {
   const ClearAllDataUseCase(this.repository);
   final SettingsRepository repository;
 
-  Future<void> call() => repository.clearAllData();
+  Future<void> call({void Function(double progress)? onProgress}) =>
+      repository.clearAllData(onProgress: onProgress);
 }
 
 @riverpod

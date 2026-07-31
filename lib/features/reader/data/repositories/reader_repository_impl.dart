@@ -60,7 +60,7 @@ class ReaderRepositoryImpl implements ReaderRepository {
       ReaderModel(
         id: reader.id,
         name: reader.name,
-        image: reader.image,
+        image: Images.compressImageIfNeeded(reader.image),
         otherName: reader.otherName,
         email: reader.email,
         facebook: reader.facebook,
@@ -78,7 +78,7 @@ class ReaderRepositoryImpl implements ReaderRepository {
       ReaderModel(
         id: reader.id,
         name: reader.name,
-        image: reader.image,
+        image: Images.compressImageIfNeeded(reader.image),
         otherName: reader.otherName,
         email: reader.email,
         facebook: reader.facebook,

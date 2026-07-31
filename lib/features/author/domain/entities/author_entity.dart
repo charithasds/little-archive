@@ -28,7 +28,7 @@ class AuthorEntity extends Equatable {
   final DateTime lastUpdated;
 
   @override
-  List<Object?> get props => <Object?>[id];
+  List<Object?> get props => <Object?>[id, lastUpdated];
 
   AuthorEntity copyWith({
     String? id,

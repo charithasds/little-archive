@@ -6,9 +6,11 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/presentation/widgets/search_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
+import '../../../author/presentation/providers/author_provider.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
 import '../../../reader/domain/entities/reader_entity.dart';
 import '../../../reader/presentation/providers/reader_provider.dart';
+import '../../../translator/presentation/providers/translator_provider.dart';
 import '../../domain/entities/book_entity.dart';
 import '../providers/book_provider.dart';
 import '../providers/book_status_controller.dart';
@@ -168,15 +170,15 @@ class _StatusTabViewState extends ConsumerState<_StatusTabView> {
       );
     }
 
-    final List<BookEntity> sortedAndFilteredBooks = books
-        .where((BookEntity b) {
+    final List<BookEntity> sortedAndFilteredBooks =
+        books.where((BookEntity b) {
           if (_searchQuery.isEmpty) {
             return true;
           }
           return b.title.toLowerCase().contains(_searchQuery.toLowerCase());
-        })
-        .toList()
-      ..sort((BookEntity a, BookEntity b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+        }).toList()..sort(
+          (BookEntity a, BookEntity b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+        );
 
     return Column(
       children: <Widget>[
@@ -193,9 +195,7 @@ class _StatusTabViewState extends ConsumerState<_StatusTabView> {
             child: Center(
               child: Text(
                 'No books match your search.',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+                style: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
               ),
             ),
           )
@@ -228,6 +228,12 @@ class _CollectionBookTile extends ConsumerWidget {
         : null;
     final CollectionStatus status = book.collectionStatus;
 
+    final String? creatorName = book.isTranslation && book.translatorIds.isNotEmpty
+        ? ref.watch(translatorProvider(book.translatorIds.first)).value?.name
+        : book.authorIds.isNotEmpty
+        ? ref.watch(authorProvider(book.authorIds.first)).value?.name
+        : null;
+
     final bool isDark = theme.brightness == Brightness.dark;
     final Color greenContainer = isDark
         ? const Color(0xFF0F5223).withValues(alpha: 0.18)
@@ -256,10 +262,13 @@ class _CollectionBookTile extends ConsumerWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            if (publisherName != null) ...<Widget>[
+            if (creatorName != null || publisherName != null) ...<Widget>[
               const SizedBox(height: 2),
               Text(
-                publisherName,
+                <String>[
+                  if (creatorName != null) creatorName,
+                  if (publisherName != null) publisherName,
+                ].join(' • '),
                 style: theme.textTheme.bodySmall?.copyWith(color: greenText),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -525,9 +534,7 @@ class _LendDialogState extends ConsumerState<_LendDialog> {
                   prefixIcon: const SizedBox(
                     width: 48,
                     height: 48,
-                    child: Center(
-                      child: FaIcon(FontAwesomeIcons.smile, size: 20),
-                    ),
+                    child: Center(child: FaIcon(FontAwesomeIcons.smile, size: 20)),
                   ),
                   prefixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),

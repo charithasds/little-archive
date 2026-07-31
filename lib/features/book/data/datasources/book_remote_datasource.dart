@@ -12,6 +12,7 @@ import '../../../../core/shared/domain/enums/genre.dart';
 import '../../../../core/shared/domain/enums/language.dart';
 import '../../../../core/shared/domain/enums/original_language.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
+import '../../../../core/shared/presentation/utils/images.dart';
 import '../models/book_model.dart';
 
 part 'book_remote_datasource.g.dart';
@@ -136,7 +137,7 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
           compilationType: book.compilationType.name,
           isTranslation: book.isTranslation,
           toBeTranslated: book.toBeTranslated,
-          cover: book.cover,
+          cover: Images.compressImageIfNeeded(book.cover),
           language: book.language?.name,
           genre: book.genre?.name,
           isbn: book.isbn,
