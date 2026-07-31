@@ -100,7 +100,5 @@ class AuthorRepositoryImpl implements AuthorRepository {
 AuthorRepository authorRepository(Ref ref) {
   final AuthorRemoteDataSource remoteDataSource = ref.watch(authorRemoteDataSourceProvider);
 
-  return AuthorRepositoryImpl(
-    remoteDataSource: remoteDataSource,
-  );
+  return AuthorRepositoryImpl(remoteDataSource: remoteDataSource);
 }

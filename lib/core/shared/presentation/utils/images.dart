@@ -115,14 +115,16 @@ class Images {
         return base64Image;
       }
 
-      if (decodedImage.width > 400 || decodedImage.height > 400) {
-        decodedImage = img.copyResize(
-          decodedImage,
-          width: decodedImage.width > decodedImage.height ? 400 : null,
-          height: decodedImage.height >= decodedImage.width ? 400 : null,
-          interpolation: img.Interpolation.average,
-        );
+      if (decodedImage.width <= 400 && decodedImage.height <= 400) {
+        return base64Image;
       }
+
+      decodedImage = img.copyResize(
+        decodedImage,
+        width: decodedImage.width > decodedImage.height ? 400 : null,
+        height: decodedImage.height >= decodedImage.width ? 400 : null,
+        interpolation: img.Interpolation.average,
+      );
 
       final Uint8List compressed = Uint8List.fromList(img.encodeJpg(decodedImage, quality: 70));
       return base64Encode(compressed);

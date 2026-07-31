@@ -105,7 +105,13 @@ class BookDetailPage extends ConsumerWidget {
           body: CustomScrollView(
             slivers: <Widget>[
               SliverAppBar.large(
-                title: Text(book.title),
+                title: Text(
+                  book.title,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                centerTitle: true,
                 backgroundColor: theme.colorScheme.surface,
                 foregroundColor: theme.colorScheme.onSurface,
                 surfaceTintColor: theme.colorScheme.primary,
@@ -134,28 +140,45 @@ class BookDetailPage extends ConsumerWidget {
                     Center(
                       child: Hero(
                         tag: 'book_${book.id}',
-                        child: Container(
-                          width: 240,
-                          height: 240 / Images.bookAspectRatio,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            color: Images.getAvatarBackgroundColor(theme),
-                            image: book.cover != null && book.cover!.isNotEmpty
-                                ? DecorationImage(
-                                    image: Images.getImageProvider(book.cover),
-                                    fit: BoxFit.contain,
-                                  )
-                                : null,
-                          ),
-                          child: book.cover == null || book.cover!.isEmpty
-                              ? FaIcon(
+                        child: book.cover != null && book.cover!.isNotEmpty
+                            ? ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxHeight: 320,
+                                  maxWidth: 240,
+                                ),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: theme.colorScheme.outlineVariant,
+                                    ),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(3),
+                                    child: Image(
+                                      image: Images.getImageProvider(book.cover),
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : Container(
+                                width: 240,
+                                height: 240 / Images.bookAspectRatio,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: Images.getAvatarBackgroundColor(theme),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: theme.colorScheme.outlineVariant,
+                                  ),
+                                ),
+                                child: FaIcon(
                                   FontAwesomeIcons.book,
                                   color: Images.getAvatarIconColor(theme),
                                   size: 120,
-                                )
-                              : null,
-                        ),
+                                ),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 24),

@@ -119,7 +119,13 @@ class SequenceDetailPage extends ConsumerWidget {
           body: CustomScrollView(
             slivers: <Widget>[
               SliverAppBar.large(
-                title: Text(sequence.name),
+                title: Text(
+                  sequence.name,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                centerTitle: true,
                 backgroundColor: theme.colorScheme.surface,
                 foregroundColor: theme.colorScheme.onSurface,
                 surfaceTintColor: theme.colorScheme.primary,

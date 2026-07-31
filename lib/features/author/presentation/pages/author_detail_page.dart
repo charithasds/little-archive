@@ -82,7 +82,13 @@ class AuthorDetailPage extends ConsumerWidget {
           body: CustomScrollView(
             slivers: <Widget>[
               SliverAppBar.large(
-                title: Text(author.name),
+                title: Text(
+                  author.name,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                centerTitle: true,
                 backgroundColor: theme.colorScheme.surface,
                 foregroundColor: theme.colorScheme.onSurface,
                 surfaceTintColor: theme.colorScheme.primary,
@@ -111,28 +117,42 @@ class AuthorDetailPage extends ConsumerWidget {
                     Center(
                       child: Hero(
                         tag: 'author_${author.id}',
-                        child: Container(
-                          width: 240,
-                          height: 240,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Images.getAvatarBackgroundColor(theme),
-                            image: author.image != null && author.image!.isNotEmpty
-                                ? DecorationImage(
-                                    image: Images.getImageProvider(author.image),
-                                    fit: BoxFit.contain,
-                                  )
-                                : null,
-                          ),
-                          child: author.image == null || author.image!.isEmpty
-                              ? FaIcon(
+                        child: author.image != null && author.image!.isNotEmpty
+                            ? ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxHeight: 240,
+                                  maxWidth: 240,
+                                ),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: theme.colorScheme.outlineVariant,
+                                    ),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(3),
+                                    child: Image(
+                                      image: Images.getImageProvider(author.image),
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : Container(
+                                width: 240,
+                                height: 240,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Images.getAvatarBackgroundColor(theme),
+                                ),
+                                child: FaIcon(
                                   FontAwesomeIcons.user,
                                   color: Images.getAvatarIconColor(theme),
                                   size: 120,
-                                )
-                              : null,
-                        ),
+                                ),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 24),

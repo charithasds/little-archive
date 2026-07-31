@@ -69,7 +69,13 @@ class PublisherDetailPage extends ConsumerWidget {
           body: CustomScrollView(
             slivers: <Widget>[
               SliverAppBar.large(
-                title: Text(publisher.name),
+                title: Text(
+                  publisher.name,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                centerTitle: true,
                 backgroundColor: theme.colorScheme.surface,
                 foregroundColor: theme.colorScheme.onSurface,
                 surfaceTintColor: theme.colorScheme.primary,
@@ -98,28 +104,42 @@ class PublisherDetailPage extends ConsumerWidget {
                     Center(
                       child: Hero(
                         tag: 'publisher_${publisher.id}',
-                        child: Container(
-                          width: 240,
-                          height: 240,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(32),
-                            color: Images.getAvatarBackgroundColor(theme),
-                            image: publisher.logo != null && publisher.logo!.isNotEmpty
-                                ? DecorationImage(
-                                    image: Images.getImageProvider(publisher.logo),
-                                    fit: BoxFit.contain,
-                                  )
-                                : null,
-                          ),
-                          child: publisher.logo == null || publisher.logo!.isEmpty
-                              ? FaIcon(
+                        child: publisher.logo != null && publisher.logo!.isNotEmpty
+                            ? ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxHeight: 240,
+                                  maxWidth: 240,
+                                ),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: theme.colorScheme.outlineVariant,
+                                    ),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(3),
+                                    child: Image(
+                                      image: Images.getImageProvider(publisher.logo),
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : Container(
+                                width: 240,
+                                height: 240,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(32),
+                                  color: Images.getAvatarBackgroundColor(theme),
+                                ),
+                                child: FaIcon(
                                   FontAwesomeIcons.building,
                                   color: Images.getAvatarIconColor(theme),
                                   size: 120,
-                                )
-                              : null,
-                        ),
+                                ),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 24),

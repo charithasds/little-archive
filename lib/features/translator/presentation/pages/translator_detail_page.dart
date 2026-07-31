@@ -88,7 +88,13 @@ class TranslatorDetailPage extends ConsumerWidget {
           body: CustomScrollView(
             slivers: <Widget>[
               SliverAppBar.large(
-                title: Text(translator.name),
+                title: Text(
+                  translator.name,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                centerTitle: true,
                 backgroundColor: theme.colorScheme.surface,
                 foregroundColor: theme.colorScheme.onSurface,
                 surfaceTintColor: theme.colorScheme.primary,
@@ -117,28 +123,42 @@ class TranslatorDetailPage extends ConsumerWidget {
                     Center(
                       child: Hero(
                         tag: 'translator_${translator.id}',
-                        child: Container(
-                          width: 240,
-                          height: 240,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Images.getAvatarBackgroundColor(theme),
-                            image: translator.image != null && translator.image!.isNotEmpty
-                                ? DecorationImage(
-                                    image: Images.getImageProvider(translator.image),
-                                    fit: BoxFit.contain,
-                                  )
-                                : null,
-                          ),
-                          child: translator.image == null || translator.image!.isEmpty
-                              ? FaIcon(
+                        child: translator.image != null && translator.image!.isNotEmpty
+                            ? ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxHeight: 240,
+                                  maxWidth: 240,
+                                ),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: theme.colorScheme.outlineVariant,
+                                    ),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(3),
+                                    child: Image(
+                                      image: Images.getImageProvider(translator.image),
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : Container(
+                                width: 240,
+                                height: 240,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Images.getAvatarBackgroundColor(theme),
+                                ),
+                                child: FaIcon(
                                   FontAwesomeIcons.language,
                                   color: Images.getAvatarIconColor(theme),
                                   size: 120,
-                                )
-                              : null,
-                        ),
+                                ),
+                              ),
                       ),
                     ),
                     const SizedBox(height: 24),

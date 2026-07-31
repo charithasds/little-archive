@@ -36,11 +36,15 @@ class SettingsPage extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 12),
-          Text(
-            progress != null ? '$percentage%' : 'Processing...',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: colorScheme.primary,
-              fontWeight: FontWeight.bold,
+          SizedBox(
+            width: 48,
+            child: Text(
+              progress != null ? '$percentage%' : '',
+              textAlign: TextAlign.end,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -316,59 +320,6 @@ class SettingsPage extends ConsumerWidget {
                                       Phoenix.rebirth(context);
                                     }
                                   }
-                                }
-                              },
-                      ),
-                      Divider(
-                        height: 1,
-                        indent: 16,
-                        endIndent: 16,
-                        color: colorScheme.outlineVariant,
-                      ),
-                      // Compress & Downscale All Images
-                      ListTile(
-                        enabled: !isLoading,
-                        leading: activeOp == SettingsOperation.compressImages
-                            ? SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: colorScheme.primary,
-                                ),
-                              )
-                            : FaIcon(FontAwesomeIcons.fileImage, color: colorScheme.primary),
-                        title: const Text('Compress & Downscale Database Images'),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              'Downscale stored images larger than 50k characters to save memory',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            _buildProgressIndicator(
-                              isActive: activeOp == SettingsOperation.compressImages,
-                              progress: settingsState.progress,
-                              colorScheme: colorScheme,
-                              theme: theme,
-                            ),
-                          ],
-                        ),
-                        onTap: isLoading
-                            ? null
-                            : () async {
-                                final int count = await ref
-                                    .read(settingsControllerProvider.notifier)
-                                    .compressAllDatabaseImages();
-                                if (context.mounted) {
-                                  SnackBars.showSuccess(
-                                    count > 0
-                                        ? 'Successfully downscaled $count image(s)!'
-                                        : 'All database images are already compressed.',
-                                    context: context,
-                                  );
                                 }
                               },
                       ),
