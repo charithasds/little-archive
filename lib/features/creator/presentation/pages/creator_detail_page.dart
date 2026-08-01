@@ -61,22 +61,35 @@ class CreatorDetailPage extends ConsumerWidget {
 
         final AsyncValue<List<BookEntity>> booksAsync = ref.watch(booksStreamProvider);
         final AsyncValue<List<WorkEntity>> worksAsync = ref.watch(worksStreamProvider);
-        final List<BookEntity> creatorBooks =
+        final List<BookEntity> authoredBooks =
             (booksAsync.value ?? <BookEntity>[])
-                .where((BookEntity b) => creator.authoredBookIds.contains(b.id) || creator.translatedBookIds.contains(b.id))
+                .where((BookEntity b) => creator.authoredBookIds.contains(b.id))
                 .toList()
-              ..sort(
-                (BookEntity a, BookEntity b) =>
-                    a.title.toLowerCase().compareTo(b.title.toLowerCase()),
-              );
-        final List<WorkEntity> creatorWorks =
+              ..sort((BookEntity a, BookEntity b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+
+        final List<BookEntity> translatedBooks =
+            (booksAsync.value ?? <BookEntity>[])
+                .where((BookEntity b) => creator.translatedBookIds.contains(b.id))
+                .toList()
+              ..sort((BookEntity a, BookEntity b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+
+        final List<WorkEntity> authoredWorks =
             (worksAsync.value ?? <WorkEntity>[])
-                .where((WorkEntity w) => creator.authoredWorkIds.contains(w.id) || creator.translatedWorkIds.contains(w.id))
+                .where((WorkEntity w) => creator.authoredWorkIds.contains(w.id))
                 .toList()
-              ..sort(
-                (WorkEntity a, WorkEntity b) =>
-                    a.title.toLowerCase().compareTo(b.title.toLowerCase()),
-              );
+              ..sort((WorkEntity a, WorkEntity b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+
+        final List<WorkEntity> translatedWorks =
+            (worksAsync.value ?? <WorkEntity>[])
+                .where((WorkEntity w) => creator.translatedWorkIds.contains(w.id))
+                .toList()
+              ..sort((WorkEntity a, WorkEntity b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+
+        final int totalBooksCount = authoredBooks.length + translatedBooks.length;
+        final int totalWorksCount = authoredWorks.length + translatedWorks.length;
+
+        final String bookSectionTitle = totalBooksCount == 1 ? 'BOOK ($totalBooksCount)' : 'BOOKS ($totalBooksCount)';
+        final String workSectionTitle = totalWorksCount == 1 ? 'WORK ($totalWorksCount)' : 'WORKS ($totalWorksCount)';
 
         return Scaffold(
           body: CustomScrollView(
@@ -167,12 +180,12 @@ class CreatorDetailPage extends ConsumerWidget {
                           ),
                         DetailTile(
                           label: 'Books Count',
-                          value: '${creatorBooks.length} books',
+                          value: '$totalBooksCount ${totalBooksCount == 1 ? 'book' : 'books'}',
                           leadingIcon: FontAwesomeIcons.book,
                         ),
                         DetailTile(
                           label: 'Works Count',
-                          value: '${creatorWorks.length} works',
+                          value: '$totalWorksCount ${totalWorksCount == 1 ? 'work' : 'works'}',
                           leadingIcon: FontAwesomeIcons.fileLines,
                         ),
                         if (creator.website != null && creator.website!.isNotEmpty)
@@ -203,30 +216,132 @@ class CreatorDetailPage extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    DetailSection(
-                      title: 'BOOKS (${creatorBooks.length})',
-                      showDivider: creatorWorks.isNotEmpty,
-                      children: creatorBooks
-                          .map(
-                            (BookEntity book) => BookListTile(
-                              book: book,
-                              onTap: () => BookQuickInfoDialog.show(context, book.id),
+                    if (totalBooksCount > 0)
+                      DetailSection(
+                        title: bookSectionTitle,
+                        showDivider: totalWorksCount > 0,
+                        children: <Widget>[
+                          if (authoredBooks.isNotEmpty) ...<Widget>[
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(24, 8, 24, 6),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primaryContainer.withValues(alpha: 0.7),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    'As Author',
+                                    style: theme.textTheme.labelMedium?.copyWith(
+                                      color: theme.colorScheme.onPrimaryContainer,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
-                          )
-                          .toList(),
-                    ),
-                    DetailSection(
-                      title: 'WORKS (${creatorWorks.length})',
-                      showDivider: false,
-                      children: creatorWorks
-                          .map(
-                            (WorkEntity work) => WorkListTile(
-                              work: work,
-                              onTap: () => WorkQuickInfoDialog.show(context, work.id),
+                            ...authoredBooks.map(
+                              (BookEntity book) => BookListTile(
+                                book: book,
+                                onTap: () => BookQuickInfoDialog.show(context, book.id),
+                              ),
                             ),
-                          )
-                          .toList(),
-                    ),
+                          ],
+                          if (translatedBooks.isNotEmpty) ...<Widget>[
+                            Padding(
+                              padding: EdgeInsets.fromLTRB(24, authoredBooks.isNotEmpty ? 16 : 8, 24, 6),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.secondaryContainer,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    'As Translator',
+                                    style: theme.textTheme.labelMedium?.copyWith(
+                                      color: theme.colorScheme.onSecondaryContainer,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            ...translatedBooks.map(
+                              (BookEntity book) => BookListTile(
+                                book: book,
+                                onTap: () => BookQuickInfoDialog.show(context, book.id),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    if (totalWorksCount > 0)
+                      DetailSection(
+                        title: workSectionTitle,
+                        showDivider: false,
+                        children: <Widget>[
+                          if (authoredWorks.isNotEmpty) ...<Widget>[
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(24, 8, 24, 6),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.primaryContainer.withValues(alpha: 0.7),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    'As Author',
+                                    style: theme.textTheme.labelMedium?.copyWith(
+                                      color: theme.colorScheme.onPrimaryContainer,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            ...authoredWorks.map(
+                              (WorkEntity work) => WorkListTile(
+                                work: work,
+                                onTap: () => WorkQuickInfoDialog.show(context, work.id),
+                              ),
+                            ),
+                          ],
+                          if (translatedWorks.isNotEmpty) ...<Widget>[
+                            Padding(
+                              padding: EdgeInsets.fromLTRB(24, authoredWorks.isNotEmpty ? 16 : 8, 24, 6),
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: theme.colorScheme.secondaryContainer,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    'As Translator',
+                                    style: theme.textTheme.labelMedium?.copyWith(
+                                      color: theme.colorScheme.onSecondaryContainer,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            ...translatedWorks.map(
+                              (WorkEntity work) => WorkListTile(
+                                work: work,
+                                onTap: () => WorkQuickInfoDialog.show(context, work.id),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     const SizedBox(height: 48),
                   ],
                 ),

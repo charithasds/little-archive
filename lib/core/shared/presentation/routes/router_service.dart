@@ -14,7 +14,6 @@ import '../../../../features/book_fair/presentation/pages/book_fair_shopping_pla
 import '../../../../features/creator/domain/entities/creator_entity.dart';
 import '../../../../features/creator/presentation/pages/creator_detail_page.dart';
 import '../../../../features/creator/presentation/pages/creator_list_page.dart';
-import '../../../../features/creator/presentation/pages/creator_mapping_page.dart';
 import '../../../../features/creator/presentation/pages/upsert_creator_page.dart';
 import '../../../../features/home/presentation/pages/home_page.dart';
 import '../../../../features/publisher/domain/entities/publisher_entity.dart';
@@ -219,11 +218,6 @@ class RouterService {
           builder: (BuildContext context, GoRouterState state) => const SettingsPage(),
         ),
 
-        GoRoute(
-          path: RouteConstants.pathCreatorMapping,
-          name: RouteConstants.creatorMapping,
-          builder: (BuildContext context, GoRouterState state) => const CreatorMappingPage(),
-        ),
 
         GoRoute(
           path: RouteConstants.pathCollectionStatus,

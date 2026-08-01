@@ -20,7 +20,6 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
       db.books,
       db.publishers,
       db.creators,
-      db.translators,
       db.works,
       db.sequences,
       db.sequenceVolumes,

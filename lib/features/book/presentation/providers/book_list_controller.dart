@@ -35,7 +35,6 @@ class BookListController extends _$BookListController {
     final List<BookEntity> allBooks = ref.watch(booksStreamProvider).value ?? <BookEntity>[];
 
     ref.watch(creatorsStreamProvider);
-    ref.watch(creatorsStreamProvider);
     ref.watch(worksStreamProvider);
     ref.watch(publishersStreamProvider);
     ref.watch(readersStreamProvider);
@@ -64,24 +63,13 @@ class BookListController extends _$BookListController {
     if (query.isNotEmpty) {
       final String q = query.toLowerCase();
 
-      String getAuthorNames(List<String> ids) {
-        final List<CreatorEntity> authors =
+      String getCreatorNames(List<String> ids) {
+        final List<CreatorEntity> creators =
             ref.read(creatorsStreamProvider).value ?? <CreatorEntity>[];
 
-        return authors
-            .where((CreatorEntity a) => ids.contains(a.id))
-            .map((CreatorEntity a) => a.name)
-            .join(' ')
-            .toLowerCase();
-      }
-
-      String getTranslatorNames(List<String> ids) {
-        final List<CreatorEntity> translators =
-            ref.read(creatorsStreamProvider).value ?? <CreatorEntity>[];
-
-        return translators
-            .where((CreatorEntity t) => ids.contains(t.id))
-            .map((CreatorEntity t) => t.name)
+        return creators
+            .where((CreatorEntity c) => ids.contains(c.id))
+            .map((CreatorEntity c) => c.name)
             .join(' ')
             .toLowerCase();
       }
@@ -174,13 +162,13 @@ class BookListController extends _$BookListController {
           return true;
         }
 
-        final bool matchesAuthors = getAuthorNames(b.authorIds).contains(q);
+        final bool matchesAuthors = getCreatorNames(b.authorIds).contains(q);
 
         if (matchesAuthors) {
           return true;
         }
 
-        final bool matchesTranslators = getTranslatorNames(b.translatorIds).contains(q);
+        final bool matchesTranslators = getCreatorNames(b.translatorIds).contains(q);
 
         if (matchesTranslators) {
           return true;

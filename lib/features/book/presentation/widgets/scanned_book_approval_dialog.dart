@@ -39,14 +39,12 @@ class ScannedBookApprovalDialog extends ConsumerStatefulWidget {
   const ScannedBookApprovalDialog({
     super.key,
     required this.scannedBook,
-    required this.existingAuthors,
-    required this.existingTranslators,
+    required this.existingCreators,
     required this.existingPublishers,
   });
 
   final ScannedBookEntity scannedBook;
-  final List<CreatorEntity> existingAuthors;
-  final List<CreatorEntity> existingTranslators;
+  final List<CreatorEntity> existingCreators;
   final List<PublisherEntity> existingPublishers;
 
   @override
@@ -113,7 +111,7 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
       _authorOtherNameControllers[sn.name] = TextEditingController(text: sn.otherName ?? '');
       _authorSelections[sn.name] = _findBestMatch(
         sn.name,
-        widget.existingAuthors,
+        widget.existingCreators,
         (CreatorEntity a) => a.name,
         (CreatorEntity a) => a.otherName,
       );
@@ -124,7 +122,7 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
       _translatorOtherNameControllers[sn.name] = TextEditingController(text: sn.otherName ?? '');
       _translatorSelections[sn.name] = _findBestMatch(
         sn.name,
-        widget.existingTranslators,
+        widget.existingCreators,
         (CreatorEntity t) => t.name,
         (CreatorEntity t) => t.otherName,
       );
@@ -416,7 +414,7 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
               for (final ScannedNameEntity sn in widget.scannedBook.authors)
                 _buildMatchSection(
                   detectedKey: sn.name,
-                  existingItems: widget.existingAuthors,
+                  existingItems: widget.existingCreators,
                   getName: (CreatorEntity a) => a.name,
                   selectionsMap: _authorSelections,
                   nameController: _authorNameControllers[sn.name]!,
@@ -432,7 +430,7 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
               for (final ScannedNameEntity sn in widget.scannedBook.translators)
                 _buildMatchSection(
                   detectedKey: sn.name,
-                  existingItems: widget.existingTranslators,
+                  existingItems: widget.existingCreators,
                   getName: (CreatorEntity t) => t.name,
                   selectionsMap: _translatorSelections,
                   nameController: _translatorNameControllers[sn.name]!,

@@ -31,7 +31,6 @@ class WorkListController extends _$WorkListController {
     final List<WorkEntity> allWorks = ref.watch(worksStreamProvider).value ?? <WorkEntity>[];
 
     ref.watch(creatorsStreamProvider);
-    ref.watch(creatorsStreamProvider);
     ref.watch(booksStreamProvider);
     ref.watch(sequencesStreamProvider);
     ref.watch(allSequenceVolumesStreamProvider);
@@ -58,24 +57,13 @@ class WorkListController extends _$WorkListController {
     if (query.isNotEmpty) {
       final String q = query.toLowerCase();
 
-      String getAuthorNames(List<String> ids) {
-        final List<CreatorEntity> authors =
+      String getCreatorNames(List<String> ids) {
+        final List<CreatorEntity> creators =
             ref.read(creatorsStreamProvider).value ?? <CreatorEntity>[];
 
-        return authors
-            .where((CreatorEntity a) => ids.contains(a.id))
-            .map((CreatorEntity a) => a.name)
-            .join(' ')
-            .toLowerCase();
-      }
-
-      String getTranslatorNames(List<String> ids) {
-        final List<CreatorEntity> translators =
-            ref.read(creatorsStreamProvider).value ?? <CreatorEntity>[];
-
-        return translators
-            .where((CreatorEntity t) => ids.contains(t.id))
-            .map((CreatorEntity t) => t.name)
+        return creators
+            .where((CreatorEntity c) => ids.contains(c.id))
+            .map((CreatorEntity c) => c.name)
             .join(' ')
             .toLowerCase();
       }
@@ -137,13 +125,13 @@ class WorkListController extends _$WorkListController {
           return true;
         }
 
-        final bool matchesAuthors = getAuthorNames(w.authorIds).contains(q);
+        final bool matchesAuthors = getCreatorNames(w.authorIds).contains(q);
 
         if (matchesAuthors) {
           return true;
         }
 
-        final bool matchesTranslators = getTranslatorNames(w.translatorIds).contains(q);
+        final bool matchesTranslators = getCreatorNames(w.translatorIds).contains(q);
 
         if (matchesTranslators) {
           return true;

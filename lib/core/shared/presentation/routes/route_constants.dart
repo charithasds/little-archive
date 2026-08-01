@@ -27,7 +27,6 @@ abstract class RouteConstants {
   static const String dataQuality = 'dataQuality';
   static const String bookFair = 'bookFair';
   static const String shoppingPlan = 'shoppingPlan';
-  static const String creatorMapping = 'creatorMapping';
 
   // Route Paths
   static const String pathLoading = '/loading';
@@ -57,5 +56,4 @@ abstract class RouteConstants {
   static const String pathDataQuality = 'data-quality';
   static const String pathBookFair = 'book-fair';
   static const String pathShoppingPlan = 'shopping-plan';
-  static const String pathCreatorMapping = 'creator-mapping';
 }

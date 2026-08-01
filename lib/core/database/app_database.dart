@@ -75,20 +75,6 @@ class Creators extends Table {
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
 }
 
-class Translators extends Table {
-  TextColumn get id => text()();
-  TextColumn get name => text()();
-  TextColumn get image => text().nullable()();
-  TextColumn get otherName => text().nullable()();
-  TextColumn get website => text().nullable()();
-  TextColumn get facebook => text().nullable()();
-  DateTimeColumn get createdDate => dateTime()();
-  DateTimeColumn get lastUpdated => dateTime()();
-
-  @override
-  Set<Column<Object>> get primaryKey => <Column<Object>>{id};
-}
-
 class Works extends Table {
   TextColumn get id => text()();
   TextColumn get title => text()();
@@ -173,7 +159,6 @@ class WorkCreatorsJoin extends Table {
   Books,
   Publishers,
   Creators,
-  Translators,
   Works,
   Sequences,
   SequenceVolumes,
@@ -203,6 +188,13 @@ class AppDatabase extends _$AppDatabase {
               FROM authors;
             ''');
 
+            // 2.5. Migrate Translators into Creators permanently
+            await customStatement('''
+              INSERT OR IGNORE INTO creators (id, name, image, other_name, website, facebook, created_date, last_updated)
+              SELECT id, name, image, other_name, website, facebook, created_date, last_updated
+              FROM translators;
+            ''');
+
             // 3. Migrate BookAuthorsJoin -> BookCreatorsJoin (role: author)
             await customStatement('''
               INSERT INTO book_creators_join (book_id, creator_id, role)
@@ -219,27 +211,25 @@ class AppDatabase extends _$AppDatabase {
 
             // 4.5. Migrate BookTranslatorsJoin -> BookCreatorsJoin (role: translator)
             await customStatement('''
-              INSERT INTO book_creators_join (book_id, creator_id, role)
+              INSERT OR IGNORE INTO book_creators_join (book_id, creator_id, role)
               SELECT book_id, translator_id, 'translator'
               FROM book_translators_join;
             ''');
 
             // 4.6. Migrate WorkTranslatorsJoin -> WorkCreatorsJoin (role: translator)
             await customStatement('''
-              INSERT INTO work_creators_join (work_id, creator_id, role)
+              INSERT OR IGNORE INTO work_creators_join (work_id, creator_id, role)
               SELECT work_id, translator_id, 'translator'
               FROM work_translators_join;
             ''');
 
-            // 5. Delete old Authors table and old join tables
+            // 5. Drop all old tables
             await customStatement('DROP TABLE IF EXISTS authors;');
             await customStatement('DROP TABLE IF EXISTS book_authors_join;');
             await customStatement('DROP TABLE IF EXISTS work_authors_join;');
+            await customStatement('DROP TABLE IF EXISTS translators;');
             await customStatement('DROP TABLE IF EXISTS book_translators_join;');
             await customStatement('DROP TABLE IF EXISTS work_translators_join;');
-
-            // We intentionally leave Translators table intact here.
-            // The mapping UI will query Translators, and map them to Creators.
           }
         },
       );

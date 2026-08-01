@@ -230,10 +230,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
 
     final AsyncValue<List<BookEntity>> booksAsync = ref.watch(booksStreamProvider);
     final AsyncValue<List<SequenceEntity>> sequencesAsync = ref.watch(sequencesStreamProvider);
-    final AsyncValue<List<CreatorEntity>> authorsAsync = ref.watch(creatorsStreamProvider);
-    final AsyncValue<List<CreatorEntity>> translatorsAsync = ref.watch(
-      creatorsStreamProvider,
-    );
+    final AsyncValue<List<CreatorEntity>> creatorsAsync = ref.watch(creatorsStreamProvider);
 
     final List<BookEntity> multiWorkBooks =
         booksAsync.value
@@ -242,8 +239,7 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
         <BookEntity>[];
 
     if (widget.existingWork != null && !_isEditingInitialized) {
-      if (authorsAsync.hasValue &&
-          translatorsAsync.hasValue &&
+      if (creatorsAsync.hasValue &&
           booksAsync.hasValue &&
           sequencesAsync.hasValue) {
         final WorkEntity work = widget.existingWork!;
@@ -256,27 +252,27 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
             fetchSequenceVolumesByWorkIdUseCaseProvider,
           )(work.id);
 
-          final Map<SequenceEntity, String> selectedSequences = <SequenceEntity, String>{};
+          final Map<SequenceEntity, String> sequencesMap = <SequenceEntity, String>{};
           if (sequencesAsync.value != null) {
-            for (final SequenceVolumeEntity volume in volumes) {
-              final SequenceEntity? sequence = sequencesAsync.value!
-                  .where((SequenceEntity s) => s.id == volume.sequenceId)
+            for (final SequenceVolumeEntity vol in volumes) {
+              final SequenceEntity? seq = sequencesAsync.value!
+                  .where((SequenceEntity s) => s.id == vol.sequenceId)
                   .firstOrNull;
-              if (sequence != null) {
-                selectedSequences[sequence] = volume.volume;
+              if (seq != null) {
+                sequencesMap[seq] = vol.volume;
               }
             }
           }
 
           setState(() {
-            _selectedAuthors = authorsAsync.value!
+            _selectedAuthors = creatorsAsync.value!
                 .where((CreatorEntity a) => work.authorIds.contains(a.id))
                 .toList();
-            _selectedTranslators = translatorsAsync.value!
+            _selectedTranslators = creatorsAsync.value!
                 .where((CreatorEntity t) => work.translatorIds.contains(t.id))
                 .toList();
             _selectedBook = multiWorkBooks.where((BookEntity b) => b.id == work.bookId).firstOrNull;
-            _selectedSequences = selectedSequences;
+            _selectedSequences = sequencesMap;
             _isEditingInitialized = true;
           });
         });

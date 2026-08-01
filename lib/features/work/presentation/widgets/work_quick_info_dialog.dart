@@ -30,8 +30,7 @@ class WorkQuickInfoDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final AsyncValue<WorkEntity?> async = ref.watch(workProvider(workId));
-    final List<CreatorEntity>? authors = ref.watch(creatorsStreamProvider).value;
-    final List<CreatorEntity>? translators = ref.watch(creatorsStreamProvider).value;
+    final List<CreatorEntity>? creators = ref.watch(creatorsStreamProvider).value;
 
     final Widget content = async.when(
       data: (WorkEntity? work) {
@@ -44,19 +43,16 @@ class WorkQuickInfoDialog extends ConsumerWidget {
             : null;
 
         final List<String> authorNames = <String>[];
-        if (authors != null) {
+        final List<String> translatorNames = <String>[];
+        if (creators != null) {
           for (final String id in work.authorIds) {
-            final CreatorEntity? a = authors.where((CreatorEntity x) => x.id == id).firstOrNull;
+            final CreatorEntity? a = creators.where((CreatorEntity x) => x.id == id).firstOrNull;
             if (a != null) {
               authorNames.add(a.name);
             }
           }
-        }
-
-        final List<String> translatorNames = <String>[];
-        if (translators != null) {
           for (final String id in work.translatorIds) {
-            final CreatorEntity? t = translators.where((CreatorEntity x) => x.id == id).firstOrNull;
+            final CreatorEntity? t = creators.where((CreatorEntity x) => x.id == id).firstOrNull;
             if (t != null) {
               translatorNames.add(t.name);
             }

@@ -3,9 +3,6 @@ import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-import 'package:go_router/go_router.dart';
-
-import '../../../../core/shared/presentation/routes/route_constants.dart';
 import '../../../../core/shared/presentation/utils/dialogs.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/form_section.dart';
@@ -122,24 +119,6 @@ class SettingsPage extends ConsumerWidget {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   child: Column(
                     children: <Widget>[
-                      // Map Translators
-                      ListTile(
-                        enabled: !isLoading,
-                        leading: FaIcon(FontAwesomeIcons.language, color: colorScheme.primary),
-                        title: const Text('Map Translators'),
-                        subtitle: const Text('Temporary UI to map translators to authors'),
-                        onTap: isLoading
-                            ? null
-                            : () {
-                                context.pushNamed(RouteConstants.creatorMapping);
-                              },
-                      ),
-                      Divider(
-                        height: 1,
-                        indent: 16,
-                        endIndent: 16,
-                        color: colorScheme.outlineVariant,
-                      ),
                       // Local Backup
                       ListTile(
                         enabled: !isLoading,

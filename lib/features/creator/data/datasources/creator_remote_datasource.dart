@@ -17,9 +17,6 @@ abstract class CreatorRemoteDataSource {
   Future<void> editCreator(CreatorModel creator);
   Future<void> removeCreator(String id);
   Future<void> mergeCreators(String targetId, String sourceId);
-  Future<void> keepTranslatorAsIs(String translatorId);
-  Future<void> mapTranslatorToCreator(String translatorId, String creatorId);
-  Future<List<CreatorModel>> fetchUnmappedTranslators();
 }
 
 class CreatorRemoteDataSourceImpl implements CreatorRemoteDataSource {
@@ -201,117 +198,6 @@ class CreatorRemoteDataSourceImpl implements CreatorRemoteDataSource {
     });
   }
 
-  @override
-  Future<void> keepTranslatorAsIs(String translatorId) async {
-    await db.transaction(() async {
-      // Get the translator from the temporary Translators table
-      final SimpleSelectStatement<$TranslatorsTable, Translator> query = db.select(db.translators)
-        ..where(($TranslatorsTable t) => t.id.equals(translatorId));
-      final Translator? translator = await query.getSingleOrNull();
-
-      if (translator == null) {
-        throw Exception('Translator not found in queue');
-      }
-
-      // Insert them into Creators
-      await db
-          .into(db.creators)
-          .insertOnConflictUpdate(
-            Creator(
-              id: translator.id,
-              name: translator.name,
-              image: translator.image,
-              otherName: translator.otherName,
-              website: translator.website,
-              facebook: translator.facebook,
-              createdDate: translator.createdDate,
-              lastUpdated: translator.lastUpdated,
-            ).toCompanion(false),
-          );
-
-      // Update book_creators_join where role='translator' and we temporarily used translatorId
-      // Wait, in schema v2 we migrated old translators into creators.
-      // But the manual workaround left the old Translators table and old join tables!
-      // No, in our schema v2, the join tables are BookCreatorsJoin. If we use the queue,
-      // where did the book links for the unmapped translator go?
-      // Ah! In onUpgrade we migrated BookTranslatorsJoin to BookCreatorsJoin using the translator_id!
-      // So the book_creators_join table ALREADY points to the translatorId, but the creator record is missing because we didn't insert Translators into Creators.
-      // So keeping them as is just means inserting them into Creators and deleting from the queue!
-
-      // Delete from queue
-      await (db.delete(
-        db.translators,
-      )..where(($TranslatorsTable t) => t.id.equals(translatorId))).go();
-    });
-  }
-
-  @override
-  Future<void> mapTranslatorToCreator(String translatorId, String creatorId) async {
-    await db.transaction(() async {
-      // The target creator already exists in Creators table.
-      // The join tables BookCreatorsJoin and WorkCreatorsJoin have translatorId (because we copied from book_translators_join using the old ID).
-      // We just need to update the join tables to point to creatorId instead of translatorId.
-
-      await db.customStatement(
-        '''
-        UPDATE OR IGNORE book_creators_join
-        SET creator_id = ?
-        WHERE creator_id = ? AND role = 'translator';
-      ''',
-        <dynamic>[creatorId, translatorId],
-      );
-
-      await db.customStatement(
-        '''
-        UPDATE OR IGNORE work_creators_join
-        SET creator_id = ?
-        WHERE creator_id = ? AND role = 'translator';
-      ''',
-        <dynamic>[creatorId, translatorId],
-      );
-
-      // Delete any remaining source join entries if there were duplicates
-      await (db.delete(
-        db.bookCreatorsJoin,
-      )..where(($BookCreatorsJoinTable t) => t.creatorId.equals(translatorId))).go();
-      await (db.delete(
-        db.workCreatorsJoin,
-      )..where(($WorkCreatorsJoinTable t) => t.creatorId.equals(translatorId))).go();
-
-      // Delete the old translator from Translators table queue
-      await (db.delete(
-        db.translators,
-      )..where(($TranslatorsTable t) => t.id.equals(translatorId))).go();
-    });
-  }
-
-  @override
-  Future<List<CreatorModel>> fetchUnmappedTranslators() async {
-    final SimpleSelectStatement<$TranslatorsTable, Translator> query = db.select(db.translators)
-      ..orderBy(<OrderClauseGenerator<$TranslatorsTable>>[
-        ($TranslatorsTable t) => OrderingTerm(expression: t.name),
-      ]);
-    final List<Translator> rows = await query.get();
-
-    return rows
-        .map(
-          (Translator row) => CreatorModel(
-            id: row.id,
-            name: row.name,
-            image: row.image,
-            otherName: row.otherName,
-            website: row.website,
-            facebook: row.facebook,
-            authoredBookIds: const <String>[],
-            translatedBookIds: const <String>[],
-            authoredWorkIds: const <String>[],
-            translatedWorkIds: const <String>[],
-            createdDate: row.createdDate,
-            lastUpdated: row.lastUpdated,
-          ),
-        )
-        .toList();
-  }
 }
 
 @riverpod

@@ -202,7 +202,7 @@ class WorkDetailPage extends ConsumerWidget {
                     const SizedBox(height: 24),
                     if (authors.isNotEmpty)
                       DetailSection(
-                        title: 'AUTHORS',
+                        title: authors.length == 1 ? 'AUTHOR' : 'AUTHORS',
                         children: authors
                             .map(
                               (CreatorEntity author) => CreatorListTile(
@@ -214,7 +214,7 @@ class WorkDetailPage extends ConsumerWidget {
                       ),
                     if (translators.isNotEmpty)
                       DetailSection(
-                        title: 'TRANSLATORS',
+                        title: translators.length == 1 ? 'TRANSLATOR' : 'TRANSLATORS',
                         children: translators
                             .map(
                               (CreatorEntity translator) => CreatorListTile(

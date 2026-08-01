@@ -180,7 +180,7 @@ class BookDetailPage extends ConsumerWidget {
                     const SizedBox(height: 24),
                     if (authors.isNotEmpty)
                       DetailSection(
-                        title: 'AUTHORS',
+                        title: authors.length == 1 ? 'AUTHOR' : 'AUTHORS',
                         children: authors.map(
                           (CreatorEntity author) => CreatorListTile(
                             creator: author,
@@ -190,7 +190,7 @@ class BookDetailPage extends ConsumerWidget {
                       ),
                     if (translators.isNotEmpty)
                       DetailSection(
-                        title: 'TRANSLATORS',
+                        title: translators.length == 1 ? 'TRANSLATOR' : 'TRANSLATORS',
                         children: translators.map(
                           (CreatorEntity translator) => CreatorListTile(
                             creator: translator,
@@ -200,7 +200,7 @@ class BookDetailPage extends ConsumerWidget {
                       ),
                     if (bookWorks.isNotEmpty)
                       DetailSection(
-                        title: 'WORKS',
+                        title: bookWorks.length == 1 ? 'WORK' : 'WORKS',
                         children: bookWorks
                             .map(
                               (WorkEntity work) => WorkListTile(
@@ -212,7 +212,7 @@ class BookDetailPage extends ConsumerWidget {
                       ),
                     if (book.sequenceVolumeIds.isNotEmpty)
                       DetailSection(
-                        title: 'SEQUENCE',
+                        title: book.sequenceVolumeIds.length == 1 ? 'SEQUENCE' : 'SEQUENCES',
                         children: book.sequenceVolumeIds.map((String id) {
                           final SequenceVolumeEntity? volume = ref
                               .watch(sequenceVolumeProvider(id))

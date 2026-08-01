@@ -365,9 +365,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                   context: context,
                   builder: (_) => ScannedBookApprovalDialog(
                     scannedBook: data,
-                    existingAuthors: ref.read(creatorsStreamProvider).value ?? <CreatorEntity>[],
-                    existingTranslators:
-                        ref.read(creatorsStreamProvider).value ?? <CreatorEntity>[],
+                    existingCreators: ref.read(creatorsStreamProvider).value ?? <CreatorEntity>[],
                     existingPublishers:
                         ref.read(publishersStreamProvider).value ?? <PublisherEntity>[],
                   ),
@@ -495,10 +493,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
       },
     );
 
-    final AsyncValue<List<CreatorEntity>> authorsAsync = ref.watch(creatorsStreamProvider);
-    final AsyncValue<List<CreatorEntity>> translatorsAsync = ref.watch(
-      creatorsStreamProvider,
-    );
+    final AsyncValue<List<CreatorEntity>> creatorsAsync = ref.watch(creatorsStreamProvider);
     final AsyncValue<List<WorkEntity>> worksAsync = ref.watch(worksStreamProvider);
     final AsyncValue<List<PublisherEntity>> publishersAsync = ref.watch(publishersStreamProvider);
     final AsyncValue<List<ReaderEntity>> readersAsync = ref.watch(readersStreamProvider);
@@ -507,8 +502,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
     if (widget.existingBook != null && !_isEditingInitialized) {
       final BookEntity book = widget.existingBook!;
 
-      if (authorsAsync.hasValue &&
-          translatorsAsync.hasValue &&
+      if (creatorsAsync.hasValue &&
           worksAsync.hasValue &&
           publishersAsync.hasValue &&
           readersAsync.hasValue &&
@@ -535,10 +529,10 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
           }
 
           setState(() {
-            _selectedAuthors = authorsAsync.value!
+            _selectedAuthors = creatorsAsync.value!
                 .where((CreatorEntity a) => book.authorIds.contains(a.id))
                 .toList();
-            _selectedTranslators = translatorsAsync.value!
+            _selectedTranslators = creatorsAsync.value!
                 .where((CreatorEntity t) => book.translatorIds.contains(t.id))
                 .toList();
             _selectedWorks = worksAsync.value!
