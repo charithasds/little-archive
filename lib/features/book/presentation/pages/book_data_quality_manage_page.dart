@@ -10,8 +10,8 @@ import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../../../core/shared/presentation/widgets/custom_icons.dart';
 import '../../../../core/shared/presentation/widgets/search_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-import '../../../author/domain/entities/author_entity.dart';
-import '../../../author/presentation/providers/author_provider.dart';
+import '../../../creator/domain/entities/creator_entity.dart';
+import '../../../creator/presentation/providers/creator_provider.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
 import '../../../reader/domain/entities/reader_entity.dart';
@@ -19,8 +19,6 @@ import '../../../reader/presentation/providers/reader_provider.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/domain/entities/sequence_volume_entity.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
-import '../../../translator/domain/entities/translator_entity.dart';
-import '../../../translator/presentation/providers/translator_provider.dart';
 import '../../../work/domain/entities/work_entity.dart';
 import '../../../work/presentation/providers/work_provider.dart';
 import '../../domain/entities/book_entity.dart';
@@ -56,8 +54,7 @@ class _BookDataQualityManagePageState extends ConsumerState<BookDataQualityManag
     final ColorScheme colorScheme = theme.colorScheme;
     final List<BookEntity>? books = ref.watch(booksStreamProvider).value;
     final List<WorkEntity>? works = ref.watch(worksStreamProvider).value;
-    final List<AuthorEntity>? authors = ref.watch(authorsStreamProvider).value;
-    final List<TranslatorEntity>? translators = ref.watch(translatorsStreamProvider).value;
+    final List<CreatorEntity>? creators = ref.watch(creatorsStreamProvider).value;
     final List<PublisherEntity>? publishers = ref.watch(publishersStreamProvider).value;
     final List<ReaderEntity>? readers = ref.watch(readersStreamProvider).value;
     final List<SequenceEntity>? sequences = ref.watch(sequencesStreamProvider).value;
@@ -76,12 +73,10 @@ class _BookDataQualityManagePageState extends ConsumerState<BookDataQualityManag
           return books?.where((BookEntity b) => _missingForBook(b).isNotEmpty).length;
         case Entity.work:
           return works?.where((WorkEntity w) => _missingForWork(w).isNotEmpty).length;
-        case Entity.author:
-          return authors?.where((AuthorEntity a) => _missingForAuthor(a).isNotEmpty).length;
-        case Entity.translator:
-          return translators
-              ?.where((TranslatorEntity t) => _missingForTranslator(t).isNotEmpty)
-              .length;
+        case Entity.creator:
+          return creators?.where((CreatorEntity c) => _missingForCreator(c).isNotEmpty).length;
+        case Entity.duplicateCreator:
+          return creators != null ? _getDuplicateCreators(creators).length : null;
         case Entity.publisher:
           return publishers
               ?.where((PublisherEntity p) => _missingForPublisher(p).isNotEmpty)
@@ -429,56 +424,38 @@ List<String> _missingForWork(WorkEntity w) {
   return missing;
 }
 
-List<String> _missingForAuthor(AuthorEntity a) {
+List<String> _missingForCreator(CreatorEntity c) {
   final List<String> missing = <String>[];
 
-  if (a.image == null) {
+  if (c.image == null) {
     missing.add('Image');
   }
 
-  if (a.otherName == null || a.otherName!.trim().isEmpty) {
+  if (c.otherName == null || c.otherName!.trim().isEmpty) {
     missing.add('Other Name');
   }
 
-  if (a.website == null || a.website!.trim().isEmpty) {
+  if (c.website == null || c.website!.trim().isEmpty) {
     missing.add('Website');
   }
 
-  if (a.facebook == null || a.facebook!.trim().isEmpty) {
+  if (c.facebook == null || c.facebook!.trim().isEmpty) {
     missing.add('Facebook');
   }
 
-  if (a.bookIds.isEmpty && a.workIds.isEmpty) {
+  if (c.authoredBookIds.isEmpty && c.authoredWorkIds.isEmpty && c.translatedBookIds.isEmpty && c.translatedWorkIds.isEmpty) {
     missing.add('Creations');
   }
 
   return missing;
 }
 
-List<String> _missingForTranslator(TranslatorEntity t) {
-  final List<String> missing = <String>[];
-
-  if (t.image == null) {
-    missing.add('Image');
+List<CreatorEntity> _getDuplicateCreators(List<CreatorEntity> creators) {
+  final Map<String, List<CreatorEntity>> nameMap = <String, List<CreatorEntity>>{};
+  for (final CreatorEntity creator in creators) {
+    nameMap.putIfAbsent(creator.name.toLowerCase().trim(), () => <CreatorEntity>[]).add(creator);
   }
-
-  if (t.otherName == null || t.otherName!.trim().isEmpty) {
-    missing.add('Other Name');
-  }
-
-  if (t.website == null || t.website!.trim().isEmpty) {
-    missing.add('Website');
-  }
-
-  if (t.facebook == null || t.facebook!.trim().isEmpty) {
-    missing.add('Facebook');
-  }
-
-  if (t.bookIds.isEmpty && t.workIds.isEmpty) {
-    missing.add('Creations');
-  }
-
-  return missing;
+  return nameMap.values.where((List<CreatorEntity> list) => list.length > 1).expand((List<CreatorEntity> e) => e).toList();
 }
 
 List<String> _missingForPublisher(PublisherEntity p) {
@@ -662,81 +639,79 @@ class _EntityQualityTabState extends ConsumerState<_EntityQualityTab> {
             redText: redText,
           ),
         );
-      case Entity.author:
-        final List<AuthorEntity>? authors = ref.watch(authorsStreamProvider).value;
+      case Entity.creator:
+        final List<CreatorEntity>? creators = ref.watch(creatorsStreamProvider).value;
 
-        if (authors == null) {
+        if (creators == null) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final List<AuthorEntity> incomplete = authors
-            .where((AuthorEntity a) => _missingForAuthor(a).isNotEmpty)
+        final List<CreatorEntity> incomplete = creators
+            .where((CreatorEntity c) => _missingForCreator(c).isNotEmpty)
             .toList();
 
         if (incomplete.isEmpty) {
-          return _QualityListView<AuthorEntity>(
+          return _QualityListView<CreatorEntity>(
             items: incomplete,
-            emptyLabel: 'All authors have complete data',
-            tileBuilder: (BuildContext context, AuthorEntity author) => const SizedBox.shrink(),
+            emptyLabel: 'All creators have complete data',
+            tileBuilder: (BuildContext context, CreatorEntity creator) => const SizedBox.shrink(),
           );
         }
 
-        final List<AuthorEntity> sortedAndFiltered = incomplete
-            .where((AuthorEntity a) {
+        final List<CreatorEntity> sortedAndFiltered = incomplete
+            .where((CreatorEntity c) {
               if (_searchQuery.isEmpty) {
                 return true;
               }
-              return a.name.toLowerCase().contains(_searchQuery.toLowerCase());
+              return c.name.toLowerCase().contains(_searchQuery.toLowerCase());
             })
             .toList()
-          ..sort((AuthorEntity a, AuthorEntity b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+          ..sort((CreatorEntity a, CreatorEntity b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
-        return _buildLayout<AuthorEntity>(
+        return _buildLayout<CreatorEntity>(
           items: sortedAndFiltered,
-          emptyLabel: 'All authors have complete data',
-          tileBuilder: (BuildContext context, AuthorEntity author) => _QualityTile(
-            name: author.name,
-            missingChips: _missingForAuthor(author),
-            onEdit: () => context.push('/authors/upsert', extra: author),
+          emptyLabel: 'All creators have complete data',
+          tileBuilder: (BuildContext context, CreatorEntity creator) => _QualityTile(
+            name: creator.name,
+            missingChips: _missingForCreator(creator),
+            onEdit: () => context.push('/creators/upsert', extra: creator),
             redText: redText,
           ),
         );
-      case Entity.translator:
-        final List<TranslatorEntity>? translators = ref.watch(translatorsStreamProvider).value;
+      case Entity.duplicateCreator:
+        final List<CreatorEntity>? creators = ref.watch(creatorsStreamProvider).value;
 
-        if (translators == null) {
+        if (creators == null) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final List<TranslatorEntity> incomplete = translators
-            .where((TranslatorEntity t) => _missingForTranslator(t).isNotEmpty)
-            .toList();
+        final List<CreatorEntity> duplicates = _getDuplicateCreators(creators);
 
-        if (incomplete.isEmpty) {
-          return _QualityListView<TranslatorEntity>(
-            items: incomplete,
-            emptyLabel: 'All translators have complete data',
-            tileBuilder: (BuildContext context, TranslatorEntity translator) => const SizedBox.shrink(),
+        if (duplicates.isEmpty) {
+          return _QualityListView<CreatorEntity>(
+            items: duplicates,
+            emptyLabel: 'No duplicate creators found',
+            tileBuilder: (BuildContext context, CreatorEntity creator) => const SizedBox.shrink(),
           );
         }
 
-        final List<TranslatorEntity> sortedAndFiltered = incomplete
-            .where((TranslatorEntity t) {
+        final List<CreatorEntity> sortedAndFiltered = duplicates
+            .where((CreatorEntity c) {
               if (_searchQuery.isEmpty) {
                 return true;
               }
-              return t.name.toLowerCase().contains(_searchQuery.toLowerCase());
+              return c.name.toLowerCase().contains(_searchQuery.toLowerCase());
             })
             .toList()
-          ..sort((TranslatorEntity a, TranslatorEntity b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+          ..sort((CreatorEntity a, CreatorEntity b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
-        return _buildLayout<TranslatorEntity>(
+        return _buildLayout<CreatorEntity>(
           items: sortedAndFiltered,
-          emptyLabel: 'All translators have complete data',
-          tileBuilder: (BuildContext context, TranslatorEntity translator) => _QualityTile(
-            name: translator.name,
-            missingChips: _missingForTranslator(translator),
-            onEdit: () => context.push('/translators/upsert', extra: translator),
+          emptyLabel: 'No duplicate creators found',
+          tileBuilder: (BuildContext context, CreatorEntity creator) => _QualityTile(
+            name: creator.name,
+            missingChips: const <String>['Duplicate Name'],
+            onEdit: () => context.push('/creators/upsert', extra: creator),
             redText: redText,
           ),
         );

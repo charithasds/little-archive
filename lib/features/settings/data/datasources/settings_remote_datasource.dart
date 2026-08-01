@@ -19,16 +19,14 @@ class SettingsRemoteDataSourceImpl implements SettingsRemoteDataSource {
     final List<TableInfo<Table, DataClass>> tables = <TableInfo<Table, DataClass>>[
       db.books,
       db.publishers,
-      db.authors,
+      db.creators,
       db.translators,
       db.works,
       db.sequences,
       db.sequenceVolumes,
       db.readers,
-      db.bookAuthorsJoin,
-      db.bookTranslatorsJoin,
-      db.workAuthorsJoin,
-      db.workTranslatorsJoin,
+      db.bookCreatorsJoin,
+      db.workCreatorsJoin,
     ];
     await db.transaction(() async {
       for (int i = 0; i < tables.length; i++) {

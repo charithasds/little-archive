@@ -59,7 +59,9 @@ class Publishers extends Table {
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
 }
 
-class Authors extends Table {
+enum CreatorRole { author, translator }
+
+class Creators extends Table {
   TextColumn get id => text()();
   TextColumn get name => text()();
   TextColumn get image => text().nullable()();
@@ -147,36 +149,22 @@ class Readers extends Table {
 
 // Many-to-Many Relationships Join Tables
 
-class BookAuthorsJoin extends Table {
+class BookCreatorsJoin extends Table {
   TextColumn get bookId => text().references(Books, #id, onDelete: KeyAction.cascade)();
-  TextColumn get authorId => text().references(Authors, #id, onDelete: KeyAction.cascade)();
+  TextColumn get creatorId => text().references(Creators, #id, onDelete: KeyAction.cascade)();
+  TextColumn get role => textEnum<CreatorRole>()();
 
   @override
-  Set<Column<Object>> get primaryKey => <Column<Object>>{bookId, authorId};
+  Set<Column<Object>> get primaryKey => <Column<Object>>{bookId, creatorId, role};
 }
 
-class BookTranslatorsJoin extends Table {
-  TextColumn get bookId => text().references(Books, #id, onDelete: KeyAction.cascade)();
-  TextColumn get translatorId => text().references(Translators, #id, onDelete: KeyAction.cascade)();
-
-  @override
-  Set<Column<Object>> get primaryKey => <Column<Object>>{bookId, translatorId};
-}
-
-class WorkAuthorsJoin extends Table {
+class WorkCreatorsJoin extends Table {
   TextColumn get workId => text().references(Works, #id, onDelete: KeyAction.cascade)();
-  TextColumn get authorId => text().references(Authors, #id, onDelete: KeyAction.cascade)();
+  TextColumn get creatorId => text().references(Creators, #id, onDelete: KeyAction.cascade)();
+  TextColumn get role => textEnum<CreatorRole>()();
 
   @override
-  Set<Column<Object>> get primaryKey => <Column<Object>>{workId, authorId};
-}
-
-class WorkTranslatorsJoin extends Table {
-  TextColumn get workId => text().references(Works, #id, onDelete: KeyAction.cascade)();
-  TextColumn get translatorId => text().references(Translators, #id, onDelete: KeyAction.cascade)();
-
-  @override
-  Set<Column<Object>> get primaryKey => <Column<Object>>{workId, translatorId};
+  Set<Column<Object>> get primaryKey => <Column<Object>>{workId, creatorId, role};
 }
 
 // --- DATABASE CLASS ---
@@ -184,22 +172,77 @@ class WorkTranslatorsJoin extends Table {
 @DriftDatabase(tables: <Type>[
   Books,
   Publishers,
-  Authors,
+  Creators,
   Translators,
   Works,
   Sequences,
   SequenceVolumes,
   Readers,
-  BookAuthorsJoin,
-  BookTranslatorsJoin,
-  WorkAuthorsJoin,
-  WorkTranslatorsJoin,
+  BookCreatorsJoin,
+  WorkCreatorsJoin,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (Migrator m, int from, int to) async {
+          if (from == 1 && to == 2) {
+            // 1. Create new tables
+            await m.createTable(creators);
+            await m.createTable(bookCreatorsJoin);
+            await m.createTable(workCreatorsJoin);
+
+            // 2. Migrate Authors into Creators
+            await customStatement('''
+              INSERT INTO creators (id, name, image, other_name, website, facebook, created_date, last_updated)
+              SELECT id, name, image, other_name, website, facebook, created_date, last_updated
+              FROM authors;
+            ''');
+
+            // 3. Migrate BookAuthorsJoin -> BookCreatorsJoin (role: author)
+            await customStatement('''
+              INSERT INTO book_creators_join (book_id, creator_id, role)
+              SELECT book_id, author_id, 'author'
+              FROM book_authors_join;
+            ''');
+
+            // 4. Migrate WorkAuthorsJoin -> WorkCreatorsJoin (role: author)
+            await customStatement('''
+              INSERT INTO work_creators_join (work_id, creator_id, role)
+              SELECT work_id, author_id, 'author'
+              FROM work_authors_join;
+            ''');
+
+            // 4.5. Migrate BookTranslatorsJoin -> BookCreatorsJoin (role: translator)
+            await customStatement('''
+              INSERT INTO book_creators_join (book_id, creator_id, role)
+              SELECT book_id, translator_id, 'translator'
+              FROM book_translators_join;
+            ''');
+
+            // 4.6. Migrate WorkTranslatorsJoin -> WorkCreatorsJoin (role: translator)
+            await customStatement('''
+              INSERT INTO work_creators_join (work_id, creator_id, role)
+              SELECT work_id, translator_id, 'translator'
+              FROM work_translators_join;
+            ''');
+
+            // 5. Delete old Authors table and old join tables
+            await customStatement('DROP TABLE IF EXISTS authors;');
+            await customStatement('DROP TABLE IF EXISTS book_authors_join;');
+            await customStatement('DROP TABLE IF EXISTS work_authors_join;');
+            await customStatement('DROP TABLE IF EXISTS book_translators_join;');
+            await customStatement('DROP TABLE IF EXISTS work_translators_join;');
+
+            // We intentionally leave Translators table intact here.
+            // The mapping UI will query Translators, and map them to Creators.
+          }
+        },
+      );
 }
 
 LazyDatabase _openConnection() => LazyDatabase(() async {

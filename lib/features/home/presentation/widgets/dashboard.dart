@@ -4,14 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-import '../../../author/presentation/providers/author_provider.dart';
 import '../../../book/presentation/providers/book_provider.dart';
 import '../../../book_fair/domain/entities/book_fair_event_entity.dart';
 import '../../../book_fair/presentation/providers/book_fair_event_provider.dart';
+import '../../../creator/presentation/providers/creator_provider.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
 import '../../../reader/presentation/providers/reader_provider.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
-import '../../../translator/presentation/providers/translator_provider.dart';
 import '../../../work/presentation/providers/work_provider.dart';
 import 'dashboard_card.dart';
 
@@ -34,8 +33,7 @@ class Dashboard extends ConsumerWidget {
     // ── Entity counts ──────────────────────────────────────────────────
     final AsyncValue<int> bookCountAsync = ref.watch(bookCountProvider);
     final AsyncValue<int> workCountAsync = ref.watch(workCountProvider);
-    final AsyncValue<int> authorCountAsync = ref.watch(authorCountProvider);
-    final AsyncValue<int> translatorCountAsync = ref.watch(translatorCountProvider);
+    final AsyncValue<int> creatorCountAsync = ref.watch(creatorCountProvider);
     final AsyncValue<int> publisherCountAsync = ref.watch(publisherCountProvider);
     final AsyncValue<int> sequenceCountAsync = ref.watch(sequenceCountProvider);
     final AsyncValue<int> readerCountAsync = ref.watch(readerCountProvider);
@@ -43,8 +41,7 @@ class Dashboard extends ConsumerWidget {
 
     final int? bookCount = bookCountAsync.asData?.value;
     final int? workCount = workCountAsync.asData?.value;
-    final int? authorCount = authorCountAsync.asData?.value;
-    final int? translatorCount = translatorCountAsync.asData?.value;
+    final int? creatorCount = creatorCountAsync.asData?.value;
     final int? publisherCount = publisherCountAsync.asData?.value;
     final int? sequenceCount = sequenceCountAsync.asData?.value;
     final int? readerCount = readerCountAsync.asData?.value;
@@ -104,17 +101,10 @@ class Dashboard extends ConsumerWidget {
         colorVariant: DashboardCardColor.primary,
       ),
       _CardDef(
-        title: _label(authorCount, 'Author'),
+        title: _label(creatorCount, 'Creator'),
         icon: Icons.person_rounded,
-        count: authorCount,
-        route: '/authors',
-        colorVariant: DashboardCardColor.primary,
-      ),
-      _CardDef(
-        title: _label(translatorCount, 'Translator'),
-        icon: Icons.translate_rounded,
-        count: translatorCount,
-        route: '/translators',
+        count: creatorCount,
+        route: '/creators',
         colorVariant: DashboardCardColor.primary,
       ),
       _CardDef(

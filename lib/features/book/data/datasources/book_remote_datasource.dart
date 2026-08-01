@@ -42,13 +42,13 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
 
   Future<BookModel> _mapToBookModel(Book row) async {
     // Fetch associated relations from join tables
-    final SimpleSelectStatement<$BookAuthorsJoinTable, BookAuthorsJoinData> authorsQuery = db.select(db.bookAuthorsJoin)..where(($BookAuthorsJoinTable t) => t.bookId.equals(row.id));
-    final List<BookAuthorsJoinData> authors = await authorsQuery.get();
-    final List<String> authorIds = authors.map((BookAuthorsJoinData a) => a.authorId).toList();
+    final SimpleSelectStatement<$BookCreatorsJoinTable, BookCreatorsJoinData> authorsQuery = db.select(db.bookCreatorsJoin)..where(($BookCreatorsJoinTable t) => t.bookId.equals(row.id) & t.role.equals(CreatorRole.author.name));
+    final List<BookCreatorsJoinData> authors = await authorsQuery.get();
+    final List<String> authorIds = authors.map((BookCreatorsJoinData a) => a.creatorId).toList();
 
-    final SimpleSelectStatement<$BookTranslatorsJoinTable, BookTranslatorsJoinData> translatorsQuery = db.select(db.bookTranslatorsJoin)..where(($BookTranslatorsJoinTable t) => t.bookId.equals(row.id));
-    final List<BookTranslatorsJoinData> translators = await translatorsQuery.get();
-    final List<String> translatorIds = translators.map((BookTranslatorsJoinData t) => t.translatorId).toList();
+    final SimpleSelectStatement<$BookCreatorsJoinTable, BookCreatorsJoinData> translatorsQuery = db.select(db.bookCreatorsJoin)..where(($BookCreatorsJoinTable t) => t.bookId.equals(row.id) & t.role.equals(CreatorRole.translator.name));
+    final List<BookCreatorsJoinData> translators = await translatorsQuery.get();
+    final List<String> translatorIds = translators.map((BookCreatorsJoinData t) => t.creatorId).toList();
 
     // WorkIds: query work relation if applicable
     final SimpleSelectStatement<$WorksTable, Work> worksQuery = db.select(db.works)..where(($WorksTable t) => t.bookId.equals(row.id));
@@ -119,8 +119,7 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
     yield await fetchBooks();
     await for (final Set<TableUpdate> _ in db.tableUpdates().where((Set<TableUpdate> updates) => updates.any((TableUpdate update) =>
         update.table == db.books.actualTableName ||
-        update.table == db.bookAuthorsJoin.actualTableName ||
-        update.table == db.bookTranslatorsJoin.actualTableName ||
+        update.table == db.bookCreatorsJoin.actualTableName ||
         update.table == db.works.actualTableName ||
         update.table == db.sequenceVolumes.actualTableName))) {
       yield await fetchBooks();
@@ -160,19 +159,19 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
         ).toCompanion(false),
       );
 
-      // Sync Author Joins
-      await (db.delete(db.bookAuthorsJoin)..where(($BookAuthorsJoinTable t) => t.bookId.equals(book.id))).go();
+      // Sync Creator Joins (Authors)
+      await (db.delete(db.bookCreatorsJoin)..where(($BookCreatorsJoinTable t) => t.bookId.equals(book.id) & t.role.equals(CreatorRole.author.name))).go();
       for (final String authorId in book.authorIds) {
-        await db.into(db.bookAuthorsJoin).insertOnConflictUpdate(
-          BookAuthorsJoinCompanion.insert(bookId: book.id, authorId: authorId),
+        await db.into(db.bookCreatorsJoin).insertOnConflictUpdate(
+          BookCreatorsJoinCompanion.insert(bookId: book.id, creatorId: authorId, role: CreatorRole.author),
         );
       }
 
-      // Sync Translator Joins
-      await (db.delete(db.bookTranslatorsJoin)..where(($BookTranslatorsJoinTable t) => t.bookId.equals(book.id))).go();
+      // Sync Creator Joins (Translators)
+      await (db.delete(db.bookCreatorsJoin)..where(($BookCreatorsJoinTable t) => t.bookId.equals(book.id) & t.role.equals(CreatorRole.translator.name))).go();
       for (final String translatorId in book.translatorIds) {
-        await db.into(db.bookTranslatorsJoin).insertOnConflictUpdate(
-          BookTranslatorsJoinCompanion.insert(bookId: book.id, translatorId: translatorId),
+        await db.into(db.bookCreatorsJoin).insertOnConflictUpdate(
+          BookCreatorsJoinCompanion.insert(bookId: book.id, creatorId: translatorId, role: CreatorRole.translator),
         );
       }
     });
@@ -187,8 +186,7 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
   Future<void> removeBook(String id) async {
     await db.transaction(() async {
       await (db.delete(db.books)..where(($BooksTable t) => t.id.equals(id))).go();
-      await (db.delete(db.bookAuthorsJoin)..where(($BookAuthorsJoinTable t) => t.bookId.equals(id))).go();
-      await (db.delete(db.bookTranslatorsJoin)..where(($BookTranslatorsJoinTable t) => t.bookId.equals(id))).go();
+      await (db.delete(db.bookCreatorsJoin)..where(($BookCreatorsJoinTable t) => t.bookId.equals(id))).go();
     });
   }
 

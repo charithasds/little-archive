@@ -3,8 +3,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 enum Entity {
   book('Book', 'Books', FontAwesomeIcons.book),
   work('Work', 'Works', FontAwesomeIcons.fileLines),
-  author('Author', 'Authors', FontAwesomeIcons.user),
-  translator('Translator', 'Translators', FontAwesomeIcons.language),
+  creator('Creator', 'Creators', FontAwesomeIcons.userPen),
+  duplicateCreator('Duplicate Creator', 'Duplicate Creators', FontAwesomeIcons.usersSlash),
   publisher('Publisher', 'Publishers', FontAwesomeIcons.building),
   reader('Reader', 'Readers', FontAwesomeIcons.smile),
   sequence('Sequence', 'Sequences', FontAwesomeIcons.layerGroup),

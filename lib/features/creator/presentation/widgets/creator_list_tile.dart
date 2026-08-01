@@ -4,15 +4,12 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-import '../../../book/domain/entities/book_entity.dart';
-import '../../../book/presentation/providers/book_provider.dart';
-import '../../../creator/presentation/providers/creator_provider.dart';
-import '../../domain/entities/work_entity.dart';
+import '../../domain/entities/creator_entity.dart';
 
-class WorkListTile extends ConsumerWidget {
-  const WorkListTile({super.key, required this.work, this.onTap, this.onEdit, this.onRemove});
+class CreatorListTile extends ConsumerWidget {
+  const CreatorListTile({super.key, required this.creator, this.onTap, this.onEdit, this.onRemove});
 
-  final WorkEntity work;
+  final CreatorEntity creator;
   final VoidCallback? onTap;
   final VoidCallback? onEdit;
   final VoidCallback? onRemove;
@@ -21,37 +18,8 @@ class WorkListTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
-    final List<String> creatorIds = work.isTranslation ? work.translatorIds : work.authorIds;
-    final String creatorLabel = work.isTranslation ? 'Translator' : 'Author';
-    final int additionalCount = creatorIds.length > 1 ? creatorIds.length - 1 : 0;
-    final BookEntity? connectedBook = work.bookId != null
-        ? ref.watch(bookProvider(work.bookId!)).value
-        : null;
-    final String? bookCover = connectedBook?.cover;
-    String? firstCreatorName;
-    String creatorText;
-
-    if (creatorIds.isNotEmpty) {
-      if (work.isTranslation) {
-        firstCreatorName = ref.watch(creatorProvider(creatorIds.first)).value?.name;
-      } else {
-        firstCreatorName = ref.watch(creatorProvider(creatorIds.first)).value?.name;
-      }
-    }
-
-    if (creatorIds.isNotEmpty) {
-      if (firstCreatorName != null && firstCreatorName.isNotEmpty) {
-        creatorText = firstCreatorName;
-
-        if (additionalCount > 0) {
-          creatorText += ' + $additionalCount';
-        }
-      } else {
-        creatorText = 'Loading...';
-      }
-    } else {
-      creatorText = 'No ${creatorLabel}s';
-    }
+    final int bookCount = creator.authoredBookIds.length + creator.translatedBookIds.length;
+    final int workCount = creator.authoredWorkIds.length + creator.translatedWorkIds.length;
 
     return Card(
       elevation: 0,
@@ -69,23 +37,24 @@ class WorkListTile extends ConsumerWidget {
           child: Row(
             children: <Widget>[
               Hero(
-                tag: 'work_${work.id}',
+                tag: 'creator_${creator.id}',
                 child: Container(
                   width: 64,
-                  height: 64 / Images.bookAspectRatio,
+                  height: 64,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
+                    shape: BoxShape.circle,
                     color: Images.getAvatarBackgroundColor(theme),
-                    image: bookCover != null && bookCover.isNotEmpty
+                    image: creator.image != null && creator.image!.isNotEmpty
                         ? DecorationImage(
-                            image: Images.getImageProvider(bookCover),
+                            image: Images.getImageProvider(creator.image),
                             fit: BoxFit.contain,
                           )
                         : null,
                   ),
-                  child: bookCover == null || bookCover.isEmpty
+                  child: creator.image == null || creator.image!.isEmpty
                       ? FaIcon(
-                          FontAwesomeIcons.fileLines,
+                          FontAwesomeIcons.user,
                           color: Images.getAvatarIconColor(theme),
                           size: 32,
                         )
@@ -99,7 +68,7 @@ class WorkListTile extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     Text(
-                      work.title,
+                      creator.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.titleLarge?.copyWith(
@@ -107,19 +76,21 @@ class WorkListTile extends ConsumerWidget {
                         color: colorScheme.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      creatorText,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.w500,
+                    if (creator.otherName != null && creator.otherName!.isNotEmpty) ...<Widget>[
+                      const SizedBox(height: 2),
+                      Text(
+                        creator.otherName!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
+                    ],
                     const SizedBox(height: 2),
                     Text(
-                      work.contentCategory.clientValue,
+                      '$bookCount ${bookCount == 1 ? 'Book' : 'Books'} • $workCount ${workCount == 1 ? 'Work' : 'Works'}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: theme.textTheme.bodySmall?.copyWith(

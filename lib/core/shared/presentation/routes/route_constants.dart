@@ -9,12 +9,9 @@ abstract class RouteConstants {
   static const String books = 'books';
   static const String upsertBook = 'upsertBook';
   static const String bookDetail = 'bookDetail';
-  static const String authors = 'authors';
-  static const String upsertAuthor = 'upsertAuthor';
-  static const String authorDetail = 'authorDetail';
-  static const String translators = 'translators';
-  static const String upsertTranslator = 'upsertTranslator';
-  static const String translatorDetail = 'translatorDetail';
+  static const String creators = 'creators';
+  static const String upsertCreator = 'upsertCreator';
+  static const String creatorDetail = 'creatorDetail';
   static const String publishers = 'publishers';
   static const String upsertPublisher = 'upsertPublisher';
   static const String publisherDetail = 'publisherDetail';
@@ -30,6 +27,7 @@ abstract class RouteConstants {
   static const String dataQuality = 'dataQuality';
   static const String bookFair = 'bookFair';
   static const String shoppingPlan = 'shoppingPlan';
+  static const String creatorMapping = 'creatorMapping';
 
   // Route Paths
   static const String pathLoading = '/loading';
@@ -41,12 +39,9 @@ abstract class RouteConstants {
   static const String pathBooks = 'books';
   static const String pathUpsertBook = 'upsert';
   static const String pathBookDetail = ':id';
-  static const String pathAuthors = 'authors';
-  static const String pathUpsertAuthor = 'upsert';
-  static const String pathAuthorDetail = ':id';
-  static const String pathTranslators = 'translators';
-  static const String pathUpsertTranslator = 'upsert';
-  static const String pathTranslatorDetail = ':id';
+  static const String pathCreators = 'creators';
+  static const String pathUpsertCreator = 'upsert';
+  static const String pathCreatorDetail = ':id';
   static const String pathPublishers = 'publishers';
   static const String pathUpsertPublisher = 'upsert';
   static const String pathPublisherDetail = ':id';
@@ -62,4 +57,5 @@ abstract class RouteConstants {
   static const String pathDataQuality = 'data-quality';
   static const String pathBookFair = 'book-fair';
   static const String pathShoppingPlan = 'shopping-plan';
+  static const String pathCreatorMapping = 'creator-mapping';
 }

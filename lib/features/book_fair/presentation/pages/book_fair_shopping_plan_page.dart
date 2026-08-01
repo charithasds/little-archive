@@ -7,14 +7,12 @@ import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/presentation/routes/route_constants.dart';
 import '../../../../core/shared/presentation/routes/router_service.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-import '../../../author/domain/entities/author_entity.dart';
-import '../../../author/presentation/providers/author_provider.dart';
 import '../../../book/domain/entities/book_entity.dart';
 import '../../../book/presentation/providers/book_provider.dart';
+import '../../../creator/domain/entities/creator_entity.dart';
+import '../../../creator/presentation/providers/creator_provider.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
-import '../../../translator/domain/entities/translator_entity.dart';
-import '../../../translator/presentation/providers/translator_provider.dart';
 import '../../data/services/book_fair_sheets_service.dart';
 import '../../domain/entities/book_fair_event_entity.dart';
 import '../../domain/entities/book_fair_stall_entity.dart';
@@ -91,10 +89,8 @@ class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlan
     final List<PublisherEntity> publishers =
         ref.watch(publishersStreamProvider).value ?? <PublisherEntity>[];
     final List<BookEntity> books = ref.watch(booksStreamProvider).value ?? <BookEntity>[];
-    final List<AuthorEntity> authors =
-        ref.watch(authorsStreamProvider).value ?? <AuthorEntity>[];
-    final List<TranslatorEntity> translators =
-        ref.watch(translatorsStreamProvider).value ?? <TranslatorEntity>[];
+    final List<CreatorEntity> creators =
+        ref.watch(creatorsStreamProvider).value ?? <CreatorEntity>[];
 
     final DateTime now = DateTime.now();
     final Set<String> publisherIdsInShoppingList = books
@@ -320,9 +316,9 @@ class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlan
                       // Resolve author names from authorIds.
                       final List<String> authorNames = book.authorIds
                           .map(
-                            (String id) => authors
-                                .where((AuthorEntity a) => a.id == id)
-                                .map((AuthorEntity a) => a.name)
+                            (String id) => creators
+                                .where((CreatorEntity a) => a.id == id)
+                                .map((CreatorEntity a) => a.name)
                                 .firstOrNull ?? '',
                           )
                           .where((String n) => n.isNotEmpty)
@@ -332,24 +328,24 @@ class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlan
                       final List<String> translatorNames =
                           book.translatorIds
                               .map(
-                                (String id) => translators
+                                (String id) => creators
                                     .where(
-                                      (TranslatorEntity t) => t.id == id,
+                                      (CreatorEntity t) => t.id == id,
                                     )
-                                    .map((TranslatorEntity t) => t.name)
+                                    .map((CreatorEntity t) => t.name)
                                     .firstOrNull ?? '',
                               )
                               .where((String n) => n.isNotEmpty)
                               .toList();
 
                       // Combine authors and translators into Creators
-                      String creators = '';
+                      String creatorNames = '';
                       final String authorStr = authorNames.join(', ');
                       final String translatorStr = translatorNames.join(', ');
                       if (translatorStr.isNotEmpty) {
-                        creators = '$translatorStr ($authorStr)';
+                        creatorNames = '$translatorStr ($authorStr)';
                       } else {
-                        creators = authorStr;
+                        creatorNames = authorStr;
                       }
 
                       // Resolve publisher + stall info via publisherId.
@@ -375,7 +371,7 @@ class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlan
 
                       return BookFairExportEntry(
                         book: book,
-                        creators: creators,
+                        creators: creatorNames,
                         publisherName: publisher?.name ?? '',
                         halls: stall?.halls ?? <String>[],
                         stallNo: stall?.stallNo ?? '',

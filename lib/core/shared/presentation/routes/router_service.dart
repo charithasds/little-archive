@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../features/author/domain/entities/author_entity.dart';
-import '../../../../features/author/presentation/pages/author_detail_page.dart';
-import '../../../../features/author/presentation/pages/author_list_page.dart';
-import '../../../../features/author/presentation/pages/upsert_author_page.dart';
 import '../../../../features/book/domain/entities/book_entity.dart';
 import '../../../../features/book/presentation/pages/book_collection_status_manage_page.dart';
 import '../../../../features/book/presentation/pages/book_data_quality_manage_page.dart';
@@ -15,6 +11,11 @@ import '../../../../features/book/presentation/pages/book_reading_status_manage_
 import '../../../../features/book/presentation/pages/upsert_book_page.dart';
 import '../../../../features/book_fair/presentation/pages/book_fair_setup_page.dart';
 import '../../../../features/book_fair/presentation/pages/book_fair_shopping_plan_page.dart';
+import '../../../../features/creator/domain/entities/creator_entity.dart';
+import '../../../../features/creator/presentation/pages/creator_detail_page.dart';
+import '../../../../features/creator/presentation/pages/creator_list_page.dart';
+import '../../../../features/creator/presentation/pages/creator_mapping_page.dart';
+import '../../../../features/creator/presentation/pages/upsert_creator_page.dart';
 import '../../../../features/home/presentation/pages/home_page.dart';
 import '../../../../features/publisher/domain/entities/publisher_entity.dart';
 import '../../../../features/publisher/presentation/pages/publisher_detail_page.dart';
@@ -29,10 +30,6 @@ import '../../../../features/sequence/presentation/pages/sequence_detail_page.da
 import '../../../../features/sequence/presentation/pages/sequence_list_page.dart';
 import '../../../../features/sequence/presentation/pages/upsert_sequence_page.dart';
 import '../../../../features/settings/presentation/pages/settings_page.dart';
-import '../../../../features/translator/domain/entities/translator_entity.dart';
-import '../../../../features/translator/presentation/pages/translator_detail_page.dart';
-import '../../../../features/translator/presentation/pages/translator_list_page.dart';
-import '../../../../features/translator/presentation/pages/upsert_translator_page.dart';
 import '../../../../features/work/domain/entities/work_entity.dart';
 import '../../../../features/work/presentation/pages/upsert_work_page.dart';
 import '../../../../features/work/presentation/pages/work_detail_page.dart';
@@ -129,44 +126,22 @@ class RouterService {
         ),
 
         GoRoute(
-          path: RouteConstants.pathAuthors,
-          name: RouteConstants.authors,
-          builder: (BuildContext context, GoRouterState state) => const AuthorListPage(),
+          path: RouteConstants.pathCreators,
+          name: RouteConstants.creators,
+          builder: (BuildContext context, GoRouterState state) => const CreatorListPage(),
           routes: <RouteBase>[
             GoRoute(
-              path: RouteConstants.pathUpsertAuthor,
-              name: RouteConstants.upsertAuthor,
+              path: RouteConstants.pathUpsertCreator,
+              name: RouteConstants.upsertCreator,
               builder: (BuildContext context, GoRouterState state) =>
-                  UpsertAuthorPage(existingAuthor: state.extra as AuthorEntity?),
+                  UpsertCreatorPage(existingCreator: state.extra as CreatorEntity?),
             ),
             GoRoute(
-              path: RouteConstants.pathAuthorDetail,
-              name: RouteConstants.authorDetail,
+              path: RouteConstants.pathCreatorDetail,
+              name: RouteConstants.creatorDetail,
               builder: (BuildContext context, GoRouterState state) {
                 final String id = state.pathParameters['id']!;
-                return AuthorDetailPage(authorId: id);
-              },
-            ),
-          ],
-        ),
-
-        GoRoute(
-          path: RouteConstants.pathTranslators,
-          name: RouteConstants.translators,
-          builder: (BuildContext context, GoRouterState state) => const TranslatorListPage(),
-          routes: <RouteBase>[
-            GoRoute(
-              path: RouteConstants.pathUpsertTranslator,
-              name: RouteConstants.upsertTranslator,
-              builder: (BuildContext context, GoRouterState state) =>
-                  UpsertTranslatorPage(existingTranslator: state.extra as TranslatorEntity?),
-            ),
-            GoRoute(
-              path: RouteConstants.pathTranslatorDetail,
-              name: RouteConstants.translatorDetail,
-              builder: (BuildContext context, GoRouterState state) {
-                final String id = state.pathParameters['id']!;
-                return TranslatorDetailPage(translatorId: id);
+                return CreatorDetailPage(creatorId: id);
               },
             ),
           ],
@@ -242,6 +217,12 @@ class RouterService {
           path: RouteConstants.pathSettings,
           name: RouteConstants.settings,
           builder: (BuildContext context, GoRouterState state) => const SettingsPage(),
+        ),
+
+        GoRoute(
+          path: RouteConstants.pathCreatorMapping,
+          name: RouteConstants.creatorMapping,
+          builder: (BuildContext context, GoRouterState state) => const CreatorMappingPage(),
         ),
 
         GoRoute(

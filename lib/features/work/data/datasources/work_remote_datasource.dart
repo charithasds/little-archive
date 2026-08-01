@@ -35,15 +35,15 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
   }
 
   Future<WorkModel> _mapToWorkModel(Work row) async {
-    // Resolve authorIds from workAuthorsJoin table
-    final SimpleSelectStatement<$WorkAuthorsJoinTable, WorkAuthorsJoinData> authorsQuery = db.select(db.workAuthorsJoin)..where(($WorkAuthorsJoinTable t) => t.workId.equals(row.id));
-    final List<WorkAuthorsJoinData> authors = await authorsQuery.get();
-    final List<String> authorIds = authors.map((WorkAuthorsJoinData a) => a.authorId).toList();
+    // Resolve authorIds from workCreatorsJoin table
+    final SimpleSelectStatement<$WorkCreatorsJoinTable, WorkCreatorsJoinData> authorsQuery = db.select(db.workCreatorsJoin)..where(($WorkCreatorsJoinTable t) => t.workId.equals(row.id) & t.role.equals(CreatorRole.author.name));
+    final List<WorkCreatorsJoinData> authors = await authorsQuery.get();
+    final List<String> authorIds = authors.map((WorkCreatorsJoinData a) => a.creatorId).toList();
 
-    // Resolve translatorIds from workTranslatorsJoin table
-    final SimpleSelectStatement<$WorkTranslatorsJoinTable, WorkTranslatorsJoinData> translatorsQuery = db.select(db.workTranslatorsJoin)..where(($WorkTranslatorsJoinTable t) => t.workId.equals(row.id));
-    final List<WorkTranslatorsJoinData> translators = await translatorsQuery.get();
-    final List<String> translatorIds = translators.map((WorkTranslatorsJoinData t) => t.translatorId).toList();
+    // Resolve translatorIds from workCreatorsJoin table
+    final SimpleSelectStatement<$WorkCreatorsJoinTable, WorkCreatorsJoinData> translatorsQuery = db.select(db.workCreatorsJoin)..where(($WorkCreatorsJoinTable t) => t.workId.equals(row.id) & t.role.equals(CreatorRole.translator.name));
+    final List<WorkCreatorsJoinData> translators = await translatorsQuery.get();
+    final List<String> translatorIds = translators.map((WorkCreatorsJoinData t) => t.creatorId).toList();
 
     // Resolve sequenceVolumeIds from sequenceVolumes table
     final SimpleSelectStatement<$SequenceVolumesTable, SequenceVolume> volumesQuery = db.select(db.sequenceVolumes)..where(($SequenceVolumesTable t) => t.workId.equals(row.id));
@@ -96,8 +96,7 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
     yield await fetchWorks();
     await for (final Set<TableUpdate> _ in db.tableUpdates().where((Set<TableUpdate> updates) => updates.any((TableUpdate update) =>
         update.table == db.works.actualTableName ||
-        update.table == db.workAuthorsJoin.actualTableName ||
-        update.table == db.workTranslatorsJoin.actualTableName ||
+        update.table == db.workCreatorsJoin.actualTableName ||
         update.table == db.sequenceVolumes.actualTableName ||
         update.table == db.books.actualTableName))) {
       yield await fetchWorks();
@@ -125,19 +124,19 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
         ).toCompanion(false),
       );
 
-      // Sync Work-Author Joins
-      await (db.delete(db.workAuthorsJoin)..where(($WorkAuthorsJoinTable t) => t.workId.equals(work.id))).go();
+      // Sync Work-Creator Joins (Authors)
+      await (db.delete(db.workCreatorsJoin)..where(($WorkCreatorsJoinTable t) => t.workId.equals(work.id) & t.role.equals(CreatorRole.author.name))).go();
       for (final String authorId in work.authorIds) {
-        await db.into(db.workAuthorsJoin).insertOnConflictUpdate(
-          WorkAuthorsJoinCompanion.insert(workId: work.id, authorId: authorId),
+        await db.into(db.workCreatorsJoin).insertOnConflictUpdate(
+          WorkCreatorsJoinCompanion.insert(workId: work.id, creatorId: authorId, role: CreatorRole.author),
         );
       }
 
-      // Sync Work-Translator Joins
-      await (db.delete(db.workTranslatorsJoin)..where(($WorkTranslatorsJoinTable t) => t.workId.equals(work.id))).go();
+      // Sync Work-Creator Joins (Translators)
+      await (db.delete(db.workCreatorsJoin)..where(($WorkCreatorsJoinTable t) => t.workId.equals(work.id) & t.role.equals(CreatorRole.translator.name))).go();
       for (final String translatorId in work.translatorIds) {
-        await db.into(db.workTranslatorsJoin).insertOnConflictUpdate(
-          WorkTranslatorsJoinCompanion.insert(workId: work.id, translatorId: translatorId),
+        await db.into(db.workCreatorsJoin).insertOnConflictUpdate(
+          WorkCreatorsJoinCompanion.insert(workId: work.id, creatorId: translatorId, role: CreatorRole.translator),
         );
       }
     });
@@ -152,8 +151,7 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
   Future<void> removeWork(String id) async {
     await db.transaction(() async {
       await (db.delete(db.works)..where(($WorksTable t) => t.id.equals(id))).go();
-      await (db.delete(db.workAuthorsJoin)..where(($WorkAuthorsJoinTable t) => t.workId.equals(id))).go();
-      await (db.delete(db.workTranslatorsJoin)..where(($WorkTranslatorsJoinTable t) => t.workId.equals(id))).go();
+      await (db.delete(db.workCreatorsJoin)..where(($WorkCreatorsJoinTable t) => t.workId.equals(id))).go();
     });
   }
 }

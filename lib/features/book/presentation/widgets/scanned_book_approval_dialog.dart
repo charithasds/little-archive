@@ -9,9 +9,8 @@ import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../../../core/shared/presentation/utils/validators.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-import '../../../author/domain/entities/author_entity.dart';
+import '../../../creator/domain/entities/creator_entity.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
-import '../../../translator/domain/entities/translator_entity.dart';
 import '../../domain/entities/book_entity.dart';
 import '../../domain/entities/scan/scanned_book_entity.dart';
 import '../../domain/entities/scan/scanned_name_entity.dart';
@@ -28,9 +27,9 @@ class ScannedBookApprovalResult {
   });
 
   final BookEntity book;
-  final List<AuthorEntity> selectedAuthors;
+  final List<CreatorEntity> selectedAuthors;
   final List<ScannedNameEntity> newAuthors;
-  final List<TranslatorEntity> selectedTranslators;
+  final List<CreatorEntity> selectedTranslators;
   final List<ScannedNameEntity> newTranslators;
   final PublisherEntity? selectedPublisher;
   final ScannedNameEntity? newPublisher;
@@ -46,8 +45,8 @@ class ScannedBookApprovalDialog extends ConsumerStatefulWidget {
   });
 
   final ScannedBookEntity scannedBook;
-  final List<AuthorEntity> existingAuthors;
-  final List<TranslatorEntity> existingTranslators;
+  final List<CreatorEntity> existingAuthors;
+  final List<CreatorEntity> existingTranslators;
   final List<PublisherEntity> existingPublishers;
 
   @override
@@ -115,8 +114,8 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
       _authorSelections[sn.name] = _findBestMatch(
         sn.name,
         widget.existingAuthors,
-        (AuthorEntity a) => a.name,
-        (AuthorEntity a) => a.otherName,
+        (CreatorEntity a) => a.name,
+        (CreatorEntity a) => a.otherName,
       );
     }
 
@@ -126,8 +125,8 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
       _translatorSelections[sn.name] = _findBestMatch(
         sn.name,
         widget.existingTranslators,
-        (TranslatorEntity t) => t.name,
-        (TranslatorEntity t) => t.otherName,
+        (CreatorEntity t) => t.name,
+        (CreatorEntity t) => t.otherName,
       );
     }
 
@@ -418,7 +417,7 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
                 _buildMatchSection(
                   detectedKey: sn.name,
                   existingItems: widget.existingAuthors,
-                  getName: (AuthorEntity a) => a.name,
+                  getName: (CreatorEntity a) => a.name,
                   selectionsMap: _authorSelections,
                   nameController: _authorNameControllers[sn.name]!,
                   otherNameController: _authorOtherNameControllers[sn.name],
@@ -434,7 +433,7 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
                 _buildMatchSection(
                   detectedKey: sn.name,
                   existingItems: widget.existingTranslators,
-                  getName: (TranslatorEntity t) => t.name,
+                  getName: (CreatorEntity t) => t.name,
                   selectionsMap: _translatorSelections,
                   nameController: _translatorNameControllers[sn.name]!,
                   otherNameController: _translatorOtherNameControllers[sn.name],
@@ -487,10 +486,10 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
               lastUpdated: b.lastUpdated,
             );
 
-            final List<AuthorEntity> selectedAuthors = <AuthorEntity>[];
+            final List<CreatorEntity> selectedAuthors = <CreatorEntity>[];
             final List<ScannedNameEntity> newAuthors = <ScannedNameEntity>[];
             _authorSelections.forEach((String key, dynamic selection) {
-              if (selection is AuthorEntity) {
+              if (selection is CreatorEntity) {
                 selectedAuthors.add(selection);
               } else if (selection == 'NEW') {
                 newAuthors.add(
@@ -504,11 +503,11 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
               }
             });
 
-            final List<TranslatorEntity> selectedTranslators = <TranslatorEntity>[];
+            final List<CreatorEntity> selectedTranslators = <CreatorEntity>[];
             final List<ScannedNameEntity> newTranslators = <ScannedNameEntity>[];
             if (_approvals['isTranslation'] ?? false) {
               _translatorSelections.forEach((String key, dynamic selection) {
-                if (selection is TranslatorEntity) {
+                if (selection is CreatorEntity) {
                   selectedTranslators.add(selection);
                 } else if (selection == 'NEW') {
                   newTranslators.add(

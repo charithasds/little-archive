@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../author/domain/entities/author_entity.dart';
-import '../../../author/presentation/providers/author_provider.dart';
+import '../../../creator/domain/entities/creator_entity.dart';
+import '../../../creator/presentation/providers/creator_provider.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
 import '../../../reader/domain/entities/reader_entity.dart';
@@ -9,8 +9,6 @@ import '../../../reader/presentation/providers/reader_provider.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/domain/entities/sequence_volume_entity.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
-import '../../../translator/domain/entities/translator_entity.dart';
-import '../../../translator/presentation/providers/translator_provider.dart';
 import '../../../work/domain/entities/work_entity.dart';
 import '../../../work/presentation/providers/work_provider.dart';
 import '../../domain/entities/book_entity.dart';
@@ -36,8 +34,8 @@ class BookListController extends _$BookListController {
   BookListState build() {
     final List<BookEntity> allBooks = ref.watch(booksStreamProvider).value ?? <BookEntity>[];
 
-    ref.watch(authorsStreamProvider);
-    ref.watch(translatorsStreamProvider);
+    ref.watch(creatorsStreamProvider);
+    ref.watch(creatorsStreamProvider);
     ref.watch(worksStreamProvider);
     ref.watch(publishersStreamProvider);
     ref.watch(readersStreamProvider);
@@ -67,23 +65,23 @@ class BookListController extends _$BookListController {
       final String q = query.toLowerCase();
 
       String getAuthorNames(List<String> ids) {
-        final List<AuthorEntity> authors =
-            ref.read(authorsStreamProvider).value ?? <AuthorEntity>[];
+        final List<CreatorEntity> authors =
+            ref.read(creatorsStreamProvider).value ?? <CreatorEntity>[];
 
         return authors
-            .where((AuthorEntity a) => ids.contains(a.id))
-            .map((AuthorEntity a) => a.name)
+            .where((CreatorEntity a) => ids.contains(a.id))
+            .map((CreatorEntity a) => a.name)
             .join(' ')
             .toLowerCase();
       }
 
       String getTranslatorNames(List<String> ids) {
-        final List<TranslatorEntity> translators =
-            ref.read(translatorsStreamProvider).value ?? <TranslatorEntity>[];
+        final List<CreatorEntity> translators =
+            ref.read(creatorsStreamProvider).value ?? <CreatorEntity>[];
 
         return translators
-            .where((TranslatorEntity t) => ids.contains(t.id))
-            .map((TranslatorEntity t) => t.name)
+            .where((CreatorEntity t) => ids.contains(t.id))
+            .map((CreatorEntity t) => t.name)
             .join(' ')
             .toLowerCase();
       }

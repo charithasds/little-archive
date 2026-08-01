@@ -6,11 +6,10 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/presentation/widgets/search_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-import '../../../author/presentation/providers/author_provider.dart';
+import '../../../creator/presentation/providers/creator_provider.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
 import '../../../reader/domain/entities/reader_entity.dart';
 import '../../../reader/presentation/providers/reader_provider.dart';
-import '../../../translator/presentation/providers/translator_provider.dart';
 import '../../domain/entities/book_entity.dart';
 import '../providers/book_provider.dart';
 import '../providers/book_status_controller.dart';
@@ -229,9 +228,9 @@ class _CollectionBookTile extends ConsumerWidget {
     final CollectionStatus status = book.collectionStatus;
 
     final String? creatorName = book.isTranslation && book.translatorIds.isNotEmpty
-        ? ref.watch(translatorProvider(book.translatorIds.first)).value?.name
+        ? ref.watch(creatorProvider(book.translatorIds.first)).value?.name
         : book.authorIds.isNotEmpty
-        ? ref.watch(authorProvider(book.authorIds.first)).value?.name
+        ? ref.watch(creatorProvider(book.authorIds.first)).value?.name
         : null;
 
     final bool isDark = theme.brightness == Brightness.dark;

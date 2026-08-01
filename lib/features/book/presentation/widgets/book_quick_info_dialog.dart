@@ -7,12 +7,10 @@ import '../../../../core/shared/presentation/widgets/info_dialog_loading.dart';
 import '../../../../core/shared/presentation/widgets/info_dialog_metadata.dart';
 import '../../../../core/shared/presentation/widgets/info_dialog_rectangle_image.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-import '../../../author/domain/entities/author_entity.dart';
-import '../../../author/presentation/providers/author_provider.dart';
+import '../../../creator/domain/entities/creator_entity.dart';
+import '../../../creator/presentation/providers/creator_provider.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
-import '../../../translator/domain/entities/translator_entity.dart';
-import '../../../translator/presentation/providers/translator_provider.dart';
 import '../../domain/entities/book_entity.dart';
 import '../providers/book_provider.dart';
 
@@ -32,8 +30,8 @@ class BookQuickInfoDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final AsyncValue<BookEntity?> async = ref.watch(bookProvider(bookId));
-    final List<AuthorEntity>? authors = ref.watch(authorsStreamProvider).value;
-    final List<TranslatorEntity>? translators = ref.watch(translatorsStreamProvider).value;
+    final List<CreatorEntity>? authors = ref.watch(creatorsStreamProvider).value;
+    final List<CreatorEntity>? translators = ref.watch(creatorsStreamProvider).value;
     final List<PublisherEntity>? publishers = ref.watch(publishersStreamProvider).value;
 
     final Widget content = async.when(
@@ -45,7 +43,7 @@ class BookQuickInfoDialog extends ConsumerWidget {
         final List<String> authorNames = <String>[];
         if (authors != null) {
           for (final String id in book.authorIds) {
-            final AuthorEntity? a = authors.where((AuthorEntity x) => x.id == id).firstOrNull;
+            final CreatorEntity? a = authors.where((CreatorEntity x) => x.id == id).firstOrNull;
             if (a != null) {
               authorNames.add(a.name);
             }
@@ -55,7 +53,7 @@ class BookQuickInfoDialog extends ConsumerWidget {
         final List<String> translatorNames = <String>[];
         if (translators != null) {
           for (final String id in book.translatorIds) {
-            final TranslatorEntity? t = translators.where((TranslatorEntity x) => x.id == id).firstOrNull;
+            final CreatorEntity? t = translators.where((CreatorEntity x) => x.id == id).firstOrNull;
             if (t != null) {
               translatorNames.add(t.name);
             }

@@ -11,23 +11,19 @@ import '../../../../core/shared/presentation/widgets/list_empty_state.dart';
 import '../../../../core/shared/presentation/widgets/list_error_state.dart';
 import '../../../../core/shared/presentation/widgets/list_loading_state.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-import '../../../author/domain/entities/author_entity.dart';
-import '../../../author/presentation/providers/author_provider.dart';
-import '../../../author/presentation/widgets/author_list_tile.dart';
-import '../../../author/presentation/widgets/author_quick_info_dialog.dart';
 import '../../../book/domain/entities/book_entity.dart';
 import '../../../book/presentation/providers/book_provider.dart';
 import '../../../book/presentation/widgets/book_list_tile.dart';
 import '../../../book/presentation/widgets/book_quick_info_dialog.dart';
+import '../../../creator/domain/entities/creator_entity.dart';
+import '../../../creator/presentation/providers/creator_provider.dart';
+import '../../../creator/presentation/widgets/creator_list_tile.dart';
+import '../../../creator/presentation/widgets/creator_quick_info_dialog.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/domain/entities/sequence_volume_entity.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
 import '../../../sequence/presentation/widgets/sequence_quick_info_dialog.dart';
 import '../../../sequence/presentation/widgets/sequence_volume_list_tile.dart';
-import '../../../translator/domain/entities/translator_entity.dart';
-import '../../../translator/presentation/providers/translator_provider.dart';
-import '../../../translator/presentation/widgets/translator_list_tile.dart';
-import '../../../translator/presentation/widgets/translator_quick_info_dialog.dart';
 import '../../domain/entities/work_entity.dart';
 import '../../domain/usecases/work_usecases.dart';
 import '../providers/work_provider.dart';
@@ -67,13 +63,13 @@ class WorkDetailPage extends ConsumerWidget {
           );
         }
 
-        final List<AuthorEntity> authors = work.authorIds
-            .map((String id) => ref.watch(authorProvider(id)).value)
-            .whereType<AuthorEntity>()
+        final List<CreatorEntity> authors = work.authorIds
+            .map((String id) => ref.watch(creatorProvider(id)).value)
+            .whereType<CreatorEntity>()
             .toList();
-        final List<TranslatorEntity> translators = work.translatorIds
-            .map((String id) => ref.watch(translatorProvider(id)).value)
-            .whereType<TranslatorEntity>()
+        final List<CreatorEntity> translators = work.translatorIds
+            .map((String id) => ref.watch(creatorProvider(id)).value)
+            .whereType<CreatorEntity>()
             .toList();
         final AsyncValue<BookEntity?> bookAsync = work.bookId != null
             ? ref.watch(bookProvider(work.bookId!))
@@ -209,9 +205,9 @@ class WorkDetailPage extends ConsumerWidget {
                         title: 'AUTHORS',
                         children: authors
                             .map(
-                              (AuthorEntity author) => AuthorListTile(
-                                author: author,
-                                onTap: () => AuthorQuickInfoDialog.show(context, author.id),
+                              (CreatorEntity author) => CreatorListTile(
+                                creator: author,
+                                onTap: () => CreatorQuickInfoDialog.show(context, author.id),
                               ),
                             )
                             .toList(),
@@ -221,9 +217,9 @@ class WorkDetailPage extends ConsumerWidget {
                         title: 'TRANSLATORS',
                         children: translators
                             .map(
-                              (TranslatorEntity translator) => TranslatorListTile(
-                                translator: translator,
-                                onTap: () => TranslatorQuickInfoDialog.show(context, translator.id),
+                              (CreatorEntity translator) => CreatorListTile(
+                                creator: translator,
+                                onTap: () => CreatorQuickInfoDialog.show(context, translator.id),
                               ),
                             )
                             .toList(),

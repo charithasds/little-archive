@@ -24,10 +24,10 @@ import '../../../../core/shared/presentation/widgets/form_text_field.dart';
 import '../../../../core/shared/presentation/widgets/search_multi_picker_field.dart';
 import '../../../../core/shared/presentation/widgets/search_picker_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-import '../../../author/domain/entities/author_entity.dart';
-import '../../../author/domain/usecases/author_usecases.dart';
-import '../../../author/presentation/providers/author_provider.dart';
-import '../../../author/presentation/widgets/add_author_bottom_sheet.dart';
+import '../../../creator/domain/entities/creator_entity.dart';
+import '../../../creator/domain/usecases/creator_usecases.dart';
+import '../../../creator/presentation/providers/creator_provider.dart';
+import '../../../creator/presentation/widgets/add_creator_bottom_sheet.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../../publisher/domain/usecases/publisher_usecases.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
@@ -41,10 +41,6 @@ import '../../../sequence/domain/usecases/sequence_volume_usecases.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
 import '../../../sequence/presentation/widgets/add_sequence_bottom_sheet.dart';
 import '../../../sequence/presentation/widgets/sequence_number_dialog.dart';
-import '../../../translator/domain/entities/translator_entity.dart';
-import '../../../translator/domain/usecases/translator_usecases.dart';
-import '../../../translator/presentation/providers/translator_provider.dart';
-import '../../../translator/presentation/widgets/add_translator_bottom_sheet.dart';
 import '../../../work/domain/entities/work_entity.dart';
 import '../../../work/presentation/providers/work_provider.dart';
 import '../../../work/presentation/widgets/add_work_bottom_sheet.dart';
@@ -90,8 +86,8 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
   DateTime? _dueDate;
   DateTime? _completedDate;
 
-  List<AuthorEntity> _selectedAuthors = <AuthorEntity>[];
-  List<TranslatorEntity> _selectedTranslators = <TranslatorEntity>[];
+  List<CreatorEntity> _selectedAuthors = <CreatorEntity>[];
+  List<CreatorEntity> _selectedTranslators = <CreatorEntity>[];
   PublisherEntity? _selectedPublisher;
   ReaderEntity? _selectedReader;
   Map<SequenceEntity, String> _selectedSequences = <SequenceEntity, String>{};
@@ -155,7 +151,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
         _originalLanguage = null;
       }
       if (!_showTranslatorIds) {
-        _selectedTranslators = <TranslatorEntity>[];
+        _selectedTranslators = <CreatorEntity>[];
       }
     });
   }
@@ -310,10 +306,10 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
             completedDate: _toBeTranslated ? null : (_showCompletedDate ? _completedDate : null),
             notes: _notesController.text,
             authorIds: _showAuthorIds
-                ? _selectedAuthors.map((AuthorEntity e) => e.id).toList()
+                ? _selectedAuthors.map((CreatorEntity e) => e.id).toList()
                 : <String>[],
             translatorIds: _showTranslatorIds
-                ? _selectedTranslators.map((TranslatorEntity e) => e.id).toList()
+                ? _selectedTranslators.map((CreatorEntity e) => e.id).toList()
                 : <String>[],
             workIds: _showWorkIds
                 ? _selectedWorks.map((WorkEntity e) => e.id).toList()
@@ -369,9 +365,9 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                   context: context,
                   builder: (_) => ScannedBookApprovalDialog(
                     scannedBook: data,
-                    existingAuthors: ref.read(authorsStreamProvider).value ?? <AuthorEntity>[],
+                    existingAuthors: ref.read(creatorsStreamProvider).value ?? <CreatorEntity>[],
                     existingTranslators:
-                        ref.read(translatorsStreamProvider).value ?? <TranslatorEntity>[],
+                        ref.read(creatorsStreamProvider).value ?? <CreatorEntity>[],
                     existingPublishers:
                         ref.read(publishersStreamProvider).value ?? <PublisherEntity>[],
                   ),
@@ -382,32 +378,38 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
             }
 
             for (final ScannedNameEntity sn in approvedData.newAuthors) {
-              final String newId = ref.read(generateAuthorIdUseCaseProvider)();
-              final AuthorEntity newAuthor = AuthorEntity(
+              final String newId = ref.read(generateCreatorIdUseCaseProvider)();
+              final CreatorEntity newAuthor = CreatorEntity(
                 id: newId,
                 name: sn.name,
                 otherName: sn.otherName,
-                bookIds: const <String>[],
-                workIds: const <String>[],
+
+                authoredBookIds: const <String>[],
+                translatedBookIds: const <String>[],
+                authoredWorkIds: const <String>[],
+                translatedWorkIds: const <String>[],
                 createdDate: DateTime.now(),
                 lastUpdated: DateTime.now(),
               );
-              await ref.read(addAuthorUseCaseProvider)(newAuthor);
+              await ref.read(addCreatorUseCaseProvider)(newAuthor);
               approvedData.selectedAuthors.add(newAuthor);
             }
 
             for (final ScannedNameEntity sn in approvedData.newTranslators) {
-              final String newId = ref.read(generateTranslatorIdUseCaseProvider)();
-              final TranslatorEntity newTranslator = TranslatorEntity(
+              final String newId = ref.read(generateCreatorIdUseCaseProvider)();
+              final CreatorEntity newTranslator = CreatorEntity(
                 id: newId,
                 name: sn.name,
                 otherName: sn.otherName,
-                bookIds: const <String>[],
-                workIds: const <String>[],
+
+                authoredBookIds: const <String>[],
+                translatedBookIds: const <String>[],
+                authoredWorkIds: const <String>[],
+                translatedWorkIds: const <String>[],
                 createdDate: DateTime.now(),
                 lastUpdated: DateTime.now(),
               );
-              await ref.read(addTranslatorUseCaseProvider)(newTranslator);
+              await ref.read(addCreatorUseCaseProvider)(newTranslator);
               approvedData.selectedTranslators.add(newTranslator);
             }
 
@@ -451,8 +453,8 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
               _dueDate = null;
               _completedDate = null;
 
-              _selectedAuthors = List<AuthorEntity>.from(approvedData.selectedAuthors);
-              _selectedTranslators = List<TranslatorEntity>.from(approvedData.selectedTranslators);
+              _selectedAuthors = List<CreatorEntity>.from(approvedData.selectedAuthors);
+              _selectedTranslators = List<CreatorEntity>.from(approvedData.selectedTranslators);
               _selectedPublisher = finalPublisher;
               _selectedReader = null;
               _selectedSequences = <SequenceEntity, String>{};
@@ -493,9 +495,9 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
       },
     );
 
-    final AsyncValue<List<AuthorEntity>> authorsAsync = ref.watch(authorsStreamProvider);
-    final AsyncValue<List<TranslatorEntity>> translatorsAsync = ref.watch(
-      translatorsStreamProvider,
+    final AsyncValue<List<CreatorEntity>> authorsAsync = ref.watch(creatorsStreamProvider);
+    final AsyncValue<List<CreatorEntity>> translatorsAsync = ref.watch(
+      creatorsStreamProvider,
     );
     final AsyncValue<List<WorkEntity>> worksAsync = ref.watch(worksStreamProvider);
     final AsyncValue<List<PublisherEntity>> publishersAsync = ref.watch(publishersStreamProvider);
@@ -534,10 +536,10 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
 
           setState(() {
             _selectedAuthors = authorsAsync.value!
-                .where((AuthorEntity a) => book.authorIds.contains(a.id))
+                .where((CreatorEntity a) => book.authorIds.contains(a.id))
                 .toList();
             _selectedTranslators = translatorsAsync.value!
-                .where((TranslatorEntity t) => book.translatorIds.contains(t.id))
+                .where((CreatorEntity t) => book.translatorIds.contains(t.id))
                 .toList();
             _selectedWorks = worksAsync.value!
                 .where((WorkEntity w) => book.workIds.contains(w.id))
@@ -751,21 +753,21 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                   ),
                   if (_showAuthorIds) ...<Widget>[
                     const SizedBox(height: 16),
-                    SearchMultiPickerField<AuthorEntity>(
+                    SearchMultiPickerField<CreatorEntity>(
                       label: 'Authors',
                       prefixIcon: FontAwesomeIcons.user,
                       selectedItems: _selectedAuthors,
-                      itemsProvider: authorsStreamProvider,
-                      itemLabel: (AuthorEntity a) => a.name,
-                      itemKey: (AuthorEntity a) => a.id,
-                      extraSearchLabels: (AuthorEntity a) => <String?>[a.otherName],
-                      onChanged: (List<AuthorEntity> l) => setState(() => _selectedAuthors = l),
-                      onAdd: () async => showModalBottomSheet<AuthorEntity>(
+                      itemsProvider: creatorsStreamProvider,
+                      itemLabel: (CreatorEntity a) => a.name,
+                      itemKey: (CreatorEntity a) => a.id,
+                      extraSearchLabels: (CreatorEntity a) => <String?>[a.otherName],
+                      onChanged: (List<CreatorEntity> l) => setState(() => _selectedAuthors = l),
+                      onAdd: () async => showModalBottomSheet<CreatorEntity>(
                         context: context,
                         isScrollControlled: true,
                         useSafeArea: true,
                         backgroundColor: Colors.transparent,
-                        builder: (_) => const AddAuthorBottomSheet(),
+                        builder: (_) => const AddCreatorBottomSheet(),
                       ),
                     ),
                   ],
@@ -780,7 +782,6 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       onChanged: (Language? v) => setState(() => _language = v),
                     ),
                   ],
-                  // ToBeTranslated is now shown above Title — removed from here
                 ],
               ),
               if (_showTranslatorIds || _showOriginalTitle || _showOriginalLanguage)
@@ -799,22 +800,22 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       if (_showTranslatorIds || _showOriginalLanguage) const SizedBox(height: 16),
                     ],
                     if (_showTranslatorIds) ...<Widget>[
-                      SearchMultiPickerField<TranslatorEntity>(
+                      SearchMultiPickerField<CreatorEntity>(
                         label: 'Translators',
                         prefixIcon: FontAwesomeIcons.language,
                         selectedItems: _selectedTranslators,
-                        itemsProvider: translatorsStreamProvider,
-                        itemLabel: (TranslatorEntity t) => t.name,
-                        itemKey: (TranslatorEntity t) => t.id,
-                        extraSearchLabels: (TranslatorEntity t) => <String?>[t.otherName],
-                        onChanged: (List<TranslatorEntity> l) =>
+                        itemsProvider: creatorsStreamProvider,
+                        itemLabel: (CreatorEntity t) => t.name,
+                        itemKey: (CreatorEntity t) => t.id,
+                        extraSearchLabels: (CreatorEntity t) => <String?>[t.otherName],
+                        onChanged: (List<CreatorEntity> l) =>
                             setState(() => _selectedTranslators = l),
-                        onAdd: () async => showModalBottomSheet<TranslatorEntity>(
+                        onAdd: () async => showModalBottomSheet<CreatorEntity>(
                           context: context,
                           isScrollControlled: true,
                           useSafeArea: true,
                           backgroundColor: Colors.transparent,
-                          builder: (_) => const AddTranslatorBottomSheet(),
+                          builder: (_) => const AddCreatorBottomSheet(),
                         ),
                       ),
                       if (_showOriginalLanguage) const SizedBox(height: 16),

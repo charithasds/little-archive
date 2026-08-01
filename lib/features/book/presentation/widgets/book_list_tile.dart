@@ -4,8 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-import '../../../author/presentation/providers/author_provider.dart';
-import '../../../translator/presentation/providers/translator_provider.dart';
+import '../../../creator/presentation/providers/creator_provider.dart';
 import '../../domain/entities/book_entity.dart';
 
 class BookListTile extends ConsumerWidget {
@@ -28,9 +27,9 @@ class BookListTile extends ConsumerWidget {
 
     if (creatorIds.isNotEmpty) {
       if (book.isTranslation) {
-        firstCreatorName = ref.watch(translatorProvider(creatorIds.first)).value?.name;
+        firstCreatorName = ref.watch(creatorProvider(creatorIds.first)).value?.name;
       } else {
-        firstCreatorName = ref.watch(authorProvider(creatorIds.first)).value?.name;
+        firstCreatorName = ref.watch(creatorProvider(creatorIds.first)).value?.name;
       }
     }
 
