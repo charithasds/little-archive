@@ -275,6 +275,7 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
             const SizedBox(height: 12),
             TextField(
               controller: nameController,
+              textCapitalization: TextCapitalization.words,
               decoration: const InputDecoration(
                 labelText: 'Name',
                 hintText: 'Edit the name in its original language',
@@ -285,6 +286,7 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
               const SizedBox(height: 8),
               TextField(
                 controller: otherNameController,
+                textCapitalization: TextCapitalization.words,
                 decoration: const InputDecoration(
                   labelText: 'Other Name',
                   hintText: 'Alternative name',
@@ -313,6 +315,9 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
             Expanded(
               child: TextFormField(
                 controller: controller,
+                textCapitalization: key == 'isbn'
+                    ? TextCapitalization.none
+                    : TextCapitalization.words,
                 decoration: InputDecoration(
                   labelText: title,
                   isDense: true,

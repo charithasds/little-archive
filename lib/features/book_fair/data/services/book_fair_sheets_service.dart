@@ -17,10 +17,18 @@ import '../../../book/domain/repositories/book_repository.dart';
 part 'book_fair_sheets_service.g.dart';
 
 const String _kSheetIdKey = 'book_fair_sheet_id';
+const String _kRootFolderIdKey = 'little_archive_root_folder_id';
 const String _kCoverFolderIdKey = 'book_fair_cover_folder_id';
 const String _kSheetTitle = 'Little Archive Book Fair Shopping List';
 const String _kTabTitle = 'Shopping List';
+const String _kRootFolderName = 'Little Archive';
 const String _kCoverFolderName = 'Little Archive Book Fair Covers';
+const String _kFolderMimeType = 'application/vnd.google-apps.folder';
+
+// Drive layout:
+//   Little Archive/
+//   ├── Little Archive Book Fair Covers/   (anyone with link can view)
+//   └── Little Archive Book Fair Shopping List   (anyone with link can edit)
 
 /// Only the non-sensitive `drive.file` scope is requested. It grants the app
 /// access (Drive + Sheets API) to files it created itself, which is all the
@@ -154,16 +162,35 @@ class BookFairSheetsService {
     final drive.DriveApi driveApi = drive.DriveApi(client);
     final SharedPreferences prefs = await SharedPreferences.getInstance();
 
+    // 0. Resolve the "Little Archive" root folder.
+    String? rootFolderId;
+    try {
+      rootFolderId = await _ensureFolder(
+        driveApi,
+        prefs,
+        name: _kRootFolderName,
+        prefsKey: _kRootFolderIdKey,
+      );
+    } catch (_) {
+      // Fall back to My Drive root if the folder can't be created.
+    }
+
     // 1. Resolve cover image URLs (uploads base64 covers to Drive).
     Map<String, String> coverUrls = <String, String>{};
     try {
-      coverUrls = await _resolveCoverUrls(driveApi, prefs, entries);
+      coverUrls = await _resolveCoverUrls(driveApi, prefs, entries, rootFolderId);
     } catch (_) {
       // Covers are nice-to-have; never block the export on them.
     }
 
     // 2. Find / create the spreadsheet and get a fresh, unformatted tab.
-    final _SheetTarget target = await _prepareSpreadsheet(sheetsApi, driveApi, prefs);
+    final _SheetTarget target =
+        await _prepareSpreadsheet(sheetsApi, driveApi, prefs, rootFolderId);
+
+    // Keep the spreadsheet inside the "Little Archive" folder.
+    if (rootFolderId != null) {
+      await _ensureInFolder(driveApi, target.spreadsheetId, rootFolderId);
+    }
 
     // 3. Anyone with the link can edit (needed to tick checkboxes).
     try {
@@ -239,8 +266,9 @@ class BookFairSheetsService {
   Future<_SheetTarget> _prepareSpreadsheet(
     sheets.SheetsApi sheetsApi,
     drive.DriveApi driveApi,
-    SharedPreferences prefs,
-  ) async {
+    SharedPreferences prefs, [
+    String? rootFolderId,
+  ]) async {
     // 1. Reuse the stored spreadsheet.
     final String? storedId = prefs.getString(_kSheetIdKey);
     if (storedId != null) {
@@ -252,13 +280,25 @@ class BookFairSheetsService {
 
     // 2. Look it up by name on Drive (e.g. after reinstall).
     try {
-      final drive.FileList found = await driveApi.files.list(
-        q: "name = '$_kSheetTitle' and "
-            "mimeType = 'application/vnd.google-apps.spreadsheet' and trashed = false",
-        spaces: 'drive',
-        $fields: 'files(id)',
-      );
-      final String? foundId = found.files?.firstOrNull?.id;
+      const String nameQuery = "name = '$_kSheetTitle' and "
+          "mimeType = 'application/vnd.google-apps.spreadsheet' and trashed = false";
+      String? foundId;
+      if (rootFolderId != null) {
+        final drive.FileList inParent = await driveApi.files.list(
+          q: "$nameQuery and '$rootFolderId' in parents",
+          spaces: 'drive',
+          $fields: 'files(id)',
+        );
+        foundId = inParent.files?.firstOrNull?.id;
+      }
+      if (foundId == null) {
+        final drive.FileList found = await driveApi.files.list(
+          q: nameQuery,
+          spaces: 'drive',
+          $fields: 'files(id)',
+        );
+        foundId = found.files?.firstOrNull?.id;
+      }
       if (foundId != null) {
         final _SheetTarget? reused = await _tryReuse(sheetsApi, foundId);
         if (reused != null) {
@@ -637,6 +677,7 @@ class BookFairSheetsService {
     drive.DriveApi driveApi,
     SharedPreferences prefs,
     List<BookFairExportEntry> entries,
+    String? rootFolderId,
   ) async {
     final Map<String, String> urls = <String, String>{};
     final Map<String, String> base64Covers = <String, String>{};
@@ -657,7 +698,14 @@ class BookFairSheetsService {
       return urls;
     }
 
-    final String folderId = await _ensureCoverFolder(driveApi, prefs);
+    final String folderId = await _ensureFolder(
+      driveApi,
+      prefs,
+      name: _kCoverFolderName,
+      prefsKey: _kCoverFolderIdKey,
+      parentId: rootFolderId,
+      makePublic: true,
+    );
 
     // Index existing cover files by bookId.
     final Map<String, _CoverFile> existing = <String, _CoverFile>{};
@@ -767,8 +815,21 @@ class BookFairSheetsService {
     return id;
   }
 
-  Future<String> _ensureCoverFolder(drive.DriveApi driveApi, SharedPreferences prefs) async {
-    final String? storedId = prefs.getString(_kCoverFolderIdKey);
+  /// Finds (by cached ID, then by name) or creates a Drive folder.
+  ///
+  /// When [parentId] is given, the folder is created inside it, and an
+  /// existing folder located elsewhere is moved into it.
+  Future<String> _ensureFolder(
+    drive.DriveApi driveApi,
+    SharedPreferences prefs, {
+    required String name,
+    required String prefsKey,
+    String? parentId,
+    bool makePublic = false,
+  }) async {
+    String? folderId;
+
+    final String? storedId = prefs.getString(prefsKey);
     if (storedId != null) {
       try {
         final drive.File f = await driveApi.files.get(
@@ -776,37 +837,82 @@ class BookFairSheetsService {
           $fields: 'id,trashed',
         ) as drive.File;
         if (f.trashed != true) {
-          return storedId;
+          folderId = storedId;
         }
       } catch (_) {
         // Fall through.
       }
     }
 
-    final drive.FileList found = await driveApi.files.list(
-      q: "name = '$_kCoverFolderName' and "
-          "mimeType = 'application/vnd.google-apps.folder' and trashed = false",
-      spaces: 'drive',
-      $fields: 'files(id)',
-    );
-    String? folderId = found.files?.firstOrNull?.id;
+    if (folderId == null) {
+      // Prefer a match inside the parent, otherwise any match (to migrate).
+      final String nameQuery = "name = '$name' and mimeType = '$_kFolderMimeType' "
+          'and trashed = false';
+      if (parentId != null) {
+        final drive.FileList inParent = await driveApi.files.list(
+          q: "$nameQuery and '$parentId' in parents",
+          spaces: 'drive',
+          $fields: 'files(id)',
+        );
+        folderId = inParent.files?.firstOrNull?.id;
+      }
+      if (folderId == null) {
+        final drive.FileList anywhere = await driveApi.files.list(
+          q: nameQuery,
+          spaces: 'drive',
+          $fields: 'files(id)',
+        );
+        folderId = anywhere.files?.firstOrNull?.id;
+      }
+    }
 
     if (folderId == null) {
       final drive.File created = await driveApi.files.create(
         drive.File()
-          ..name = _kCoverFolderName
-          ..mimeType = 'application/vnd.google-apps.folder',
+          ..name = name
+          ..mimeType = _kFolderMimeType
+          ..parents = parentId != null ? <String>[parentId] : null,
         $fields: 'id',
       );
       folderId = created.id;
       if (folderId == null) {
-        throw Exception('Failed to create cover folder.');
+        throw Exception('Failed to create Drive folder "$name".');
       }
-      await _makePublicReadable(driveApi, folderId);
+      if (makePublic) {
+        await _makePublicReadable(driveApi, folderId);
+      }
+    } else if (parentId != null) {
+      await _ensureInFolder(driveApi, folderId, parentId);
     }
 
-    await prefs.setString(_kCoverFolderIdKey, folderId);
+    await prefs.setString(prefsKey, folderId);
     return folderId;
+  }
+
+  /// Moves [fileId] into [folderId] if it isn't already there.
+  Future<void> _ensureInFolder(
+    drive.DriveApi driveApi,
+    String fileId,
+    String folderId,
+  ) async {
+    try {
+      final drive.File f = await driveApi.files.get(
+        fileId,
+        $fields: 'parents',
+      ) as drive.File;
+      final List<String> parents = f.parents ?? <String>[];
+      if (parents.contains(folderId)) {
+        return;
+      }
+      await driveApi.files.update(
+        drive.File(),
+        fileId,
+        addParents: folderId,
+        removeParents: parents.isEmpty ? null : parents.join(','),
+      );
+    } catch (_) {
+      // Non-fatal — the file still works from its current location.
+    }
   }
 
   Future<void> _makePublicReadable(drive.DriveApi driveApi, String fileId) async {
