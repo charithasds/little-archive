@@ -1,19 +1,19 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../book/domain/entities/book_entity.dart';
-import '../../data/services/book_fair_html_service.dart';
+import '../../data/services/book_fair_sheets_service.dart';
 
 part 'book_fair_sync_controller.g.dart';
 
-/// The possible lifecycle states of the Drive HTML sync operation.
+/// The possible lifecycle states of the Google Sheets sync operation.
 enum BookFairSyncStatus {
   /// Nothing is happening — the default state.
   idle,
 
-  /// Currently generating the HTML and uploading it to Drive.
+  /// Currently writing the shopping list to the Google Sheet.
   exporting,
 
-  /// Downloading the HTML from Drive and applying updates to local DB.
+  /// Reading checkboxes from the Google Sheet and applying updates to local DB.
   pulling,
 
   /// Last operation completed successfully.
@@ -35,7 +35,7 @@ class BookFairSyncState {
 
   final BookFairSyncStatus status;
 
-  /// Google Drive view URL returned after a successful upload.
+  /// Google Sheet URL returned after a successful export.
   /// Used by the share dialog to display a QR code or copy link.
   final String? sheetUrl;
 
@@ -64,27 +64,27 @@ class BookFairSyncState {
       );
 }
 
-/// Riverpod notifier that orchestrates the Drive HTML export/upload and
+/// Riverpod notifier that orchestrates the Google Sheets export and
 /// pull-updates lifecycle, exposing loading/done/error states to the UI.
 @riverpod
 class BookFairSyncController extends _$BookFairSyncController {
   @override
   BookFairSyncState build() => const BookFairSyncState();
 
-  BookFairHtmlService get _service => ref.read(bookFairHtmlServiceProvider);
+  BookFairSheetsService get _service => ref.read(bookFairSheetsServiceProvider);
 
   // ---------------------------------------------------------------------------
-  // Export & Upload to Drive
+  // Export to Google Sheets
   // ---------------------------------------------------------------------------
 
-  /// Generates an HTML shopping list from [entries], uploads it to Google Drive
-  /// (reusing the same file if one already exists), and stores the Drive view
-  /// URL in state for the share dialog.
+  /// Writes [entries] to the shared Google Sheet (reusing the same spreadsheet
+  /// if one already exists) and stores the sheet URL in state for the share
+  /// dialog.
   Future<void> exportAndShare(List<BookFairExportEntry> entries) async {
     state = const BookFairSyncState(status: BookFairSyncStatus.exporting);
 
     try {
-      final String? driveUrl = await _service.exportAndUpload(entries);
+      final String? driveUrl = await _service.exportListToSheet(entries);
       if (driveUrl == null) {
         state = const BookFairSyncState(
           status: BookFairSyncStatus.error,
@@ -105,11 +105,11 @@ class BookFairSyncController extends _$BookFairSyncController {
   }
 
   // ---------------------------------------------------------------------------
-  // Pull updates from Drive
+  // Pull updates from Google Sheets
   // ---------------------------------------------------------------------------
 
-  /// Downloads the HTML from Drive, parses checked boxes, marks books collected
-  /// locally, and writes the pruned HTML back to Drive.
+  /// Reads ticked checkboxes from the Google Sheet and marks those books as
+  /// collected locally.
   Future<void> pullUpdates(List<BookEntity> books) async {
     state = state.copyWith(status: BookFairSyncStatus.pulling);
 
@@ -118,7 +118,7 @@ class BookFairSyncController extends _$BookFairSyncController {
       if (result == null) {
         state = state.copyWith(
           status: BookFairSyncStatus.error,
-          error: 'No HTML file found in Google Drive. '
+          error: 'No shared Google Sheet found. '
               'Please share the list first.',
         );
         return;

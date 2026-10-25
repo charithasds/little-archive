@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
@@ -7,8 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
-import '../../../../core/sync/data/services/backup_service.dart'
-    show GoogleAuthClient;
+import '../../../../core/sync/data/services/backup_service.dart' show GoogleAuthClient;
 import '../../../book/data/repositories/book_repository_impl.dart';
 import '../../../book/domain/entities/book_entity.dart';
 import '../../../book/domain/repositories/book_repository.dart';
@@ -16,12 +17,51 @@ import '../../../book/domain/repositories/book_repository.dart';
 part 'book_fair_sheets_service.g.dart';
 
 const String _kSheetIdKey = 'book_fair_sheet_id';
+const String _kCoverFolderIdKey = 'book_fair_cover_folder_id';
 const String _kSheetTitle = 'Little Archive Book Fair Shopping List';
-const List<String> _kSheetsScopes = <String>[
-  sheets.SheetsApi.spreadsheetsScope,
+const String _kTabTitle = 'Shopping List';
+const String _kCoverFolderName = 'Little Archive Book Fair Covers';
+
+/// Only the non-sensitive `drive.file` scope is requested. It grants the app
+/// access (Drive + Sheets API) to files it created itself, which is all the
+/// book-fair export needs, and avoids Google's sensitive-scope verification.
+const List<String> _kScopes = <String>[
   drive.DriveApi.driveFileScope,
 ];
 
+// -----------------------------------------------------------------------------
+// Sheet layout
+// -----------------------------------------------------------------------------
+//   A (hidden): Book ID (used for pull-sync)
+//   B: Collected? (large checkbox)
+//   C: Cover (=IMAGE)
+//   D: Title
+//   E: Creators
+//   F: Publisher
+//   G: Hall
+//   H: Stall
+const int _kColumnCount = 8;
+const int _kIdCol = 0;
+const int _kCheckCol = 1;
+const int _kCoverCol = 2;
+const int _kTitleCol = 3;
+
+const List<int> _kColumnWidths = <int>[
+  100, // A - ID (hidden)
+  90, // B - checkbox
+  110, // C - cover
+  260, // D - title
+  190, // E - creators
+  160, // F - publisher
+  90, // G - hall
+  170, // H - stall
+];
+
+const int _kHeaderRowHeight = 52;
+const int _kDataRowHeight = 150;
+const int _kCheckboxFontSize = 30; // Checkbox size scales with font size.
+
+/// Data class carrying everything needed to render one row in the sheet.
 class BookFairExportEntry {
   const BookFairExportEntry({
     required this.book,
@@ -40,6 +80,7 @@ class BookFairExportEntry {
   final String stallName;
 }
 
+/// Result returned after a sync (pull) operation.
 class BookFairSyncResult {
   const BookFairSyncResult({
     required this.updatedBookTitles,
@@ -50,12 +91,32 @@ class BookFairSyncResult {
   final List<String> conflictBookTitles;
 }
 
+/// Spreadsheet + tab identifiers resolved before writing.
+class _SheetTarget {
+  const _SheetTarget(this.spreadsheetId, this.sheetId);
+
+  final String spreadsheetId;
+  final int sheetId;
+}
+
+/// Existing cover file on Drive for a given book.
+class _CoverFile {
+  const _CoverFile(this.fileId, this.hash);
+
+  final String fileId;
+  final String? hash;
+}
+
 class BookFairSheetsService {
   BookFairSheetsService({required this.bookRepository});
 
   final BookRepository bookRepository;
 
   static String get _clientId => dotenv.env['GOOGLE_CLIENT_ID_WEB'] ?? '';
+
+  // ---------------------------------------------------------------------------
+  // Google auth (same pattern as BackupService)
+  // ---------------------------------------------------------------------------
 
   Future<GoogleAuthClient?> _buildAuthClient() async {
     try {
@@ -64,10 +125,8 @@ class BookFairSheetsService {
         serverClientId: _clientId,
       );
       final GoogleSignInAccount user = await GoogleSignIn.instance.authenticate();
-
       final GoogleSignInClientAuthorization auth =
-          await user.authorizationClient.authorizeScopes(_kSheetsScopes);
-
+          await user.authorizationClient.authorizeScopes(_kScopes);
       return GoogleAuthClient(
         <String, String>{'Authorization': 'Bearer ${auth.accessToken}'},
       );
@@ -76,18 +135,15 @@ class BookFairSheetsService {
     }
   }
 
-  /// Exports the book-fair shopping list to a Google Sheet.
-  /// If a sheet was previously exported, it clears and reuses it to prevent
-  /// generating multiple links. Converts the data into a formatted table.
+  // ---------------------------------------------------------------------------
+  // Export
+  // ---------------------------------------------------------------------------
+
+  /// Exports the book-fair shopping list to a Google Sheet with large touch
+  /// friendly checkboxes and cover thumbnails.
   ///
-  /// Sheet columns:
-  ///   A (Hidden): Book ID (used for pull-sync)
-  ///   B: Title
-  ///   C: Creators
-  ///   D: Publisher
-  ///   E: Hall
-  ///   F: Stall
-  ///   G: Collected?
+  /// The same spreadsheet is reused across exports so the shared link stays
+  /// stable. Returns the sheet URL on success, null on auth failure.
   Future<String?> exportListToSheet(List<BookFairExportEntry> entries) async {
     final GoogleAuthClient? client = await _buildAuthClient();
     if (client == null) {
@@ -96,295 +152,692 @@ class BookFairSheetsService {
 
     final sheets.SheetsApi sheetsApi = sheets.SheetsApi(client);
     final drive.DriveApi driveApi = drive.DriveApi(client);
-
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? spreadsheetId = prefs.getString(_kSheetIdKey);
 
-    const int sheetId = 0;
-
-    // 1. Try to reuse and clear the existing sheet locally stored
-    if (spreadsheetId != null) {
-      try {
-        final sheets.Spreadsheet ss = await sheetsApi.spreadsheets.get(spreadsheetId);
-        
-        final List<sheets.Request> clearRequests = <sheets.Request>[
-          // Clear all cell data and formatting
-          sheets.Request(
-            updateCells: sheets.UpdateCellsRequest(
-              range: sheets.GridRange(sheetId: sheetId),
-              fields: '*',
-            ),
-          ),
-          // Unhide column A if it was hidden, just to reset state
-          sheets.Request(
-            updateDimensionProperties: sheets.UpdateDimensionPropertiesRequest(
-              range: sheets.DimensionRange(
-                sheetId: sheetId,
-                dimension: 'COLUMNS',
-                startIndex: 0,
-                endIndex: 1,
-              ),
-              properties: sheets.DimensionProperties(hiddenByUser: false),
-              fields: 'hiddenByUser',
-            ),
-          ),
-        ];
-
-        // Delete existing bandings
-        final sheets.Sheet sheet0 = ss.sheets?.firstWhere(
-          (sheets.Sheet s) => s.properties?.sheetId == sheetId,
-          orElse: () => sheets.Sheet(),
-        ) ?? sheets.Sheet();
-
-        if (sheet0.bandedRanges != null) {
-          for (final sheets.BandedRange banding in sheet0.bandedRanges!) {
-            if (banding.bandedRangeId != null) {
-              clearRequests.add(
-                sheets.Request(
-                  deleteBanding: sheets.DeleteBandingRequest(
-                    bandedRangeId: banding.bandedRangeId,
-                  ),
-                ),
-              );
-            }
-          }
-        }
-
-        await sheetsApi.spreadsheets.batchUpdate(
-          sheets.BatchUpdateSpreadsheetRequest(requests: clearRequests),
-          spreadsheetId,
-        );
-      } catch (_) {
-        spreadsheetId = null; // Fails if deleted/revoked
-      }
+    // 1. Resolve cover image URLs (uploads base64 covers to Drive).
+    Map<String, String> coverUrls = <String, String>{};
+    try {
+      coverUrls = await _resolveCoverUrls(driveApi, prefs, entries);
+    } catch (_) {
+      // Covers are nice-to-have; never block the export on them.
     }
 
-    // 2. Query Drive to see if it already exists to avoid creating "Name (1)"
-    if (spreadsheetId == null) {
-      try {
-        final drive.FileList fileList = await driveApi.files.list(
-          q: "name = '$_kSheetTitle' and mimeType = 'application/vnd.google-apps.spreadsheet' and trashed = false",
-          spaces: 'drive',
-        );
-        if (fileList.files != null && fileList.files!.isNotEmpty) {
-          spreadsheetId = fileList.files!.first.id;
-          
-          // Clear the found sheet before using it
-          try {
-            final sheets.Spreadsheet ss = await sheetsApi.spreadsheets.get(spreadsheetId!);
-            final List<sheets.Request> clearRequests = <sheets.Request>[
-              sheets.Request(
-                updateCells: sheets.UpdateCellsRequest(
-                  range: sheets.GridRange(sheetId: sheetId),
-                  fields: '*',
-                ),
-              ),
-              sheets.Request(
-                updateDimensionProperties: sheets.UpdateDimensionPropertiesRequest(
-                  range: sheets.DimensionRange(
-                    sheetId: sheetId,
-                    dimension: 'COLUMNS',
-                    startIndex: 0,
-                    endIndex: 1,
-                  ),
-                  properties: sheets.DimensionProperties(hiddenByUser: false),
-                  fields: 'hiddenByUser',
-                ),
-              ),
-            ];
-            
-            final sheets.Sheet sheet0 = ss.sheets?.firstWhere(
-              (sheets.Sheet s) => s.properties?.sheetId == sheetId,
-              orElse: () => sheets.Sheet(),
-            ) ?? sheets.Sheet();
+    // 2. Find / create the spreadsheet and get a fresh, unformatted tab.
+    final _SheetTarget target = await _prepareSpreadsheet(sheetsApi, driveApi, prefs);
 
-            if (sheet0.bandedRanges != null) {
-              for (final sheets.BandedRange banding in sheet0.bandedRanges!) {
-                if (banding.bandedRangeId != null) {
-                  clearRequests.add(
-                    sheets.Request(
-                      deleteBanding: sheets.DeleteBandingRequest(
-                        bandedRangeId: banding.bandedRangeId,
-                      ),
-                    ),
-                  );
-                }
-              }
-            }
-
-            await sheetsApi.spreadsheets.batchUpdate(
-              sheets.BatchUpdateSpreadsheetRequest(requests: clearRequests),
-              spreadsheetId,
-            );
-          } catch (_) {
-            // Ignore clear errors, just fall through
-          }
-        }
-      } catch (_) {
-        // Fall back to creating a new one if Drive query fails
-      }
-    }
-
-    // 3. Create new if still missing
-    if (spreadsheetId == null) {
-      final sheets.Spreadsheet created = await sheetsApi.spreadsheets.create(
-        sheets.Spreadsheet(
-          properties: sheets.SpreadsheetProperties(title: _kSheetTitle),
-        ),
-      );
-      if (created.spreadsheetId == null) {
-        return null;
-      }
-      spreadsheetId = created.spreadsheetId;
-    }
-
-    // Capture non-null ID for all subsequent calls
-    final String activeId = spreadsheetId!;
-
+    // 3. Anyone with the link can edit (needed to tick checkboxes).
     try {
       await driveApi.permissions.create(
         drive.Permission()
           ..role = 'writer'
           ..type = 'anyone',
-        activeId,
+        target.spreadsheetId,
       );
     } catch (_) {
-      // Ignore if permission already exists or fails
+      // Ignore if permission already exists.
     }
 
-    await prefs.setString(_kSheetIdKey, activeId);
+    await prefs.setString(_kSheetIdKey, target.spreadsheetId);
 
-    // Clear existing values in case the new list is shorter than the old one
-    await sheetsApi.spreadsheets.values.clear(
-      sheets.ClearValuesRequest(),
-      activeId,
-      'A:Z',
+    // 4. Apply layout + formatting.
+    await sheetsApi.spreadsheets.batchUpdate(
+      sheets.BatchUpdateSpreadsheetRequest(
+        requests: _buildFormatRequests(target.sheetId, entries.length),
+      ),
+      target.spreadsheetId,
     );
 
-    // 4. Write new rows
+    // 5. Write header + rows. USER_ENTERED so =IMAGE() formulas evaluate.
     final List<List<Object>> rows = <List<Object>>[
-      <String>[
-        'ID (Hidden)',
+      <Object>[
+        'ID',
+        'Collected?',
+        'Cover',
         'Title',
         'Creators',
         'Publisher',
         'Hall',
         'Stall',
-        'Collected?',
       ],
-      ...entries.map((BookFairExportEntry e) => <Object>[
-            e.book.id,
-            e.book.title,
-            e.creators,
-            e.publisherName,
-            e.halls.join(', '),
-            '${e.stallNo}  ${e.stallName}',
-            false,
-          ]),
+      ...entries.map((BookFairExportEntry e) {
+        final String? coverUrl = coverUrls[e.book.id];
+        return <Object>[
+          _text(e.book.id),
+          false,
+          if (coverUrl != null) '=IMAGE("${coverUrl.replaceAll('"', '""')}", 1)' else '',
+          _text(e.book.title),
+          _text(e.creators),
+          _text(e.publisherName),
+          _text(e.halls.join(', ')),
+          _text(
+            <String>[e.stallNo, e.stallName]
+                .where((String s) => s.trim().isNotEmpty)
+                .join('\n'),
+          ),
+        ];
+      }),
     ];
 
     await sheetsApi.spreadsheets.values.update(
       sheets.ValueRange(values: rows),
-      activeId,
-      'A1',
-      valueInputOption: 'RAW',
+      target.spreadsheetId,
+      "'$_kTabTitle'!A1",
+      valueInputOption: 'USER_ENTERED',
     );
 
-    // 5. Format as table and hide Column A
-    if (entries.isNotEmpty) {
-      final sheets.Color purple = sheets.Color(red: 0.482, green: 0.122, blue: 0.635);
-      final sheets.Color white = sheets.Color(red: 1.0, green: 1.0, blue: 1.0);
-      final sheets.Color lightPurple = sheets.Color(red: 0.96, green: 0.93, blue: 0.98);
+    return 'https://docs.google.com/spreadsheets/d/${target.spreadsheetId}/edit';
+  }
 
-      await sheetsApi.spreadsheets.batchUpdate(
+  /// Forces a cell value to be stored as plain text (prevents values such as
+  /// "=foo" or "0012" from being interpreted as formulas / numbers).
+  String _text(String value) => value.isEmpty ? '' : "'$value";
+
+  // ---------------------------------------------------------------------------
+  // Spreadsheet preparation
+  // ---------------------------------------------------------------------------
+
+  Future<_SheetTarget> _prepareSpreadsheet(
+    sheets.SheetsApi sheetsApi,
+    drive.DriveApi driveApi,
+    SharedPreferences prefs,
+  ) async {
+    // 1. Reuse the stored spreadsheet.
+    final String? storedId = prefs.getString(_kSheetIdKey);
+    if (storedId != null) {
+      final _SheetTarget? reused = await _tryReuse(sheetsApi, storedId);
+      if (reused != null) {
+        return reused;
+      }
+    }
+
+    // 2. Look it up by name on Drive (e.g. after reinstall).
+    try {
+      final drive.FileList found = await driveApi.files.list(
+        q: "name = '$_kSheetTitle' and "
+            "mimeType = 'application/vnd.google-apps.spreadsheet' and trashed = false",
+        spaces: 'drive',
+        $fields: 'files(id)',
+      );
+      final String? foundId = found.files?.firstOrNull?.id;
+      if (foundId != null) {
+        final _SheetTarget? reused = await _tryReuse(sheetsApi, foundId);
+        if (reused != null) {
+          return reused;
+        }
+      }
+    } catch (_) {
+      // Fall through to create.
+    }
+
+    // 3. Create a new spreadsheet.
+    final sheets.Spreadsheet created = await sheetsApi.spreadsheets.create(
+      sheets.Spreadsheet(
+        properties: sheets.SpreadsheetProperties(title: _kSheetTitle),
+        sheets: <sheets.Sheet>[
+          sheets.Sheet(properties: sheets.SheetProperties(title: _kTabTitle)),
+        ],
+      ),
+    );
+    final String? id = created.spreadsheetId;
+    final int? sheetId = created.sheets?.firstOrNull?.properties?.sheetId;
+    if (id == null || sheetId == null) {
+      throw Exception('Failed to create the Google Sheet.');
+    }
+    return _SheetTarget(id, sheetId);
+  }
+
+  /// Replaces every tab in an existing spreadsheet with a brand new one.
+  ///
+  /// Recreating the tab wipes values, formatting, banding, validation and
+  /// conditional formats in one go, so each export starts from a clean slate.
+  Future<_SheetTarget?> _tryReuse(sheets.SheetsApi sheetsApi, String spreadsheetId) async {
+    try {
+      final sheets.Spreadsheet ss = await sheetsApi.spreadsheets.get(
+        spreadsheetId,
+        $fields: 'sheets.properties.sheetId',
+      );
+      final List<int> oldSheetIds = (ss.sheets ?? <sheets.Sheet>[])
+          .map((sheets.Sheet s) => s.properties?.sheetId)
+          .whereType<int>()
+          .toList();
+
+      final sheets.BatchUpdateSpreadsheetResponse res =
+          await sheetsApi.spreadsheets.batchUpdate(
         sheets.BatchUpdateSpreadsheetRequest(
           requests: <sheets.Request>[
-            // Hide Column A (ID)
             sheets.Request(
-              updateDimensionProperties: sheets.UpdateDimensionPropertiesRequest(
-                range: sheets.DimensionRange(
-                  sheetId: sheetId,
-                  dimension: 'COLUMNS',
-                  startIndex: 0,
-                  endIndex: 1, // Column A
-                ),
-                properties: sheets.DimensionProperties(hiddenByUser: true),
-                fields: 'hiddenByUser',
-              ),
-            ),
-            // Checkbox for Collected? (Column G)
-            sheets.Request(
-              setDataValidation: sheets.SetDataValidationRequest(
-                range: sheets.GridRange(
-                  sheetId: sheetId,
-                  startRowIndex: 1,
-                  endRowIndex: entries.length + 1,
-                  startColumnIndex: 6, // Column G
-                  endColumnIndex: 7,
-                ),
-                rule: sheets.DataValidationRule(
-                  condition: sheets.BooleanCondition(type: 'BOOLEAN'),
-                  showCustomUi: true,
+              addSheet: sheets.AddSheetRequest(
+                properties: sheets.SheetProperties(
+                  // Temporary unique title; renamed in the format batch.
+                  title: 'tmp-${DateTime.now().millisecondsSinceEpoch}',
+                  index: 0,
                 ),
               ),
             ),
-            // Bold header + purple background (Columns B to G)
-            sheets.Request(
-              repeatCell: sheets.RepeatCellRequest(
-                range: sheets.GridRange(
-                  sheetId: sheetId,
-                  startRowIndex: 0,
-                  endRowIndex: 1,
-                  startColumnIndex: 1, // Start from B
-                  endColumnIndex: 7,
-                ),
-                cell: sheets.CellData(
-                  userEnteredFormat: sheets.CellFormat(
-                    textFormat: sheets.TextFormat(bold: true, foregroundColor: white),
-                    backgroundColor: purple,
-                  ),
-                ),
-                fields: 'userEnteredFormat(textFormat,backgroundColor)',
-              ),
-            ),
-            // Alternating colors (Banding) for data rows (Columns B to G)
-            sheets.Request(
-              addBanding: sheets.AddBandingRequest(
-                bandedRange: sheets.BandedRange(
-                  range: sheets.GridRange(
-                    sheetId: sheetId,
-                    startRowIndex: 1, // Exclude header from banding colors
-                    endRowIndex: entries.length + 1,
-                    startColumnIndex: 1, // Start from B
-                    endColumnIndex: 7,
-                  ),
-                  rowProperties: sheets.BandingProperties(
-                    firstBandColor: white,
-                    secondBandColor: lightPurple,
-                  ),
-                ),
-              ),
-            ),
-            // Auto-resize columns B to G
-            sheets.Request(
-              autoResizeDimensions: sheets.AutoResizeDimensionsRequest(
-                dimensions: sheets.DimensionRange(
-                  sheetId: sheetId,
-                  dimension: 'COLUMNS',
-                  startIndex: 1,
-                  endIndex: 7,
-                ),
+            ...oldSheetIds.map(
+              (int id) => sheets.Request(
+                deleteSheet: sheets.DeleteSheetRequest(sheetId: id),
               ),
             ),
           ],
         ),
-        activeId,
+        spreadsheetId,
+      );
+
+      final int? newSheetId = res.replies?.firstOrNull?.addSheet?.properties?.sheetId;
+      if (newSheetId == null) {
+        return null;
+      }
+      return _SheetTarget(spreadsheetId, newSheetId);
+    } catch (_) {
+      return null; // Deleted / revoked — caller will create a new one.
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Formatting
+  // ---------------------------------------------------------------------------
+
+  List<sheets.Request> _buildFormatRequests(int sheetId, int rowCount) {
+    final sheets.Color purple = sheets.Color(red: 0.482, green: 0.122, blue: 0.635);
+    final sheets.Color white = sheets.Color(red: 1, green: 1, blue: 1);
+    final sheets.Color lightPurple = sheets.Color(red: 0.965, green: 0.937, blue: 0.976);
+    final sheets.Color divider = sheets.Color(red: 0.88, green: 0.88, blue: 0.88);
+    final sheets.Color doneGreen = sheets.Color(red: 0.878, green: 0.957, blue: 0.886);
+    final sheets.Color doneText = sheets.Color(red: 0.46, green: 0.46, blue: 0.46);
+    final sheets.Color textColor = sheets.Color(red: 0.11, green: 0.106, blue: 0.122);
+
+    final int lastRow = rowCount + 1; // Exclusive, includes header.
+
+    sheets.GridRange range({
+      required int startRow,
+      required int endRow,
+      int startCol = 1,
+      int endCol = _kColumnCount,
+    }) =>
+        sheets.GridRange(
+          sheetId: sheetId,
+          startRowIndex: startRow,
+          endRowIndex: endRow,
+          startColumnIndex: startCol,
+          endColumnIndex: endCol,
+        );
+
+    final List<sheets.Request> requests = <sheets.Request>[
+      // Tab title, frozen header, no gridlines, trimmed grid size.
+      sheets.Request(
+        updateSheetProperties: sheets.UpdateSheetPropertiesRequest(
+          properties: sheets.SheetProperties(
+            sheetId: sheetId,
+            title: _kTabTitle,
+            gridProperties: sheets.GridProperties(
+              frozenRowCount: 1,
+              hideGridlines: true,
+              rowCount: lastRow < 2 ? 2 : lastRow,
+              columnCount: _kColumnCount,
+            ),
+          ),
+          fields: 'title,gridProperties.frozenRowCount,gridProperties.hideGridlines,'
+              'gridProperties.rowCount,gridProperties.columnCount',
+        ),
+      ),
+
+      // Column widths.
+      for (int i = 0; i < _kColumnWidths.length; i++)
+        sheets.Request(
+          updateDimensionProperties: sheets.UpdateDimensionPropertiesRequest(
+            range: sheets.DimensionRange(
+              sheetId: sheetId,
+              dimension: 'COLUMNS',
+              startIndex: i,
+              endIndex: i + 1,
+            ),
+            properties: sheets.DimensionProperties(pixelSize: _kColumnWidths[i]),
+            fields: 'pixelSize',
+          ),
+        ),
+
+      // Hide the ID column.
+      sheets.Request(
+        updateDimensionProperties: sheets.UpdateDimensionPropertiesRequest(
+          range: sheets.DimensionRange(
+            sheetId: sheetId,
+            dimension: 'COLUMNS',
+            startIndex: _kIdCol,
+            endIndex: _kIdCol + 1,
+          ),
+          properties: sheets.DimensionProperties(hiddenByUser: true),
+          fields: 'hiddenByUser',
+        ),
+      ),
+
+      // Header row height.
+      sheets.Request(
+        updateDimensionProperties: sheets.UpdateDimensionPropertiesRequest(
+          range: sheets.DimensionRange(
+            sheetId: sheetId,
+            dimension: 'ROWS',
+            startIndex: 0,
+            endIndex: 1,
+          ),
+          properties: sheets.DimensionProperties(pixelSize: _kHeaderRowHeight),
+          fields: 'pixelSize',
+        ),
+      ),
+
+      // Header style.
+      sheets.Request(
+        repeatCell: sheets.RepeatCellRequest(
+          range: range(startRow: 0, endRow: 1),
+          cell: sheets.CellData(
+            userEnteredFormat: sheets.CellFormat(
+              backgroundColor: purple,
+              horizontalAlignment: 'CENTER',
+              verticalAlignment: 'MIDDLE',
+              wrapStrategy: 'WRAP',
+              textFormat: sheets.TextFormat(
+                bold: true,
+                fontSize: 13,
+                fontFamily: 'Merriweather',
+                foregroundColor: white,
+              ),
+            ),
+          ),
+          fields: 'userEnteredFormat(backgroundColor,horizontalAlignment,'
+              'verticalAlignment,wrapStrategy,textFormat)',
+        ),
+      ),
+    ];
+
+    if (rowCount == 0) {
+      return requests;
+    }
+
+    requests.addAll(<sheets.Request>[
+      // Tall data rows so covers and checkboxes are large.
+      sheets.Request(
+        updateDimensionProperties: sheets.UpdateDimensionPropertiesRequest(
+          range: sheets.DimensionRange(
+            sheetId: sheetId,
+            dimension: 'ROWS',
+            startIndex: 1,
+            endIndex: lastRow,
+          ),
+          properties: sheets.DimensionProperties(pixelSize: _kDataRowHeight),
+          fields: 'pixelSize',
+        ),
+      ),
+
+      // Base data style.
+      sheets.Request(
+        repeatCell: sheets.RepeatCellRequest(
+          range: range(startRow: 1, endRow: lastRow),
+          cell: sheets.CellData(
+            userEnteredFormat: sheets.CellFormat(
+              verticalAlignment: 'MIDDLE',
+              wrapStrategy: 'WRAP',
+              padding: sheets.Padding(top: 6, bottom: 6, left: 10, right: 10),
+              textFormat: sheets.TextFormat(
+                fontSize: 12,
+                fontFamily: 'Merriweather',
+                foregroundColor: textColor,
+              ),
+            ),
+          ),
+          fields: 'userEnteredFormat(verticalAlignment,wrapStrategy,padding,textFormat)',
+        ),
+      ),
+
+      // Title column: bold + slightly bigger.
+      sheets.Request(
+        repeatCell: sheets.RepeatCellRequest(
+          range: range(
+            startRow: 1,
+            endRow: lastRow,
+            startCol: _kTitleCol,
+            endCol: _kTitleCol + 1,
+          ),
+          cell: sheets.CellData(
+            userEnteredFormat: sheets.CellFormat(
+              textFormat: sheets.TextFormat(
+                bold: true,
+                fontSize: 14,
+                fontFamily: 'Merriweather',
+                foregroundColor: textColor,
+              ),
+            ),
+          ),
+          fields: 'userEnteredFormat.textFormat',
+        ),
+      ),
+
+      // Checkbox + cover columns: centred. Big font => big checkbox.
+      sheets.Request(
+        repeatCell: sheets.RepeatCellRequest(
+          range: range(
+            startRow: 1,
+            endRow: lastRow,
+            endCol: _kCoverCol + 1,
+          ),
+          cell: sheets.CellData(
+            userEnteredFormat: sheets.CellFormat(
+              horizontalAlignment: 'CENTER',
+              verticalAlignment: 'MIDDLE',
+              textFormat: sheets.TextFormat(
+                fontSize: _kCheckboxFontSize,
+                foregroundColor: purple,
+              ),
+            ),
+          ),
+          fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment,textFormat)',
+        ),
+      ),
+
+      // Checkbox validation.
+      sheets.Request(
+        setDataValidation: sheets.SetDataValidationRequest(
+          range: range(
+            startRow: 1,
+            endRow: lastRow,
+            endCol: _kCheckCol + 1,
+          ),
+          rule: sheets.DataValidationRule(
+            condition: sheets.BooleanCondition(type: 'BOOLEAN'),
+            showCustomUi: true,
+          ),
+        ),
+      ),
+
+      // Alternating row colours (header purple).
+      sheets.Request(
+        addBanding: sheets.AddBandingRequest(
+          bandedRange: sheets.BandedRange(
+            range: range(startRow: 0, endRow: lastRow),
+            rowProperties: sheets.BandingProperties(
+              headerColor: purple,
+              firstBandColor: white,
+              secondBandColor: lightPurple,
+            ),
+          ),
+        ),
+      ),
+
+      // Thin dividers between rows.
+      sheets.Request(
+        updateBorders: sheets.UpdateBordersRequest(
+          range: range(startRow: 0, endRow: lastRow),
+          innerHorizontal: sheets.Border(style: 'SOLID', color: divider),
+          bottom: sheets.Border(style: 'SOLID', color: divider),
+        ),
+      ),
+
+      // Collected rows turn green + strikethrough.
+      sheets.Request(
+        addConditionalFormatRule: sheets.AddConditionalFormatRuleRequest(
+          index: 0,
+          rule: sheets.ConditionalFormatRule(
+            ranges: <sheets.GridRange>[
+              range(startRow: 1, endRow: lastRow, startCol: _kTitleCol),
+            ],
+            booleanRule: sheets.BooleanRule(
+              condition: sheets.BooleanCondition(
+                type: 'CUSTOM_FORMULA',
+                values: <sheets.ConditionValue>[
+                  sheets.ConditionValue(userEnteredValue: r'=$B2=TRUE'),
+                ],
+              ),
+              format: sheets.CellFormat(
+                backgroundColor: doneGreen,
+                textFormat: sheets.TextFormat(
+                  strikethrough: true,
+                  foregroundColor: doneText,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      sheets.Request(
+        addConditionalFormatRule: sheets.AddConditionalFormatRuleRequest(
+          index: 1,
+          rule: sheets.ConditionalFormatRule(
+            ranges: <sheets.GridRange>[
+              range(
+                startRow: 1,
+                endRow: lastRow,
+                endCol: _kTitleCol,
+              ),
+            ],
+            booleanRule: sheets.BooleanRule(
+              condition: sheets.BooleanCondition(
+                type: 'CUSTOM_FORMULA',
+                values: <sheets.ConditionValue>[
+                  sheets.ConditionValue(userEnteredValue: r'=$B2=TRUE'),
+                ],
+              ),
+              format: sheets.CellFormat(backgroundColor: doneGreen),
+            ),
+          ),
+        ),
+      ),
+    ]);
+
+    return requests;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Cover images
+  // ---------------------------------------------------------------------------
+
+  /// Returns a map of bookId -> public image URL usable by `=IMAGE()`.
+  ///
+  /// HTTP(S) covers are used as-is. Base64 covers are uploaded (once, cached by
+  /// content hash) to an app-owned Drive folder shared as "anyone can view".
+  Future<Map<String, String>> _resolveCoverUrls(
+    drive.DriveApi driveApi,
+    SharedPreferences prefs,
+    List<BookFairExportEntry> entries,
+  ) async {
+    final Map<String, String> urls = <String, String>{};
+    final Map<String, String> base64Covers = <String, String>{};
+
+    for (final BookFairExportEntry e in entries) {
+      final String? cover = e.book.cover;
+      if (cover == null || cover.isEmpty) {
+        continue;
+      }
+      if (cover.startsWith('http://') || cover.startsWith('https://')) {
+        urls[e.book.id] = cover;
+      } else {
+        base64Covers[e.book.id] = cover;
+      }
+    }
+
+    if (base64Covers.isEmpty) {
+      return urls;
+    }
+
+    final String folderId = await _ensureCoverFolder(driveApi, prefs);
+
+    // Index existing cover files by bookId.
+    final Map<String, _CoverFile> existing = <String, _CoverFile>{};
+    String? pageToken;
+    do {
+      final drive.FileList list = await driveApi.files.list(
+        q: "'$folderId' in parents and trashed = false",
+        spaces: 'drive',
+        pageSize: 1000,
+        pageToken: pageToken,
+        $fields: 'nextPageToken,files(id,appProperties)',
+      );
+      for (final drive.File f in list.files ?? <drive.File>[]) {
+        final String? bookId = f.appProperties?['bookId'];
+        if (bookId != null && f.id != null) {
+          existing[bookId] = _CoverFile(f.id!, f.appProperties?['coverHash']);
+        }
+      }
+      pageToken = list.nextPageToken;
+    } while (pageToken != null);
+
+    // Upload / update in small parallel batches.
+    final List<MapEntry<String, String>> items = base64Covers.entries.toList();
+    const int batchSize = 6;
+    for (int i = 0; i < items.length; i += batchSize) {
+      final Iterable<MapEntry<String, String>> batch = items.skip(i).take(batchSize);
+      await Future.wait(
+        batch.map((MapEntry<String, String> item) async {
+          try {
+            final String? fileId = await _upsertCover(
+              driveApi,
+              folderId,
+              item.key,
+              item.value,
+              existing[item.key],
+            );
+            if (fileId != null) {
+              urls[item.key] = 'https://lh3.googleusercontent.com/d/$fileId';
+            }
+          } catch (_) {
+            // Skip this cover only.
+          }
+        }),
       );
     }
 
-    return 'https://docs.google.com/spreadsheets/d/$activeId/edit';
+    // Clean up covers for books no longer on the list.
+    final Iterable<_CoverFile> stale = existing.entries
+        .where((MapEntry<String, _CoverFile> e) => !base64Covers.containsKey(e.key))
+        .map((MapEntry<String, _CoverFile> e) => e.value);
+    for (final _CoverFile f in stale) {
+      try {
+        await driveApi.files.delete(f.fileId);
+      } catch (_) {
+        // Non-fatal.
+      }
+    }
+
+    return urls;
   }
 
+  Future<String?> _upsertCover(
+    drive.DriveApi driveApi,
+    String folderId,
+    String bookId,
+    String cover,
+    _CoverFile? existing,
+  ) async {
+    final String hash = _hash(cover);
+    if (existing != null && existing.hash == hash) {
+      return existing.fileId;
+    }
+
+    final String raw = cover.contains(',') && cover.startsWith('data:')
+        ? cover.substring(cover.indexOf(',') + 1)
+        : cover;
+    final List<int> bytes = base64Decode(raw);
+    final String mime = raw.startsWith('iVBORw0KGgo') ? 'image/png' : 'image/jpeg';
+    final drive.Media media = drive.Media(
+      Stream<List<int>>.fromIterable(<List<int>>[bytes]),
+      bytes.length,
+      contentType: mime,
+    );
+
+    if (existing != null) {
+      await driveApi.files.update(
+        drive.File()..appProperties = <String, String>{'coverHash': hash},
+        existing.fileId,
+        uploadMedia: media,
+      );
+      return existing.fileId;
+    }
+
+    final drive.File created = await driveApi.files.create(
+      drive.File()
+        ..name = '$bookId${mime == 'image/png' ? '.png' : '.jpg'}'
+        ..parents = <String>[folderId]
+        ..appProperties = <String, String>{'bookId': bookId, 'coverHash': hash},
+      uploadMedia: media,
+      $fields: 'id',
+    );
+    final String? id = created.id;
+    if (id == null) {
+      return null;
+    }
+    await _makePublicReadable(driveApi, id);
+    return id;
+  }
+
+  Future<String> _ensureCoverFolder(drive.DriveApi driveApi, SharedPreferences prefs) async {
+    final String? storedId = prefs.getString(_kCoverFolderIdKey);
+    if (storedId != null) {
+      try {
+        final drive.File f = await driveApi.files.get(
+          storedId,
+          $fields: 'id,trashed',
+        ) as drive.File;
+        if (f.trashed != true) {
+          return storedId;
+        }
+      } catch (_) {
+        // Fall through.
+      }
+    }
+
+    final drive.FileList found = await driveApi.files.list(
+      q: "name = '$_kCoverFolderName' and "
+          "mimeType = 'application/vnd.google-apps.folder' and trashed = false",
+      spaces: 'drive',
+      $fields: 'files(id)',
+    );
+    String? folderId = found.files?.firstOrNull?.id;
+
+    if (folderId == null) {
+      final drive.File created = await driveApi.files.create(
+        drive.File()
+          ..name = _kCoverFolderName
+          ..mimeType = 'application/vnd.google-apps.folder',
+        $fields: 'id',
+      );
+      folderId = created.id;
+      if (folderId == null) {
+        throw Exception('Failed to create cover folder.');
+      }
+      await _makePublicReadable(driveApi, folderId);
+    }
+
+    await prefs.setString(_kCoverFolderIdKey, folderId);
+    return folderId;
+  }
+
+  Future<void> _makePublicReadable(drive.DriveApi driveApi, String fileId) async {
+    try {
+      await driveApi.permissions.create(
+        drive.Permission()
+          ..role = 'reader'
+          ..type = 'anyone',
+        fileId,
+      );
+    } catch (_) {
+      // Ignore (already shared / blocked by domain policy).
+    }
+  }
+
+  /// Stable 32-bit FNV-1a hash used to detect changed covers.
+  String _hash(String input) {
+    int hash = 0x811c9dc5;
+    for (final int c in input.codeUnits) {
+      hash ^= c;
+      hash = (hash * 0x01000193) & 0xFFFFFFFF;
+    }
+    return '${input.length}-${hash.toRadixString(16)}';
+  }
+
+  // ---------------------------------------------------------------------------
+  // Pull
+  // ---------------------------------------------------------------------------
+
+  /// Reads the checkbox column from the shared sheet and marks ticked books as
+  /// collected in the local repository.
   Future<BookFairSyncResult?> pullStatusUpdates(List<BookEntity> currentBooks) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final String? spreadsheetId = prefs.getString(_kSheetIdKey);
@@ -401,11 +854,8 @@ class BookFairSheetsService {
 
     sheets.ValueRange response;
     try {
-      // Fetch A2:G — column A is ID, column G is Collected?
-      response = await sheetsApi.spreadsheets.values.get(
-        spreadsheetId,
-        'A2:G',
-      );
+      // Column A = ID, column B = Collected?
+      response = await sheetsApi.spreadsheets.values.get(spreadsheetId, 'A2:B');
     } catch (e) {
       if (e.toString().contains('404')) {
         throw Exception(
@@ -423,14 +873,13 @@ class BookFairSheetsService {
     final List<String> conflictBookTitles = <String>[];
 
     for (final List<Object?> row in sheetRows) {
-      if (row.length < 7) {
+      if (row.length < 2) {
         continue;
       }
 
       final String bookId = row[0]?.toString() ?? '';
-      final bool isCollected = row[6]?.toString().toUpperCase() == 'TRUE';
-
-      if (!isCollected) {
+      final bool isCollected = row[1]?.toString().toUpperCase() == 'TRUE';
+      if (!isCollected || bookId.isEmpty) {
         continue;
       }
 
@@ -443,7 +892,6 @@ class BookFairSheetsService {
         continue;
       }
       if (book.collectionStatus == CollectionStatus.collected) {
-        // Remote is collected, but local is ALSO collected. This is a conflict!
         conflictBookTitles.add(book.title);
         continue;
       }

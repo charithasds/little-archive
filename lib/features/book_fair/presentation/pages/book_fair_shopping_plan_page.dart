@@ -13,7 +13,7 @@ import '../../../creator/domain/entities/creator_entity.dart';
 import '../../../creator/presentation/providers/creator_provider.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
-import '../../data/services/book_fair_html_service.dart';
+import '../../data/services/book_fair_sheets_service.dart';
 import '../../domain/entities/book_fair_event_entity.dart';
 import '../../domain/entities/book_fair_stall_entity.dart';
 import '../providers/book_fair_event_provider.dart';
@@ -419,7 +419,7 @@ class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlan
                           .read(bookFairSyncControllerProvider.notifier)
                           .reset();
 
-                      // Kick off export (generates HTML + triggers OS share sheet).
+                      // Kick off export (writes the Google Sheet).
                       await ref
                           .read(bookFairSyncControllerProvider.notifier)
                           .exportAndShare(selectedEntries);
