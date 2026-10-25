@@ -65,8 +65,8 @@ class SettingsPage extends ConsumerWidget {
     });
 
     final SettingsState settingsState = ref.watch(settingsControllerProvider);
-    final bool isLoading = settingsState.status.isLoading;
     final SettingsOperation? activeOp = settingsState.currentOperation;
+    final bool isLoading = settingsState.status.isLoading || activeOp != null;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -97,7 +97,9 @@ class SettingsPage extends ConsumerWidget {
                     subtitle: Text(isDark ? 'Dark theme active' : 'Light theme active'),
                     secondary: FaIcon(
                       isDark ? FontAwesomeIcons.moon : FontAwesomeIcons.sun,
-                      color: colorScheme.primary,
+                      color: isLoading
+                          ? colorScheme.onSurface.withValues(alpha: 0.38)
+                          : colorScheme.primary,
                     ),
                     value: isDark,
                     onChanged: isLoading
@@ -108,13 +110,14 @@ class SettingsPage extends ConsumerWidget {
                 ),
               ],
             ),
-            // ── Data Management ──────────────────────────────────────────
+            // ── Backup ───────────────────────────────────────────────────
             FormSection(
-              title: 'Data Management',
-              icon: FontAwesomeIcons.database,
+              title: 'Backup',
+              icon: FontAwesomeIcons.cloudArrowUp,
               children: <Widget>[
                 Card(
                   elevation: 0,
+                  clipBehavior: Clip.antiAlias,
                   color: colorScheme.surfaceContainerHigh,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   child: Column(
@@ -131,12 +134,32 @@ class SettingsPage extends ConsumerWidget {
                                   color: colorScheme.primary,
                                 ),
                               )
-                            : FaIcon(FontAwesomeIcons.fileExport, color: colorScheme.primary),
-                        title: const Text('Export to Local Storage'),
+                            : FaIcon(
+                                FontAwesomeIcons.fileExport,
+                                color: isLoading
+                                    ? colorScheme.onSurface.withValues(alpha: 0.38)
+                                    : colorScheme.primary,
+                              ),
+                        title: Text(
+                          'Export to Local Storage',
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: isLoading
+                                ? colorScheme.onSurface.withValues(alpha: 0.38)
+                                : null,
+                          ),
+                        ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            const Text('Save library to local storage'),
+                            Text(
+                              'Save library to local storage',
+                              style: TextStyle(
+                                color: isLoading
+                                    ? colorScheme.onSurface.withValues(alpha: 0.38)
+                                    : null,
+                              ),
+                            ),
                             _buildProgressIndicator(
                               isActive: activeOp == SettingsOperation.exportLocal,
                               progress: settingsState.progress,
@@ -165,6 +188,83 @@ class SettingsPage extends ConsumerWidget {
                         endIndent: 16,
                         color: colorScheme.outlineVariant,
                       ),
+                      // Google Drive Backup
+                      ListTile(
+                        enabled: !isLoading,
+                        leading: activeOp == SettingsOperation.backupDrive
+                            ? SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: colorScheme.primary,
+                                ),
+                              )
+                            : FaIcon(
+                                FontAwesomeIcons.googleDrive,
+                                color: isLoading
+                                    ? colorScheme.onSurface.withValues(alpha: 0.38)
+                                    : colorScheme.primary,
+                              ),
+                        title: Text(
+                          'Backup to Google Drive',
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: isLoading
+                                ? colorScheme.onSurface.withValues(alpha: 0.38)
+                                : null,
+                          ),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              'Save library to Google Drive',
+                              style: TextStyle(
+                                color: isLoading
+                                    ? colorScheme.onSurface.withValues(alpha: 0.38)
+                                    : null,
+                              ),
+                            ),
+                            _buildProgressIndicator(
+                              isActive: activeOp == SettingsOperation.backupDrive,
+                              progress: settingsState.progress,
+                              colorScheme: colorScheme,
+                              theme: theme,
+                            ),
+                          ],
+                        ),
+                        onTap: isLoading
+                            ? null
+                            : () async {
+                                final bool success = await ref
+                                    .read(settingsControllerProvider.notifier)
+                                    .backupToGoogleDrive();
+                                if (success && context.mounted) {
+                                  SnackBars.showSuccess(
+                                    'Uploaded library to Google Drive successfully!',
+                                    context: context,
+                                  );
+                                }
+                              },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            // ── Restore ──────────────────────────────────────────────────
+            FormSection(
+              title: 'Restore',
+              icon: FontAwesomeIcons.cloudArrowDown,
+              children: <Widget>[
+                Card(
+                  elevation: 0,
+                  clipBehavior: Clip.antiAlias,
+                  color: colorScheme.surfaceContainerHigh,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: Column(
+                    children: <Widget>[
                       // Local Restore
                       ListTile(
                         enabled: !isLoading,
@@ -177,12 +277,32 @@ class SettingsPage extends ConsumerWidget {
                                   color: colorScheme.primary,
                                 ),
                               )
-                            : FaIcon(FontAwesomeIcons.fileImport, color: colorScheme.primary),
-                        title: const Text('Restore from Local Storage'),
+                            : FaIcon(
+                                FontAwesomeIcons.fileImport,
+                                color: isLoading
+                                    ? colorScheme.onSurface.withValues(alpha: 0.38)
+                                    : colorScheme.primary,
+                              ),
+                        title: Text(
+                          'Restore from Local Storage',
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: isLoading
+                                ? colorScheme.onSurface.withValues(alpha: 0.38)
+                                : null,
+                          ),
+                        ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            const Text('Restore library from local storage'),
+                            Text(
+                              'Restore library from local storage',
+                              style: TextStyle(
+                                color: isLoading
+                                    ? colorScheme.onSurface.withValues(alpha: 0.38)
+                                    : null,
+                              ),
+                            ),
                             _buildProgressIndicator(
                               isActive: activeOp == SettingsOperation.importLocal,
                               progress: settingsState.progress,
@@ -224,52 +344,6 @@ class SettingsPage extends ConsumerWidget {
                         endIndent: 16,
                         color: colorScheme.outlineVariant,
                       ),
-                      // Google Drive Backup
-                      ListTile(
-                        enabled: !isLoading,
-                        leading: activeOp == SettingsOperation.backupDrive
-                            ? SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: colorScheme.primary,
-                                ),
-                              )
-                            : FaIcon(FontAwesomeIcons.googleDrive, color: colorScheme.primary),
-                        title: const Text('Backup to Google Drive'),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            const Text('Save library to Google Drive'),
-                            _buildProgressIndicator(
-                              isActive: activeOp == SettingsOperation.backupDrive,
-                              progress: settingsState.progress,
-                              colorScheme: colorScheme,
-                              theme: theme,
-                            ),
-                          ],
-                        ),
-                        onTap: isLoading
-                            ? null
-                            : () async {
-                                final bool success = await ref
-                                    .read(settingsControllerProvider.notifier)
-                                    .backupToGoogleDrive();
-                                if (success && context.mounted) {
-                                  SnackBars.showSuccess(
-                                    'Uploaded library to Google Drive successfully!',
-                                    context: context,
-                                  );
-                                }
-                              },
-                      ),
-                      Divider(
-                        height: 1,
-                        indent: 16,
-                        endIndent: 16,
-                        color: colorScheme.outlineVariant,
-                      ),
                       // Google Drive Restore
                       ListTile(
                         enabled: !isLoading,
@@ -282,12 +356,32 @@ class SettingsPage extends ConsumerWidget {
                                   color: colorScheme.primary,
                                 ),
                               )
-                            : FaIcon(FontAwesomeIcons.cloudArrowDown, color: colorScheme.primary),
-                        title: const Text('Restore from Google Drive'),
+                            : FaIcon(
+                                FontAwesomeIcons.cloudArrowDown,
+                                color: isLoading
+                                    ? colorScheme.onSurface.withValues(alpha: 0.38)
+                                    : colorScheme.primary,
+                              ),
+                        title: Text(
+                          'Restore from Google Drive',
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: isLoading
+                                ? colorScheme.onSurface.withValues(alpha: 0.38)
+                                : null,
+                          ),
+                        ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            const Text('Restore library from Google Drive'),
+                            Text(
+                              'Restore library from Google Drive',
+                              style: TextStyle(
+                                color: isLoading
+                                    ? colorScheme.onSurface.withValues(alpha: 0.38)
+                                    : null,
+                              ),
+                            ),
                             _buildProgressIndicator(
                               isActive: activeOp == SettingsOperation.restoreDrive,
                               progress: settingsState.progress,
@@ -323,76 +417,89 @@ class SettingsPage extends ConsumerWidget {
                                 }
                               },
                       ),
-                      Divider(
-                        height: 1,
-                        indent: 16,
-                        endIndent: 16,
-                        color: colorScheme.outlineVariant,
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            // ── Danger Zone ──────────────────────────────────────────────
+            FormSection(
+              title: 'Danger Zone',
+              icon: FontAwesomeIcons.triangleExclamation,
+              children: <Widget>[
+                Card(
+                  elevation: 0,
+                  clipBehavior: Clip.antiAlias,
+                  color: colorScheme.surfaceContainerHigh,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: ListTile(
+                    enabled: !isLoading,
+                    leading: activeOp == SettingsOperation.clearData
+                        ? SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: colorScheme.error,
+                            ),
+                          )
+                        : FaIcon(
+                            FontAwesomeIcons.broom,
+                            color: isLoading
+                                ? colorScheme.onSurface.withValues(alpha: 0.38)
+                                : colorScheme.error,
+                          ),
+                    title: Text(
+                      'Clear All Data',
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: isLoading
+                            ? colorScheme.onSurface.withValues(alpha: 0.38)
+                            : colorScheme.error,
                       ),
-                      // Clear All Data
-                      ListTile(
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(bottom: Radius.circular(16)),
-                        ),
-                        enabled: !isLoading,
-                        leading: activeOp == SettingsOperation.clearData
-                            ? SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: colorScheme.primary,
-                                ),
-                              )
-                            : FaIcon(FontAwesomeIcons.broom, color: colorScheme.primary),
-                        title: Text(
-                          'Clear All Data',
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.w500,
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          'Permanently removes all books, authors and related data',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: isLoading
+                                ? colorScheme.onSurface.withValues(alpha: 0.38)
+                                : colorScheme.onSurfaceVariant,
                           ),
                         ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              'Permanently removes all books, authors and related data',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            _buildProgressIndicator(
-                              isActive: activeOp == SettingsOperation.clearData,
-                              progress: settingsState.progress,
-                              colorScheme: colorScheme,
-                              theme: theme,
-                            ),
-                          ],
+                        _buildProgressIndicator(
+                          isActive: activeOp == SettingsOperation.clearData,
+                          progress: settingsState.progress,
+                          colorScheme: colorScheme,
+                          theme: theme,
                         ),
-                        onTap: isLoading
-                            ? null
-                            : () async {
-                                final bool confirmed = await AppDialogs.showDestructiveDialog(
-                                  context,
-                                  title: 'Clear All Data?',
-                                  content:
-                                      'This will permanently delete all your books, authors, publishers, and other data. This action is irreversible.',
-                                  confirmLabel: 'Clear Everything',
+                      ],
+                    ),
+                    onTap: isLoading
+                        ? null
+                        : () async {
+                            final bool confirmed = await AppDialogs.showDestructiveDialog(
+                              context,
+                              title: 'Clear All Data?',
+                              content:
+                                  'This will permanently delete all your books, authors, publishers, and other data. This action is irreversible.',
+                              confirmLabel: 'Clear Everything',
+                            );
+                            if (confirmed) {
+                              await ref
+                                  .read(settingsControllerProvider.notifier)
+                                  .clearAllData();
+                              if (context.mounted &&
+                                  !ref.read(settingsControllerProvider).status.hasError) {
+                                SnackBars.showSuccess(
+                                  'All application data cleared successfully',
+                                  context: context,
                                 );
-                                if (confirmed) {
-                                  await ref
-                                      .read(settingsControllerProvider.notifier)
-                                      .clearAllData();
-                                  if (context.mounted &&
-                                      !ref.read(settingsControllerProvider).status.hasError) {
-                                    SnackBars.showSuccess(
-                                      'All application data cleared successfully',
-                                      context: context,
-                                    );
-                                  }
-                                }
-                              },
-                      ),
-                    ],
+                              }
+                            }
+                          },
                   ),
                 ),
               ],

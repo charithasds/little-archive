@@ -1,19 +1,19 @@
-﻿import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../book/domain/entities/book_entity.dart';
-import '../../data/services/book_fair_sheets_service.dart';
+import '../../data/services/book_fair_html_service.dart';
 
 part 'book_fair_sync_controller.g.dart';
 
-/// The possible lifecycle states of the Sheets sync operation.
+/// The possible lifecycle states of the Drive HTML sync operation.
 enum BookFairSyncStatus {
   /// Nothing is happening — the default state.
   idle,
 
-  /// Currently creating the sheet and uploading data.
+  /// Currently generating the HTML and uploading it to Drive.
   exporting,
 
-  /// Sheet created; fetching remote updates and applying to local DB.
+  /// Downloading the HTML from Drive and applying updates to local DB.
   pulling,
 
   /// Last operation completed successfully.
@@ -33,10 +33,10 @@ class BookFairSyncState {
     this.conflictBookTitles,
   });
 
-  /// Current phase of the sync lifecycle.
   final BookFairSyncStatus status;
 
-  /// The Google Sheets editing URL; populated after a successful export.
+  /// Google Drive view URL returned after a successful upload.
+  /// Used by the share dialog to display a QR code or copy link.
   final String? sheetUrl;
 
   /// Error message; populated when [status] is [BookFairSyncStatus.error].
@@ -45,7 +45,7 @@ class BookFairSyncState {
   /// Titles of books whose status was updated during a pull.
   final List<String>? updatedBookTitles;
 
-  /// Titles of books that were marked as Collected both locally and remotely.
+  /// Titles of books that were already Collected both locally and remotely.
   final List<String>? conflictBookTitles;
 
   BookFairSyncState copyWith({
@@ -64,40 +64,37 @@ class BookFairSyncState {
       );
 }
 
-/// Riverpod notifier that orchestrates the export-to-Sheets and pull-updates
-/// lifecycle, exposing loading/done/error states to the UI.
+/// Riverpod notifier that orchestrates the Drive HTML export/upload and
+/// pull-updates lifecycle, exposing loading/done/error states to the UI.
 @riverpod
 class BookFairSyncController extends _$BookFairSyncController {
   @override
   BookFairSyncState build() => const BookFairSyncState();
 
-  BookFairSheetsService get _service =>
-      ref.read(bookFairSheetsServiceProvider);
+  BookFairHtmlService get _service => ref.read(bookFairHtmlServiceProvider);
 
   // ---------------------------------------------------------------------------
-  // Export
+  // Export & Upload to Drive
   // ---------------------------------------------------------------------------
 
-  /// Creates a new Google Sheet from [entries] (enriched book data including
-  /// authors, translators, publisher, and stall info) and transitions state to
-  /// [BookFairSyncStatus.done] with the sheet URL on success, or
-  /// [BookFairSyncStatus.error] on failure.
+  /// Generates an HTML shopping list from [entries], uploads it to Google Drive
+  /// (reusing the same file if one already exists), and stores the Drive view
+  /// URL in state for the share dialog.
   Future<void> exportAndShare(List<BookFairExportEntry> entries) async {
     state = const BookFairSyncState(status: BookFairSyncStatus.exporting);
 
     try {
-      final String? url = await _service.exportListToSheet(entries);
-      if (url == null) {
+      final String? driveUrl = await _service.exportAndUpload(entries);
+      if (driveUrl == null) {
         state = const BookFairSyncState(
           status: BookFairSyncStatus.error,
-          error: 'Sign-in failed or sheet could not be created. '
-              'Please check your Google account permissions and try again.',
+          error: 'Upload failed. Please sign in and try again.',
         );
         return;
       }
       state = BookFairSyncState(
         status: BookFairSyncStatus.done,
-        sheetUrl: url,
+        sheetUrl: driveUrl,
       );
     } catch (e) {
       state = BookFairSyncState(
@@ -108,13 +105,12 @@ class BookFairSyncController extends _$BookFairSyncController {
   }
 
   // ---------------------------------------------------------------------------
-  // Pull updates
+  // Pull updates from Drive
   // ---------------------------------------------------------------------------
 
-  /// Fetches remote status changes from the active sheet and applies them to
-  /// the local Drift DB.  Keeps [sheetUrl] intact so the dialog stays open.
+  /// Downloads the HTML from Drive, parses checked boxes, marks books collected
+  /// locally, and writes the pruned HTML back to Drive.
   Future<void> pullUpdates(List<BookEntity> books) async {
-    // Preserve the existing URL while pulling.
     state = state.copyWith(status: BookFairSyncStatus.pulling);
 
     try {
@@ -122,8 +118,8 @@ class BookFairSyncController extends _$BookFairSyncController {
       if (result == null) {
         state = state.copyWith(
           status: BookFairSyncStatus.error,
-          error: 'Could not reach the sheet. '
-              'Make sure you are signed in and have exported the list first.',
+          error: 'No HTML file found in Google Drive. '
+              'Please share the list first.',
         );
         return;
       }
@@ -144,7 +140,5 @@ class BookFairSyncController extends _$BookFairSyncController {
   // Reset
   // ---------------------------------------------------------------------------
 
-  /// Resets the controller back to [BookFairSyncStatus.idle] so the UI can
-  /// start a fresh export cycle.
   void reset() => state = const BookFairSyncState();
 }

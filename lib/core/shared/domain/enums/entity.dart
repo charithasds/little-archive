@@ -4,7 +4,6 @@ enum Entity {
   book('Book', 'Books', FontAwesomeIcons.book),
   work('Work', 'Works', FontAwesomeIcons.fileLines),
   creator('Creator', 'Creators', FontAwesomeIcons.userPen),
-  duplicateCreator('Duplicate Creator', 'Duplicate Creators', FontAwesomeIcons.usersSlash),
   publisher('Publisher', 'Publishers', FontAwesomeIcons.building),
   reader('Reader', 'Readers', FontAwesomeIcons.smile),
   sequence('Sequence', 'Sequences', FontAwesomeIcons.layerGroup),

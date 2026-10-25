@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/domain/enums/reading_status.dart';
+import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/search_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../creator/presentation/providers/creator_provider.dart';
@@ -332,7 +333,15 @@ class _ReadingBookTile extends ConsumerWidget {
             label: 'Resume',
             icon: FontAwesomeIcons.play,
             color: colorScheme.tertiary,
-            onTap: isLoading ? null : () => ctrl.changeReadingStatus(book, ReadingStatus.reading),
+            onTap: isLoading
+                ? null
+                : () async {
+                    final int? pausedPage = book.pausedPage;
+                    await ctrl.changeReadingStatus(book, ReadingStatus.reading);
+                    if (context.mounted && pausedPage != null) {
+                      SnackBars.showInfo('Resume from page $pausedPage', context: context);
+                    }
+                  },
           ),
         );
         actions.add(

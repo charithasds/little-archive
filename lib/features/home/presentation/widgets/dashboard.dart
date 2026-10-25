@@ -164,7 +164,11 @@ class Dashboard extends ConsumerWidget {
                     ? eventAsync.value!.startDate
                     : eventAsync.value!.endDate)
               : null,
-          countdownSuffix: 'TO GO',
+          countdownSuffix: eventAsync.value != null &&
+                  !DateTime.now().isBefore(eventAsync.value!.startDate) &&
+                  DateTime.now().isBefore(eventAsync.value!.endDate)
+              ? 'ENDS IN'
+              : 'TO GO',
           colorVariant: DashboardCardColor.purple,
           route: '/book-fair',
         ),

@@ -12,25 +12,26 @@ import '../../domain/entities/book_fair_stall_entity.dart';
 
 class PublisherStallItineraryTile extends ConsumerStatefulWidget {
   const PublisherStallItineraryTile({
-    required this.publisher,
+    required this.publishers,
     required this.stall,
-    required this.isVisited,
     required this.books,
     this.borderRadius,
     super.key,
   });
 
-  final PublisherEntity publisher;
+  // Issue #5: accepts a list so multiple publishers sharing one stall are shown together.
+  final List<PublisherEntity> publishers;
   final BookFairStallEntity stall;
-  final bool isVisited;
   final List<BookEntity> books;
   final BorderRadius? borderRadius;
 
   @override
-  ConsumerState<PublisherStallItineraryTile> createState() => _PublisherStallItineraryTileState();
+  ConsumerState<PublisherStallItineraryTile> createState() =>
+      _PublisherStallItineraryTileState();
 }
 
-class _PublisherStallItineraryTileState extends ConsumerState<PublisherStallItineraryTile> {
+class _PublisherStallItineraryTileState
+    extends ConsumerState<PublisherStallItineraryTile> {
   bool _isExpanded = false;
   final Set<String> _checkedBookIds = <String>{};
 
@@ -43,66 +44,60 @@ class _PublisherStallItineraryTileState extends ConsumerState<PublisherStallItin
     final Color purpleContainer = isDark
         ? const Color(0xFF4A148C).withValues(alpha: 0.18)
         : const Color(0xFFE1BEE7).withValues(alpha: 0.35);
-    final Color onPurpleContainer = isDark ? const Color(0xFFE1BEE7) : const Color(0xFF4A148C);
-    final Color purplePrimary = isDark ? const Color(0xFFCE93D8) : const Color(0xFF7B1FA2);
+    final Color onPurpleContainer =
+        isDark ? const Color(0xFFE1BEE7) : const Color(0xFF4A148C);
+    final Color purplePrimary =
+        isDark ? const Color(0xFFCE93D8) : const Color(0xFF7B1FA2);
 
     final bool hasBooks = widget.books.isNotEmpty;
+
+    // Issue #5: Join all publisher names for the subtitle.
+    final String publisherNames =
+        widget.publishers.map((PublisherEntity p) => p.name).join(' / ');
 
     return Theme(
       // Remove default ExpansionTile divider lines
       data: theme.copyWith(dividerColor: Colors.transparent),
       child: ExpansionTile(
-        onExpansionChanged: (bool expanded) => setState(() => _isExpanded = expanded),
+        onExpansionChanged: (bool expanded) =>
+            setState(() => _isExpanded = expanded),
         tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         childrenPadding: EdgeInsets.zero,
         shape: const Border(),
         collapsedShape: const Border(),
-        // Leading: Shop icon indicating completion status
         leading: FaIcon(
           FontAwesomeIcons.shop,
           size: 18,
-          color: widget.isVisited
-              ? colorScheme.onSurfaceVariant.withValues(alpha: 0.4)
-              : purplePrimary,
+          color: purplePrimary,
         ),
         title: Text(
           widget.stall.name,
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
-            decoration: widget.isVisited ? TextDecoration.lineThrough : null,
-            color: widget.isVisited
-                ? colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
-                : colorScheme.onSurface,
+            color: colorScheme.onSurface,
           ),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              widget.publisher.name,
+              publisherNames,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: widget.isVisited
-                    ? colorScheme.onSurfaceVariant.withValues(alpha: 0.4)
-                    : colorScheme.onSurfaceVariant,
-                decoration: widget.isVisited ? TextDecoration.lineThrough : null,
+                color: colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 6),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: widget.isVisited
-                    ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
-                    : purpleContainer.withValues(alpha: 0.7),
+                color: purpleContainer.withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 widget.stall.stallNo,
                 style: theme.textTheme.labelMedium?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: widget.isVisited
-                      ? colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
-                      : onPurpleContainer,
+                  color: onPurpleContainer,
                 ),
               ),
             ),
@@ -112,14 +107,16 @@ class _PublisherStallItineraryTileState extends ConsumerState<PublisherStallItin
             ? AnimatedRotation(
                 turns: _isExpanded ? 0.5 : 0,
                 duration: const Duration(milliseconds: 200),
-                child: FaIcon(FontAwesomeIcons.chevronDown, size: 14, color: purplePrimary),
+                child: FaIcon(FontAwesomeIcons.chevronDown,
+                    size: 14, color: purplePrimary),
               )
             : null,
         showTrailingIcon: hasBooks,
         children: hasBooks
             ? <Widget>[
                 Container(
-                  margin: const EdgeInsets.only(left: 16, right: 16, bottom: 10),
+                  margin:
+                      const EdgeInsets.only(left: 16, right: 16, bottom: 10),
                   decoration: BoxDecoration(
                     color: purpleContainer.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(12),
@@ -130,13 +127,16 @@ class _PublisherStallItineraryTileState extends ConsumerState<PublisherStallItin
                       const SizedBox(height: 4),
                       ...widget.books.map(
                         (BookEntity book) {
-                          final bool isChecked = _checkedBookIds.contains(book.id);
+                          final bool isChecked =
+                              _checkedBookIds.contains(book.id);
 
                           return InkWell(
-                            onTap: () => BookQuickInfoDialog.show(context, book.id),
+                            onTap: () =>
+                                BookQuickInfoDialog.show(context, book.id),
                             borderRadius: BorderRadius.circular(12),
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
                               child: Row(
                                 children: <Widget>[
                                   if (isChecked)
@@ -177,10 +177,13 @@ class _PublisherStallItineraryTileState extends ConsumerState<PublisherStallItin
                                       book.title,
                                       style: theme.textTheme.bodySmall?.copyWith(
                                         color: isChecked
-                                            ? onPurpleContainer.withValues(alpha: 0.5)
+                                            ? onPurpleContainer
+                                                .withValues(alpha: 0.5)
                                             : onPurpleContainer,
                                         fontWeight: FontWeight.w500,
-                                        decoration: isChecked ? TextDecoration.lineThrough : null,
+                                        decoration: isChecked
+                                            ? TextDecoration.lineThrough
+                                            : null,
                                       ),
                                     ),
                                   ),
@@ -203,23 +206,40 @@ class _PublisherStallItineraryTileState extends ConsumerState<PublisherStallItin
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: purplePrimary,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
-                              icon: const FaIcon(FontAwesomeIcons.checkDouble, size: 12),
+                              icon: const FaIcon(FontAwesomeIcons.checkDouble,
+                                  size: 12),
                               label: const Text(
                                 'Complete Stall Shopping',
-                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                style: TextStyle(
+                                    fontSize: 12, fontWeight: FontWeight.bold),
                               ),
                               onPressed: () async {
-                                final List<String> toUpdate = _checkedBookIds.toList();
+                                final List<String> toUpdate =
+                                    _checkedBookIds.toList();
+                                // Issue #3: Snapshot books NOW into a Map before any awaits.
+                                // widget.books is a live prop — once the first book is marked
+                                // collected, Firestore emits a new snapshot, the parent rebuilds,
+                                // and widget.books no longer contains the collected book.
+                                // Subsequent loop iterations would then fail to find it.
+                                final Map<String, BookEntity> bookSnapshot =
+                                    <String, BookEntity>{
+                                  for (final BookEntity b in widget.books)
+                                    b.id: b,
+                                };
                                 setState(() {
                                   _checkedBookIds.clear();
                                 });
                                 for (final String id in toUpdate) {
-                                  final BookEntity book = widget.books.firstWhere((BookEntity b) => b.id == id);
+                                  final BookEntity? book = bookSnapshot[id];
+                                  if (book == null) {
+                                    continue;
+                                  }
                                   await ref
                                       .read(bookStatusControllerProvider.notifier)
                                       .changeCollectionStatus(

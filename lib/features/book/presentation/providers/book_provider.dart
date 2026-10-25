@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/shared/domain/enums/collection_status.dart';
+import '../../../../core/shared/domain/enums/compilation_type.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../domain/entities/book_entity.dart';
 import '../../domain/usecases/book_usecases.dart';
@@ -99,7 +100,7 @@ List<({String label, int count})>? booksMissingInfo(Ref ref) {
   int noCompletedDate = 0;
 
   for (final BookEntity b in books) {
-    if (b.authorIds.isEmpty) {
+    if (b.compilationType == CompilationType.single && b.authorIds.isEmpty) {
       noAuthors++;
     }
     if (b.isTranslation) {
@@ -116,7 +117,7 @@ List<({String label, int count})>? booksMissingInfo(Ref ref) {
     if (b.language == null) {
       noLanguage++;
     }
-    if (b.genre == null) {
+    if (b.compilationType == CompilationType.single && b.genre == null) {
       noGenre++;
     }
     if (b.isbn == null || b.isbn!.trim().isEmpty) {
@@ -128,7 +129,9 @@ List<({String label, int count})>? booksMissingInfo(Ref ref) {
     if (b.sequenceVolumeIds.isEmpty) {
       noSequences++;
     }
-    if (b.publisherId == null) {
+    if (b.collectionStatus != CollectionStatus.outOfPrint &&
+        b.collectionStatus != CollectionStatus.announced &&
+        b.publisherId == null) {
       noPublisher++;
     }
     if (b.publishedDate == null) {

@@ -193,9 +193,9 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
             toBeTranslated: _toBeTranslated,
             language: _showLanguageField ? _language : null,
             genre: _genre,
-            originalTitle: _showOriginalTitle ? _originalTitleController.text : null,
+            originalTitle: _showOriginalTitle ? _originalTitleController.text.trim() : null,
             originalLanguage: _showOriginalLanguage ? _originalLanguage : null,
-            notes: _notesController.text,
+            notes: _notesController.text.trim(),
             authorIds: _showAuthorFields
                 ? _selectedAuthors.map((CreatorEntity e) => e.id).toList()
                 : <String>[],

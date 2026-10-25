@@ -79,6 +79,10 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
 
   bool _isTranslation = false;
   bool _toBeTranslated = false;
+  bool _notForSale = false;
+  bool _isSigned = false;
+  DateTime? _signedDate;
+  bool _hasBookmark = false;
 
   DateTime? _publishedDate;
   DateTime? _collectedDate;
@@ -117,6 +121,12 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
   bool get _showDueDate => _collectionStatus == CollectionStatus.lended;
 
   bool get _showReaderId => _collectionStatus == CollectionStatus.lended;
+
+  bool get _showPhysicalBookDetails =>
+      _collectionStatus == CollectionStatus.collected ||
+      _collectionStatus == CollectionStatus.lended;
+
+  bool get _showNotForSale => _collectionStatus == CollectionStatus.collected;
 
   bool get _showPausedPage => _readingStatus == ReadingStatus.paused;
 
@@ -172,6 +182,11 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
       if (!_showReaderId) {
         _selectedReader = null;
       }
+      if (!_showPhysicalBookDetails) {
+        _isSigned = false;
+        _signedDate = null;
+        _hasBookmark = false;
+      }
     });
   }
 
@@ -207,6 +222,10 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
       _originalLanguage = book.originalLanguage;
       _isTranslation = book.isTranslation;
       _toBeTranslated = book.toBeTranslated;
+      _notForSale = book.notForSale;
+      _isSigned = book.isSigned;
+      _signedDate = book.signedDate;
+      _hasBookmark = book.hasBookmark;
       _publishedDate = book.publishedDate;
       _collectedDate = book.collectedDate;
       _lendedDate = book.lendedDate;
@@ -288,12 +307,15 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
             genre: _showGenre ? _genre : null,
             isbn: _toBeTranslated
                 ? null
-                : (_isbnController.text.isNotEmpty ? _isbnController.text : null),
+                : (_isbnController.text.trim().isNotEmpty
+                    ? (Validators.convertIsbn10To13(_isbnController.text.trim()) ??
+                        _isbnController.text.trim())
+                    : null),
             publishedDate: _toBeTranslated ? null : _publishedDate,
-            noOfPages: _toBeTranslated ? null : int.tryParse(_noOfPagesController.text),
+            noOfPages: _toBeTranslated ? null : int.tryParse(_noOfPagesController.text.trim()),
             isTranslation: _isTranslation,
             toBeTranslated: _toBeTranslated,
-            originalTitle: _showOriginalTitle ? _originalTitleController.text : null,
+            originalTitle: _showOriginalTitle ? _originalTitleController.text.trim() : null,
             originalLanguage: _showOriginalLanguage ? _originalLanguage : null,
             collectionStatus: _toBeTranslated ? CollectionStatus.announced : _collectionStatus,
             collectedDate: _toBeTranslated ? null : (_showCollectedDate ? _collectedDate : null),
@@ -302,9 +324,9 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
             readingStatus: _toBeTranslated ? ReadingStatus.notStarted : _readingStatus,
             pausedPage: _toBeTranslated
                 ? null
-                : (_showPausedPage ? int.tryParse(_pausedPageController.text) : null),
+                : (_showPausedPage ? int.tryParse(_pausedPageController.text.trim()) : null),
             completedDate: _toBeTranslated ? null : (_showCompletedDate ? _completedDate : null),
-            notes: _notesController.text,
+            notes: _notesController.text.trim(),
             authorIds: _showAuthorIds
                 ? _selectedAuthors.map((CreatorEntity e) => e.id).toList()
                 : <String>[],
@@ -317,6 +339,10 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
             sequenceEntries: _selectedSequences,
             publisherId: _selectedPublisher?.id,
             readerId: _toBeTranslated ? null : (_showReaderId ? _selectedReader?.id : null),
+            notForSale: _showNotForSale && _notForSale,
+            isSigned: _showPhysicalBookDetails && _isSigned,
+            signedDate: (_showPhysicalBookDetails && _isSigned) ? _signedDate : null,
+            hasBookmark: _showPhysicalBookDetails && _hasBookmark,
             applyToWorks: _applyToWorks,
           );
 
@@ -920,12 +946,6 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                           'Apply book details to all connected works',
                           style: theme.textTheme.bodyMedium,
                         ),
-                        subtitle: Text(
-                          'Authors, Translators, and Language will be copied',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
                         contentPadding: EdgeInsets.zero,
                         secondary: FaIcon(
                           FontAwesomeIcons.arrowsRotate,
@@ -964,6 +984,19 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       onCleared: () => setState(() => _collectedDate = null),
                       isClearable: true,
                       icon: FontAwesomeIcons.boxArchive,
+                    ),
+                  ],
+                  if (_showNotForSale) ...<Widget>[
+                    const SizedBox(height: 8),
+                    SwitchListTile.adaptive(
+                      value: _notForSale,
+                      onChanged: (bool v) => setState(() => _notForSale = v),
+                      title: Text('Not For Sale', style: theme.textTheme.bodyMedium),
+                      contentPadding: EdgeInsets.zero,
+                      secondary: FaIcon(
+                        FontAwesomeIcons.ban,
+                        color: _notForSale ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ],
@@ -1111,7 +1144,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                     FormTextField(
                       controller: _isbnController,
                       label: 'ISBN',
-                      hint: 'e.g. ISBN10 or ISBN13',
+                      hint: 'e.g. 9789553031358',
                       prefixIcon: FontAwesomeIcons.qrcode,
                       maxLength: 13,
                       keyboardType: TextInputType.number,
@@ -1129,20 +1162,11 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                                 .replaceAll(RegExp(r'[-\s]'), '')
                                 .toUpperCase();
 
-                            final String label;
-                            final bool isValid;
-                            if (clean.length <= 10) {
-                              label = 'ISBN10';
-                              isValid = Validators.isValidIsbn10(clean);
-                            } else {
-                              label = 'ISBN13';
-                              isValid = Validators.isValidIsbn13(clean);
-                            }
-
+                            final bool isValid = Validators.isValidIsbn13(clean);
                             final String emoji = isValid ? '🟢' : '🔴';
 
                             return Text(
-                              '$label $emoji',
+                              'ISBN13 $emoji',
                               style: Theme.of(
                                 context,
                               ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
@@ -1156,6 +1180,48 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                 title: 'Additional Information',
                 icon: FontAwesomeIcons.noteSticky,
                 children: <Widget>[
+                  if (_showPhysicalBookDetails) ...<Widget>[
+                    SwitchListTile.adaptive(
+                      value: _isSigned,
+                      onChanged: (bool v) {
+                        setState(() {
+                          _isSigned = v;
+                          if (!v) {
+                            _signedDate = null;
+                          }
+                        });
+                      },
+                      title: Text('Is Signed', style: theme.textTheme.bodyMedium),
+                      contentPadding: EdgeInsets.zero,
+                      secondary: FaIcon(
+                        FontAwesomeIcons.signature,
+                        color: _isSigned ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    if (_isSigned) ...<Widget>[
+                      const SizedBox(height: 8),
+                      FormDateField(
+                        label: 'Signed Date',
+                        value: _signedDate,
+                        onDateSelected: (DateTime d) => setState(() => _signedDate = d),
+                        onCleared: () => setState(() => _signedDate = null),
+                        isClearable: true,
+                        icon: FontAwesomeIcons.calendarCheck,
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    SwitchListTile.adaptive(
+                      value: _hasBookmark,
+                      onChanged: (bool v) => setState(() => _hasBookmark = v),
+                      title: Text('Has Bookmark', style: theme.textTheme.bodyMedium),
+                      contentPadding: EdgeInsets.zero,
+                      secondary: FaIcon(
+                        FontAwesomeIcons.bookmark,
+                        color: _hasBookmark ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                   FormTextField(
                     controller: _notesController,
                     label: 'Notes',

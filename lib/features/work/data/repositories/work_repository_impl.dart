@@ -158,6 +158,10 @@ class WorkRepositoryImpl implements WorkRepository {
           sequenceVolumeIds: updatedBookEntity.sequenceVolumeIds,
           publisherId: updatedBookEntity.publisherId,
           readerId: updatedBookEntity.readerId,
+          notForSale: updatedBookEntity.notForSale,
+          isSigned: updatedBookEntity.isSigned,
+          signedDate: updatedBookEntity.signedDate,
+          hasBookmark: updatedBookEntity.hasBookmark,
           createdDate: updatedBookEntity.createdDate,
           lastUpdated: updatedBookEntity.lastUpdated,
         );

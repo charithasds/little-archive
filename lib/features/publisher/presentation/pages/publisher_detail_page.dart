@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/shared/presentation/pages/image_viewer_page.dart';
 import '../../../../core/shared/presentation/utils/dialogs.dart';
 import '../../../../core/shared/presentation/utils/external_launcher.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
@@ -105,23 +106,37 @@ class PublisherDetailPage extends ConsumerWidget {
                       child: Hero(
                         tag: 'publisher_${publisher.id}',
                         child: publisher.logo != null && publisher.logo!.isNotEmpty
-                            ? ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxHeight: 240,
-                                  maxWidth: 240,
-                                ),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(4),
-                                    border: Border.all(
-                                      color: theme.colorScheme.outlineVariant,
+                            ? Tooltip(
+                                message: 'View maximized logo',
+                                child: MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  child: GestureDetector(
+                                    onTap: () => ImageViewerPage.open(
+                                      context,
+                                      imageSource: publisher.logo!,
+                                      title: publisher.name,
+                                      heroTag: 'publisher_${publisher.id}',
                                     ),
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(3),
-                                    child: Image(
-                                      image: Images.getImageProvider(publisher.logo),
-                                      fit: BoxFit.contain,
+                                    child: ConstrainedBox(
+                                      constraints: const BoxConstraints(
+                                        maxHeight: 240,
+                                        maxWidth: 240,
+                                      ),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(4),
+                                          border: Border.all(
+                                            color: theme.colorScheme.outlineVariant,
+                                          ),
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(3),
+                                          child: Image(
+                                            image: Images.getImageProvider(publisher.logo),
+                                            fit: BoxFit.contain,
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),

@@ -34,6 +34,10 @@ class Books extends Table {
   TextColumn get notes => text().nullable()();
   TextColumn get publisherId => text().nullable()();
   TextColumn get readerId => text().nullable()();
+  BoolColumn get notForSale => boolean().withDefault(const Constant<bool>(false))();
+  BoolColumn get hasBookmark => boolean().withDefault(const Constant<bool>(false))();
+  BoolColumn get isSigned => boolean().withDefault(const Constant<bool>(false))();
+  DateTimeColumn get signedDate => dateTime().nullable()();
   DateTimeColumn get createdDate => dateTime()();
   DateTimeColumn get lastUpdated => dateTime()();
 
@@ -170,66 +174,69 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onUpgrade: (Migrator m, int from, int to) async {
-          if (from == 1 && to == 2) {
-            // 1. Create new tables
+          if (from == 1) {
+            // v1 -> v2: Migrate to unified creators table
             await m.createTable(creators);
             await m.createTable(bookCreatorsJoin);
             await m.createTable(workCreatorsJoin);
 
-            // 2. Migrate Authors into Creators
             await customStatement('''
               INSERT INTO creators (id, name, image, other_name, website, facebook, created_date, last_updated)
               SELECT id, name, image, other_name, website, facebook, created_date, last_updated
               FROM authors;
             ''');
 
-            // 2.5. Migrate Translators into Creators permanently
             await customStatement('''
               INSERT OR IGNORE INTO creators (id, name, image, other_name, website, facebook, created_date, last_updated)
               SELECT id, name, image, other_name, website, facebook, created_date, last_updated
               FROM translators;
             ''');
 
-            // 3. Migrate BookAuthorsJoin -> BookCreatorsJoin (role: author)
             await customStatement('''
               INSERT INTO book_creators_join (book_id, creator_id, role)
               SELECT book_id, author_id, 'author'
               FROM book_authors_join;
             ''');
 
-            // 4. Migrate WorkAuthorsJoin -> WorkCreatorsJoin (role: author)
             await customStatement('''
               INSERT INTO work_creators_join (work_id, creator_id, role)
               SELECT work_id, author_id, 'author'
               FROM work_authors_join;
             ''');
 
-            // 4.5. Migrate BookTranslatorsJoin -> BookCreatorsJoin (role: translator)
             await customStatement('''
               INSERT OR IGNORE INTO book_creators_join (book_id, creator_id, role)
               SELECT book_id, translator_id, 'translator'
               FROM book_translators_join;
             ''');
 
-            // 4.6. Migrate WorkTranslatorsJoin -> WorkCreatorsJoin (role: translator)
             await customStatement('''
               INSERT OR IGNORE INTO work_creators_join (work_id, creator_id, role)
               SELECT work_id, translator_id, 'translator'
               FROM work_translators_join;
             ''');
 
-            // 5. Drop all old tables
             await customStatement('DROP TABLE IF EXISTS authors;');
             await customStatement('DROP TABLE IF EXISTS book_authors_join;');
             await customStatement('DROP TABLE IF EXISTS work_authors_join;');
             await customStatement('DROP TABLE IF EXISTS translators;');
             await customStatement('DROP TABLE IF EXISTS book_translators_join;');
             await customStatement('DROP TABLE IF EXISTS work_translators_join;');
+          }
+          if (from <= 2 && to >= 3) {
+            // v2 -> v3: Add notForSale and hasBookmark columns
+            await m.addColumn(books, books.notForSale);
+            await m.addColumn(books, books.hasBookmark);
+          }
+          if (from <= 3 && to >= 4) {
+            // v3 -> v4: Add isSigned and signedDate columns
+            await m.addColumn(books, books.isSigned);
+            await m.addColumn(books, books.signedDate);
           }
         },
       );

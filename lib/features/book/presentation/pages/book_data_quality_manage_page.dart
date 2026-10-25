@@ -7,6 +7,7 @@ import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/enums/compilation_type.dart';
 import '../../../../core/shared/domain/enums/entity.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
+import '../../../../core/shared/presentation/utils/validators.dart';
 import '../../../../core/shared/presentation/widgets/custom_icons.dart';
 import '../../../../core/shared/presentation/widgets/search_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
@@ -75,8 +76,6 @@ class _BookDataQualityManagePageState extends ConsumerState<BookDataQualityManag
           return works?.where((WorkEntity w) => _missingForWork(w).isNotEmpty).length;
         case Entity.creator:
           return creators?.where((CreatorEntity c) => _missingForCreator(c).isNotEmpty).length;
-        case Entity.duplicateCreator:
-          return creators != null ? _getDuplicateCreators(creators).length : null;
         case Entity.publisher:
           return publishers
               ?.where((PublisherEntity p) => _missingForPublisher(p).isNotEmpty)
@@ -184,7 +183,11 @@ class _QualityListView<T> extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            buildAppIcon(emptyIcon, size: 64, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4))!,
+            buildAppIcon(
+              emptyIcon,
+              size: 64,
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+            )!,
             const SizedBox(height: 16),
             Text(
               emptyLabel,
@@ -266,7 +269,11 @@ class _QualityTile extends ConsumerWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: <Widget>[
-                                FaIcon(FontAwesomeIcons.circleExclamation, size: 16, color: redText),
+                                FaIcon(
+                                  FontAwesomeIcons.circleExclamation,
+                                  size: 16,
+                                  color: redText,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   chip,
@@ -304,7 +311,13 @@ class _QualityTile extends ConsumerWidget {
 List<String> _missingForBook(BookEntity b) {
   final List<String> missing = <String>[];
 
-  if (!b.toBeTranslated && b.cover == null) {
+  final bool isNotCollected =
+      b.collectionStatus == CollectionStatus.announced ||
+      b.collectionStatus == CollectionStatus.onTheWay ||
+      b.collectionStatus == CollectionStatus.outOfPrint ||
+      b.collectionStatus == CollectionStatus.shoppingList;
+
+  if (!b.toBeTranslated && !isNotCollected && b.cover == null) {
     missing.add('Cover');
   }
 
@@ -312,19 +325,22 @@ List<String> _missingForBook(BookEntity b) {
     missing.add('Language');
   }
 
-  if (b.genre == null) {
+  if (b.compilationType == CompilationType.single && b.genre == null) {
     missing.add('Genre');
   }
 
-  if (!b.toBeTranslated && (b.isbn == null || b.isbn!.trim().isEmpty)) {
+  if (!b.toBeTranslated &&
+      !isNotCollected &&
+      !b.notForSale &&
+      (b.isbn == null || !Validators.isValidIsbn13(b.isbn!))) {
     missing.add('ISBN');
   }
 
-  if (!b.toBeTranslated && b.publishedDate == null) {
+  if (!b.toBeTranslated && !isNotCollected && !b.notForSale && b.publishedDate == null) {
     missing.add('Published Date');
   }
 
-  if (!b.toBeTranslated && b.noOfPages == null) {
+  if (!b.toBeTranslated && !isNotCollected && b.noOfPages == null) {
     missing.add('Number of Pages');
   }
 
@@ -363,7 +379,7 @@ List<String> _missingForBook(BookEntity b) {
     missing.add('Completed Date');
   }
 
-  if (b.authorIds.isEmpty) {
+  if (b.compilationType == CompilationType.single && b.authorIds.isEmpty) {
     missing.add('Authors');
   }
 
@@ -371,7 +387,11 @@ List<String> _missingForBook(BookEntity b) {
     missing.add('Translators');
   }
 
-  if (!b.toBeTranslated && b.publisherId == null) {
+  if (!b.toBeTranslated &&
+      !b.notForSale &&
+      b.collectionStatus != CollectionStatus.outOfPrint &&
+      b.collectionStatus != CollectionStatus.announced &&
+      b.publisherId == null) {
     missing.add('Publisher');
   }
 
@@ -379,7 +399,7 @@ List<String> _missingForBook(BookEntity b) {
     missing.add('Reader');
   }
 
-  if (b.compilationType == CompilationType.single && b.sequenceVolumeIds.isEmpty) {
+  if (b.compilationType == CompilationType.single && !b.notForSale && b.sequenceVolumeIds.isEmpty) {
     missing.add('Sequences');
   }
 
@@ -443,19 +463,14 @@ List<String> _missingForCreator(CreatorEntity c) {
     missing.add('Facebook');
   }
 
-  if (c.authoredBookIds.isEmpty && c.authoredWorkIds.isEmpty && c.translatedBookIds.isEmpty && c.translatedWorkIds.isEmpty) {
+  if (c.authoredBookIds.isEmpty &&
+      c.authoredWorkIds.isEmpty &&
+      c.translatedBookIds.isEmpty &&
+      c.translatedWorkIds.isEmpty) {
     missing.add('Creations');
   }
 
   return missing;
-}
-
-List<CreatorEntity> _getDuplicateCreators(List<CreatorEntity> creators) {
-  final Map<String, List<CreatorEntity>> nameMap = <String, List<CreatorEntity>>{};
-  for (final CreatorEntity creator in creators) {
-    nameMap.putIfAbsent(creator.name.toLowerCase().trim(), () => <CreatorEntity>[]).add(creator);
-  }
-  return nameMap.values.where((List<CreatorEntity> list) => list.length > 1).expand((List<CreatorEntity> e) => e).toList();
 }
 
 List<String> _missingForPublisher(PublisherEntity p) {
@@ -553,6 +568,101 @@ class _EntityQualityTab extends ConsumerStatefulWidget {
 
 class _EntityQualityTabState extends ConsumerState<_EntityQualityTab> {
   String _searchQuery = '';
+  final Set<String> _selectedFilterChips = <String>{};
+
+  List<String> _getMissingForEntityItem(Object item) {
+    if (item is BookEntity) {
+      return _missingForBook(item);
+    }
+    if (item is WorkEntity) {
+      return _missingForWork(item);
+    }
+    if (item is CreatorEntity) {
+      return _missingForCreator(item);
+    }
+    if (item is PublisherEntity) {
+      return _missingForPublisher(item);
+    }
+    if (item is ReaderEntity) {
+      return _missingForReader(item);
+    }
+    if (item is SequenceEntity) {
+      return _missingForSequence(item);
+    }
+    if (item is SequenceVolumeEntity) {
+      return _missingForSequenceVolume(item);
+    }
+    return <String>[];
+  }
+
+  List<Object>? _getItemsForEntity(Entity entity, WidgetRef ref) {
+    switch (entity) {
+      case Entity.book:
+        return ref.watch(booksStreamProvider).value;
+      case Entity.work:
+        return ref.watch(worksStreamProvider).value;
+      case Entity.creator:
+        return ref.watch(creatorsStreamProvider).value;
+      case Entity.publisher:
+        return ref.watch(publishersStreamProvider).value;
+      case Entity.reader:
+        return ref.watch(readersStreamProvider).value;
+      case Entity.sequence:
+        return ref.watch(sequencesStreamProvider).value;
+      case Entity.sequenceVolume:
+        return ref.watch(allSequenceVolumesStreamProvider).value;
+    }
+  }
+
+  String _getItemName(Object item) {
+    if (item is BookEntity) {
+      return item.title;
+    }
+    if (item is WorkEntity) {
+      return item.title;
+    }
+    if (item is CreatorEntity) {
+      return item.name;
+    }
+    if (item is PublisherEntity) {
+      return item.name;
+    }
+    if (item is ReaderEntity) {
+      return item.name;
+    }
+    if (item is SequenceEntity) {
+      return item.name;
+    }
+    if (item is SequenceVolumeEntity) {
+      return item.volume;
+    }
+    return '';
+  }
+
+  String _getEditRoute(Object item) {
+    if (item is BookEntity) {
+      return '/books/upsert';
+    }
+    if (item is WorkEntity) {
+      return '/works/upsert';
+    }
+    if (item is CreatorEntity) {
+      return '/creators/upsert';
+    }
+    if (item is PublisherEntity) {
+      return '/publishers/upsert';
+    }
+    if (item is ReaderEntity) {
+      return '/readers/upsert';
+    }
+    if (item is SequenceEntity) {
+      return '/sequences/upsert';
+    }
+    if (item is SequenceVolumeEntity) {
+      return '/sequence_volumes/upsert';
+    }
+    return '';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -560,329 +670,78 @@ class _EntityQualityTabState extends ConsumerState<_EntityQualityTab> {
     final bool isDark = theme.brightness == Brightness.dark;
     final Color redText = isDark ? const Color(0xFFEF9A9A) : const Color(0xFFC62828);
 
-    switch (widget.entity) {
-      case Entity.book:
-        final List<BookEntity>? books = ref.watch(booksStreamProvider).value;
-
-        if (books == null) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final List<BookEntity> incomplete = books
-            .where((BookEntity b) => _missingForBook(b).isNotEmpty)
-            .toList();
-
-        if (incomplete.isEmpty) {
-          return _QualityListView<BookEntity>(
-            items: incomplete,
-            emptyLabel: 'All books have complete data',
-            tileBuilder: (BuildContext context, BookEntity book) => const SizedBox.shrink(),
-          );
-        }
-
-        final List<BookEntity> sortedAndFiltered = incomplete
-            .where((BookEntity b) {
-              if (_searchQuery.isEmpty) {
-                return true;
-              }
-              return b.title.toLowerCase().contains(_searchQuery.toLowerCase());
-            })
-            .toList()
-          ..sort((BookEntity a, BookEntity b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
-
-        return _buildLayout<BookEntity>(
-          items: sortedAndFiltered,
-          emptyLabel: 'All books have complete data',
-          tileBuilder: (BuildContext context, BookEntity book) => _QualityTile(
-            name: book.title,
-            missingChips: _missingForBook(book),
-            onEdit: () => context.push('/books/upsert', extra: book),
-            redText: redText,
-          ),
-        );
-      case Entity.work:
-        final List<WorkEntity>? works = ref.watch(worksStreamProvider).value;
-
-        if (works == null) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final List<WorkEntity> incomplete = works
-            .where((WorkEntity w) => _missingForWork(w).isNotEmpty)
-            .toList();
-
-        if (incomplete.isEmpty) {
-          return _QualityListView<WorkEntity>(
-            items: incomplete,
-            emptyLabel: 'All works have complete data',
-            tileBuilder: (BuildContext context, WorkEntity work) => const SizedBox.shrink(),
-          );
-        }
-
-        final List<WorkEntity> sortedAndFiltered = incomplete
-            .where((WorkEntity w) {
-              if (_searchQuery.isEmpty) {
-                return true;
-              }
-              return w.title.toLowerCase().contains(_searchQuery.toLowerCase());
-            })
-            .toList()
-          ..sort((WorkEntity a, WorkEntity b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
-
-        return _buildLayout<WorkEntity>(
-          items: sortedAndFiltered,
-          emptyLabel: 'All works have complete data',
-          tileBuilder: (BuildContext context, WorkEntity work) => _QualityTile(
-            name: work.title,
-            missingChips: _missingForWork(work),
-            onEdit: () => context.push('/works/upsert', extra: work),
-            redText: redText,
-          ),
-        );
-      case Entity.creator:
-        final List<CreatorEntity>? creators = ref.watch(creatorsStreamProvider).value;
-
-        if (creators == null) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final List<CreatorEntity> incomplete = creators
-            .where((CreatorEntity c) => _missingForCreator(c).isNotEmpty)
-            .toList();
-
-        if (incomplete.isEmpty) {
-          return _QualityListView<CreatorEntity>(
-            items: incomplete,
-            emptyLabel: 'All creators have complete data',
-            tileBuilder: (BuildContext context, CreatorEntity creator) => const SizedBox.shrink(),
-          );
-        }
-
-        final List<CreatorEntity> sortedAndFiltered = incomplete
-            .where((CreatorEntity c) {
-              if (_searchQuery.isEmpty) {
-                return true;
-              }
-              return c.name.toLowerCase().contains(_searchQuery.toLowerCase());
-            })
-            .toList()
-          ..sort((CreatorEntity a, CreatorEntity b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-
-        return _buildLayout<CreatorEntity>(
-          items: sortedAndFiltered,
-          emptyLabel: 'All creators have complete data',
-          tileBuilder: (BuildContext context, CreatorEntity creator) => _QualityTile(
-            name: creator.name,
-            missingChips: _missingForCreator(creator),
-            onEdit: () => context.push('/creators/upsert', extra: creator),
-            redText: redText,
-          ),
-        );
-      case Entity.duplicateCreator:
-        final List<CreatorEntity>? creators = ref.watch(creatorsStreamProvider).value;
-
-        if (creators == null) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final List<CreatorEntity> duplicates = _getDuplicateCreators(creators);
-
-        if (duplicates.isEmpty) {
-          return _QualityListView<CreatorEntity>(
-            items: duplicates,
-            emptyLabel: 'No duplicate creators found',
-            tileBuilder: (BuildContext context, CreatorEntity creator) => const SizedBox.shrink(),
-          );
-        }
-
-        final List<CreatorEntity> sortedAndFiltered = duplicates
-            .where((CreatorEntity c) {
-              if (_searchQuery.isEmpty) {
-                return true;
-              }
-              return c.name.toLowerCase().contains(_searchQuery.toLowerCase());
-            })
-            .toList()
-          ..sort((CreatorEntity a, CreatorEntity b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-
-        return _buildLayout<CreatorEntity>(
-          items: sortedAndFiltered,
-          emptyLabel: 'No duplicate creators found',
-          tileBuilder: (BuildContext context, CreatorEntity creator) => _QualityTile(
-            name: creator.name,
-            missingChips: const <String>['Duplicate Name'],
-            onEdit: () => context.push('/creators/upsert', extra: creator),
-            redText: redText,
-          ),
-        );
-      case Entity.publisher:
-        final List<PublisherEntity>? publishers = ref.watch(publishersStreamProvider).value;
-
-        if (publishers == null) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final List<PublisherEntity> incomplete = publishers
-            .where((PublisherEntity p) => _missingForPublisher(p).isNotEmpty)
-            .toList();
-
-        if (incomplete.isEmpty) {
-          return _QualityListView<PublisherEntity>(
-            items: incomplete,
-            emptyLabel: 'All publishers have complete data',
-            tileBuilder: (BuildContext context, PublisherEntity publisher) => const SizedBox.shrink(),
-          );
-        }
-
-        final List<PublisherEntity> sortedAndFiltered = incomplete
-            .where((PublisherEntity p) {
-              if (_searchQuery.isEmpty) {
-                return true;
-              }
-              return p.name.toLowerCase().contains(_searchQuery.toLowerCase());
-            })
-            .toList()
-          ..sort((PublisherEntity a, PublisherEntity b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-
-        return _buildLayout<PublisherEntity>(
-          items: sortedAndFiltered,
-          emptyLabel: 'All publishers have complete data',
-          tileBuilder: (BuildContext context, PublisherEntity publisher) => _QualityTile(
-            name: publisher.name,
-            missingChips: _missingForPublisher(publisher),
-            onEdit: () => context.push('/publishers/upsert', extra: publisher),
-            redText: redText,
-          ),
-        );
-      case Entity.reader:
-        final List<ReaderEntity>? readers = ref.watch(readersStreamProvider).value;
-
-        if (readers == null) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final List<ReaderEntity> incomplete = readers
-            .where((ReaderEntity r) => _missingForReader(r).isNotEmpty)
-            .toList();
-
-        if (incomplete.isEmpty) {
-          return _QualityListView<ReaderEntity>(
-            items: incomplete,
-            emptyLabel: 'All readers have complete data',
-            tileBuilder: (BuildContext context, ReaderEntity reader) => const SizedBox.shrink(),
-          );
-        }
-
-        final List<ReaderEntity> sortedAndFiltered = incomplete
-            .where((ReaderEntity r) {
-              if (_searchQuery.isEmpty) {
-                return true;
-              }
-              return r.name.toLowerCase().contains(_searchQuery.toLowerCase());
-            })
-            .toList()
-          ..sort((ReaderEntity a, ReaderEntity b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-
-        return _buildLayout<ReaderEntity>(
-          items: sortedAndFiltered,
-          emptyLabel: 'All readers have complete data',
-          tileBuilder: (BuildContext context, ReaderEntity reader) => _QualityTile(
-            name: reader.name,
-            missingChips: _missingForReader(reader),
-            onEdit: () => context.push('/readers/upsert', extra: reader),
-            redText: redText,
-          ),
-        );
-      case Entity.sequence:
-        final List<SequenceEntity>? sequences = ref.watch(sequencesStreamProvider).value;
-
-        if (sequences == null) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final List<SequenceEntity> incomplete = sequences
-            .where((SequenceEntity s) => _missingForSequence(s).isNotEmpty)
-            .toList();
-
-        if (incomplete.isEmpty) {
-          return _QualityListView<SequenceEntity>(
-            items: incomplete,
-            emptyLabel: 'All sequences have complete data',
-            tileBuilder: (BuildContext context, SequenceEntity sequence) => const SizedBox.shrink(),
-          );
-        }
-
-        final List<SequenceEntity> sortedAndFiltered = incomplete
-            .where((SequenceEntity s) {
-              if (_searchQuery.isEmpty) {
-                return true;
-              }
-              return s.name.toLowerCase().contains(_searchQuery.toLowerCase());
-            })
-            .toList()
-          ..sort((SequenceEntity a, SequenceEntity b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-
-        return _buildLayout<SequenceEntity>(
-          items: sortedAndFiltered,
-          emptyLabel: 'All sequences have complete data',
-          tileBuilder: (BuildContext context, SequenceEntity sequence) => _QualityTile(
-            name: sequence.name,
-            missingChips: _missingForSequence(sequence),
-            onEdit: () => context.push('/sequences/upsert', extra: sequence),
-            redText: redText,
-          ),
-        );
-      case Entity.sequenceVolume:
-        final List<SequenceVolumeEntity>? sequenceVolumes = ref
-            .watch(allSequenceVolumesStreamProvider)
-            .value;
-
-        if (sequenceVolumes == null) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final List<SequenceVolumeEntity> incomplete = sequenceVolumes
-            .where((SequenceVolumeEntity sv) => _missingForSequenceVolume(sv).isNotEmpty)
-            .toList();
-
-        if (incomplete.isEmpty) {
-          return _QualityListView<SequenceVolumeEntity>(
-            items: incomplete,
-            emptyLabel: 'All sequence volumes have complete data',
-            tileBuilder: (BuildContext context, SequenceVolumeEntity sequenceVolume) => const SizedBox.shrink(),
-          );
-        }
-
-        final List<SequenceVolumeEntity> sortedAndFiltered = incomplete
-            .where((SequenceVolumeEntity sv) {
-              if (_searchQuery.isEmpty) {
-                return true;
-              }
-              return sv.volume.toLowerCase().contains(_searchQuery.toLowerCase());
-            })
-            .toList()
-          ..sort((SequenceVolumeEntity a, SequenceVolumeEntity b) => a.volume.toLowerCase().compareTo(b.volume.toLowerCase()));
-
-        return _buildLayout<SequenceVolumeEntity>(
-          items: sortedAndFiltered,
-          emptyLabel: 'All sequence volumes have complete data',
-          tileBuilder: (BuildContext context, SequenceVolumeEntity sequenceVolume) => _QualityTile(
-            name: sequenceVolume.volume,
-            missingChips: _missingForSequenceVolume(sequenceVolume),
-            onEdit: () => context.push('/sequence_volumes/upsert', extra: sequenceVolume),
-            redText: redText,
-          ),
-        );
+    final List<Object>? rawItems = _getItemsForEntity(widget.entity, ref);
+    if (rawItems == null) {
+      return const Center(child: CircularProgressIndicator());
     }
+
+    final List<Object> incomplete = rawItems
+        .where((Object item) => _getMissingForEntityItem(item).isNotEmpty)
+        .toList();
+
+    if (incomplete.isEmpty) {
+      return _QualityListView<Object>(
+        items: incomplete,
+        emptyLabel: 'All ${widget.entity.clientPluralValue.toLowerCase()} have complete data',
+        tileBuilder: (BuildContext context, Object item) => const SizedBox.shrink(),
+      );
+    }
+
+    final Map<String, int> chipCounts = <String, int>{};
+    for (final Object item in incomplete) {
+      for (final String chip in _getMissingForEntityItem(item)) {
+        chipCounts[chip] = (chipCounts[chip] ?? 0) + 1;
+      }
+    }
+
+    // Automatically remove selected chips that are no longer missing in any items
+    _selectedFilterChips.removeWhere((String chip) => !chipCounts.containsKey(chip));
+
+    final List<Object> sortedAndFiltered = incomplete.where((Object item) {
+      final String name = _getItemName(item);
+      final bool matchesSearch =
+          _searchQuery.isEmpty || name.toLowerCase().contains(_searchQuery.toLowerCase());
+      if (!matchesSearch) {
+        return false;
+      }
+      if (_selectedFilterChips.isEmpty) {
+        return true;
+      }
+      final List<String> missing = _getMissingForEntityItem(item);
+      return _selectedFilterChips.every((String chip) => missing.contains(chip));
+    }).toList()
+      ..sort(
+        (Object a, Object b) =>
+            _getItemName(a).toLowerCase().compareTo(_getItemName(b).toLowerCase()),
+      );
+
+    return _buildLayout<Object>(
+      allIncompleteItems: incomplete,
+      items: sortedAndFiltered,
+      chipCounts: chipCounts,
+      emptyLabel: 'All ${widget.entity.clientPluralValue.toLowerCase()} have complete data',
+      tileBuilder: (BuildContext context, Object item) => _QualityTile(
+        name: _getItemName(item),
+        missingChips: _getMissingForEntityItem(item),
+        onEdit: () => context.push(_getEditRoute(item), extra: item),
+        redText: redText,
+      ),
+    );
   }
 
   Widget _buildLayout<T>({
+    required List<T> allIncompleteItems,
     required List<T> items,
+    required Map<String, int> chipCounts,
     required Widget Function(BuildContext context, T item) tileBuilder,
     required String emptyLabel,
   }) {
     final ThemeData theme = ref.watch(activeThemeDataProvider);
     final ColorScheme colorScheme = theme.colorScheme;
+    final bool isDark = theme.brightness == Brightness.dark;
+    final Color redText = isDark ? const Color(0xFFEF9A9A) : const Color(0xFFC62828);
+
+    final List<String> sortedChips = chipCounts.keys.toList()..sort();
 
     return Column(
       children: <Widget>[
@@ -893,14 +752,68 @@ class _EntityQualityTabState extends ConsumerState<_EntityQualityTab> {
             });
           },
         ),
+        if (sortedChips.isNotEmpty)
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            child: Row(
+              children: sortedChips.map((String chip) {
+                final bool isSelected = _selectedFilterChips.contains(chip);
+                final int count = chipCounts[chip] ?? 0;
+
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: FilterChip(
+                    label: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Text(chip),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? redText.withValues(alpha: 0.2)
+                                : colorScheme.onSurfaceVariant.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '$count',
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: isSelected ? redText : colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    selected: isSelected,
+                    onSelected: (bool selected) {
+                      setState(() {
+                        if (selected) {
+                          _selectedFilterChips.add(chip);
+                        } else {
+                          _selectedFilterChips.remove(chip);
+                        }
+                      });
+                    },
+                    selectedColor: redText.withValues(alpha: 0.2),
+                    checkmarkColor: redText,
+                    labelStyle: TextStyle(
+                      color: isSelected ? redText : colorScheme.onSurfaceVariant,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
         if (items.isEmpty)
           Expanded(
             child: Center(
               child: Text(
-                'No results match your search.',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+                'No results match your search or filter.',
+                style: theme.textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
               ),
             ),
           )

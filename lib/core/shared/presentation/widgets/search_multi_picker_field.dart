@@ -23,6 +23,8 @@ class SearchMultiPickerField<T> extends ConsumerStatefulWidget {
     this.onChipPressed,
     this.onBeforeAdd,
     this.extraSearchLabels,
+    this.filterItems,
+    this.sortComparator,
   });
 
   final String label;
@@ -37,6 +39,8 @@ class SearchMultiPickerField<T> extends ConsumerStatefulWidget {
   final void Function(T)? onChipPressed;
   final Future<bool> Function(T)? onBeforeAdd;
   final List<String?> Function(T)? extraSearchLabels;
+  final List<T> Function(List<T>)? filterItems;
+  final int Function(T, T)? sortComparator;
 
   @override
   ConsumerState<SearchMultiPickerField<T>> createState() => _SearchMultiPickerFieldState<T>();
@@ -127,6 +131,8 @@ class _SearchMultiPickerFieldState<T> extends ConsumerState<SearchMultiPickerFie
         onAdd: widget.onAdd,
         onBeforeAdd: widget.onBeforeAdd,
         extraSearchLabels: widget.extraSearchLabels,
+        filterItems: widget.filterItems,
+        sortComparator: widget.sortComparator,
       ),
     );
   }
@@ -143,6 +149,8 @@ class _MultiPickerSheet<T> extends ConsumerStatefulWidget {
     this.itemKey,
     this.onBeforeAdd,
     this.extraSearchLabels,
+    this.filterItems,
+    this.sortComparator,
   });
 
   final String label;
@@ -154,6 +162,8 @@ class _MultiPickerSheet<T> extends ConsumerStatefulWidget {
   final Object Function(T)? itemKey;
   final Future<bool> Function(T)? onBeforeAdd;
   final List<String?> Function(T)? extraSearchLabels;
+  final List<T> Function(List<T>)? filterItems;
+  final int Function(T, T)? sortComparator;
 
   @override
   ConsumerState<_MultiPickerSheet<T>> createState() => _MultiPickerSheetState<T>();
@@ -258,8 +268,11 @@ class _MultiPickerSheetState<T> extends ConsumerState<_MultiPickerSheet<T>> {
           Expanded(
             child: itemsAsync.when(
               data: (List<T> items) {
-                final List<T> sortedItems = items.toList()
-                  ..sort((T a, T b) => widget.itemLabel(a).compareTo(widget.itemLabel(b)));
+                final List<T> preFiltered = widget.filterItems != null
+                    ? widget.filterItems!(items)
+                    : items;
+                final List<T> sortedItems = preFiltered.toList()
+                  ..sort(widget.sortComparator ?? (T a, T b) => widget.itemLabel(a).compareTo(widget.itemLabel(b)));
 
                 final List<T> filtered = sortedItems.where((T e) {
                   final bool matchesLabel = widget.itemLabel(e).toLowerCase().contains(_query);

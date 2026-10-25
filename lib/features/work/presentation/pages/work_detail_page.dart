@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/shared/presentation/pages/image_viewer_page.dart';
 import '../../../../core/shared/presentation/utils/dialogs.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/shared/presentation/widgets/detail_section.dart';
@@ -120,23 +121,36 @@ class WorkDetailPage extends ConsumerWidget {
                                   final String? cover = book?.cover;
 
                                   return cover != null && cover.isNotEmpty
-                                      ? ConstrainedBox(
-                                          constraints: const BoxConstraints(
-                                            maxHeight: 320,
-                                            maxWidth: 240,
-                                          ),
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.circular(4),
-                                              border: Border.all(
-                                                color: theme.colorScheme.outlineVariant,
+                                      ? Tooltip(
+                                          message: 'View maximized cover',
+                                          child: MouseRegion(
+                                            cursor: SystemMouseCursors.click,
+                                            child: GestureDetector(
+                                              onTap: () => ImageViewerPage.open(
+                                                context,
+                                                imageSource: cover,
+                                                title: work.title,
                                               ),
-                                            ),
-                                            child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(3),
-                                              child: Image(
-                                                image: Images.getImageProvider(cover),
-                                                fit: BoxFit.contain,
+                                              child: ConstrainedBox(
+                                                constraints: const BoxConstraints(
+                                                  maxHeight: 320,
+                                                  maxWidth: 240,
+                                                ),
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: BorderRadius.circular(4),
+                                                    border: Border.all(
+                                                      color: theme.colorScheme.outlineVariant,
+                                                    ),
+                                                  ),
+                                                  child: ClipRRect(
+                                                    borderRadius: BorderRadius.circular(3),
+                                                    child: Image(
+                                                      image: Images.getImageProvider(cover),
+                                                      fit: BoxFit.contain,
+                                                    ),
+                                                  ),
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -276,10 +290,16 @@ class WorkDetailPage extends ConsumerWidget {
                       showDivider: false,
                       children: <Widget>[
                         DetailTile(
-                          label: 'To Be Translated',
-                          value: work.toBeTranslated ? 'Yes' : 'No',
+                          label: 'Is Translation',
+                          value: work.isTranslation ? 'Yes' : 'No',
                           leadingIcon: FontAwesomeIcons.language,
                         ),
+                        if (work.isTranslation)
+                          DetailTile(
+                            label: 'To Be Translated',
+                            value: work.toBeTranslated ? 'Yes' : 'No',
+                            leadingIcon: FontAwesomeIcons.language,
+                          ),
                         DetailTile(
                           label: 'Content Category',
                           value: work.contentCategory.clientValue,

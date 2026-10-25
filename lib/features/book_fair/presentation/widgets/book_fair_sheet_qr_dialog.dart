@@ -74,7 +74,7 @@ class BookFairSheetQrDialog extends ConsumerWidget {
             else if (syncState.sheetUrl != null) ...<Widget>[
               // Instructional text
               Text(
-                'Scan the QR code to open the Google Sheet on another device.',
+                'Scan the QR code to open the shopping list on another device.',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
               ),

@@ -9,6 +9,7 @@ import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../../../core/shared/presentation/utils/validators.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
+import '../../../creator/data/models/creator_model.dart';
 import '../../../creator/domain/entities/creator_entity.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../domain/entities/book_entity.dart';
@@ -82,7 +83,9 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
     final BookEntity b = widget.scannedBook.book;
 
     _titleController = TextEditingController(text: b.title);
-    _isbnController = TextEditingController(text: b.isbn ?? '');
+    final String initialIsbn = b.isbn ?? '';
+    final String formattedIsbn = Validators.convertIsbn10To13(initialIsbn) ?? initialIsbn;
+    _isbnController = TextEditingController(text: formattedIsbn);
     _originalTitleController = TextEditingController(text: b.originalTitle ?? '');
 
     if (b.title.isNotEmpty) {
@@ -106,26 +109,42 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
     }
 
     // Initialize entity matching and controllers
+    final List<CreatorModel> existingCreatorModels =
+        widget.existingCreators.map(CreatorModel.fromEntity).toList();
+    final Map<String, CreatorEntity> creatorMap = <String, CreatorEntity>{
+      for (final CreatorEntity c in widget.existingCreators) c.id: c,
+    };
+
     for (final ScannedNameEntity sn in widget.scannedBook.authors) {
       _authorNameControllers[sn.name] = TextEditingController(text: sn.name);
       _authorOtherNameControllers[sn.name] = TextEditingController(text: sn.otherName ?? '');
-      _authorSelections[sn.name] = _findBestMatch(
-        sn.name,
-        widget.existingCreators,
-        (CreatorEntity a) => a.name,
-        (CreatorEntity a) => a.otherName,
+      final CreatorModel? matched = findExistingCreator(
+        <String, dynamic>{'name': sn.name, 'otherName': sn.otherName},
+        existingCreatorModels,
       );
+      _authorSelections[sn.name] = (matched != null ? creatorMap[matched.id] : null) ??
+          _findBestMatch(
+            sn.name,
+            widget.existingCreators,
+            (CreatorEntity a) => a.name,
+            (CreatorEntity a) => a.otherName,
+          );
     }
 
     for (final ScannedNameEntity sn in widget.scannedBook.translators) {
       _translatorNameControllers[sn.name] = TextEditingController(text: sn.name);
       _translatorOtherNameControllers[sn.name] = TextEditingController(text: sn.otherName ?? '');
-      _translatorSelections[sn.name] = _findBestMatch(
-        sn.name,
-        widget.existingCreators,
-        (CreatorEntity t) => t.name,
-        (CreatorEntity t) => t.otherName,
+      final CreatorModel? matched = findExistingCreator(
+        <String, dynamic>{'name': sn.name, 'otherName': sn.otherName},
+        existingCreatorModels,
       );
+      _translatorSelections[sn.name] = (matched != null ? creatorMap[matched.id] : null) ??
+          _findBestMatch(
+            sn.name,
+            widget.existingCreators,
+            (CreatorEntity t) => t.name,
+            (CreatorEntity t) => t.otherName,
+          );
     }
 
     if (widget.scannedBook.publisher != null) {
@@ -207,6 +226,9 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
       final double score = _similarity(detectedKey, getName(item));
       return score > 0.6;
     }).toList();
+    if (currentSelection is T && !possibleMatches.contains(currentSelection)) {
+      possibleMatches.insert(0, currentSelection);
+    }
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
@@ -277,82 +299,112 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
   }
 
   Widget _buildEditableTile(String key, String title, TextEditingController controller) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 4.0),
-    child: Row(
-      children: <Widget>[
-        Checkbox(
-          value: _approvals[key] ?? false,
-          onChanged: (bool? val) {
-            if (val != null) {
-              setState(() => _approvals[key] = val);
-            }
-          },
-        ),
-        Expanded(
-          child: TextFormField(
-            controller: controller,
-            decoration: InputDecoration(labelText: title, isDense: true),
-            maxLength: key == 'isbn' ? 13 : null,
-            buildCounter: key == 'isbn'
-                ? (
-                    BuildContext context, {
-                    required int currentLength,
-                    required int? maxLength,
-                    required bool isFocused,
-                  }) {
-                    final String text = controller.text;
-                    final String clean = text.replaceAll(RegExp(r'[-\s]'), '').toUpperCase();
+        padding: const EdgeInsets.symmetric(vertical: 4.0),
+        child: Row(
+          children: <Widget>[
+            Checkbox(
+              value: _approvals[key] ?? false,
+              onChanged: (bool? val) {
+                if (val != null) {
+                  setState(() => _approvals[key] = val);
+                }
+              },
+            ),
+            Expanded(
+              child: TextFormField(
+                controller: controller,
+                decoration: InputDecoration(
+                  labelText: title,
+                  isDense: true,
+                  suffix: key == 'isbn'
+                      ? Builder(
+                          builder: (BuildContext context) {
+                            final String text = controller.text;
+                            final String clean = text.replaceAll(RegExp(r'[-\s]'), '').toUpperCase();
+                            final bool isValid = Validators.isValidIsbn13(clean);
+                            final String emoji = isValid ? '🟢' : '🔴';
 
-                    final String label;
-                    final bool isValid;
-                    if (clean.length <= 10) {
-                      label = 'ISBN10';
-                      isValid = Validators.isValidIsbn10(clean);
-                    } else {
-                      label = 'ISBN13';
-                      isValid = Validators.isValidIsbn13(clean);
-                    }
-
-                    final String emoji = isValid ? '🟢' : '🔴';
-
-                    return Text(
-                      '$label $emoji',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                    );
+                            return Text(
+                              'ISBN13 $emoji',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            );
+                          },
+                        )
+                      : null,
+                ),
+                maxLength: key == 'isbn' ? 13 : null,
+                buildCounter: key == 'isbn'
+                    ? (
+                        BuildContext context, {
+                        required int currentLength,
+                        required int? maxLength,
+                        required bool isFocused,
+                      }) =>
+                        null
+                    : null,
+                keyboardType: key == 'isbn' ? TextInputType.number : null,
+                inputFormatters: key == 'isbn'
+                    ? <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly]
+                    : null,
+                onChanged: (String val) {
+                  if (!(_approvals[key] ?? false) && val.isNotEmpty) {
+                    _approvals[key] = true;
                   }
-                : null,
-            keyboardType: key == 'isbn' ? TextInputType.number : null,
-            inputFormatters: key == 'isbn'
-                ? <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly]
-                : null,
-            onChanged: (String val) {
-              if (!(_approvals[key] ?? false) && val.isNotEmpty) {
-                setState(() => _approvals[key] = true);
-              }
-            },
-          ),
+                  setState(() {});
+                },
+              ),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
+      );
 
   Widget _buildStaticTile(String key, String title, String subtitle, ThemeData theme) {
     if (!_approvals.containsKey(key)) {
       return const SizedBox.shrink();
     }
-    return CheckboxListTile(
-      title: Text(title, style: theme.textTheme.titleMedium),
-      subtitle: Text(subtitle, style: TextStyle(color: theme.colorScheme.primary)),
-      value: _approvals[key] ?? false,
-      onChanged: (bool? val) {
-        if (val != null) {
-          setState(() => _approvals[key] = val);
-        }
-      },
-      contentPadding: EdgeInsets.zero,
-      controlAffinity: ListTileControlAffinity.leading,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        children: <Widget>[
+          Checkbox(
+            value: _approvals[key] ?? false,
+            onChanged: (bool? val) {
+              if (val != null) {
+                setState(() => _approvals[key] = val);
+              }
+            },
+          ),
+          Expanded(
+            child: InkWell(
+              onTap: () {
+                final bool current = _approvals[key] ?? false;
+                setState(() => _approvals[key] = !current);
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(
+                    title,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -458,15 +510,20 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
         TextButton(onPressed: () => context.pop(), child: const Text('Cancel')),
         FilledButton(
           onPressed: () {
+            final String rawIsbn = _isbnController.text.trim();
+            final String? finalIsbn = (_approvals['isbn'] ?? false)
+                ? (Validators.convertIsbn10To13(rawIsbn) ?? (rawIsbn.isEmpty ? null : rawIsbn))
+                : null;
+
             final BookEntity approvedBook = BookEntity(
               id: b.id,
-              title: (_approvals['title'] ?? false) ? _titleController.text : '',
+              title: (_approvals['title'] ?? false) ? _titleController.text.trim() : '',
               compilationType: b.compilationType,
               isTranslation: _approvals['isTranslation'] ?? false,
               toBeTranslated: false,
-              isbn: (_approvals['isbn'] ?? false) ? _isbnController.text : null,
+              isbn: finalIsbn,
               originalTitle: (_approvals['originalTitle'] ?? false)
-                  ? _originalTitleController.text
+                  ? _originalTitleController.text.trim()
                   : null,
               language: (_approvals['language'] ?? false) ? b.language : null,
               originalLanguage: (_approvals['originalLanguage'] ?? false)
@@ -480,6 +537,9 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
               translatorIds: b.translatorIds,
               workIds: b.workIds,
               sequenceVolumeIds: b.sequenceVolumeIds,
+              notForSale: false,
+              isSigned: false,
+              hasBookmark: false,
               createdDate: b.createdDate,
               lastUpdated: b.lastUpdated,
             );

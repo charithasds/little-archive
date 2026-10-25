@@ -64,9 +64,10 @@ class BackupService {
       }
       
       final Uint8List bytes = builder.toBytes();
+      final String timestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
       final String? savePath = await FilePicker.saveFile(
         dialogTitle: 'Save database backup',
-        fileName: 'little_archive_backup.db',
+        fileName: 'little_archive_backup_$timestamp.db',
         bytes: bytes,
       );
       

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -69,7 +69,7 @@ class _BookFairSyncDialogState extends ConsumerState<BookFairSyncDialog> {
                 children: <Widget>[
                   CircularProgressIndicator(),
                   SizedBox(height: 16),
-                  Text('Checking for updates from Google Sheets...'),
+                  Text('Checking for updates from Google Drive...'),
                 ],
               )
             else if (syncState.status == BookFairSyncStatus.error)

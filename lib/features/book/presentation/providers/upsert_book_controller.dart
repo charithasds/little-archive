@@ -164,6 +164,10 @@ class UpsertBookController extends _$UpsertBookController {
     Map<SequenceEntity, String> sequenceEntries = const <SequenceEntity, String>{},
     String? publisherId,
     String? readerId,
+    bool notForSale = false,
+    bool isSigned = false,
+    DateTime? signedDate,
+    bool hasBookmark = false,
     bool applyToWorks = false,
   }) async {
     state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
@@ -178,6 +182,15 @@ class UpsertBookController extends _$UpsertBookController {
       if (compressedCover != state.pickedBase64Image) {
         state = state.copyWith(pickedBase64Image: Nullable<String?>(compressedCover));
       }
+
+      final CollectionStatus effectiveStatus = toBeTranslated
+          ? CollectionStatus.announced
+          : (collectionStatus ?? existingBook?.collectionStatus ?? CollectionStatus.collected);
+      final bool isPhysicalStatus =
+          effectiveStatus == CollectionStatus.collected || effectiveStatus == CollectionStatus.lended;
+      final bool effectiveIsSigned = isPhysicalStatus && isSigned;
+      final DateTime? effectiveSignedDate = effectiveIsSigned ? signedDate : null;
+      final bool effectiveHasBookmark = isPhysicalStatus && hasBookmark;
 
       final BookEntity bookToSave = existingBook != null
           ? existingBook.copyWith(
@@ -209,6 +222,10 @@ class UpsertBookController extends _$UpsertBookController {
               sequenceVolumeIds: <String>[],
               publisherId: Nullable<String?>(publisherId),
               readerId: Nullable<String?>(readerId),
+              notForSale: notForSale,
+              isSigned: effectiveIsSigned,
+              signedDate: Nullable<DateTime?>(effectiveSignedDate),
+              hasBookmark: effectiveHasBookmark,
               lastUpdated: DateTime.now(),
             )
           : BookEntity(
@@ -239,6 +256,10 @@ class UpsertBookController extends _$UpsertBookController {
               sequenceVolumeIds: const <String>[],
               publisherId: publisherId,
               readerId: readerId,
+              notForSale: notForSale,
+              isSigned: effectiveIsSigned,
+              signedDate: effectiveSignedDate,
+              hasBookmark: effectiveHasBookmark,
               createdDate: DateTime.now(),
               lastUpdated: DateTime.now(),
             );

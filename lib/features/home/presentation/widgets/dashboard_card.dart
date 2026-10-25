@@ -239,8 +239,8 @@ class _DashboardCardState extends ConsumerState<DashboardCard> with SingleTicker
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: FittedBox(
-          child: AnimatedCountText(
-            count: widget.count!,
+          child: Text(
+            '${widget.count}',
             style: theme.textTheme.displayLarge?.copyWith(
               fontWeight: FontWeight.w900,
               color: fg,
@@ -269,13 +269,15 @@ class _DashboardCardState extends ConsumerState<DashboardCard> with SingleTicker
     }
 
     if (widget.showLoader) {
+      final double loaderSize = isSmallScreen ? 26 : 30;
       return Center(
         child: SizedBox(
-          width: 22,
-          height: 22,
+          width: loaderSize,
+          height: loaderSize,
           child: CircularProgressIndicator(
-            strokeWidth: 2.5,
-            valueColor: AlwaysStoppedAnimation<Color>(fg.withValues(alpha: 0.5)),
+            strokeWidth: 3.0,
+            strokeCap: StrokeCap.round,
+            color: fg,
           ),
         ),
       );
@@ -287,57 +289,119 @@ class _DashboardCardState extends ConsumerState<DashboardCard> with SingleTicker
   Widget _buildCountdownContent(ThemeData theme, Color fg, bool isSmallScreen, bool isLandscape) {
     final bool isDark = theme.brightness == Brightness.dark;
     final bool isCountup = _tickingLabel == 'AGO';
+    final bool isEnding = _tickingLabel == 'ENDS IN';
 
-    final Color segmentBg = isCountup
-        ? (isDark
-              ? const Color(0xFFC62828).withValues(alpha: 0.2)
-              : const Color(0xFFFFCDD2).withValues(alpha: 0.5))
-        : (isDark
-              ? const Color(0xFF1B5E20).withValues(alpha: 0.2)
-              : const Color(0xFFC8E6C9).withValues(alpha: 0.5));
+    final Color segmentBg;
+    final Color segmentBorder;
+    final Color segmentText;
+    final Color labelColor;
+    final Color badgeBg;
+    final Color badgeBorder;
+    final Color? dotColor;
+    final Color? dotGlow;
 
-    final Color segmentBorder = isCountup
-        ? (isDark
-              ? const Color(0xFFC62828).withValues(alpha: 0.4)
-              : const Color(0xFFE57373).withValues(alpha: 0.4))
-        : (isDark
-              ? const Color(0xFF1B5E20).withValues(alpha: 0.4)
-              : const Color(0xFF81C784).withValues(alpha: 0.4));
-
-    final Color segmentText = isCountup
-        ? (isDark ? const Color(0xFFFFEBEE) : const Color(0xFFB71C1C))
-        : (isDark ? const Color(0xFFE8F5E9) : const Color(0xFF1B5E20));
-
-    final Color labelColor = isCountup
-        ? (isDark ? const Color(0xFFFFEBEE) : const Color(0xFFB71C1C))
-        : (isDark ? const Color(0xFFE8F5E9) : const Color(0xFF1B5E20));
-
-    final Color badgeBg = isCountup
-        ? (isDark
-              ? const Color(0xFFC62828).withValues(alpha: 0.3)
-              : const Color(0xFFFFCDD2).withValues(alpha: 0.7))
-        : (isDark
-              ? const Color(0xFF1B5E20).withValues(alpha: 0.3)
-              : const Color(0xFFC8E6C9).withValues(alpha: 0.7));
+    if (isCountup) {
+      segmentBg = isDark
+          ? const Color(0xFFC62828).withValues(alpha: 0.2)
+          : const Color(0xFFFFCDD2).withValues(alpha: 0.5);
+      segmentBorder = isDark
+          ? const Color(0xFFC62828).withValues(alpha: 0.4)
+          : const Color(0xFFE57373).withValues(alpha: 0.4);
+      segmentText = isDark ? const Color(0xFFFFEBEE) : const Color(0xFFB71C1C);
+      labelColor = isDark ? const Color(0xFFFFEBEE) : const Color(0xFFB71C1C);
+      badgeBg = isDark
+          ? const Color(0xFFC62828).withValues(alpha: 0.3)
+          : const Color(0xFFFFCDD2).withValues(alpha: 0.7);
+      badgeBorder = isDark
+          ? const Color(0xFFE57373).withValues(alpha: 0.4)
+          : const Color(0xFFEF9A9A).withValues(alpha: 0.5);
+      dotColor = null;
+      dotGlow = null;
+    } else if (isEnding) {
+      segmentBg = isDark
+          ? const Color(0xFFE65100).withValues(alpha: 0.22)
+          : const Color(0xFFFFF3E0).withValues(alpha: 0.8);
+      segmentBorder = isDark
+          ? const Color(0xFFFF9800).withValues(alpha: 0.5)
+          : const Color(0xFFFFB74D).withValues(alpha: 0.6);
+      segmentText = isDark ? const Color(0xFFFFF3E0) : const Color(0xFFBF360C);
+      labelColor = isDark ? const Color(0xFFFFCC80) : const Color(0xFFBF360C);
+      badgeBg = isDark
+          ? const Color(0xFFE65100).withValues(alpha: 0.35)
+          : const Color(0xFFFFE082).withValues(alpha: 0.65);
+      badgeBorder = isDark
+          ? const Color(0xFFFFB74D).withValues(alpha: 0.85)
+          : const Color(0xFFFFB74D);
+      dotColor = isDark ? const Color(0xFFFF9100) : const Color(0xFFE65100);
+      dotGlow = isDark
+          ? const Color(0xFFFF6D00).withValues(alpha: 0.8)
+          : const Color(0xFFFF9800).withValues(alpha: 0.5);
+    } else {
+      segmentBg = isDark
+          ? const Color(0xFF1B5E20).withValues(alpha: 0.2)
+          : const Color(0xFFC8E6C9).withValues(alpha: 0.5);
+      segmentBorder = isDark
+          ? const Color(0xFF1B5E20).withValues(alpha: 0.4)
+          : const Color(0xFF81C784).withValues(alpha: 0.4);
+      segmentText = isDark ? const Color(0xFFE8F5E9) : const Color(0xFF1B5E20);
+      labelColor = isDark ? const Color(0xFFE8F5E9) : const Color(0xFF1B5E20);
+      badgeBg = isDark
+          ? const Color(0xFF1B5E20).withValues(alpha: 0.3)
+          : const Color(0xFFC8E6C9).withValues(alpha: 0.7);
+      badgeBorder = isDark
+          ? const Color(0xFF81C784).withValues(alpha: 0.4)
+          : const Color(0xFFA5D6A7).withValues(alpha: 0.5);
+      dotColor = null;
+      dotGlow = null;
+    }
 
     final Widget badge = Container(
       padding: EdgeInsets.symmetric(
-        horizontal: isSmallScreen ? 8 : 10,
+        horizontal: isSmallScreen ? (isEnding ? 10 : 8) : (isEnding ? 12 : 10),
         vertical: isSmallScreen ? 3 : 4,
       ),
       decoration: BoxDecoration(
         color: badgeBg,
-        borderRadius: BorderRadius.circular(isSmallScreen ? 6 : 8),
-      ),
-      child: Text(
-        _tickingLabel ?? 'COUNTDOWN',
-        style: theme.textTheme.labelSmall?.copyWith(
-          fontWeight: FontWeight.w900,
-          color: labelColor,
-          letterSpacing: isSmallScreen ? 0.6 : 0.8,
-          fontSize: isSmallScreen ? 11 : 10,
-          height: 1.0,
+        borderRadius: BorderRadius.circular(isEnding ? 20 : (isSmallScreen ? 6 : 8)),
+        border: Border.all(
+          color: badgeBorder,
+          width: isEnding ? 1.2 : 1.0,
         ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          if (dotColor != null) ...<Widget>[
+            Container(
+              width: isSmallScreen ? 6 : 7,
+              height: isSmallScreen ? 6 : 7,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: dotColor,
+                boxShadow: dotGlow != null
+                    ? <BoxShadow>[
+                        BoxShadow(
+                          color: dotGlow,
+                          blurRadius: 4,
+                          spreadRadius: 1,
+                        ),
+                      ]
+                    : null,
+              ),
+            ),
+            SizedBox(width: isSmallScreen ? 5 : 6),
+          ],
+          Text(
+            _tickingLabel ?? 'COUNTDOWN',
+            style: theme.textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.w900,
+              color: labelColor,
+              letterSpacing: isSmallScreen ? 0.6 : 0.8,
+              fontSize: isSmallScreen ? 11 : 10,
+              height: 1.0,
+            ),
+          ),
+        ],
       ),
     );
 
@@ -469,57 +533,5 @@ class _DashboardCardState extends ConsumerState<DashboardCard> with SingleTicker
         ),
       ],
     ),
-  );
-}
-
-class AnimatedCountText extends StatefulWidget {
-  const AnimatedCountText({super.key, required this.count, required this.style});
-
-  final int count;
-  final TextStyle? style;
-
-  @override
-  State<AnimatedCountText> createState() => _AnimatedCountTextState();
-}
-
-class _AnimatedCountTextState extends State<AnimatedCountText> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<int> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(duration: const Duration(milliseconds: 3000), vsync: this);
-    _animation = IntTween(
-      begin: 0,
-      end: widget.count,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
-    _controller.forward();
-  }
-
-  @override
-  void didUpdateWidget(covariant AnimatedCountText oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.count != widget.count) {
-      _animation = IntTween(
-        begin: oldWidget.count,
-        end: widget.count,
-      ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
-      _controller.reset();
-      _controller.forward();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => AnimatedBuilder(
-    animation: _animation,
-    builder: (BuildContext context, Widget? child) =>
-        Text(_animation.value.toString(), style: widget.style),
   );
 }

@@ -4,6 +4,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/shared/domain/enums/collection_status.dart';
+import '../../../../core/shared/presentation/pages/image_viewer_page.dart';
 import '../../../../core/shared/presentation/utils/dialogs.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../../../core/shared/presentation/utils/validators.dart';
@@ -137,23 +139,37 @@ class BookDetailPage extends ConsumerWidget {
                       child: Hero(
                         tag: 'book_${book.id}',
                         child: book.cover != null && book.cover!.isNotEmpty
-                            ? ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxHeight: 320,
-                                  maxWidth: 240,
-                                ),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(4),
-                                    border: Border.all(
-                                      color: theme.colorScheme.outlineVariant,
+                            ? Tooltip(
+                                message: 'View maximized cover',
+                                child: MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  child: GestureDetector(
+                                    onTap: () => ImageViewerPage.open(
+                                      context,
+                                      imageSource: book.cover!,
+                                      title: book.title,
+                                      heroTag: 'book_${book.id}',
                                     ),
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(3),
-                                    child: Image(
-                                      image: Images.getImageProvider(book.cover),
-                                      fit: BoxFit.contain,
+                                    child: ConstrainedBox(
+                                      constraints: const BoxConstraints(
+                                        maxHeight: 320,
+                                        maxWidth: 240,
+                                      ),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(4),
+                                          border: Border.all(
+                                            color: theme.colorScheme.outlineVariant,
+                                          ),
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(3),
+                                          child: Image(
+                                            image: Images.getImageProvider(book.cover),
+                                            fit: BoxFit.contain,
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -282,10 +298,16 @@ class BookDetailPage extends ConsumerWidget {
                       showDivider: false,
                       children: <Widget>[
                         DetailTile(
-                          label: 'To Be Translated',
-                          value: book.toBeTranslated ? 'Yes' : 'No',
+                          label: 'Is Translation',
+                          value: book.isTranslation ? 'Yes' : 'No',
                           leadingIcon: FontAwesomeIcons.language,
                         ),
+                        if (book.isTranslation)
+                          DetailTile(
+                            label: 'To Be Translated',
+                            value: book.toBeTranslated ? 'Yes' : 'No',
+                            leadingIcon: FontAwesomeIcons.language,
+                          ),
                         DetailTile(
                           label: 'Compilation Type',
                           value: book.compilationType.clientValue,
@@ -344,6 +366,12 @@ class BookDetailPage extends ConsumerWidget {
                             value: DateFormat('MMM d, yyyy').format(book.collectedDate!),
                             leadingIcon: FontAwesomeIcons.boxArchive,
                           ),
+                        if (book.collectionStatus == CollectionStatus.collected)
+                          DetailTile(
+                            label: 'Not For Sale',
+                            value: book.notForSale ? 'Yes' : 'No',
+                            leadingIcon: FontAwesomeIcons.ban,
+                          ),
                         if (book.lendedDate != null)
                           DetailTile(
                             label: 'Lended Date',
@@ -379,6 +407,25 @@ class BookDetailPage extends ConsumerWidget {
                             value: book.notes!,
                             leadingIcon: FontAwesomeIcons.noteSticky,
                           ),
+                        if (book.collectionStatus == CollectionStatus.collected ||
+                            book.collectionStatus == CollectionStatus.lended) ...<Widget>[
+                          DetailTile(
+                            label: 'Is Signed',
+                            value: book.isSigned ? 'Yes' : 'No',
+                            leadingIcon: FontAwesomeIcons.signature,
+                          ),
+                          if (book.isSigned && book.signedDate != null)
+                            DetailTile(
+                              label: 'Signed Date',
+                              value: DateFormat('MMM d, yyyy').format(book.signedDate!),
+                              leadingIcon: FontAwesomeIcons.calendarCheck,
+                            ),
+                          DetailTile(
+                            label: 'Has Bookmark',
+                            value: book.hasBookmark ? 'Yes' : 'No',
+                            leadingIcon: FontAwesomeIcons.bookmark,
+                          ),
+                        ],
                         DetailTile(
                           label: 'Created',
                           value: DetailTile.formatDate(book.createdDate),

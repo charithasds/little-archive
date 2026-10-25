@@ -5,17 +5,21 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/presentation/utils/dialogs.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
+import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/detail_section.dart';
 import '../../../../core/shared/presentation/widgets/detail_tile.dart';
+import '../../../../core/shared/presentation/widgets/entity_selection_dialog.dart';
 import '../../../../core/shared/presentation/widgets/list_empty_state.dart';
 import '../../../../core/shared/presentation/widgets/list_error_state.dart';
 import '../../../../core/shared/presentation/widgets/list_loading_state.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../book/domain/entities/book_entity.dart';
+import '../../../book/domain/usecases/book_usecases.dart';
 import '../../../book/presentation/providers/book_provider.dart';
 import '../../../book/presentation/widgets/book_list_tile.dart';
 import '../../../book/presentation/widgets/book_quick_info_dialog.dart';
 import '../../../work/domain/entities/work_entity.dart';
+import '../../../work/domain/usecases/work_usecases.dart';
 import '../../../work/presentation/providers/work_provider.dart';
 import '../../../work/presentation/widgets/work_list_tile.dart';
 import '../../../work/presentation/widgets/work_quick_info_dialog.dart';
@@ -23,35 +27,153 @@ import '../../domain/entities/sequence_entity.dart';
 import '../../domain/entities/sequence_volume_entity.dart';
 import '../../domain/usecases/sequence_usecases.dart';
 import '../providers/sequence_provider.dart';
+import '../widgets/sequence_number_dialog.dart';
 
 class SequenceDetailPage extends ConsumerWidget {
   const SequenceDetailPage({super.key, required this.sequenceId});
   final String sequenceId;
 
-  Future<void> _showAddBookVolumeSheet(
+  Future<void> _showAddBookVolumeDialog(
     BuildContext context,
     WidgetRef ref,
     SequenceEntity sequence,
   ) async {
-    await context.push(
-      '/books/upsert',
-      extra: <String, dynamic>{
-        'preselectedSequence': sequence,
-      },
+    final List<BookEntity>? books = ref.read(booksStreamProvider).value;
+    if (books == null || books.isEmpty) {
+      SnackBars.showError('No books available to select.');
+      return;
+    }
+
+    final BookEntity? selectedBook = await EntitySelectionDialog.showSingle<BookEntity>(
+      context: context,
+      title: 'Select Book',
+      items: books,
+      itemLabel: (BookEntity b) => b.title,
+      itemKey: (BookEntity b) => b.id,
+      icon: FontAwesomeIcons.book,
+      sortComparator: (BookEntity a, BookEntity b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
     );
+
+    if (selectedBook == null || !context.mounted) {
+      return;
+    }
+
+    final String? volumeNum = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) => SequenceNumberDialog(
+        sequenceName: sequence.name,
+      ),
+    );
+
+    if (volumeNum == null || volumeNum.trim().isEmpty) {
+      return;
+    }
+
+    final List<SequenceVolumeEntity> currentVolumes = ref.read(sequenceVolumesStreamProvider(sequence.id)).value ?? <SequenceVolumeEntity>[];
+    final Map<SequenceEntity, String> sequenceEntries = <SequenceEntity, String>{};
+
+    for (final SequenceVolumeEntity vol in currentVolumes) {
+      if (vol.bookId != null && vol.bookId!.isNotEmpty) {
+        if (vol.bookId == selectedBook.id) {
+          continue;
+        }
+      }
+    }
+
+    final AsyncValue<List<SequenceVolumeEntity>> allVolumesAsync = ref.read(allSequenceVolumesStreamProvider);
+    final List<SequenceVolumeEntity> bookExistingVolumes = (allVolumesAsync.value ?? <SequenceVolumeEntity>[])
+        .where((SequenceVolumeEntity v) => v.bookId == selectedBook.id)
+        .toList();
+
+    final AsyncValue<List<SequenceEntity>> allSequencesAsync = ref.read(sequencesStreamProvider);
+    final List<SequenceEntity> allSequences = allSequencesAsync.value ?? <SequenceEntity>[];
+
+    for (final SequenceVolumeEntity vol in bookExistingVolumes) {
+      final SequenceEntity? seq = allSequences.where((SequenceEntity s) => s.id == vol.sequenceId).firstOrNull;
+      if (seq != null) {
+        sequenceEntries[seq] = vol.volume;
+      }
+    }
+
+    sequenceEntries[sequence] = volumeNum.trim();
+
+    try {
+      await ref.read(upsertBookUseCaseProvider)(
+        book: selectedBook,
+        sequenceEntries: sequenceEntries,
+        isEdit: true,
+      );
+      SnackBars.showSuccess('Book volume added successfully');
+    } catch (e) {
+      SnackBars.showError('Failed to add book volume: $e');
+    }
   }
 
-  Future<void> _showAddWorkVolumeSheet(
+  Future<void> _showAddWorkVolumeDialog(
     BuildContext context,
     WidgetRef ref,
     SequenceEntity sequence,
   ) async {
-    await context.push(
-      '/works/upsert',
-      extra: <String, dynamic>{
-        'preselectedSequence': sequence,
-      },
+    final List<WorkEntity>? works = ref.read(worksStreamProvider).value;
+    if (works == null || works.isEmpty) {
+      SnackBars.showError('No works available to select.');
+      return;
+    }
+
+    final WorkEntity? selectedWork = await EntitySelectionDialog.showSingle<WorkEntity>(
+      context: context,
+      title: 'Select Work',
+      items: works,
+      itemLabel: (WorkEntity w) => w.title,
+      itemKey: (WorkEntity w) => w.id,
+      icon: FontAwesomeIcons.bookOpen,
+      sortComparator: (WorkEntity a, WorkEntity b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
     );
+
+    if (selectedWork == null || !context.mounted) {
+      return;
+    }
+
+    final String? volumeNum = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) => SequenceNumberDialog(
+        sequenceName: sequence.name,
+      ),
+    );
+
+    if (volumeNum == null || volumeNum.trim().isEmpty) {
+      return;
+    }
+
+    final AsyncValue<List<SequenceVolumeEntity>> allVolumesAsync = ref.read(allSequenceVolumesStreamProvider);
+    final List<SequenceVolumeEntity> workExistingVolumes = (allVolumesAsync.value ?? <SequenceVolumeEntity>[])
+        .where((SequenceVolumeEntity v) => v.workId == selectedWork.id)
+        .toList();
+
+    final AsyncValue<List<SequenceEntity>> allSequencesAsync = ref.read(sequencesStreamProvider);
+    final List<SequenceEntity> allSequences = allSequencesAsync.value ?? <SequenceEntity>[];
+
+    final Map<SequenceEntity, String> sequenceEntries = <SequenceEntity, String>{};
+
+    for (final SequenceVolumeEntity vol in workExistingVolumes) {
+      final SequenceEntity? seq = allSequences.where((SequenceEntity s) => s.id == vol.sequenceId).firstOrNull;
+      if (seq != null) {
+        sequenceEntries[seq] = vol.volume;
+      }
+    }
+
+    sequenceEntries[sequence] = volumeNum.trim();
+
+    try {
+      await ref.read(upsertWorkUseCaseProvider)(
+        work: selectedWork,
+        sequenceEntries: sequenceEntries,
+        isEdit: true,
+      );
+      SnackBars.showSuccess('Work volume added successfully');
+    } catch (e) {
+      SnackBars.showError('Failed to add work volume: $e');
+    }
   }
 
   Future<void> _handleRemove(BuildContext context, WidgetRef ref, SequenceEntity sequence) async {
@@ -204,12 +326,12 @@ class SequenceDetailPage extends ConsumerWidget {
                         IconButton(
                           icon: const FaIcon(FontAwesomeIcons.bookMedical, size: 20),
                           tooltip: 'Add Book Volume',
-                          onPressed: () => _showAddBookVolumeSheet(context, ref, sequence),
+                          onPressed: () => _showAddBookVolumeDialog(context, ref, sequence),
                         ),
                         IconButton(
                           icon: const FaIcon(FontAwesomeIcons.fileMedical, size: 20),
                           tooltip: 'Add Work Volume',
-                          onPressed: () => _showAddWorkVolumeSheet(context, ref, sequence),
+                          onPressed: () => _showAddWorkVolumeDialog(context, ref, sequence),
                         ),
                       ],
                       children: sequenceVolumes.map((SequenceVolumeEntity volume) {

@@ -198,13 +198,14 @@ class _BookFairSetupPageState extends ConsumerState<BookFairSetupPage> {
       return p1.name.compareTo(p2.name);
     });
 
-    final int alreadyMappedCount = filteredPublishers
-        .where(
-          (PublisherEntity p) =>
-              p.bookFairPublisherId != null &&
-              p.bookFairPublisherId!.startsWith('CIBF_${bookFairEvent.year}_'),
-        )
-        .length;
+    // Issue #2: read from the local map so the count updates immediately on
+    // every stall selection — before the Firestore write completes.
+    final int alreadyMappedCount = filteredPublishers.where((PublisherEntity p) {
+      final String? activeId = _publisherStallMap[p.id];
+      return activeId != null &&
+          activeId != 'none' &&
+          activeId.startsWith('CIBF_${bookFairEvent.year}_');
+    }).length;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -272,6 +273,7 @@ class _BookFairSetupPageState extends ConsumerState<BookFairSetupPage> {
                     },
                   ),
           ),
+          // Issue #1: Column layout so the counter sits above the button.
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -285,15 +287,16 @@ class _BookFairSetupPageState extends ConsumerState<BookFairSetupPage> {
               ],
             ),
             child: SafeArea(
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  Expanded(
-                    child: Text(
-                      '$alreadyMappedCount of ${filteredPublishers.length} Mapped',
-                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                    ),
+                  Text(
+                    '$alreadyMappedCount of ${filteredPublishers.length} Mapped',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(height: 10),
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: purplePrimary,

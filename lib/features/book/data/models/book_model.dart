@@ -29,6 +29,10 @@ class BookModel extends BookEntity {
     required super.sequenceVolumeIds,
     super.publisherId,
     super.readerId,
+    required super.notForSale,
+    required super.isSigned,
+    super.signedDate,
+    required super.hasBookmark,
     required super.createdDate,
     required super.lastUpdated,
   });

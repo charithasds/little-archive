@@ -1,9 +1,9 @@
 {
-  "id": "cibf_2025",
-  "year": 2025,
-  "title": "Colombo International Book Fair 2025",
-  "startDate": "2025-09-27T09:00:00+05:30",
-  "endDate": "2025-10-06T21:00:00+05:30",
+  "id": "cibf_2026",
+  "year": 2026,
+  "title": "Colombo International Book Fair 2026",
+  "startDate": "2026-09-25T09:00:00+05:30",
+  "endDate": "2026-10-04T21:00:00+05:30",
   "halls": [
     {
       "id": "A",
@@ -56,45 +56,62 @@
     {
       "id": "R",
       "name": "Hall R"
+    },
+    {
+      "id": "S",
+      "name": "Hall S"
+    },
+    {
+      "id": "T",
+      "name": "Hall T"
     }
   ],
   "stalls": [
     {
-      "id": "CIBF_2025_001",
-      "name": "ACADEMIC (INDIA) PUBLISHERS",
-      "stallNo": "C02",
-      "halls": [
-        "C"
-      ]
-    },
-    {
-      "id": "CIBF_2025_002",
-      "name": "අහස් ප්‍රකාශකයෝ",
-      "stallNo": "H37 - H50",
+      "id": "CIBF_2026_001",
+      "name": "AGAHAS PUBLISHERS",
+      "stallNo": "H12",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_003",
+      "id": "CIBF_2026_002",
+      "name": "AGASARA PUBLICATIONS",
+      "stallNo": "H100 - H101 / H120 - H121",
+      "halls": [
+        "H"
+      ]
+    },
+    {
+      "id": "CIBF_2026_003",
       "name": "AHAS PUBLISHERS",
-      "stallNo": "K31",
+      "stallNo": "K12",
       "halls": [
         "K"
       ]
     },
     {
-      "id": "CIBF_2025_004",
-      "name": "AKARSHA PUBLISHERS",
-      "stallNo": "J20 / J23",
+      "id": "CIBF_2026_004",
+      "name": "AHASA BOOKS",
+      "stallNo": "H35 - H36",
       "halls": [
-        "J"
+        "H"
       ]
     },
     {
-      "id": "CIBF_2025_005",
-      "name": "AKURA PRINTERS & PUBLISHERS",
-      "stallNo": "C16 / J43 - J46 / J71 - J74 / N05 - N07",
+      "id": "CIBF_2026_005",
+      "name": "AKARSHA",
+      "stallNo": "C09 - C12 / N09 - N10",
+      "halls": [
+        "C",
+        "N"
+      ]
+    },
+    {
+      "id": "CIBF_2026_006",
+      "name": "AKURA BOOK PUBLISHERS",
+      "stallNo": "C18 - C19 / J58 - J63 / N01 - N03",
       "halls": [
         "C",
         "J",
@@ -102,33 +119,33 @@
       ]
     },
     {
-      "id": "CIBF_2025_006",
+      "id": "CIBF_2026_007",
       "name": "ANANDA PUBLISHERS",
-      "stallNo": "H80",
+      "stallNo": "H98 - H99",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_007",
-      "name": "ARATUWA BOOK PUBLISHERS",
-      "stallNo": "H28 - H30 / H57 - H59",
+      "id": "CIBF_2026_008",
+      "name": "ARATUWA",
+      "stallNo": "H45 - H48 / H73 - H76",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_008",
-      "name": "ඇරැව්වල ප්‍රකාශකයෝ",
-      "stallNo": "C04 - C05",
+      "id": "CIBF_2026_009",
+      "name": "ARIYA PUBLISHERS",
+      "stallNo": "J54 - J54-A",
       "halls": [
-        "C"
+        "J"
       ]
     },
     {
-      "id": "CIBF_2025_009",
+      "id": "CIBF_2026_010",
       "name": "ASHIRWADA PUBLISHERS",
-      "stallNo": "D13 / J41 / N17 - N20",
+      "stallNo": "D14 - D18 / J42 / N04 - N06",
       "halls": [
         "D",
         "J",
@@ -136,264 +153,247 @@
       ]
     },
     {
-      "id": "CIBF_2025_010",
+      "id": "CIBF_2026_011",
       "name": "ATLAS HALL PVT LTD",
-      "stallNo": "D05",
+      "stallNo": "D03",
       "halls": [
         "D"
       ]
     },
     {
-      "id": "CIBF_2025_011",
-      "name": "BEST PAPER (PVT) LTD",
-      "stallNo": "H45 - H46",
-      "halls": [
-        "H"
-      ]
-    },
-    {
-      "id": "CIBF_2025_012",
+      "id": "CIBF_2026_012",
       "name": "BIOGRAPHIC EDUCATIONAL PUBLICATIONS",
-      "stallNo": "C17",
+      "stallNo": "C20",
       "halls": [
         "C"
       ]
     },
     {
-      "id": "CIBF_2025_013",
-      "name": "බියන්කෝ ප්‍රකාශකයෝ",
-      "stallNo": "K09 - K10",
+      "id": "CIBF_2026_013",
+      "name": "බිසෝ ප්‍රකාශන",
+      "stallNo": "K10 - K11",
       "halls": [
         "K"
       ]
     },
     {
-      "id": "CIBF_2025_014",
-      "name": "BOOKRACK (PVT) LTD",
-      "stallNo": "H76 - H77",
+      "id": "CIBF_2026_014",
+      "name": "BMICH MUSEUM",
+      "stallNo": "C30",
+      "halls": [
+        "C"
+      ]
+    },
+    {
+      "id": "CIBF_2026_015",
+      "name": "BOOKRACK PVT LTD",
+      "stallNo": "H93 - H96",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_015",
+      "id": "CIBF_2026_016",
       "name": "BRITISH COUNCIL",
-      "stallNo": "A38",
+      "stallNo": "A43 - A44",
       "halls": [
         "A"
       ]
     },
     {
-      "id": "CIBF_2025_016",
+      "id": "CIBF_2026_017",
       "name": "BUDDHI PUBLISHERS",
-      "stallNo": "H40",
+      "stallNo": "K22",
       "halls": [
-        "H"
+        "K"
       ]
     },
     {
-      "id": "CIBF_2025_017",
+      "id": "CIBF_2026_018",
       "name": "BUDDHIST CULTURAL CENTRE",
-      "stallNo": "P / N23",
+      "stallNo": "S Hall",
       "halls": [
-        "N",
-        "P"
+        "S"
       ]
     },
     {
-      "id": "CIBF_2025_018",
-      "name": "CAMBRIDGE UNIVERSITY PRESS & ASSESSMENT",
-      "stallNo": "A60",
-      "halls": [
-        "A"
-      ]
-    },
-    {
-      "id": "CIBF_2025_019",
-      "name": "CAMLIN CAMEL KODAK",
-      "stallNo": "H01 / H24",
-      "halls": [
-        "H"
-      ]
-    },
-    {
-      "id": "CIBF_2025_020",
+      "id": "CIBF_2026_019",
       "name": "CENTRAL BANK OF SRI LANKA",
-      "stallNo": "B100",
+      "stallNo": "B91 A",
       "halls": [
         "B"
       ]
     },
     {
-      "id": "CIBF_2025_021",
-      "name": "CENTRAL CULTURAL FUND",
-      "stallNo": "K15",
-      "halls": [
-        "K"
-      ]
-    },
-    {
-      "id": "CIBF_2025_022",
-      "name": "CGA BOOKS - CG ASSOCIATES",
+      "id": "CIBF_2026_020",
+      "name": "CGA BOOKS",
       "stallNo": "A18 - A19",
       "halls": [
         "A"
       ]
     },
     {
-      "id": "CIBF_2025_023",
+      "id": "CIBF_2026_021",
       "name": "CHEMAMADU PUBLICATION",
-      "stallNo": "H47 - H48",
+      "stallNo": "H56 - H57",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_024",
+      "id": "CIBF_2026_022",
       "name": "COLOMBO YOUNG MEN'S BUDDHIST ASSOCIATION",
-      "stallNo": "C23",
+      "stallNo": "C28",
       "halls": [
         "C"
       ]
     },
     {
-      "id": "CIBF_2025_025",
-      "name": "COLOR CRAFT LANKA PVT LTD",
-      "stallNo": "H51 - H53",
+      "id": "CIBF_2026_023",
+      "name": "COLORCRAFT",
+      "stallNo": "H19 - H20 / H33 - H34",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_026",
-      "name": "DAMSAK DAHAM POTH ARANA",
-      "stallNo": "C06",
+      "id": "CIBF_2026_024",
+      "name": "CRAFTS INSTERNATIONAL",
+      "stallNo": "H113",
+      "halls": [
+        "H"
+      ]
+    },
+    {
+      "id": "CIBF_2026_025",
+      "name": "දමිසක් දහම් පොත් අරණ",
+      "stallNo": "C04",
       "halls": [
         "C"
       ]
     },
     {
-      "id": "CIBF_2025_027",
+      "id": "CIBF_2026_026",
       "name": "DARSHANA PUBLISHERS",
-      "stallNo": "N34",
+      "stallNo": "J28 - J29",
       "halls": [
-        "N"
+        "J"
       ]
     },
     {
-      "id": "CIBF_2025_028",
+      "id": "CIBF_2026_027",
       "name": "දයාවංශ ජයකොඩි සහ සමාගම",
-      "stallNo": "B114 - B118",
+      "stallNo": "B100 - B103",
       "halls": [
         "B"
       ]
     },
     {
-      "id": "CIBF_2025_029",
-      "name": "DEDUNNA PUBLISHERS",
-      "stallNo": "K17",
+      "id": "CIBF_2026_028",
+      "name": "DC CANADA EDUCATIONAL PUBLICATIONS - LEARNING TIME LANKA",
+      "stallNo": "K18",
       "halls": [
         "K"
       ]
     },
     {
-      "id": "CIBF_2025_030",
+      "id": "CIBF_2026_029",
+      "name": "DEDUNNA BOOKS",
+      "stallNo": "H91",
+      "halls": [
+        "H"
+      ]
+    },
+    {
+      "id": "CIBF_2026_030",
       "name": "DEEN THE BOOKMAN",
-      "stallNo": "H42 - H43",
+      "stallNo": "H38 - H39",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_031",
+      "id": "CIBF_2026_031",
       "name": "DENUMA PUBLISHERS",
-      "stallNo": "H71",
+      "stallNo": "H11",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_032",
+      "id": "CIBF_2026_032",
       "name": "දැනුම වැඩුම ප්‍රකාශකයෝ",
-      "stallNo": "H25",
+      "stallNo": "H54 - H55",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_033",
-      "name": "DEPARTMENT OF CULTURAL AFFAIRS",
-      "stallNo": "K16",
+      "id": "CIBF_2026_033",
+      "name": "අධ්‍යාපන ප්‍රකාශන දෙපාර්තමේන්තුව",
+      "stallNo": "K29 - K30",
       "halls": [
         "K"
       ]
     },
     {
-      "id": "CIBF_2025_034",
+      "id": "CIBF_2026_034",
       "name": "DEPARTMENT OF OFFICIAL LANGUAGES",
-      "stallNo": "K14",
+      "stallNo": "K33",
       "halls": [
         "K"
       ]
     },
     {
-      "id": "CIBF_2025_035",
-      "name": "DESHAPRIYA PUBLICATION",
+      "id": "CIBF_2026_035",
+      "name": "DESHAPPRIYA PUBLICATION",
+      "stallNo": "H87",
+      "halls": [
+        "H"
+      ]
+    },
+    {
+      "id": "CIBF_2026_036",
+      "name": "DIGITAL ARENA",
       "stallNo": "H14",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_036",
-      "name": "DIGITAL ARENA",
-      "stallNo": "H13",
-      "halls": [
-        "H"
-      ]
-    },
-    {
-      "id": "CIBF_2025_037",
-      "name": "DILMAH CONSERVATION PUBLICATIONS",
-      "stallNo": "A37",
-      "halls": [
-        "A"
-      ]
-    },
-    {
-      "id": "CIBF_2025_038",
+      "id": "CIBF_2026_037",
       "name": "DINISA PUBLICATION",
-      "stallNo": "H15",
+      "stallNo": "H109",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_039",
+      "id": "CIBF_2026_038",
       "name": "DIYALUMA PUBLISHERS",
-      "stallNo": "H10",
-      "halls": [
-        "H"
-      ]
-    },
-    {
-      "id": "CIBF_2025_040",
-      "name": "DSL",
-      "stallNo": "H34 - H36",
-      "halls": [
-        "H"
-      ]
-    },
-    {
-      "id": "CIBF_2025_041",
-      "name": "EDUCATIONAL PUBLICATIONS DEPARTMENT",
-      "stallNo": "K12 - K13",
+      "stallNo": "K19",
       "halls": [
         "K"
       ]
     },
     {
-      "id": "CIBF_2025_042",
+      "id": "CIBF_2026_039",
+      "name": "DOMS - SPEED - LINK",
+      "stallNo": "H102 - H103 / H118 - H119",
+      "halls": [
+        "H"
+      ]
+    },
+    {
+      "id": "CIBF_2026_040",
+      "name": "EDUCATION NEW ZEALAND",
+      "stallNo": "LOBBY (A Hall)",
+      "halls": [
+        "A"
+      ]
+    },
+    {
+      "id": "CIBF_2026_041",
       "name": "EPA BOOK SHOP",
       "stallNo": "D09",
       "halls": [
@@ -401,64 +401,81 @@
       ]
     },
     {
-      "id": "CIBF_2025_043",
+      "id": "CIBF_2026_042",
       "name": "EXPOGRAPHIC BOOKSTORE",
-      "stallNo": "A39 - A40",
+      "stallNo": "A22",
       "halls": [
         "A"
       ]
     },
     {
-      "id": "CIBF_2025_044",
-      "name": "එක්ස් - ප්‍රෙස්",
-      "stallNo": "B123 - B126 / N21",
+      "id": "CIBF_2026_043",
+      "name": "FAST - SURASA",
+      "stallNo": "B123 - B126",
       "halls": [
-        "B",
-        "N"
+        "B"
       ]
     },
     {
-      "id": "CIBF_2025_045",
-      "name": "ගංගා ප්‍රකාශකයෝ",
-      "stallNo": "H02 - H03",
-      "halls": [
-        "H"
-      ]
-    },
-    {
-      "id": "CIBF_2025_046",
-      "name": "GENIUS ASSOCIATES (PVT) LTD",
-      "stallNo": "H11",
+      "id": "CIBF_2026_044",
+      "name": "ගයා ක්‍රියේෂන්ස්",
+      "stallNo": "H81 - H83",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_047",
-      "name": "GIHAN BOOKSHOP (W.O.T.FERNANDO)",
+      "id": "CIBF_2026_045",
+      "name": "GIHAN BOOK SHOP (W.O.T. FERNANDO)",
       "stallNo": "B127 - B130",
       "halls": [
         "B"
       ]
     },
     {
-      "id": "CIBF_2025_048",
+      "id": "CIBF_2026_046",
+      "name": "GODAGE PUBLISHER",
+      "stallNo": "J43 / N13 - N15 / L Hall",
+      "halls": [
+        "L",
+        "N",
+        "J"
+      ]
+    },
+    {
+      "id": "CIBF_2026_047",
+      "name": "GOOD READS",
+      "stallNo": "A27",
+      "halls": [
+        "A"
+      ]
+    },
+    {
+      "id": "CIBF_2026_048",
+      "name": "GOWOO",
+      "stallNo": "A33",
+      "halls": [
+        "A"
+      ]
+    },
+    {
+      "id": "CIBF_2026_049",
       "name": "GRANTHA PRIVATE LIMITED",
-      "stallNo": "K07 - K08",
+      "stallNo": "K08 - K09",
       "halls": [
         "K"
       ]
     },
     {
-      "id": "CIBF_2025_049",
+      "id": "CIBF_2026_050",
       "name": "GRAPHICARE",
-      "stallNo": "B108",
+      "stallNo": "B95",
       "halls": [
         "B"
       ]
     },
     {
-      "id": "CIBF_2025_050",
+      "id": "CIBF_2026_051",
       "name": "HELADIVA PUBLISHERS",
       "stallNo": "B105 - B106",
       "halls": [
@@ -466,50 +483,51 @@
       ]
     },
     {
-      "id": "CIBF_2025_051",
-      "name": "IBH READERS PARADISE",
-      "stallNo": "A44 - A45",
+      "id": "CIBF_2026_052",
+      "name": "IBMC",
+      "stallNo": "H49 - H53 / H68 - H72",
       "halls": [
-        "A"
+        "H"
       ]
     },
     {
-      "id": "CIBF_2025_052",
-      "name": "IBMC PUBLICATION",
-      "stallNo": "C09 - C10",
+      "id": "CIBF_2026_053",
+      "name": "IMASHI PUBLISHERS",
+      "stallNo": "H21 - H23 / H30 - H32 / J49 - J51 / J70 - J72 / N26",
       "halls": [
-        "C"
-      ]
-    },
-    {
-      "id": "CIBF_2025_053",
-      "name": "IMASHI PRAKASHANA",
-      "stallNo": "J50 - J52 / J65 - J67 / N08",
-      "halls": [
+        "H",
         "J",
         "N"
       ]
     },
     {
-      "id": "CIBF_2025_054",
+      "id": "CIBF_2026_054",
       "name": "INTERNATIONAL BOOK HOUSE",
-      "stallNo": "A41",
+      "stallNo": "A20",
       "halls": [
         "A"
       ]
     },
     {
-      "id": "CIBF_2025_055",
+      "id": "CIBF_2026_055",
+      "name": "ISLAMIC BOOK HOUSE - IBH",
+      "stallNo": "A79 - A80",
+      "halls": [
+        "A"
+      ]
+    },
+    {
+      "id": "CIBF_2026_056",
       "name": "JEEWANA PUBLISHERS",
-      "stallNo": "D03",
+      "stallNo": "D04",
       "halls": [
         "D"
       ]
     },
     {
-      "id": "CIBF_2025_056",
-      "name": "JEYA BOOK CENTRE (PVT) LTD",
-      "stallNo": "A49 - A59 / K02 / N15 - N16",
+      "id": "CIBF_2026_057",
+      "name": "JEYA BOOK CENTRE PVT LTD",
+      "stallNo": "A49 - A61 / K02 / N18 - N19",
       "halls": [
         "A",
         "K",
@@ -517,71 +535,63 @@
       ]
     },
     {
-      "id": "CIBF_2025_057",
+      "id": "CIBF_2026_058",
       "name": "KADULLA PUBLICATIONS",
-      "stallNo": "D21",
+      "stallNo": "D25",
       "halls": [
         "D"
       ]
     },
     {
-      "id": "CIBF_2025_058",
-      "name": "KARUNARATNE AND SONS",
-      "stallNo": "C26",
-      "halls": [
-        "C"
-      ]
-    },
-    {
-      "id": "CIBF_2025_059",
-      "name": "KAVIVARA",
+      "id": "CIBF_2026_059",
+      "name": "KAVIVARA PUBLICATIONS",
       "stallNo": "K03 - K04",
       "halls": [
         "K"
       ]
     },
     {
-      "id": "CIBF_2025_060",
+      "id": "CIBF_2026_060",
       "name": "KBOOKS PVT LTD",
-      "stallNo": "B116",
+      "stallNo": "B108 - B109",
       "halls": [
         "B"
       ]
     },
     {
-      "id": "CIBF_2025_061",
-      "name": "KEHELI PRAKASAKAYO",
-      "stallNo": "K05 - K06",
+      "id": "CIBF_2026_061",
+      "name": "KEHELI PRAKASHAKAYO",
+      "stallNo": "K05 - K07",
       "halls": [
         "K"
       ]
     },
     {
-      "id": "CIBF_2025_062",
+      "id": "CIBF_2026_062",
       "name": "KNOWLEDGE BANK",
-      "stallNo": "B132 - B139",
+      "stallNo": "B113 - B120",
       "halls": [
         "B"
       ]
     },
     {
-      "id": "CIBF_2025_063",
-      "name": "KUMARA S PATHIRANA PUBLISHERS",
-      "stallNo": "H44",
+      "id": "CIBF_2026_063",
+      "name": "KUMARA S PATHIARANA PUBLISHERS",
+      "stallNo": "H61 - H62",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_064",
+      "id": "CIBF_2026_064",
       "name": "KUMARAN BOOK HOUSE",
-      "stallNo": "A43",
+      "stallNo": "A45",
       "halls": [
         "A"
       ]
     },
     {
-      "id": "CIBF_2025_065",
+      "id": "CIBF_2026_065",
       "name": "KURULU POTH PUBLISHERS",
       "stallNo": "B89 - B90",
       "halls": [
@@ -589,15 +599,33 @@
       ]
     },
     {
-      "id": "CIBF_2025_066",
-      "name": "LUMINEX BOOK SHOP",
-      "stallNo": "C18",
+      "id": "CIBF_2026_066",
+      "name": "LAKE HOUSE PRINTERS & PUBLISHERS",
+      "stallNo": "H111",
       "halls": [
-        "C"
+        "H"
       ]
     },
     {
-      "id": "CIBF_2025_067",
+      "id": "CIBF_2026_067",
+      "name": "LUMINEX BOOK SHOP PVT LTD",
+      "stallNo": "H41",
+      "halls": [
+        "H"
+      ]
+    },
+    {
+      "id": "CIBF_2026_068",
+      "name": "M D GUNASENA",
+      "stallNo": "C01 - C03 / H24 - H29 / N16 - N17",
+      "halls": [
+        "C",
+        "H",
+        "N"
+      ]
+    },
+    {
+      "id": "CIBF_2026_069",
       "name": "MAKEEN BOOKS",
       "stallNo": "A62 - A72",
       "halls": [
@@ -605,161 +633,154 @@
       ]
     },
     {
-      "id": "CIBF_2025_068",
+      "id": "CIBF_2026_070",
       "name": "MAKKMILAN BOOK DEPOT",
-      "stallNo": "H20 - H21",
+      "stallNo": "H17 - H18",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_069",
-      "name": "මල්ගොඩපිටිය ප්‍රකාශකයෝ",
-      "stallNo": "D07",
+      "id": "CIBF_2026_071",
+      "name": "මල්ලවආරච්චි ප්‍රකාශකයෝ",
+      "stallNo": "D05",
       "halls": [
         "D"
       ]
     },
     {
-      "id": "CIBF_2025_070",
+      "id": "CIBF_2026_072",
       "name": "MALPIYALI PUBLISHERS PRIVATE LIMITED",
-      "stallNo": "J62 - J63",
+      "stallNo": "J67 - J67-A",
       "halls": [
         "J"
       ]
     },
     {
-      "id": "CIBF_2025_071",
-      "name": "MANOJ PUBLICATIONS",
-      "stallNo": "C03",
-      "halls": [
-        "C"
-      ]
-    },
-    {
-      "id": "CIBF_2025_072",
+      "id": "CIBF_2026_073",
       "name": "MAPED",
-      "stallNo": "H04",
+      "stallNo": "H43 - H44",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_073",
-      "name": "MARTIN WICKRAMASINGHE BOOKS",
+      "id": "CIBF_2026_074",
+      "name": "MARTIN WICKREMASINGHE BOOKS",
       "stallNo": "B140",
       "halls": [
         "B"
       ]
     },
     {
-      "id": "CIBF_2025_074",
-      "name": "MASITHA BOOK PUBLISHERS (PVT) LTD",
-      "stallNo": "J37 - J40",
+      "id": "CIBF_2026_075",
+      "name": "MASITHA BOOK PUBLISHERS PVT LTD",
+      "stallNo": "J01 - J04",
       "halls": [
         "J"
       ]
     },
     {
-      "id": "CIBF_2025_075",
-      "name": "MASTER GUIDE PUBLICATIONS (PVT) LTD",
-      "stallNo": "Q",
+      "id": "CIBF_2026_076",
+      "name": "MASTER GUIDE",
+      "stallNo": "Q Hall",
       "halls": [
         "Q"
       ]
     },
     {
-      "id": "CIBF_2025_076",
-      "name": "MD GUNASENA",
-      "stallNo": "C01 / N24 / N35 - N36",
-      "halls": [
-        "C",
-        "N"
-      ]
-    },
-    {
-      "id": "CIBF_2025_077",
+      "id": "CIBF_2026_077",
       "name": "MIHIRA BOOK PUBLISHERS",
-      "stallNo": "J35 - J36",
+      "stallNo": "J09 - J10",
       "halls": [
         "J"
       ]
     },
     {
-      "id": "CIBF_2025_078",
-      "name": "MINSARA PUBLISHER",
-      "stallNo": "H08 - H09 / H16 - H17",
+      "id": "CIBF_2026_078",
+      "name": "MINSARA PUBLISHERS",
+      "stallNo": "H03 - H06 / N31 / N36",
+      "halls": [
+        "H",
+        "N"
+      ]
+    },
+    {
+      "id": "CIBF_2026_079",
+      "name": "MULTI BOOK SHOP",
+      "stallNo": "J68 - J69",
+      "halls": [
+        "J"
+      ]
+    },
+    {
+      "id": "CIBF_2026_080",
+      "name": "MUSES BOOKS",
+      "stallNo": "P Hall / N30",
+      "halls": [
+        "P",
+        "N"
+      ]
+    },
+    {
+      "id": "CIBF_2026_081",
+      "name": "NATIONAL BOOK TRUST - INDIA",
+      "stallNo": "LOBBY (A Hall)",
+      "halls": [
+        "A"
+      ]
+    },
+    {
+      "id": "CIBF_2026_082",
+      "name": "NATIONAL INSTITUTE OF EDUCATION",
+      "stallNo": "K36",
+      "halls": [
+        "K"
+      ]
+    },
+    {
+      "id": "CIBF_2026_083",
+      "name": "NATIONAL LIBRARY AND DOCUMENTATION SERVICES BOARD",
+      "stallNo": "H10",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_079",
-      "name": "MULTI BOOK SHOP",
-      "stallNo": "J54 - J55",
-      "halls": [
-        "J"
-      ]
-    },
-    {
-      "id": "CIBF_2025_080",
-      "name": "MUSES PUBLISHING HOUSE PVT LTD",
-      "stallNo": "D18 - D19",
-      "halls": [
-        "D"
-      ]
-    },
-    {
-      "id": "CIBF_2025_081",
-      "name": "NATIONAL INSTITUTE OF EDUCATION",
-      "stallNo": "K38",
-      "halls": [
-        "K"
-      ]
-    },
-    {
-      "id": "CIBF_2025_082",
-      "name": "NATIONAL LIBRARY AND DOCUMENTATION SERVICES BOARD",
-      "stallNo": "K11",
-      "halls": [
-        "K"
-      ]
-    },
-    {
-      "id": "CIBF_2025_083",
-      "name": "NEPTUNE PUBLICATION PVT. LTD",
-      "stallNo": "A22 - A33 / N30 / N33",
+      "id": "CIBF_2026_084",
+      "name": "NEPTUNE PUBLICATIONS",
+      "stallNo": "A23 - A26 / A28 - A32 / N35",
       "halls": [
         "A",
         "N"
       ]
     },
     {
-      "id": "CIBF_2025_084",
-      "name": "නිම්මා ප්‍රකාශකයෝ",
-      "stallNo": "C21",
+      "id": "CIBF_2026_085",
+      "name": "NICHOLI BOOK SHOP",
+      "stallNo": "K31 - K32",
+      "halls": [
+        "K"
+      ]
+    },
+    {
+      "id": "CIBF_2026_086",
+      "name": "නිමිසා ප්‍රකාශන",
+      "stallNo": "C25",
       "halls": [
         "C"
       ]
     },
     {
-      "id": "CIBF_2025_085",
-      "name": "නිවේස් ප්‍රකාශන",
-      "stallNo": "J33 - J34",
+      "id": "CIBF_2026_087",
+      "name": "නිමන්සා ප්‍රකාශන",
+      "stallNo": "J31 - J32",
       "halls": [
         "J"
       ]
     },
     {
-      "id": "CIBF_2025_086",
-      "name": "NICHOLI BOOKSHOP",
-      "stallNo": "H07 / H18",
-      "halls": [
-        "H"
-      ]
-    },
-    {
-      "id": "CIBF_2025_087",
+      "id": "CIBF_2026_088",
       "name": "NINE PUBLISHING",
       "stallNo": "B107",
       "halls": [
@@ -767,81 +788,88 @@
       ]
     },
     {
-      "id": "CIBF_2025_088",
+      "id": "CIBF_2026_089",
       "name": "NINEHEARTS",
-      "stallNo": "H72",
+      "stallNo": "H64 A",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_089",
-      "name": "නුවන් ප්‍රකාශකයෝ",
-      "stallNo": "H26",
+      "id": "CIBF_2026_090",
+      "name": "නිපුන් පොත්",
+      "stallNo": "H07",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_090",
+      "id": "CIBF_2026_091",
       "name": "නිපුණ ප්‍රකාශකයෝ",
-      "stallNo": "H41",
+      "stallNo": "H16",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_091",
-      "name": "නියොන් ප්‍රකාශකයෝ",
-      "stallNo": "J12 - J14 / N12",
+      "id": "CIBF_2026_092",
+      "name": "නිශාන්ත ප්‍රකාශන",
+      "stallNo": "J05 - J08 / N33 - N34",
       "halls": [
         "J",
         "N"
       ]
     },
     {
-      "id": "CIBF_2025_092",
+      "id": "CIBF_2026_093",
+      "name": "නොහඳුනන්නී ප්‍රකාශන",
+      "stallNo": "H92",
+      "halls": [
+        "H"
+      ]
+    },
+    {
+      "id": "CIBF_2026_094",
       "name": "OFFICE WORKS",
-      "stallNo": "K25 - K27",
+      "stallNo": "H104 - H105 / H116 - H117",
       "halls": [
-        "K"
+        "H"
       ]
     },
     {
-      "id": "CIBF_2025_093",
+      "id": "CIBF_2026_095",
       "name": "ONEERO BOOK SHOP",
-      "stallNo": "H54",
+      "stallNo": "H90",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_094",
-      "name": "පද්ම ප්‍රකාශන",
-      "stallNo": "H73",
+      "id": "CIBF_2026_096",
+      "name": "PACKSCO",
+      "stallNo": "T Hall",
       "halls": [
-        "H"
+        "T"
       ]
     },
     {
-      "id": "CIBF_2025_095",
-      "name": "PAHAN PUBLICATIONS",
-      "stallNo": "B109 - B112 / N22",
-      "halls": [
-        "B",
-        "N"
-      ]
-    },
-    {
-      "id": "CIBF_2025_096",
-      "name": "PANTHER",
-      "stallNo": "B113 / B119 - B120",
+      "id": "CIBF_2026_097",
+      "name": "පහන් ප්‍රකාශන",
+      "stallNo": "B110 - B112",
       "halls": [
         "B"
       ]
     },
     {
-      "id": "CIBF_2025_097",
+      "id": "CIBF_2026_098",
+      "name": "PANTHER",
+      "stallNo": "B91",
+      "halls": [
+        "B"
+      ]
+    },
+    {
+      "id": "CIBF_2026_099",
       "name": "PAPER CORNER",
       "stallNo": "A13 - A15",
       "halls": [
@@ -849,113 +877,129 @@
       ]
     },
     {
-      "id": "CIBF_2025_098",
-      "name": "PELANGI",
-      "stallNo": "A79 - A80",
+      "id": "CIBF_2026_100",
+      "name": "පදනම් ප්‍රකාශන",
+      "stallNo": "H110",
       "halls": [
-        "A"
+        "H"
       ]
     },
     {
-      "id": "CIBF_2025_099",
+      "id": "CIBF_2026_101",
       "name": "PERERA-HUSSEIN PUBLISHING HOUSE",
-      "stallNo": "A77",
+      "stallNo": "A38",
       "halls": [
         "A"
       ]
     },
     {
-      "id": "CIBF_2025_100",
+      "id": "CIBF_2026_102",
       "name": "PETERS BOOK SHOP",
-      "stallNo": "K28",
+      "stallNo": "H84",
+      "halls": [
+        "H"
+      ]
+    },
+    {
+      "id": "CIBF_2026_103",
+      "name": "PILOT PENS",
+      "stallNo": "K13",
       "halls": [
         "K"
       ]
     },
     {
-      "id": "CIBF_2025_101",
-      "name": "PITRABAN",
-      "stallNo": "A75",
-      "halls": [
-        "A"
-      ]
-    },
-    {
-      "id": "CIBF_2025_102",
+      "id": "CIBF_2026_104",
       "name": "PK PUBLISHERS",
-      "stallNo": "K29",
+      "stallNo": "H114",
       "halls": [
-        "K"
+        "H"
       ]
     },
     {
-      "id": "CIBF_2025_103",
-      "name": "PLATFORM FOR ALTERNATE CULTURE",
-      "stallNo": "B104",
-      "halls": [
-        "B"
-      ]
-    },
-    {
-      "id": "CIBF_2025_104",
+      "id": "CIBF_2026_105",
       "name": "POOBALASINGHAM BOOK DEPOT",
-      "stallNo": "A16 / A42",
+      "stallNo": "A16 / A41 - A42",
       "halls": [
         "A"
       ]
     },
     {
-      "id": "CIBF_2025_105",
+      "id": "CIBF_2026_106",
       "name": "PRABHA PUBLISHERS",
-      "stallNo": "D04",
+      "stallNo": "D06",
       "halls": [
         "D"
       ]
     },
     {
-      "id": "CIBF_2025_106",
-      "name": "ප්‍රතිභා ප්‍රකාශන",
-      "stallNo": "J06 - J08",
+      "id": "CIBF_2026_107",
+      "name": "PRATHIBHA PUBLISHERS",
+      "stallNo": "J16 - J17-A",
       "halls": [
         "J"
       ]
     },
     {
-      "id": "CIBF_2025_107",
-      "name": "PRIYANKARA BOOK SHOP",
-      "stallNo": "H27",
+      "id": "CIBF_2026_108",
+      "name": "PREMASIRI BOOK SHOP",
+      "stallNo": "H63",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_108",
-      "name": "PROGRESSIVE PUBLISHING HOUSE (PVT) LTD",
-      "stallNo": "D23",
+      "id": "CIBF_2026_109",
+      "name": "PRIYANKARA BOOKSHOP",
+      "stallNo": "H13",
+      "halls": [
+        "H"
+      ]
+    },
+    {
+      "id": "CIBF_2026_110",
+      "name": "PROGRESSIVE PUBLISHING HOUSE PVT LTD",
+      "stallNo": "D27",
       "halls": [
         "D"
       ]
     },
     {
-      "id": "CIBF_2025_109",
-      "name": "RANMUTHU PUBLISHERS",
-      "stallNo": "C24",
-      "halls": [
-        "C"
-      ]
-    },
-    {
-      "id": "CIBF_2025_110",
-      "name": "RASAKATHA PUBLISHERS",
-      "stallNo": "H33",
+      "id": "CIBF_2026_111",
+      "name": "පුවත්පත් මණ්ඩලය",
+      "stallNo": "H57 A",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_111",
+      "id": "CIBF_2026_112",
+      "name": "RANMUTHU PUBLISHERS",
+      "stallNo": "C27",
+      "halls": [
+        "C"
+      ]
+    },
+    {
+      "id": "CIBF_2026_113",
+      "name": "RASAKATHA PUBLISHERS",
+      "stallNo": "H108",
+      "halls": [
+        "H"
+      ]
+    },
+    {
+      "id": "CIBF_2026_114",
+      "name": "රත්සර පොත්",
+      "stallNo": "C05",
+      "halls": [
+        "C"
+      ]
+    },
+    {
+      "id": "CIBF_2026_115",
       "name": "RATHNA",
-      "stallNo": "B121 - B122 / B131 / R / N09 - N11",
+      "stallNo": "B121 - B122 / B131 / N07 - N08 / R Hall",
       "halls": [
         "B",
         "N",
@@ -963,82 +1007,65 @@
       ]
     },
     {
-      "id": "CIBF_2025_112",
-      "name": "රන්ජන් පොත්",
-      "stallNo": "C08",
-      "halls": [
-        "C"
-      ]
-    },
-    {
-      "id": "CIBF_2025_113",
+      "id": "CIBF_2026_116",
       "name": "READING PLANET",
-      "stallNo": "C20",
+      "stallNo": "C24",
       "halls": [
         "C"
       ]
     },
     {
-      "id": "CIBF_2025_114",
-      "name": "REIGNOVER INDIA PVT LTD",
-      "stallNo": "A20",
-      "halls": [
-        "A"
-      ]
-    },
-    {
-      "id": "CIBF_2025_115",
+      "id": "CIBF_2026_117",
       "name": "RICHARD",
-      "stallNo": "H67 - H68",
+      "stallNo": "H86 - H85",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_116",
-      "name": "රසවහ ප්‍රකාශකයෝ",
-      "stallNo": "H55 - H56",
+      "id": "CIBF_2026_118",
+      "name": "RUHUNU STATIONARY",
+      "stallNo": "H106 - H107",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_117",
-      "name": "S&T GROUP",
-      "stallNo": "J24 - J26",
+      "id": "CIBF_2026_119",
+      "name": "රුසියාව ප්‍රකාශකයෝ",
+      "stallNo": "H01 - H02",
+      "halls": [
+        "H"
+      ]
+    },
+    {
+      "id": "CIBF_2026_120",
+      "name": "S AND T GROUP",
+      "stallNo": "J25 - J27",
       "halls": [
         "J"
       ]
     },
     {
-      "id": "CIBF_2025_118",
-      "name": "S.D. WIJETHUNGA PUBLICATIONS",
-      "stallNo": "J53 - J54 - A",
+      "id": "CIBF_2026_121",
+      "name": "S. D. WIJETHUNGA PUBLICATIONS",
+      "stallNo": "J52 - J53",
+      "halls": [
+        "J"
+      ]
+    },
+    {
+      "id": "CIBF_2026_122",
+      "name": "SADEEPA BOOKSHOP",
+      "stallNo": "A1 - A3 / B93 - B94 / N27",
       "halls": [
         "A",
-        "J"
-      ]
-    },
-    {
-      "id": "CIBF_2025_119",
-      "name": "S.GODAGE & BROTHERS (PVT) LTD",
-      "stallNo": "J01 - J04 / J42 / N13 - N14 / N25 - N26 / L",
-      "halls": [
-        "J",
-        "L",
+        "B",
         "N"
       ]
     },
     {
-      "id": "CIBF_2025_120",
-      "name": "SADEEPA BOOKSHOP",
-      "stallNo": "A01 - A03",
-      "halls": [
-        "A"
-      ]
-    },
-    {
-      "id": "CIBF_2025_121",
+      "id": "CIBF_2026_123",
       "name": "SAKHILA PRAKASHANA",
       "stallNo": "B84",
       "halls": [
@@ -1046,23 +1073,23 @@
       ]
     },
     {
-      "id": "CIBF_2025_122",
+      "id": "CIBF_2026_124",
       "name": "SAKURA ART STORE",
-      "stallNo": "H12",
+      "stallNo": "K21",
       "halls": [
-        "H"
+        "K"
       ]
     },
     {
-      "id": "CIBF_2025_123",
+      "id": "CIBF_2026_125",
       "name": "SAMA PUBLISHERS",
-      "stallNo": "J30",
+      "stallNo": "J35",
       "halls": [
         "J"
       ]
     },
     {
-      "id": "CIBF_2025_124",
+      "id": "CIBF_2026_126",
       "name": "SAMADHI PRAKASHANA",
       "stallNo": "D08",
       "halls": [
@@ -1070,63 +1097,65 @@
       ]
     },
     {
-      "id": "CIBF_2025_125",
+      "id": "CIBF_2026_127",
       "name": "SAMAGI PUBLISHERS",
-      "stallNo": "J17 - J19",
+      "stallNo": "J18 - J20",
       "halls": [
         "J"
       ]
     },
     {
-      "id": "CIBF_2025_126",
+      "id": "CIBF_2026_128",
       "name": "SAMANALA DANUMA PUBLISHERS",
-      "stallNo": "C11 - C12",
+      "stallNo": "C07 - C08",
       "halls": [
         "C"
       ]
     },
     {
-      "id": "CIBF_2025_127",
-      "name": "SAMANGI POTH PUBLISHERS",
-      "stallNo": "B101 - B102",
+      "id": "CIBF_2026_129",
+      "name": "සමන්තී පොත් ප්‍රකාශකයෝ",
+      "stallNo": "H15",
       "halls": [
-        "B"
+        "H"
       ]
     },
     {
-      "id": "CIBF_2025_128",
-      "name": "SAMARANAYAKE PUBLISHERS",
-      "stallNo": "A17",
-      "halls": [
-        "A"
-      ]
-    },
-    {
-      "id": "CIBF_2025_129",
+      "id": "CIBF_2026_130",
       "name": "SAMAYAWARDHANA BOOKSHOP",
-      "stallNo": "A10 - A12 / A46 - A48",
+      "stallNo": "A10 - A12 / A46 - A48 / N29",
       "halls": [
-        "A"
+        "A",
+        "N"
       ]
     },
     {
-      "id": "CIBF_2025_130",
-      "name": "SAMIRA PRAKASANA",
+      "id": "CIBF_2026_131",
+      "name": "සමීර ප්‍රකාශන",
       "stallNo": "B87 - B88",
       "halls": [
         "B"
       ]
     },
     {
-      "id": "CIBF_2025_131",
-      "name": "SAMUDRA BOOK SHOP",
-      "stallNo": "A04 - A09",
+      "id": "CIBF_2026_132",
+      "name": "SAMPATH BANK",
+      "stallNo": "J30",
       "halls": [
-        "A"
+        "J"
       ]
     },
     {
-      "id": "CIBF_2025_132",
+      "id": "CIBF_2026_133",
+      "name": "SAMUDRA PUBLISHERS",
+      "stallNo": "A4 - A9 / J38 - J41",
+      "halls": [
+        "A",
+        "J"
+      ]
+    },
+    {
+      "id": "CIBF_2026_134",
       "name": "SAMUDRA WETTASINGHE",
       "stallNo": "A81 - A82",
       "halls": [
@@ -1134,74 +1163,74 @@
       ]
     },
     {
-      "id": "CIBF_2025_133",
+      "id": "CIBF_2026_135",
       "name": "SANDAKADA PUBLISHING",
-      "stallNo": "C22",
+      "stallNo": "C26",
       "halls": [
         "C"
       ]
     },
     {
-      "id": "CIBF_2025_134",
-      "name": "SANDAMADHAVEE PUBLISHERS",
-      "stallNo": "H74",
+      "id": "CIBF_2026_136",
+      "name": "SANDAMADAVEE PUBLISHERS",
+      "stallNo": "K20",
       "halls": [
-        "H"
+        "K"
       ]
     },
     {
-      "id": "CIBF_2025_135",
+      "id": "CIBF_2026_137",
       "name": "SANDESHAYA",
-      "stallNo": "J31 - J32",
+      "stallNo": "J33 - J34",
       "halls": [
         "J"
       ]
     },
     {
-      "id": "CIBF_2025_136",
+      "id": "CIBF_2026_138",
       "name": "SANDINI BOOK PUBLISHERS",
-      "stallNo": "K20 - K23",
+      "stallNo": "K23 - K26",
       "halls": [
         "K"
       ]
     },
     {
-      "id": "CIBF_2025_137",
+      "id": "CIBF_2026_139",
       "name": "SANKHA PUBLISHERS",
-      "stallNo": "J63-A - J64",
+      "stallNo": "J21 - J24",
       "halls": [
-        "A",
         "J"
       ]
     },
     {
-      "id": "CIBF_2025_138",
+      "id": "CIBF_2026_140",
       "name": "SANTHAWA PRAKASHANA",
-      "stallNo": "K33 - K34",
+      "stallNo": "K38 - K39",
       "halls": [
         "K"
       ]
     },
     {
-      "id": "CIBF_2025_139",
+      "id": "CIBF_2026_141",
       "name": "SARADA PUBLICATIONS",
-      "stallNo": "D10",
+      "stallNo": "D12",
       "halls": [
         "D"
       ]
     },
     {
-      "id": "CIBF_2025_140",
-      "name": "SARASAVI BOOK SHOP (PVT) LTD",
-      "stallNo": "D12 / M / N27 - N29",
+      "id": "CIBF_2026_142",
+      "name": "SARASAVI BOOKSHOP",
+      "stallNo": "A73 - A78 / D13 / M Hall / N23 - N25",
       "halls": [
+        "A",
         "D",
         "M",
         "N"
       ]
     },
     {
-      "id": "CIBF_2025_141",
+      "id": "CIBF_2026_143",
       "name": "SARASWATHI PUBLICATIONS",
       "stallNo": "B85 - B86",
       "halls": [
@@ -1209,127 +1238,136 @@
       ]
     },
     {
-      "id": "CIBF_2025_142",
+      "id": "CIBF_2026_144",
       "name": "SARATH BOOKS",
-      "stallNo": "H75",
+      "stallNo": "H42",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_143",
-      "name": "SARVODAYA VISHVA LEKHA (PVT) LTD",
+      "id": "CIBF_2026_145",
+      "name": "SARVODAYA VISHVA LEKHA",
+      "stallNo": "K35",
+      "halls": [
+        "K"
+      ]
+    },
+    {
+      "id": "CIBF_2026_146",
+      "name": "SATHARA",
+      "stallNo": "C13 - C17 / N28",
+      "halls": [
+        "C",
+        "N"
+      ]
+    },
+    {
+      "id": "CIBF_2026_147",
+      "name": "සෞන්දර්ය කලා විශ්වවිද්‍යාලය",
+      "stallNo": "B92",
+      "halls": [
+        "B"
+      ]
+    },
+    {
+      "id": "CIBF_2026_148",
+      "name": "SAYURA PUBLICATIONS",
+      "stallNo": "C22 - C23",
+      "halls": [
+        "C"
+      ]
+    },
+    {
+      "id": "CIBF_2026_149",
+      "name": "සයුරි පොත්",
+      "stallNo": "D26",
+      "halls": [
+        "D"
+      ]
+    },
+    {
+      "id": "CIBF_2026_150",
+      "name": "SCITECH BOOKSHOP",
+      "stallNo": "J14 - J15",
+      "halls": [
+        "J"
+      ]
+    },
+    {
+      "id": "CIBF_2026_151",
+      "name": "SERI PUBLICATION",
+      "stallNo": "D10",
+      "halls": [
+        "D"
+      ]
+    },
+    {
+      "id": "CIBF_2026_152",
+      "name": "SHAAKYA PUBLICATIONS",
+      "stallNo": "H37",
+      "halls": [
+        "H"
+      ]
+    },
+    {
+      "id": "CIBF_2026_153",
+      "name": "SHAN PRINT AND GRAPHIC SYSTEM",
+      "stallNo": "H66 - H67",
+      "halls": [
+        "H"
+      ]
+    },
+    {
+      "id": "CIBF_2026_154",
+      "name": "SHIKSHA MANDIRA PUBLICATIONS",
+      "stallNo": "H09",
+      "halls": [
+        "H"
+      ]
+    },
+    {
+      "id": "CIBF_2026_155",
+      "name": "SHRIWI PUBLISHERS",
       "stallNo": "K37",
       "halls": [
         "K"
       ]
     },
     {
-      "id": "CIBF_2025_144",
-      "name": "SATHARA PRAKASHAKAYO",
-      "stallNo": "C13",
-      "halls": [
-        "C"
-      ]
-    },
-    {
-      "id": "CIBF_2025_145",
-      "name": "Sayura Prakashana",
-      "stallNo": "C07",
-      "halls": [
-        "C"
-      ]
-    },
-    {
-      "id": "CIBF_2025_146",
-      "name": "සයුරි ප්‍රකාශකයෝ",
-      "stallNo": "D06",
-      "halls": [
-        "D"
-      ]
-    },
-    {
-      "id": "CIBF_2025_147",
-      "name": "SCAN LANKA TRADING CO. (PVT) LTD.",
-      "stallNo": "H79",
-      "halls": [
-        "H"
-      ]
-    },
-    {
-      "id": "CIBF_2025_148",
-      "name": "SCITECH BOOKSHOP",
-      "stallNo": "J15 - J16",
-      "halls": [
-        "J"
-      ]
-    },
-    {
-      "id": "CIBF_2025_149",
-      "name": "SERI PUBLICATION",
-      "stallNo": "D02",
-      "halls": [
-        "D"
-      ]
-    },
-    {
-      "id": "CIBF_2025_150",
-      "name": "SHAAKYA PUBLICATIONS",
-      "stallNo": "H78",
-      "halls": [
-        "H"
-      ]
-    },
-    {
-      "id": "CIBF_2025_151",
-      "name": "SHAN PRINT AND GRAPHIC SYSTEM",
-      "stallNo": "H31 - H32",
-      "halls": [
-        "H"
-      ]
-    },
-    {
-      "id": "CIBF_2025_152",
-      "name": "SHRIWI PUBLISHERS",
-      "stallNo": "K30",
+      "id": "CIBF_2026_156",
+      "name": "SILIKA PUBLICATIONS",
+      "stallNo": "K27 - K28",
       "halls": [
         "K"
       ]
     },
     {
-      "id": "CIBF_2025_153",
-      "name": "SILIKA PUBLICATION",
-      "stallNo": "K24",
+      "id": "CIBF_2026_157",
+      "name": "සිප් සයුරි ප්‍රකාශකයේ මහනුවර",
+      "stallNo": "H88 - H89",
       "halls": [
-        "K"
+        "H"
       ]
     },
     {
-      "id": "CIBF_2025_154",
-      "name": "සිත්මිණි ප්‍රකාශකයෝ",
-      "stallNo": "J05",
+      "id": "CIBF_2026_158",
+      "name": "SITHUWILI PUBLICATION",
+      "stallNo": "H40",
       "halls": [
-        "J"
+        "H"
       ]
     },
     {
-      "id": "CIBF_2025_155",
-      "name": "SIMON AND SCHUSTER INDIA",
-      "stallNo": "A61",
-      "halls": [
-        "A"
-      ]
-    },
-    {
-      "id": "CIBF_2025_156",
-      "name": "SOORIYA PUBLISHERS (PVT) LTD.",
-      "stallNo": "B91 - B94",
+      "id": "CIBF_2026_159",
+      "name": "SOORIYA PUBLISHERS PVT LTD",
+      "stallNo": "B132 - B139",
       "halls": [
         "B"
       ]
     },
     {
-      "id": "CIBF_2025_157",
+      "id": "CIBF_2026_160",
       "name": "SOORIYAKANTHA PUBLISHERS",
       "stallNo": "D11",
       "halls": [
@@ -1337,23 +1375,15 @@
       ]
     },
     {
-      "id": "CIBF_2025_158",
+      "id": "CIBF_2026_161",
       "name": "SOUNDS & CO",
-      "stallNo": "C25",
+      "stallNo": "C29",
       "halls": [
         "C"
       ]
     },
     {
-      "id": "CIBF_2025_159",
-      "name": "SOUTH ASIAN INTERNATIONAL BOOK FAIR",
-      "stallNo": "A78",
-      "halls": [
-        "A"
-      ]
-    },
-    {
-      "id": "CIBF_2025_160",
+      "id": "CIBF_2026_162",
       "name": "SRI LANKA PHILATELIC BUREAU",
       "stallNo": "B83",
       "halls": [
@@ -1361,65 +1391,81 @@
       ]
     },
     {
-      "id": "CIBF_2025_161",
-      "name": "SRINKO ENTERPRISES (PVT) LTD.",
-      "stallNo": "K32",
-      "halls": [
-        "K"
-      ]
-    },
-    {
-      "id": "CIBF_2025_162",
+      "id": "CIBF_2026_163",
       "name": "STATE PRINTING CORPORATION",
-      "stallNo": "K35 - K36",
+      "stallNo": "K14 - K15",
       "halls": [
         "K"
       ]
     },
     {
-      "id": "CIBF_2025_163",
-      "name": "SUBHA PUBLISHERS",
-      "stallNo": "D20",
-      "halls": [
-        "D"
-      ]
-    },
-    {
-      "id": "CIBF_2025_164",
-      "name": "SUBHAVI PUBLISHERS",
-      "stallNo": "D22",
-      "halls": [
-        "D"
-      ]
-    },
-    {
-      "id": "CIBF_2025_165",
-      "name": "SUDUMINISSU PUBLISHERS",
-      "stallNo": "H19",
+      "id": "CIBF_2026_164",
+      "name": "STORYFLIX PRIVATE LIMITED",
+      "stallNo": "H112",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_166",
+      "id": "CIBF_2026_165",
+      "name": "SUBHA PUBLISHERS",
+      "stallNo": "D28",
+      "halls": [
+        "D"
+      ]
+    },
+    {
+      "id": "CIBF_2026_166",
+      "name": "සුභාවි ප්‍රකාශන",
+      "stallNo": "D23 - D24",
+      "halls": [
+        "D"
+      ]
+    },
+    {
+      "id": "CIBF_2026_167",
+      "name": "සුදුමිනිස්සු ප්‍රකාශන",
+      "stallNo": "H60",
+      "halls": [
+        "H"
+      ]
+    },
+    {
+      "id": "CIBF_2026_168",
+      "name": "SULEKA PUBLISHERS",
+      "stallNo": "H115",
+      "halls": [
+        "H"
+      ]
+    },
+    {
+      "id": "CIBF_2026_169",
+      "name": "සුමිතා රාහුබද්ධ ප්‍රකාශන",
+      "stallNo": "B104",
+      "halls": [
+        "B"
+      ]
+    },
+    {
+      "id": "CIBF_2026_170",
       "name": "SUNERA PUBLISHERS",
-      "stallNo": "J28 - J29",
+      "stallNo": "J36 - J37",
       "halls": [
         "J"
       ]
     },
     {
-      "id": "CIBF_2025_167",
+      "id": "CIBF_2026_171",
       "name": "SURENDRA PRAKASHANA",
-      "stallNo": "H39",
+      "stallNo": "K34",
       "halls": [
-        "H"
+        "K"
       ]
     },
     {
-      "id": "CIBF_2025_168",
-      "name": "SUSARA PUBLICATIONS (PVT) LTD",
-      "stallNo": "D01 / J56 - J61 / N01 - N04",
+      "id": "CIBF_2026_172",
+      "name": "SUSARA PUBLICATIONS",
+      "stallNo": "D01 - D02 / D29 / J44 - J48 / J73 - J77 / N11 - N12 / N21 - N22",
       "halls": [
         "D",
         "J",
@@ -1427,164 +1473,156 @@
       ]
     },
     {
-      "id": "CIBF_2025_169",
+      "id": "CIBF_2026_173",
       "name": "THARA PUBLICATIONS",
-      "stallNo": "C05 / C14",
+      "stallNo": "C06",
       "halls": [
         "C"
       ]
     },
     {
-      "id": "CIBF_2025_170",
+      "id": "CIBF_2026_174",
       "name": "THARANGA PUBLISHERS",
-      "stallNo": "J09 - J11",
+      "stallNo": "J11 - J13",
       "halls": [
         "J"
       ]
     },
     {
-      "id": "CIBF_2025_171",
+      "id": "CIBF_2026_175",
       "name": "THE CEYLON BIBLE SOCIETY",
-      "stallNo": "C19",
+      "stallNo": "C21",
       "halls": [
         "C"
       ]
     },
     {
-      "id": "CIBF_2025_172",
-      "name": "THE READING BOOK HOUSE (PVT) LTD.",
-      "stallNo": "H05 - H06",
+      "id": "CIBF_2026_176",
+      "name": "THE READING BOOK HOUSE PVT LTD",
+      "stallNo": "H64 - H65",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_173",
-      "name": "TIKIRI PUBLISHERS (PVT) LTD",
-      "stallNo": "D24",
+      "id": "CIBF_2026_177",
+      "name": "THOTHANNA PUBLISHING HOUSE",
+      "stallNo": "H08",
+      "halls": [
+        "H"
+      ]
+    },
+    {
+      "id": "CIBF_2026_178",
+      "name": "THRIMANA PUBLICATIONS",
+      "stallNo": "H97",
+      "halls": [
+        "H"
+      ]
+    },
+    {
+      "id": "CIBF_2026_179",
+      "name": "TIKIRI PUBLISHERS PVT LTD",
+      "stallNo": "D07",
       "halls": [
         "D"
       ]
     },
     {
-      "id": "CIBF_2025_174",
+      "id": "CIBF_2026_180",
+      "name": "TIMEPLAN PUBLISHING PVT LTD",
+      "stallNo": "A36 - A37",
+      "halls": [
+        "A"
+      ]
+    },
+    {
+      "id": "CIBF_2026_181",
       "name": "UDAYA BOOK PUBLISHERS",
-      "stallNo": "D16 - D17",
+      "stallNo": "D21 - D22",
       "halls": [
         "D"
       ]
     },
     {
-      "id": "CIBF_2025_175",
+      "id": "CIBF_2026_182",
       "name": "VIJITHA YAPA BOOKSHOP",
-      "stallNo": "A21 / A35 - A36",
+      "stallNo": "A21 / A34 - A35",
       "halls": [
         "A"
       ]
     },
     {
-      "id": "CIBF_2025_176",
-      "name": "විජිද්‍රා ප්‍රකාශකයෝ",
-      "stallNo": "D14 - D15",
-      "halls": [
-        "D"
-      ]
-    },
-    {
-      "id": "CIBF_2025_177",
-      "name": "VISHISHTA PRAKASHAKAYO",
-      "stallNo": "H69 - H70",
-      "halls": [
-        "H"
-      ]
-    },
-    {
-      "id": "CIBF_2025_178",
-      "name": "VISHV BOOKS - INDIA",
-      "stallNo": "A76",
-      "halls": [
-        "A"
-      ]
-    },
-    {
-      "id": "CIBF_2025_179",
-      "name": "සෙන්දෙල් පොත් විශ්වවිද්‍යාලය",
-      "stallNo": "B103",
-      "halls": [
-        "B"
-      ]
-    },
-    {
-      "id": "CIBF_2025_180",
-      "name": "සුද සභ්‍ය ජනමාධ්‍ය හා මනෝවිද්‍යා මෙහෙයුම් අධ්‍යක්ෂ මණ්ඩලය",
-      "stallNo": "K18",
+      "id": "CIBF_2026_183",
+      "name": "විශිෂ්ට ප්‍රකාශකයෝ",
+      "stallNo": "K16 - K17",
       "halls": [
         "K"
       ]
     },
     {
-      "id": "CIBF_2025_181",
+      "id": "CIBF_2026_184",
+      "name": "විසිදුනු ප්‍රකාශකයෝ - කියවන නුවණ",
+      "stallNo": "D19 - D20",
+      "halls": [
+        "D"
+      ]
+    },
+    {
+      "id": "CIBF_2026_185",
       "name": "WARNA GRAPHIC",
-      "stallNo": "H60 - H63",
+      "stallNo": "H77 - H80",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_182",
-      "name": "WARNASORIYA BOOK DEPOT",
-      "stallNo": "H22 - H23",
+      "id": "CIBF_2026_186",
+      "name": "WARNASOORIYA BOOK SHOP",
+      "stallNo": "H58 - H59",
       "halls": [
         "H"
       ]
     },
     {
-      "id": "CIBF_2025_183",
-      "name": "WASANA POTH PRAKASHAKAYO",
-      "stallNo": "J47 - J49 / J68 - J70 / N31 - N32",
+      "id": "CIBF_2026_187",
+      "name": "WASANA BOOKSHOP",
+      "stallNo": "J55 - J57 / J64 - J66 / N20 / N32",
       "halls": [
         "J",
         "N"
       ]
     },
     {
-      "id": "CIBF_2025_184",
+      "id": "CIBF_2026_188",
       "name": "WEERODARA",
-      "stallNo": "H64 - H66",
-      "halls": [
-        "H"
-      ]
-    },
-    {
-      "id": "CIBF_2025_185",
-      "name": "WIJAYA NEWS PAPERS",
       "stallNo": "K01",
       "halls": [
         "K"
       ]
     },
     {
-      "id": "CIBF_2025_186",
-      "name": "විජයසූරිය ග්‍රන්ථ කේන්ද්‍රය",
-      "stallNo": "B95 - B99",
+      "id": "CIBF_2026_189",
+      "name": "විජේසූරිය ග්‍රන්ථ කේන්ද්‍රය",
+      "stallNo": "B96 - B99",
       "halls": [
         "B"
       ]
     },
     {
-      "id": "CIBF_2025_187",
-      "name": "WISDOM BOOKS (PVT) LTD",
-      "stallNo": "A73 - A74",
+      "id": "CIBF_2026_190",
+      "name": "WISDOM BOOKS PVT LTD",
+      "stallNo": "A17 / A39 - A40",
       "halls": [
         "A"
       ]
     },
     {
-      "id": "CIBF_2025_188",
-      "name": "WRITING INSTRUMENTS LANKA (PVT) LTD.",
-      "stallNo": "K19",
+      "id": "CIBF_2026_191",
+      "name": "යුධ සාහිත්‍ය",
+      "stallNo": "H90 A",
       "halls": [
-        "K"
+        "H"
       ]
     }
   ]

@@ -13,7 +13,7 @@ import '../../../creator/domain/entities/creator_entity.dart';
 import '../../../creator/presentation/providers/creator_provider.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
-import '../../data/services/book_fair_sheets_service.dart';
+import '../../data/services/book_fair_html_service.dart';
 import '../../domain/entities/book_fair_event_entity.dart';
 import '../../domain/entities/book_fair_stall_entity.dart';
 import '../providers/book_fair_event_provider.dart';
@@ -188,74 +188,68 @@ class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlan
       );
     }
 
-    final List<PublisherStallPair> pairs = mapped.map((PublisherEntity p) {
-      final String stallId = p.bookFairPublisherId!;
+    // Issue #5: Group publishers by stall — one StallGroup per unique stall so
+    // the stall appears exactly once even when multiple publishers share it.
+    final Map<String, List<PublisherEntity>> stallPublishersMap =
+        <String, List<PublisherEntity>>{};
+    for (final PublisherEntity p in mapped) {
+      stallPublishersMap
+          .putIfAbsent(p.bookFairPublisherId!, () => <PublisherEntity>[])
+          .add(p);
+    }
+
+    final List<StallGroup> allStallGroups =
+        stallPublishersMap.entries.map((MapEntry<String, List<PublisherEntity>> e) {
       final BookFairStallEntity stall = widget.event.stalls.firstWhere(
-        (BookFairStallEntity s) => s.id == stallId,
+        (BookFairStallEntity s) => s.id == e.key,
         orElse: () => BookFairStallEntity(
-          id: stallId,
+          id: e.key,
           name: 'Unknown Stall',
           stallNo: 'N/A',
           halls: const <String>[],
         ),
       );
-      return PublisherStallPair(p, stall);
+      return StallGroup(stall: stall, publishers: e.value);
     }).toList();
-    final Map<String, List<PublisherStallPair>> grouped = <String, List<PublisherStallPair>>{};
-    for (final PublisherStallPair pair in pairs) {
-      for (final String hall in pair.stall.halls) {
-        grouped.putIfAbsent(hall, () => <PublisherStallPair>[]).add(pair);
+
+    // Group StallGroups by hall — a stall in multiple halls appears in each.
+    final Map<String, List<StallGroup>> grouped = <String, List<StallGroup>>{};
+    for (final StallGroup group in allStallGroups) {
+      for (final String hall in group.stall.halls) {
+        grouped.putIfAbsent(hall, () => <StallGroup>[]).add(group);
       }
     }
 
     final List<String> sortedHalls = grouped.keys.toList()..sort();
 
-    // For progress calculation, check all publishers who had books in shopping list today
-    final List<PublisherEntity> mappedForProgress = publishers.where((PublisherEntity p) {
-      final String? bookFairPublisherId = p.bookFairPublisherId;
-      final bool hasStallMapped =
-          bookFairPublisherId != null &&
-          bookFairPublisherId.startsWith('CIBF_${widget.event.year}_');
-      final bool hasBooksInPlan = books.any((BookEntity b) =>
-          b.publisherId == p.id &&
-          (b.collectionStatus == CollectionStatus.shoppingList ||
-           (b.collectionStatus == CollectionStatus.collected &&
-            b.collectedDate != null &&
-            now.difference(b.collectedDate!).inHours < 24)));
-      return hasStallMapped && hasBooksInPlan;
-    }).toList();
 
-    final List<PublisherStallPair> progressPairs = mappedForProgress.map((PublisherEntity p) {
-      final String stallId = p.bookFairPublisherId!;
-      final BookFairStallEntity stall = widget.event.stalls.firstWhere(
-        (BookFairStallEntity s) => s.id == stallId,
-        orElse: () => BookFairStallEntity(
-          id: stallId,
-          name: 'Unknown Stall',
-          stallNo: 'N/A',
-          halls: const <String>[],
-        ),
-      );
-      return PublisherStallPair(p, stall);
-    }).toList();
-
-    final Set<String> allProgressStallIds = progressPairs.map((PublisherStallPair p) => p.stall.id).toSet();
+    final Set<String> allProgressStallIds = allStallGroups
+        .map((StallGroup g) => g.stall.id)
+        .toSet();
     final int totalStalls = allProgressStallIds.length;
 
-    // Calculate dynamically which stalls are completed (all mapped books are in collected state)
+    // Issue #5 + #6: Iterate StallGroups so a stall with multiple publishers
+    // is evaluated once. A stall is completed only when ALL books from ALL its
+    // publishers are collected AND at least one was collected within 24 h.
     final Set<String> completedStallIds = <String>{};
-    for (final PublisherStallPair pair in progressPairs) {
-      final List<BookEntity> publisherBooks = books
+    for (final StallGroup group in allStallGroups) {
+      final Set<String> publisherIds =
+          group.publishers.map((PublisherEntity p) => p.id).toSet();
+      final List<BookEntity> stallBooks = books
           .where((BookEntity b) =>
-              b.publisherId == pair.publisher.id &&
+              publisherIds.contains(b.publisherId) &&
               (b.collectionStatus == CollectionStatus.shoppingList ||
                (b.collectionStatus == CollectionStatus.collected &&
                 b.collectedDate != null &&
                 now.difference(b.collectedDate!).inHours < 24)))
           .toList();
-      if (publisherBooks.isNotEmpty &&
-          publisherBooks.every((BookEntity b) => b.collectionStatus == CollectionStatus.collected)) {
-        completedStallIds.add(pair.stall.id);
+      if (stallBooks.isNotEmpty &&
+          stallBooks.every((BookEntity b) =>
+              b.collectionStatus == CollectionStatus.collected) &&
+          stallBooks.any((BookEntity b) =>
+              b.collectedDate != null &&
+              now.difference(b.collectedDate!).inHours < 24)) {
+        completedStallIds.add(group.stall.id);
       }
     }
 
@@ -414,7 +408,7 @@ class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlan
                         return;
                       }
 
-                      // Keep a plain BookEntity list for the QR dialog.
+                      // Keep a plain BookEntity list for the share dialog.
                       final List<BookEntity> selectedShoppingBooks =
                           selectedEntries
                               .map((BookFairExportEntry e) => e.book)
@@ -425,7 +419,7 @@ class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlan
                           .read(bookFairSyncControllerProvider.notifier)
                           .reset();
 
-                      // Kick off export; controller updates its own state.
+                      // Kick off export (generates HTML + triggers OS share sheet).
                       await ref
                           .read(bookFairSyncControllerProvider.notifier)
                           .exportAndShare(selectedEntries);
@@ -439,7 +433,7 @@ class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlan
 
                       if (result.status == BookFairSyncStatus.done &&
                           result.sheetUrl != null) {
-                        // Open the QR dialog on success.
+                        // Open the QR dialog showing the Drive link.
                         await BookFairSheetQrDialog.show(
                           ctx,
                           selectedShoppingBooks,
@@ -514,12 +508,11 @@ class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlan
               itemCount: sortedHalls.length,
               itemBuilder: (BuildContext context, int index) {
                 final String hallId = sortedHalls[index];
-                final List<PublisherStallPair> groupPairs = grouped[hallId]!;
+                final List<StallGroup> hallGroups = grouped[hallId]!;
 
                 return BookFairHallGroupCard(
                   hallId: hallId,
-                  groupPairs: groupPairs,
-                  completedStallIds: completedStallIds,
+                  stallGroups: hallGroups,
                 );
               },
             ),

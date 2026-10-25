@@ -79,44 +79,45 @@ class Validators {
   }
 
   static String? validateIsbn(String? value) {
-    if (value == null || value.isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return null;
     }
 
-    final String clean = value.replaceAll(RegExp(r'[-\s]'), '').toUpperCase();
+    final String clean = value.trim().replaceAll(RegExp(r'[-\s]'), '').toUpperCase();
 
-    if (clean.length != 10 && clean.length != 13) {
-      return 'Enter 10 or 13 digits';
+    if (clean.length != 13) {
+      return 'ISBN must be 13 digits';
     }
 
-    if (clean.length == 10) {
-      if (!RegExp(r'^\d{9}[\dX]$').hasMatch(clean)) {
-        return 'Invalid ISBN-10 format';
-      }
-    } else {
-      if (!RegExp(r'^\d{13}$').hasMatch(clean)) {
-        return 'Invalid ISBN-13 format';
-      }
+    if (!RegExp(r'^\d{13}$').hasMatch(clean)) {
+      return 'Invalid ISBN-13 format';
+    }
+
+    if (!isValidIsbn13(clean)) {
+      return 'Invalid ISBN-13 checksum';
     }
 
     return null;
   }
 
-  static bool isValidIsbn10(String value) {
+  static String? convertIsbn10To13(String value) {
     final String clean = value.replaceAll(RegExp(r'[-\s]'), '').toUpperCase();
     if (clean.length != 10) {
-      return false;
+      return null;
     }
     if (!RegExp(r'^\d{9}[\dX]$').hasMatch(clean)) {
-      return false;
+      return null;
     }
+
+    final String prefix978 = '978${clean.substring(0, 9)}';
     int sum = 0;
-    for (int i = 0; i < 10; i++) {
-      final String char = clean[i];
-      final int val = char == 'X' ? 10 : int.parse(char);
-      sum += val * (10 - i);
+    for (int i = 0; i < 12; i++) {
+      final int val = int.parse(prefix978[i]);
+      final int weight = i.isEven ? 1 : 3;
+      sum += val * weight;
     }
-    return sum % 11 == 0;
+    final int checkDigit = (10 - (sum % 10)) % 10;
+    return '$prefix978$checkDigit';
   }
 
   static bool isValidIsbn13(String value) {
@@ -147,8 +148,6 @@ class Validators {
       }
 
       return clean;
-    } else if (clean.length == 10) {
-      return '${clean.substring(0, 1)}-${clean.substring(1, 4)}-${clean.substring(4, 9)}-${clean.substring(9)}';
     }
 
     return isbn;

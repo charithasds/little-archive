@@ -10,6 +10,7 @@ import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../domain/entities/book_fair_stall_entity.dart';
 import 'publisher_stall_itinerary_tile.dart';
 
+/// Legacy pair kept for backward compatibility where needed.
 class PublisherStallPair {
   PublisherStallPair(this.publisher, this.stall);
 
@@ -17,17 +18,25 @@ class PublisherStallPair {
   final BookFairStallEntity stall;
 }
 
+/// Issue #5: A stall that has multiple publishers mapped to it.
+/// All publishers sharing the same stall are grouped here so the stall
+/// appears exactly once in the shopping plan.
+class StallGroup {
+  StallGroup({required this.stall, required this.publishers});
+
+  final BookFairStallEntity stall;
+  final List<PublisherEntity> publishers;
+}
+
 class BookFairHallGroupCard extends ConsumerWidget {
   const BookFairHallGroupCard({
     required this.hallId,
-    required this.groupPairs,
-    required this.completedStallIds,
+    required this.stallGroups,
     super.key,
   });
 
   final String hallId;
-  final List<PublisherStallPair> groupPairs;
-  final Set<String> completedStallIds;
+  final List<StallGroup> stallGroups;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -35,7 +44,7 @@ class BookFairHallGroupCard extends ConsumerWidget {
     final ColorScheme colorScheme = theme.colorScheme;
     final bool isDark = theme.brightness == Brightness.dark;
 
-    // Fetch all books
+    // Only shopping-list books — completed books are no longer shown.
     final List<BookEntity> allBooks =
         ref.watch(booksStreamProvider).value ?? <BookEntity>[];
     final List<BookEntity> shoppingListBooks = allBooks
@@ -49,6 +58,23 @@ class BookFairHallGroupCard extends ConsumerWidget {
         isDark ? const Color(0xFFE1BEE7) : const Color(0xFF4A148C);
     final Color purplePrimary =
         isDark ? const Color(0xFFCE93D8) : const Color(0xFF7B1FA2);
+
+    // Pre-compute books per stall and filter out stalls with no remaining
+    // shopping-list books — completed stalls are removed, not crossed off.
+    final List<({StallGroup group, List<BookEntity> books})> activeGroups =
+        stallGroups.map((StallGroup group) {
+      final Set<String> publisherIds =
+          group.publishers.map((PublisherEntity p) => p.id).toSet();
+      final List<BookEntity> stallBooks = shoppingListBooks
+          .where((BookEntity b) => publisherIds.contains(b.publisherId))
+          .toList();
+      return (group: group, books: stallBooks);
+    }).where((({StallGroup group, List<BookEntity> books}) e) => e.books.isNotEmpty).toList();
+
+    // If all stalls in this hall are done, hide the entire hall card.
+    if (activeGroups.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -85,7 +111,8 @@ class BookFairHallGroupCard extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    '${groupPairs.length} ${groupPairs.length == 1 ? 'stall' : 'stalls'}',
+                    // Badge shows remaining stalls, not total.
+                    '${activeGroups.length} ${activeGroups.length == 1 ? 'stall' : 'stalls'}',
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: onPurpleContainer,
                       fontWeight: FontWeight.bold,
@@ -99,24 +126,18 @@ class BookFairHallGroupCard extends ConsumerWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: groupPairs.length,
+            itemCount: activeGroups.length,
             separatorBuilder: (BuildContext context, int i) =>
                 const Divider(height: 1, indent: 56),
             itemBuilder: (BuildContext context, int i) {
-              final PublisherStallPair pair = groupPairs[i];
-              final bool isVisited = completedStallIds.contains(pair.stall.id);
-
-              // Filter books for this publisher
-              final List<BookEntity> publisherBooks = shoppingListBooks
-                  .where((BookEntity b) => b.publisherId == pair.publisher.id)
-                  .toList();
+              final StallGroup group = activeGroups[i].group;
+              final List<BookEntity> stallBooks = activeGroups[i].books;
 
               return PublisherStallItineraryTile(
-                publisher: pair.publisher,
-                stall: pair.stall,
-                isVisited: isVisited,
-                books: publisherBooks,
-                borderRadius: i == groupPairs.length - 1
+                publishers: group.publishers,
+                stall: group.stall,
+                books: stallBooks,
+                borderRadius: i == activeGroups.length - 1
                     ? const BorderRadius.vertical(bottom: Radius.circular(20))
                     : null,
               );

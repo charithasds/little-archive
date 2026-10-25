@@ -51,7 +51,7 @@ class ThemeService {
   static const Color _e80 = Color(0xFFFFB4AB);
   static const Color _e90 = Color(0xFFFFDAD6);
 
-  TextTheme get _textTheme => GoogleFonts.cabinTextTheme();
+  TextTheme get _textTheme => GoogleFonts.merriweatherTextTheme();
 
   ThemeData get lightTheme => ThemeData(
     useMaterial3: true,
@@ -96,7 +96,7 @@ class ThemeService {
       foregroundColor: _n10,
       surfaceTintColor: _p40,
       scrolledUnderElevation: 2,
-      titleTextStyle: GoogleFonts.cabin(fontSize: 22, fontWeight: FontWeight.w600, color: _n10),
+      titleTextStyle: GoogleFonts.merriweather(fontSize: 22, fontWeight: FontWeight.w600, color: _n10),
     ),
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
       backgroundColor: _p90,
@@ -204,7 +204,7 @@ class ThemeService {
       foregroundColor: _n90,
       surfaceTintColor: _p80,
       scrolledUnderElevation: 2,
-      titleTextStyle: GoogleFonts.cabin(fontSize: 22, fontWeight: FontWeight.w600, color: _n90),
+      titleTextStyle: GoogleFonts.merriweather(fontSize: 22, fontWeight: FontWeight.w600, color: _n90),
     ),
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
       backgroundColor: _p30,

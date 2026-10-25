@@ -336,6 +336,16 @@ class _CollectionBookTile extends ConsumerWidget {
             onTap: isLoading ? null : () => _showCollectDialog(context, ref, book),
           ),
         );
+        actions.add(
+          StatusActionChip(
+            label: 'Cancel',
+            icon: FontAwesomeIcons.xmark,
+            color: colorScheme.error,
+            onTap: isLoading
+                ? null
+                : () => ctrl.changeCollectionStatus(book, CollectionStatus.shoppingList),
+          ),
+        );
       case CollectionStatus.collected:
         actions.add(
           StatusActionChip(

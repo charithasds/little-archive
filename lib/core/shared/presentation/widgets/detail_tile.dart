@@ -56,7 +56,14 @@ class DetailTile extends ConsumerWidget {
           child: Row(
             children: <Widget>[
               ...<Widget>[
-                buildAppIcon(leadingIcon, size: 20, color: colorScheme.onSurfaceVariant)!,
+                SizedBox(
+                  width: 24,
+                  child: Center(
+                    child:
+                        buildAppIcon(leadingIcon, size: 20, color: colorScheme.onSurfaceVariant) ??
+                        const SizedBox.shrink(),
+                  ),
+                ),
                 const SizedBox(width: 16),
               ],
               Expanded(

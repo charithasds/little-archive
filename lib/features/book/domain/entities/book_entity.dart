@@ -37,6 +37,10 @@ class BookEntity extends Equatable {
     required this.sequenceVolumeIds,
     this.publisherId,
     this.readerId,
+    required this.notForSale,
+    required this.isSigned,
+    this.signedDate,
+    required this.hasBookmark,
     required this.createdDate,
     required this.lastUpdated,
   });
@@ -68,6 +72,10 @@ class BookEntity extends Equatable {
   final List<String> sequenceVolumeIds;
   final String? publisherId;
   final String? readerId;
+  final bool notForSale;
+  final bool isSigned;
+  final DateTime? signedDate;
+  final bool hasBookmark;
   final DateTime createdDate;
   final DateTime lastUpdated;
 
@@ -102,6 +110,10 @@ class BookEntity extends Equatable {
     List<String>? sequenceVolumeIds,
     Nullable<String?>? publisherId,
     Nullable<String?>? readerId,
+    bool? notForSale,
+    bool? isSigned,
+    Nullable<DateTime?>? signedDate,
+    bool? hasBookmark,
     DateTime? createdDate,
     DateTime? lastUpdated,
   }) => BookEntity(
@@ -132,6 +144,10 @@ class BookEntity extends Equatable {
     sequenceVolumeIds: sequenceVolumeIds ?? this.sequenceVolumeIds,
     publisherId: publisherId != null ? publisherId.value : this.publisherId,
     readerId: readerId != null ? readerId.value : this.readerId,
+    notForSale: notForSale ?? this.notForSale,
+    isSigned: isSigned ?? this.isSigned,
+    signedDate: signedDate != null ? signedDate.value : this.signedDate,
+    hasBookmark: hasBookmark ?? this.hasBookmark,
     createdDate: createdDate ?? this.createdDate,
     lastUpdated: lastUpdated ?? this.lastUpdated,
   );

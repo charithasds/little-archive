@@ -4,6 +4,7 @@ import '../../../../core/shared/domain/enums/language.dart';
 import '../../../../core/shared/domain/enums/original_language.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../../../core/shared/domain/utils/string_extensions.dart';
+import '../../../../core/shared/presentation/utils/validators.dart';
 import '../../domain/entities/book_entity.dart';
 import '../../domain/entities/scan/scanned_book_entity.dart';
 import '../../domain/entities/scan/scanned_name_entity.dart';
@@ -40,6 +41,14 @@ class ScannedBookModel extends ScannedBookEntity {
       publisher = null;
     }
 
+    String? rawIsbn = (map['isbn'] as String?).cleanDummyData;
+    if (rawIsbn != null) {
+      final String cleanIsbn = rawIsbn.replaceAll(RegExp(r'[-\s]'), '').toUpperCase();
+      if (cleanIsbn.length == 10) {
+        rawIsbn = Validators.convertIsbn10To13(cleanIsbn) ?? rawIsbn;
+      }
+    }
+
     final BookEntity book = BookEntity(
       id: '',
       title: map['title'] as String? ?? '',
@@ -51,11 +60,14 @@ class ScannedBookModel extends ScannedBookEntity {
       originalLanguage: originalLanguage,
       collectionStatus: CollectionStatus.collected,
       readingStatus: ReadingStatus.notStarted,
-      isbn: (map['isbn'] as String?).cleanDummyData,
+      isbn: rawIsbn,
       authorIds: const <String>[],
       translatorIds: const <String>[],
       workIds: const <String>[],
       sequenceVolumeIds: const <String>[],
+      notForSale: false,
+      isSigned: false,
+      hasBookmark: false,
       createdDate: DateTime.now(),
       lastUpdated: DateTime.now(),
     );
