@@ -6,6 +6,7 @@ InputDecoration buildFormDecoration(
   String? labelText,
   String? hintText,
   dynamic prefixIcon,
+  Widget? suffixIcon,
   EdgeInsetsGeometry? contentPadding,
   bool alignLabelWithHint = false,
 }) => InputDecoration(
@@ -18,6 +19,7 @@ InputDecoration buildFormDecoration(
           child: Center(child: buildAppIcon(prefixIcon, size: 20)),
         )
       : null,
+  suffixIcon: suffixIcon,
   prefixIconConstraints: const BoxConstraints(minWidth: 48, minHeight: 48),
   alignLabelWithHint: alignLabelWithHint,
   filled: true,

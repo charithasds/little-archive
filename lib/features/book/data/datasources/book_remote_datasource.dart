@@ -6,6 +6,7 @@ import 'package:firebase_ai/firebase_ai.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/database/app_database.dart';
+import '../../../../core/shared/data/services/gemini_fallback_service.dart';
 import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/enums/compilation_type.dart';
 import '../../../../core/shared/domain/enums/genre.dart';
@@ -303,48 +304,48 @@ If you are not highly certain about a value, prefer OCR text or null over recall
       },
     );
 
-    final GenerativeModel model = FirebaseAI.googleAI().generativeModel(
-      model: 'gemini-3.6-flash',
-      generationConfig: GenerationConfig(
-        temperature: 0,
-        responseMimeType: 'application/json',
-        responseSchema: Schema.object(
-          properties: <String, Schema>{
-            'analysisError': Schema.string(nullable: true),
-            'title': Schema.string(nullable: true),
-            'isTranslation': Schema.boolean(),
-            'language': Schema.enumString(
-              enumValues: Language.values.map((Language e) => e.name).toList(),
-              nullable: true,
-            ),
-            'originalTitle': Schema.string(nullable: true),
-            'originalLanguage': Schema.enumString(
-              enumValues: OriginalLanguage.values.map((OriginalLanguage e) => e.name).toList(),
-              nullable: true,
-            ),
-            'authorNames': Schema.array(items: nameSchema),
-            'translatorNames': Schema.array(items: nameSchema),
-            'publisher': Schema.object(
-              properties: <String, Schema>{
-                'name': Schema.string(),
-                'otherName': Schema.string(nullable: true),
-              },
-              nullable: true,
-            ),
-            'isbn': Schema.string(nullable: true),
-          },
-        ),
+    final GenerationConfig generationConfig = GenerationConfig(
+      temperature: 0,
+      responseMimeType: 'application/json',
+      responseSchema: Schema.object(
+        properties: <String, Schema>{
+          'analysisError': Schema.string(nullable: true),
+          'title': Schema.string(nullable: true),
+          'isTranslation': Schema.boolean(),
+          'language': Schema.enumString(
+            enumValues: Language.values.map((Language e) => e.name).toList(),
+            nullable: true,
+          ),
+          'originalTitle': Schema.string(nullable: true),
+          'originalLanguage': Schema.enumString(
+            enumValues: OriginalLanguage.values.map((OriginalLanguage e) => e.name).toList(),
+            nullable: true,
+          ),
+          'authorNames': Schema.array(items: nameSchema),
+          'translatorNames': Schema.array(items: nameSchema),
+          'publisher': Schema.object(
+            properties: <String, Schema>{
+              'name': Schema.string(),
+              'otherName': Schema.string(nullable: true),
+            },
+            nullable: true,
+          ),
+          'isbn': Schema.string(nullable: true),
+        },
       ),
     );
 
-    final GenerateContentResponse response = await model.generateContent(<Content>[
+    final List<Content> contents = <Content>[
       Content.multi(<Part>[prompt, InlineDataPart('image/jpeg', imageBytes)]),
-    ]);
-    if (response.text == null) {
-      throw Exception('Gemini returned an empty response.');
-    }
+    ];
 
-    final Map<String, dynamic> result = jsonDecode(response.text!) as Map<String, dynamic>;
+    // Multimodal (image) request: 20s per model before cascading.
+    final String text = await const GeminiFallbackService().generateWithFallback(
+      prompt: contents,
+      generationConfig: generationConfig,
+    );
+
+    final Map<String, dynamic> result = jsonDecode(text) as Map<String, dynamic>;
     return _sanitize(result);
   }
 }

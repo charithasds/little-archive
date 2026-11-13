@@ -13,6 +13,7 @@ class FormTextField extends ConsumerWidget {
     required this.label,
     this.hint,
     this.prefixIcon,
+    this.suffixIcon,
     this.keyboardType,
     this.textCapitalization,
     this.validator,
@@ -29,6 +30,7 @@ class FormTextField extends ConsumerWidget {
   final String label;
   final String? hint;
   final dynamic prefixIcon;
+  final Widget? suffixIcon;
   final TextInputType? keyboardType;
   final TextCapitalization? textCapitalization;
   final String? Function(String?)? validator;
@@ -71,6 +73,7 @@ class FormTextField extends ConsumerWidget {
         labelText: label,
         hintText: hint,
         prefixIcon: prefixIcon,
+        suffixIcon: suffixIcon,
         alignLabelWithHint: alignLabelWithHint || maxLines > 1,
       ),
       keyboardType: keyboardType,

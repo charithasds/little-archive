@@ -48,6 +48,7 @@ import '../../domain/entities/book_entity.dart';
 import '../../domain/entities/scan/scanned_book_entity.dart';
 import '../../domain/entities/scan/scanned_name_entity.dart';
 import '../providers/upsert_book_controller.dart';
+import '../widgets/form_isbn_scanner_field.dart';
 import '../widgets/scanned_book_approval_dialog.dart';
 
 class UpsertBookPage extends ConsumerStatefulWidget {
@@ -1141,37 +1142,9 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                       ),
                     ],
                     const SizedBox(height: 16),
-                    FormTextField(
+                    FormIsbnScannerField(
                       controller: _isbnController,
-                      label: 'ISBN',
-                      hint: 'e.g. 9789553031358',
-                      prefixIcon: FontAwesomeIcons.qrcode,
-                      maxLength: 13,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
-                      validator: Validators.validateIsbn,
-                      buildCounter:
-                          (
-                            BuildContext context, {
-                            required int currentLength,
-                            required int? maxLength,
-                            required bool isFocused,
-                          }) {
-                            final String text = _isbnController.text;
-                            final String clean = text
-                                .replaceAll(RegExp(r'[-\s]'), '')
-                                .toUpperCase();
-
-                            final bool isValid = Validators.isValidIsbn13(clean);
-                            final String emoji = isValid ? '🟢' : '🔴';
-
-                            return Text(
-                              'ISBN13 $emoji',
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
-                            );
-                          },
+                      onChanged: (_) => setState(() {}),
                     ),
                   ],
                 ],
