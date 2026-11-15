@@ -8,9 +8,7 @@ import '../models/sequence_volume_model.dart';
 part 'sequence_volume_repository_impl.g.dart';
 
 class SequenceVolumeRepositoryImpl implements SequenceVolumeRepository {
-  SequenceVolumeRepositoryImpl({
-    required this.remoteDataSource,
-  });
+  SequenceVolumeRepositoryImpl({required this.remoteDataSource});
 
   final SequenceVolumeRemoteDataSource remoteDataSource;
 
@@ -57,7 +55,10 @@ class SequenceVolumeRepositoryImpl implements SequenceVolumeRepository {
   }
 
   @override
-  Future<void> editSequenceVolume(SequenceVolumeEntity volume, {SequenceVolumeEntity? oldVolume}) async {
+  Future<void> editSequenceVolume(
+    SequenceVolumeEntity volume, {
+    SequenceVolumeEntity? oldVolume,
+  }) async {
     await remoteDataSource.editSequenceVolume(
       SequenceVolumeModel(
         id: volume.id,
@@ -81,72 +82,14 @@ class SequenceVolumeRepositoryImpl implements SequenceVolumeRepository {
     String bookId,
     Map<String, String> sequenceIdToVolume,
     bool isEdit,
-  ) async {
-    if (isEdit) {
-      final List<SequenceVolumeEntity> oldVolumes = await fetchSequenceVolumesByBookId(bookId);
-
-      for (final SequenceVolumeEntity vol in oldVolumes) {
-        await removeSequenceVolume(vol.id);
-      }
-    }
-
-    final List<String> volumeIds = <String>[];
-
-    for (final MapEntry<String, String> entry in sequenceIdToVolume.entries) {
-      final String id = generateId();
-
-      await addSequenceVolume(
-        SequenceVolumeEntity(
-          id: id,
-          volume: entry.value,
-          sequenceId: entry.key,
-          bookId: bookId,
-          createdDate: DateTime.now(),
-          lastUpdated: DateTime.now(),
-        ),
-      );
-
-      volumeIds.add(id);
-    }
-
-    return volumeIds;
-  }
+  ) => remoteDataSource.syncBookVolumes(bookId, sequenceIdToVolume, isEdit);
 
   @override
   Future<List<String>> syncWorkVolumes(
     String workId,
     Map<String, String> sequenceIdToVolume,
     bool isEdit,
-  ) async {
-    if (isEdit) {
-      final List<SequenceVolumeEntity> oldVolumes = await fetchSequenceVolumesByWorkId(workId);
-
-      for (final SequenceVolumeEntity vol in oldVolumes) {
-        await removeSequenceVolume(vol.id);
-      }
-    }
-
-    final List<String> volumeIds = <String>[];
-
-    for (final MapEntry<String, String> entry in sequenceIdToVolume.entries) {
-      final String id = generateId();
-
-      await addSequenceVolume(
-        SequenceVolumeEntity(
-          id: id,
-          volume: entry.value,
-          sequenceId: entry.key,
-          workId: workId,
-          createdDate: DateTime.now(),
-          lastUpdated: DateTime.now(),
-        ),
-      );
-
-      volumeIds.add(id);
-    }
-
-    return volumeIds;
-  }
+  ) => remoteDataSource.syncWorkVolumes(workId, sequenceIdToVolume, isEdit);
 }
 
 @riverpod
@@ -155,7 +98,5 @@ SequenceVolumeRepository sequenceVolumeRepository(Ref ref) {
     sequenceVolumeRemoteDataSourceProvider,
   );
 
-  return SequenceVolumeRepositoryImpl(
-    remoteDataSource: remoteDataSource,
-  );
+  return SequenceVolumeRepositoryImpl(remoteDataSource: remoteDataSource);
 }

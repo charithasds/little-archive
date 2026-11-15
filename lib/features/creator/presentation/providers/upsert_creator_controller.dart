@@ -9,7 +9,7 @@ import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../domain/entities/creator_entity.dart';
-import '../../domain/usecases/creator_usecases.dart';
+import 'creator_usecase_providers.dart';
 
 part 'upsert_creator_controller.g.dart';
 
@@ -75,12 +75,15 @@ class UpsertCreatorController extends _$UpsertCreatorController {
     String? website,
     String? facebook,
   }) async {
+    final GenerateCreatorIdUseCase generateCreatorId = ref.read(generateCreatorIdUseCaseProvider);
+    final EditCreatorUseCase editCreator = ref.read(editCreatorUseCaseProvider);
+    final AddCreatorUseCase addCreator = ref.read(addCreatorUseCaseProvider);
     state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
     await Future<void>.delayed(Duration.zero);
 
     final CreatorEntity? existingCreator = state.existingCreator;
-    final String generatedId = ref.read(generateCreatorIdUseCaseProvider)();
+    final String generatedId = generateCreatorId();
 
     // Eagerly compress the image if it exists to prevent SQLite OOM and large documents.
     final String? compressedImage = Images.compressImageIfNeeded(state.pickedBase64Image);
@@ -114,9 +117,9 @@ class UpsertCreatorController extends _$UpsertCreatorController {
 
     try {
       if (existingCreator != null) {
-        await ref.read(editCreatorUseCaseProvider)(creatorToSave);
+        await editCreator(creatorToSave);
       } else {
-        await ref.read(addCreatorUseCaseProvider)(creatorToSave);
+        await addCreator(creatorToSave);
       }
 
       state = state.copyWith(isLoading: false);

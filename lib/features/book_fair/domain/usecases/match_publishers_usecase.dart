@@ -1,12 +1,8 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
 import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../entities/book_fair_event_entity.dart';
 import '../entities/book_fair_stall_entity.dart';
 import '../entities/book_fair_stall_suggestion.dart';
 import '../entities/publisher_stall_suggestions.dart';
-
-part 'match_publishers_usecase.g.dart';
 
 class MatchPublishersUseCase {
   const MatchPublishersUseCase();
@@ -169,6 +165,3 @@ class MatchPublishersUseCase {
     return publisherStallSuggestionsList;
   }
 }
-
-@riverpod
-MatchPublishersUseCase matchPublishersUseCase(Ref ref) => const MatchPublishersUseCase();

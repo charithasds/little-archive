@@ -26,7 +26,7 @@ import '../../../sequence/presentation/providers/sequence_provider.dart';
 import '../../../sequence/presentation/widgets/sequence_quick_info_dialog.dart';
 import '../../../sequence/presentation/widgets/sequence_volume_list_tile.dart';
 import '../../domain/entities/work_entity.dart';
-import '../../domain/usecases/work_usecases.dart';
+import '../providers/work_list_controller.dart';
 import '../providers/work_provider.dart';
 
 class WorkDetailPage extends ConsumerWidget {
@@ -39,7 +39,7 @@ class WorkDetailPage extends ConsumerWidget {
       entityType: 'Work',
       entityName: work.title,
       onConfirm: () async {
-        await ref.read(removeWorkUseCaseProvider)(work.id);
+        await ref.read(workListControllerProvider.notifier).removeWork(work.id);
         if (context.mounted) {
           context.pop();
         }

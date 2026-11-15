@@ -16,17 +16,15 @@ import '../../../../core/shared/presentation/widgets/list_error_state.dart';
 import '../../../../core/shared/presentation/widgets/list_loading_state.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../book/domain/entities/book_entity.dart';
-import '../../../book/domain/usecases/book_usecases.dart';
 import '../../../book/presentation/providers/book_provider.dart';
 import '../../../book/presentation/widgets/book_list_tile.dart';
 import '../../../book/presentation/widgets/book_quick_info_dialog.dart';
 import '../../../work/domain/entities/work_entity.dart';
-import '../../../work/domain/usecases/work_usecases.dart';
 import '../../../work/presentation/providers/work_provider.dart';
 import '../../../work/presentation/widgets/work_list_tile.dart';
 import '../../../work/presentation/widgets/work_quick_info_dialog.dart';
 import '../../domain/entities/creator_entity.dart';
-import '../../domain/usecases/creator_usecases.dart';
+import '../providers/creator_list_controller.dart';
 import '../providers/creator_provider.dart';
 import '../widgets/creator_role_selection_dialog.dart';
 
@@ -94,7 +92,7 @@ class CreatorDetailPage extends ConsumerWidget {
         }
       }
 
-      await ref.read(editBookUseCaseProvider)(
+      await ref.read(creatorListControllerProvider.notifier).editBook(
         selectedBook.copyWith(
           authorIds: updatedAuthorIds,
           translatorIds: updatedTranslatorIds,
@@ -168,7 +166,7 @@ class CreatorDetailPage extends ConsumerWidget {
         }
       }
 
-      await ref.read(editWorkUseCaseProvider)(
+      await ref.read(creatorListControllerProvider.notifier).editWork(
         selectedWork.copyWith(
           authorIds: updatedAuthorIds,
           translatorIds: updatedTranslatorIds,
@@ -201,7 +199,7 @@ class CreatorDetailPage extends ConsumerWidget {
     try {
       final List<String> updatedAuthorIds = book.authorIds.where((String id) => id != creator.id).toList();
       final List<String> updatedTranslatorIds = book.translatorIds.where((String id) => id != creator.id).toList();
-      await ref.read(editBookUseCaseProvider)(
+      await ref.read(creatorListControllerProvider.notifier).editBook(
         book.copyWith(
           authorIds: updatedAuthorIds,
           translatorIds: updatedTranslatorIds,
@@ -232,7 +230,7 @@ class CreatorDetailPage extends ConsumerWidget {
     try {
       final List<String> updatedAuthorIds = work.authorIds.where((String id) => id != creator.id).toList();
       final List<String> updatedTranslatorIds = work.translatorIds.where((String id) => id != creator.id).toList();
-      await ref.read(editWorkUseCaseProvider)(
+      await ref.read(creatorListControllerProvider.notifier).editWork(
         work.copyWith(
           authorIds: updatedAuthorIds,
           translatorIds: updatedTranslatorIds,
@@ -250,7 +248,7 @@ class CreatorDetailPage extends ConsumerWidget {
       entityType: 'Creator',
       entityName: creator.name,
       onConfirm: () async {
-        await ref.read(removeCreatorUseCaseProvider)(creator.id);
+        await ref.read(creatorListControllerProvider.notifier).removeCreator(creator.id);
         if (context.mounted) {
           context.pop();
         }

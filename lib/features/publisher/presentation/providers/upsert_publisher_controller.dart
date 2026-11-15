@@ -9,7 +9,7 @@ import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../domain/entities/publisher_entity.dart';
-import '../../domain/usecases/publisher_usecases.dart';
+import 'publisher_usecase_providers.dart';
 
 part 'upsert_publisher_controller.g.dart';
 
@@ -78,12 +78,17 @@ class UpsertPublisherController extends _$UpsertPublisherController {
     String? phone,
     bool isSelfPublisher = false,
   }) async {
+    final GeneratePublisherIdUseCase generatePublisherId = ref.read(
+      generatePublisherIdUseCaseProvider,
+    );
+    final EditPublisherUseCase editPublisher = ref.read(editPublisherUseCaseProvider);
+    final AddPublisherUseCase addPublisher = ref.read(addPublisherUseCaseProvider);
     state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
     await Future<void>.delayed(Duration.zero);
 
     final PublisherEntity? existingPublisher = state.existingPublisher;
-    final String generatedId = ref.read(generatePublisherIdUseCaseProvider)();
+    final String generatedId = generatePublisherId();
 
     // Eagerly compress the logo if it exists to prevent SQLite OOM and large documents.
     final String? compressedLogo = Images.compressImageIfNeeded(state.pickedBase64Logo);
@@ -120,9 +125,9 @@ class UpsertPublisherController extends _$UpsertPublisherController {
 
     try {
       if (existingPublisher != null) {
-        await ref.read(editPublisherUseCaseProvider)(publisherToSave);
+        await editPublisher(publisherToSave);
       } else {
-        await ref.read(addPublisherUseCaseProvider)(publisherToSave);
+        await addPublisher(publisherToSave);
       }
 
       state = state.copyWith(isLoading: false);

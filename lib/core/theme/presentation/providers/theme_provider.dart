@@ -19,7 +19,7 @@ ThemeService themeService(Ref ref) => ThemeService();
 @riverpod
 ThemeLocalDataSource? _themeLocalDataSource(Ref ref) {
   final SharedPreferences? prefs = ref.watch(sharedPreferencesProvider).asData?.value;
-  return prefs != null ? ThemeLocalDataSource(prefs) : null;
+  return prefs != null ? ThemeLocalDataSourceImpl(prefs) : null;
 }
 
 @riverpod
@@ -59,7 +59,7 @@ class ThemeNotifier extends Notifier<ThemeMode> {
     }
 
     final bool newIsDark = state != ThemeMode.dark;
-    
+
     Future<void>.microtask(() {
       state = newIsDark ? ThemeMode.dark : ThemeMode.light;
     });

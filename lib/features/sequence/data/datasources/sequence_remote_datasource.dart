@@ -30,31 +30,47 @@ class SequenceRemoteDataSourceImpl implements SequenceRemoteDataSource {
     return List<String>.generate(20, (_) => chars[random.nextInt(chars.length)]).join();
   }
 
+  SequenceModel _buildSequenceModel(Sequence row, {required List<String> sequenceVolumeIds}) =>
+      SequenceModel(
+        id: row.id,
+        name: row.name,
+        notes: row.notes,
+        sequenceVolumeIds: sequenceVolumeIds,
+        createdDate: row.createdDate,
+        lastUpdated: row.lastUpdated,
+      );
+
   Future<SequenceModel> _mapToSequenceModel(Sequence row) async {
     // Resolve sequenceVolumeIds where sequenceId == row.id
     final SimpleSelectStatement<$SequenceVolumesTable, SequenceVolume> volumesQuery = db.select(db.sequenceVolumes)..where(($SequenceVolumesTable t) => t.sequenceId.equals(row.id));
     final List<SequenceVolume> volumes = await volumesQuery.get();
     final List<String> sequenceVolumeIds = volumes.map((SequenceVolume v) => v.id).toList();
 
-    return SequenceModel(
-      id: row.id,
-      name: row.name,
-      notes: row.notes,
-      sequenceVolumeIds: sequenceVolumeIds,
-      createdDate: row.createdDate,
-      lastUpdated: row.lastUpdated,
-    );
+    return _buildSequenceModel(row, sequenceVolumeIds: sequenceVolumeIds);
   }
 
   @override
   Future<List<SequenceModel>> fetchSequences() async {
     final SimpleSelectStatement<$SequencesTable, Sequence> query = db.select(db.sequences)..orderBy(<OrderClauseGenerator<$SequencesTable>>[($SequencesTable t) => OrderingTerm(expression: t.name)]);
     final List<Sequence> rows = await query.get();
-    final List<SequenceModel> sequences = <SequenceModel>[];
-    for (final Sequence row in rows) {
-      sequences.add(await _mapToSequenceModel(row));
+    if (rows.isEmpty) {
+      return <SequenceModel>[];
     }
-    return sequences;
+
+    final List<SequenceVolume> allVolumes = await db.select(db.sequenceVolumes).get();
+    final Map<String, List<String>> volumesBySequence = <String, List<String>>{};
+    for (final SequenceVolume volume in allVolumes) {
+      (volumesBySequence[volume.sequenceId] ??= <String>[]).add(volume.id);
+    }
+
+    return rows
+        .map(
+          (Sequence row) => _buildSequenceModel(
+            row,
+            sequenceVolumeIds: volumesBySequence[row.id] ?? const <String>[],
+          ),
+        )
+        .toList();
   }
 
   @override

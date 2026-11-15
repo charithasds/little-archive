@@ -1,10 +1,10 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../../core/shared/domain/enums/content_category.dart';
-import '../../../../core/shared/domain/enums/genre.dart';
-import '../../../../core/shared/domain/enums/language.dart';
-import '../../../../core/shared/domain/enums/original_language.dart';
-import '../../../../core/shared/domain/utils/nullable.dart';
+import '../../../../domain/enums/content_category.dart';
+import '../../../../domain/enums/genre.dart';
+import '../../../../domain/enums/language.dart';
+import '../../../../domain/enums/original_language.dart';
+import '../../../../domain/utils/nullable.dart';
 
 class WorkEntity extends Equatable {
   const WorkEntity({

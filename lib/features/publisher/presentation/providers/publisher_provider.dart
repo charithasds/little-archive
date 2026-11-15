@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../domain/entities/publisher_entity.dart';
-import '../../domain/usecases/publisher_usecases.dart';
+import 'publisher_usecase_providers.dart';
 
 part 'publisher_provider.g.dart';
 

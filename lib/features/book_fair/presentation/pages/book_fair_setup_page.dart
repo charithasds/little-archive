@@ -10,12 +10,11 @@ import '../../../../core/shared/presentation/routes/route_constants.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../book/domain/entities/book_entity.dart';
 import '../../../book/presentation/providers/book_provider.dart';
-import '../../../publisher/data/repositories/publisher_repository_impl.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
+import '../../../publisher/presentation/providers/publisher_list_controller.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
 import '../../domain/entities/book_fair_event_entity.dart';
 import '../../domain/entities/book_fair_stall_entity.dart';
-import '../../domain/usecases/match_publishers_usecase.dart';
 import '../providers/book_fair_event_provider.dart';
 import '../widgets/publisher_stall_mapping_card.dart';
 
@@ -145,7 +144,7 @@ class _BookFairSetupPageState extends ConsumerState<BookFairSetupPage> {
           _publisherStallMap[publisher.id] = publisher.bookFairPublisherId;
         } else {
           final BookFairStallEntity? bookFairStall = ref
-              .read(matchPublishersUseCaseProvider)
+              .read(lastConfiguredFairIdProvider.notifier)
               .findBestSuggestion(publisher, bookFairEvent.stalls);
 
           _publisherStallMap[publisher.id] = bookFairStall?.id;
@@ -337,7 +336,7 @@ class _BookFairSetupPageState extends ConsumerState<BookFairSetupPage> {
                                 if (publisher.bookFairPublisherId != activeStallId) {
                                   editFutures.add(
                                     ref
-                                        .read(publisherRepositoryProvider)
+                                        .read(publisherListControllerProvider.notifier)
                                         .editPublisher(
                                           publisher.copyWith(
                                             bookFairPublisherId: Nullable<String?>(activeStallId),

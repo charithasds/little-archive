@@ -34,6 +34,31 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
     return List<String>.generate(20, (_) => chars[random.nextInt(chars.length)]).join();
   }
 
+  WorkModel _buildWorkModel(
+    Work row, {
+    required List<String> authorIds,
+    required List<String> translatorIds,
+    required List<String> sequenceVolumeIds,
+  }) => WorkModel(
+    id: row.id,
+    title: row.title,
+    contentCategory:
+        ContentCategory.values.asNameMap()[row.contentCategory] ?? ContentCategory.shortStory,
+    isTranslation: row.isTranslation,
+    toBeTranslated: row.toBeTranslated,
+    language: Language.values.asNameMap()[row.language ?? ''],
+    genre: Genre.values.asNameMap()[row.genre ?? ''],
+    originalTitle: row.originalTitle,
+    originalLanguage: OriginalLanguage.values.asNameMap()[row.originalLanguage ?? ''],
+    notes: row.notes,
+    authorIds: authorIds,
+    translatorIds: translatorIds,
+    sequenceVolumeIds: sequenceVolumeIds,
+    bookId: row.bookId,
+    createdDate: row.createdDate,
+    lastUpdated: row.lastUpdated,
+  );
+
   Future<WorkModel> _mapToWorkModel(Work row) async {
     // Resolve authorIds from workCreatorsJoin table
     final SimpleSelectStatement<$WorkCreatorsJoinTable, WorkCreatorsJoinData> authorsQuery = db.select(db.workCreatorsJoin)..where(($WorkCreatorsJoinTable t) => t.workId.equals(row.id) & t.role.equals(CreatorRole.author.name));
@@ -50,23 +75,11 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
     final List<SequenceVolume> volumes = await volumesQuery.get();
     final List<String> sequenceVolumeIds = volumes.map((SequenceVolume v) => v.id).toList();
 
-    return WorkModel(
-      id: row.id,
-      title: row.title,
-      contentCategory: ContentCategory.values.asNameMap()[row.contentCategory] ?? ContentCategory.shortStory,
-      isTranslation: row.isTranslation,
-      toBeTranslated: row.toBeTranslated,
-      language: Language.values.asNameMap()[row.language ?? ''],
-      genre: Genre.values.asNameMap()[row.genre ?? ''],
-      originalTitle: row.originalTitle,
-      originalLanguage: OriginalLanguage.values.asNameMap()[row.originalLanguage ?? ''],
-      notes: row.notes,
+    return _buildWorkModel(
+      row,
       authorIds: authorIds,
       translatorIds: translatorIds,
       sequenceVolumeIds: sequenceVolumeIds,
-      bookId: row.bookId,
-      createdDate: row.createdDate,
-      lastUpdated: row.lastUpdated,
     );
   }
 
@@ -74,11 +87,43 @@ class WorkRemoteDataSourceImpl implements WorkRemoteDataSource {
   Future<List<WorkModel>> fetchWorks() async {
     final SimpleSelectStatement<$WorksTable, Work> query = db.select(db.works)..orderBy(<OrderClauseGenerator<$WorksTable>>[($WorksTable t) => OrderingTerm(expression: t.title)]);
     final List<Work> rows = await query.get();
-    final List<WorkModel> works = <WorkModel>[];
-    for (final Work row in rows) {
-      works.add(await _mapToWorkModel(row));
+    if (rows.isEmpty) {
+      return <WorkModel>[];
     }
-    return works;
+
+    final List<WorkCreatorsJoinData> allCreatorJoins = await db.select(db.workCreatorsJoin).get();
+    final List<SequenceVolume> allWorkVolumes = await (db.select(
+      db.sequenceVolumes,
+    )..where(($SequenceVolumesTable t) => t.workId.isNotNull())).get();
+
+    final Map<String, List<String>> authorsByWork = <String, List<String>>{};
+    final Map<String, List<String>> translatorsByWork = <String, List<String>>{};
+    for (final WorkCreatorsJoinData join in allCreatorJoins) {
+      if (join.role == CreatorRole.author) {
+        (authorsByWork[join.workId] ??= <String>[]).add(join.creatorId);
+      } else if (join.role == CreatorRole.translator) {
+        (translatorsByWork[join.workId] ??= <String>[]).add(join.creatorId);
+      }
+    }
+
+    final Map<String, List<String>> volumesByWork = <String, List<String>>{};
+    for (final SequenceVolume volume in allWorkVolumes) {
+      final String? wId = volume.workId;
+      if (wId != null) {
+        (volumesByWork[wId] ??= <String>[]).add(volume.id);
+      }
+    }
+
+    return rows
+        .map(
+          (Work row) => _buildWorkModel(
+            row,
+            authorIds: authorsByWork[row.id] ?? const <String>[],
+            translatorIds: translatorsByWork[row.id] ?? const <String>[],
+            sequenceVolumeIds: volumesByWork[row.id] ?? const <String>[],
+          ),
+        )
+        .toList();
   }
 
   @override

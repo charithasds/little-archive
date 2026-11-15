@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-import '../../data/services/book_fair_sheets_service.dart';
+import '../../domain/entities/book_fair_export_entry.dart';
 
 class BookFairStallSelectionDialog extends StatefulWidget {
   const BookFairStallSelectionDialog({super.key, required this.entries});

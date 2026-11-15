@@ -25,7 +25,6 @@ import '../../../creator/presentation/providers/creator_provider.dart';
 import '../../../creator/presentation/widgets/add_creator_bottom_sheet.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/domain/entities/sequence_volume_entity.dart';
-import '../../../sequence/domain/usecases/sequence_volume_usecases.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
 import '../../../sequence/presentation/widgets/add_sequence_bottom_sheet.dart';
 import '../../../sequence/presentation/widgets/sequence_number_dialog.dart';
@@ -248,9 +247,9 @@ class _UpsertWorkPageState extends ConsumerState<UpsertWorkPage> {
             return;
           }
 
-          final List<SequenceVolumeEntity> volumes = await ref.read(
-            fetchSequenceVolumesByWorkIdUseCaseProvider,
-          )(work.id);
+          final List<SequenceVolumeEntity> volumes = await ref
+              .read(upsertWorkControllerProvider.notifier)
+              .fetchSequenceVolumesByWorkId(work.id);
 
           final Map<SequenceEntity, String> sequencesMap = <SequenceEntity, String>{};
           if (sequencesAsync.value != null) {

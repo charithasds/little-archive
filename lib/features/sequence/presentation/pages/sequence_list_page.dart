@@ -14,7 +14,6 @@ import '../../../../core/shared/presentation/widgets/list_loading_state.dart';
 import '../../../../core/shared/presentation/widgets/search_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/sequence_entity.dart';
-import '../../domain/usecases/sequence_usecases.dart';
 import '../providers/sequence_list_controller.dart';
 import '../providers/sequence_provider.dart';
 import '../widgets/sequence_list_tile.dart';
@@ -27,7 +26,7 @@ class SequenceListPage extends ConsumerStatefulWidget {
 }
 
 class _SequenceListPageState extends ConsumerState<SequenceListPage> {
-  bool _isExtended = true;
+  bool _isFabVisible = true;
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -39,6 +38,9 @@ class _SequenceListPageState extends ConsumerState<SequenceListPage> {
   void _clearSearch() {
     _searchController.clear();
     ref.read(sequenceListControllerProvider.notifier).setSearchQuery('');
+    if (!_isFabVisible) {
+      setState(() => _isFabVisible = true);
+    }
   }
 
   Future<void> _navigateTo(Future<void> Function() navigation) async {
@@ -54,7 +56,7 @@ class _SequenceListPageState extends ConsumerState<SequenceListPage> {
       entityType: 'Sequence',
       entityName: sequenceName,
       onConfirm: () async {
-        await ref.read(removeSequenceUseCaseProvider)(sequenceId);
+        await ref.read(sequenceListControllerProvider.notifier).removeSequence(sequenceId);
       },
     );
   }
@@ -91,12 +93,12 @@ class _SequenceListPageState extends ConsumerState<SequenceListPage> {
           return NotificationListener<UserScrollNotification>(
             onNotification: (UserScrollNotification notification) {
               if (notification.direction == ScrollDirection.reverse) {
-                if (_isExtended) {
-                  setState(() => _isExtended = false);
+                if (_isFabVisible) {
+                  setState(() => _isFabVisible = false);
                 }
               } else if (notification.direction == ScrollDirection.forward) {
-                if (!_isExtended) {
-                  setState(() => _isExtended = true);
+                if (!_isFabVisible) {
+                  setState(() => _isFabVisible = true);
                 }
               }
 
@@ -107,8 +109,12 @@ class _SequenceListPageState extends ConsumerState<SequenceListPage> {
                 SearchField(
                   controller: _searchController,
                   hintText: 'Search',
-                  onChanged: (String query) =>
-                      ref.read(sequenceListControllerProvider.notifier).setSearchQuery(query),
+                  onChanged: (String query) {
+                    ref.read(sequenceListControllerProvider.notifier).setSearchQuery(query);
+                    if (!_isFabVisible) {
+                      setState(() => _isFabVisible = true);
+                    }
+                  },
                 ),
                 if (sequences.isEmpty)
                   Expanded(
@@ -134,8 +140,18 @@ class _SequenceListPageState extends ConsumerState<SequenceListPage> {
 
                               return SequenceListTile(
                                 sequence: sequence,
-                                onTap: () => _navigateTo(() => context.pushNamed(RouteConstants.sequenceDetail, pathParameters: <String, String>{'id': sequence.id})),
-                                onEdit: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertSequence, extra: sequence)),
+                                onTap: () => _navigateTo(
+                                  () => context.pushNamed(
+                                    RouteConstants.sequenceDetail,
+                                    pathParameters: <String, String>{'id': sequence.id},
+                                  ),
+                                ),
+                                onEdit: () => _navigateTo(
+                                  () => context.pushNamed(
+                                    RouteConstants.upsertSequence,
+                                    extra: sequence,
+                                  ),
+                                ),
                                 onRemove: () => _handleRemove(sequence.id, sequence.name),
                               );
                             },
@@ -155,8 +171,18 @@ class _SequenceListPageState extends ConsumerState<SequenceListPage> {
 
                               return SequenceListTile(
                                 sequence: sequence,
-                                onTap: () => _navigateTo(() => context.pushNamed(RouteConstants.sequenceDetail, pathParameters: <String, String>{'id': sequence.id})),
-                                onEdit: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertSequence, extra: sequence)),
+                                onTap: () => _navigateTo(
+                                  () => context.pushNamed(
+                                    RouteConstants.sequenceDetail,
+                                    pathParameters: <String, String>{'id': sequence.id},
+                                  ),
+                                ),
+                                onEdit: () => _navigateTo(
+                                  () => context.pushNamed(
+                                    RouteConstants.upsertSequence,
+                                    extra: sequence,
+                                  ),
+                                ),
                                 onRemove: () => _handleRemove(sequence.id, sequence.name),
                               );
                             },
@@ -172,14 +198,15 @@ class _SequenceListPageState extends ConsumerState<SequenceListPage> {
         loading: () => const ListLoadingState(),
         error: (Object err, StackTrace stack) => ListErrorState(error: err),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        isExtended: _isExtended,
-        backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
-        foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
-        onPressed: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertSequence)),
-        icon: const FaIcon(FontAwesomeIcons.plus),
-        label: const Text('Add Sequence'),
-      ),
+      floatingActionButton: _isFabVisible
+          ? FloatingActionButton.extended(
+              backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
+              foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
+              onPressed: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertSequence)),
+              icon: const FaIcon(FontAwesomeIcons.plus),
+              label: const Text('Add Sequence'),
+            )
+          : null,
     );
   }
 }

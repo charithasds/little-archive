@@ -1,10 +1,5 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-
-import '../../data/repositories/creator_repository_impl.dart';
 import '../entities/creator_entity.dart';
 import '../repositories/creator_repository.dart';
-
-part 'creator_usecases.g.dart';
 
 class GenerateCreatorIdUseCase {
   const GenerateCreatorIdUseCase(this.repository);
@@ -62,34 +57,3 @@ class MergeCreatorsUseCase {
 
   Future<void> call(String targetId, String sourceId) => repository.mergeCreators(targetId, sourceId);
 }
-
-@riverpod
-GenerateCreatorIdUseCase generateCreatorIdUseCase(Ref ref) =>
-    GenerateCreatorIdUseCase(ref.watch(creatorRepositoryProvider));
-
-@riverpod
-FetchCreatorsUseCase fetchCreatorsUseCase(Ref ref) =>
-    FetchCreatorsUseCase(ref.watch(creatorRepositoryProvider));
-
-@riverpod
-FetchCreatorByIdUseCase fetchCreatorByIdUseCase(Ref ref) =>
-    FetchCreatorByIdUseCase(ref.watch(creatorRepositoryProvider));
-
-@riverpod
-WatchCreatorsUseCase watchCreatorsUseCase(Ref ref) =>
-    WatchCreatorsUseCase(ref.watch(creatorRepositoryProvider));
-
-@riverpod
-AddCreatorUseCase addCreatorUseCase(Ref ref) => AddCreatorUseCase(ref.watch(creatorRepositoryProvider));
-
-@riverpod
-EditCreatorUseCase editCreatorUseCase(Ref ref) =>
-    EditCreatorUseCase(ref.watch(creatorRepositoryProvider));
-
-@riverpod
-RemoveCreatorUseCase removeCreatorUseCase(Ref ref) =>
-    RemoveCreatorUseCase(ref.watch(creatorRepositoryProvider));
-
-@riverpod
-MergeCreatorsUseCase mergeCreatorsUseCase(Ref ref) =>
-    MergeCreatorsUseCase(ref.watch(creatorRepositoryProvider));

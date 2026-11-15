@@ -2,8 +2,8 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../domain/entities/sequence_entity.dart';
 import '../../domain/entities/sequence_volume_entity.dart';
-import '../../domain/usecases/sequence_usecases.dart';
-import '../../domain/usecases/sequence_volume_usecases.dart';
+import 'sequence_usecase_providers.dart';
+import 'sequence_volume_usecase_providers.dart';
 
 part 'sequence_provider.g.dart';
 

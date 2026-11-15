@@ -4,17 +4,16 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:googleapis/sheets/v4.dart' as sheets;
-import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../../core/sync/data/services/backup_service.dart' show GoogleAuthClient;
-import '../../../book/data/repositories/book_repository_impl.dart';
 import '../../../book/domain/entities/book_entity.dart';
 import '../../../book/domain/repositories/book_repository.dart';
+import '../../domain/entities/book_fair_export_entry.dart';
 
-part 'book_fair_sheets_service.g.dart';
+export '../../domain/entities/book_fair_export_entry.dart';
 
 const String _kSheetIdKey = 'book_fair_sheet_id';
 const String _kRootFolderIdKey = 'little_archive_root_folder_id';
@@ -68,36 +67,6 @@ const List<int> _kColumnWidths = <int>[
 const int _kHeaderRowHeight = 52;
 const int _kDataRowHeight = 150;
 const int _kCheckboxFontSize = 30; // Checkbox size scales with font size.
-
-/// Data class carrying everything needed to render one row in the sheet.
-class BookFairExportEntry {
-  const BookFairExportEntry({
-    required this.book,
-    required this.creators,
-    required this.publisherName,
-    required this.halls,
-    required this.stallNo,
-    required this.stallName,
-  });
-
-  final BookEntity book;
-  final String creators;
-  final String publisherName;
-  final List<String> halls;
-  final String stallNo;
-  final String stallName;
-}
-
-/// Result returned after a sync (pull) operation.
-class BookFairSyncResult {
-  const BookFairSyncResult({
-    required this.updatedBookTitles,
-    required this.conflictBookTitles,
-  });
-
-  final List<String> updatedBookTitles;
-  final List<String> conflictBookTitles;
-}
 
 /// Spreadsheet + tab identifiers resolved before writing.
 class _SheetTarget {
@@ -1017,10 +986,4 @@ class BookFairSheetsService {
       conflictBookTitles: conflictBookTitles,
     );
   }
-}
-
-@riverpod
-BookFairSheetsService bookFairSheetsService(Ref ref) {
-  final BookRepository bookRepository = ref.watch(bookRepositoryProvider);
-  return BookFairSheetsService(bookRepository: bookRepository);
 }

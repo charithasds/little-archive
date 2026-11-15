@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../domain/entities/publisher_entity.dart';
 import 'publisher_provider.dart';
+import 'publisher_usecase_providers.dart';
 
 part 'publisher_list_controller.g.dart';
 
@@ -37,6 +38,11 @@ class PublisherListController extends _$PublisherListController {
 
     state = _calculateState(allPublishers, query);
   }
+
+  Future<void> removePublisher(String id) => ref.read(removePublisherUseCaseProvider)(id);
+
+  Future<void> editPublisher(PublisherEntity publisher, {PublisherEntity? oldPublisher}) =>
+      ref.read(editPublisherUseCaseProvider)(publisher, oldPublisher: oldPublisher);
 
   PublisherListState _calculateState(List<PublisherEntity> allPublishers, String query) {
     final List<PublisherEntity> sortedPublishers = List<PublisherEntity>.from(allPublishers)

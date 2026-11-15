@@ -4,8 +4,8 @@ import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
 import '../../domain/entities/book_fair_event_entity.dart';
 import '../../domain/entities/publisher_stall_suggestions.dart';
-import '../../domain/usecases/match_publishers_usecase.dart';
 import 'book_fair_event_provider.dart';
+import 'match_publishers_usecase_provider.dart';
 
 part 'book_fair_suggestions_provider.g.dart';
 

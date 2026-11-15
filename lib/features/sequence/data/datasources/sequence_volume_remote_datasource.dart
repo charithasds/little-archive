@@ -20,6 +20,16 @@ abstract class SequenceVolumeRemoteDataSource {
   Future<void> addSequenceVolume(SequenceVolumeModel volume);
   Future<void> editSequenceVolume(SequenceVolumeModel volume);
   Future<void> removeSequenceVolume(String id);
+  Future<List<String>> syncBookVolumes(
+    String bookId,
+    Map<String, String> sequenceIdToVolume,
+    bool isEdit,
+  );
+  Future<List<String>> syncWorkVolumes(
+    String workId,
+    Map<String, String> sequenceIdToVolume,
+    bool isEdit,
+  );
 }
 
 class SequenceVolumeRemoteDataSourceImpl implements SequenceVolumeRemoteDataSource {
@@ -108,6 +118,78 @@ class SequenceVolumeRemoteDataSourceImpl implements SequenceVolumeRemoteDataSour
   @override
   Future<void> removeSequenceVolume(String id) async {
     await (db.delete(db.sequenceVolumes)..where(($SequenceVolumesTable t) => t.id.equals(id))).go();
+  }
+
+  @override
+  Future<List<String>> syncBookVolumes(
+    String bookId,
+    Map<String, String> sequenceIdToVolume,
+    bool isEdit,
+  ) async {
+    if (isEdit) {
+      final List<SequenceVolumeModel> oldVolumes = await fetchSequenceVolumesByBookId(bookId);
+
+      for (final SequenceVolumeModel vol in oldVolumes) {
+        await removeSequenceVolume(vol.id);
+      }
+    }
+
+    final List<String> volumeIds = <String>[];
+
+    for (final MapEntry<String, String> entry in sequenceIdToVolume.entries) {
+      final String id = generateId();
+
+      await addSequenceVolume(
+        SequenceVolumeModel(
+          id: id,
+          volume: entry.value,
+          sequenceId: entry.key,
+          bookId: bookId,
+          createdDate: DateTime.now(),
+          lastUpdated: DateTime.now(),
+        ),
+      );
+
+      volumeIds.add(id);
+    }
+
+    return volumeIds;
+  }
+
+  @override
+  Future<List<String>> syncWorkVolumes(
+    String workId,
+    Map<String, String> sequenceIdToVolume,
+    bool isEdit,
+  ) async {
+    if (isEdit) {
+      final List<SequenceVolumeModel> oldVolumes = await fetchSequenceVolumesByWorkId(workId);
+
+      for (final SequenceVolumeModel vol in oldVolumes) {
+        await removeSequenceVolume(vol.id);
+      }
+    }
+
+    final List<String> volumeIds = <String>[];
+
+    for (final MapEntry<String, String> entry in sequenceIdToVolume.entries) {
+      final String id = generateId();
+
+      await addSequenceVolume(
+        SequenceVolumeModel(
+          id: id,
+          volume: entry.value,
+          sequenceId: entry.key,
+          workId: workId,
+          createdDate: DateTime.now(),
+          lastUpdated: DateTime.now(),
+        ),
+      );
+
+      volumeIds.add(id);
+    }
+
+    return volumeIds;
   }
 }
 

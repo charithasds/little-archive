@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../book/domain/entities/book_entity.dart';
-import '../../data/services/book_fair_sheets_service.dart';
+import 'book_fair_sheets_service_provider.dart';
 
 part 'book_fair_sync_controller.g.dart';
 

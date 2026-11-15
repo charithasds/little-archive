@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/presentation/routes/route_constants.dart';
-import '../../../../core/shared/presentation/routes/router_service.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../book/domain/entities/book_entity.dart';
 import '../../../book/presentation/providers/book_provider.dart';
@@ -13,8 +12,8 @@ import '../../../creator/domain/entities/creator_entity.dart';
 import '../../../creator/presentation/providers/creator_provider.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
-import '../../data/services/book_fair_sheets_service.dart';
 import '../../domain/entities/book_fair_event_entity.dart';
+import '../../domain/entities/book_fair_export_entry.dart';
 import '../../domain/entities/book_fair_stall_entity.dart';
 import '../providers/book_fair_event_provider.dart';
 import '../providers/book_fair_sync_controller.dart';
@@ -37,7 +36,7 @@ class BookFairShoppingPlanPage extends ConsumerWidget {
       data: (BookFairEventEntity event) => _BookFairShoppingPlanView(
         event: event,
         onEditMappings: () {
-          ref.read(goRouterProvider).goNamed(RouteConstants.bookFair);
+          context.goNamed(RouteConstants.bookFair);
           ref.read(lastConfiguredFairIdProvider.notifier).update(null);
         },
       ),
@@ -124,7 +123,9 @@ class _BookFairShoppingPlanViewState extends ConsumerState<_BookFairShoppingPlan
 
     if (unmappedInShoppingList.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(goRouterProvider).goNamed(RouteConstants.bookFair);
+        if (context.mounted) {
+          context.goNamed(RouteConstants.bookFair);
+        }
         ref.read(lastConfiguredFairIdProvider.notifier).update(null);
       });
 

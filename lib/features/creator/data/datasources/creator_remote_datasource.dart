@@ -31,6 +31,27 @@ class CreatorRemoteDataSourceImpl implements CreatorRemoteDataSource {
     return List<String>.generate(20, (_) => chars[random.nextInt(chars.length)]).join();
   }
 
+  CreatorModel _buildCreatorModel(
+    Creator row, {
+    required List<String> authoredBookIds,
+    required List<String> translatedBookIds,
+    required List<String> authoredWorkIds,
+    required List<String> translatedWorkIds,
+  }) => CreatorModel(
+    id: row.id,
+    name: row.name,
+    image: row.image,
+    otherName: row.otherName,
+    website: row.website,
+    facebook: row.facebook,
+    authoredBookIds: authoredBookIds,
+    translatedBookIds: translatedBookIds,
+    authoredWorkIds: authoredWorkIds,
+    translatedWorkIds: translatedWorkIds,
+    createdDate: row.createdDate,
+    lastUpdated: row.lastUpdated,
+  );
+
   Future<CreatorModel> _mapToCreatorModel(Creator row) async {
     // Resolve authored bookIds from BookCreatorsJoin
     final SimpleSelectStatement<$BookCreatorsJoinTable, BookCreatorsJoinData> authBooksQuery =
@@ -78,19 +99,12 @@ class CreatorRemoteDataSourceImpl implements CreatorRemoteDataSource {
         .map((WorkCreatorsJoinData w) => w.workId)
         .toList();
 
-    return CreatorModel(
-      id: row.id,
-      name: row.name,
-      image: row.image,
-      otherName: row.otherName,
-      website: row.website,
-      facebook: row.facebook,
+    return _buildCreatorModel(
+      row,
       authoredBookIds: authoredBookIds,
       translatedBookIds: translatedBookIds,
       authoredWorkIds: authoredWorkIds,
       translatedWorkIds: translatedWorkIds,
-      createdDate: row.createdDate,
-      lastUpdated: row.lastUpdated,
     );
   }
 
@@ -101,11 +115,44 @@ class CreatorRemoteDataSourceImpl implements CreatorRemoteDataSource {
         ($CreatorsTable t) => OrderingTerm(expression: t.name),
       ]);
     final List<Creator> rows = await query.get();
-    final List<CreatorModel> creators = <CreatorModel>[];
-    for (final Creator row in rows) {
-      creators.add(await _mapToCreatorModel(row));
+    if (rows.isEmpty) {
+      return <CreatorModel>[];
     }
-    return creators;
+
+    final List<BookCreatorsJoinData> allBookJoins = await db.select(db.bookCreatorsJoin).get();
+    final List<WorkCreatorsJoinData> allWorkJoins = await db.select(db.workCreatorsJoin).get();
+
+    final Map<String, List<String>> authoredBooksByCreator = <String, List<String>>{};
+    final Map<String, List<String>> translatedBooksByCreator = <String, List<String>>{};
+    for (final BookCreatorsJoinData join in allBookJoins) {
+      if (join.role == CreatorRole.author) {
+        (authoredBooksByCreator[join.creatorId] ??= <String>[]).add(join.bookId);
+      } else if (join.role == CreatorRole.translator) {
+        (translatedBooksByCreator[join.creatorId] ??= <String>[]).add(join.bookId);
+      }
+    }
+
+    final Map<String, List<String>> authoredWorksByCreator = <String, List<String>>{};
+    final Map<String, List<String>> translatedWorksByCreator = <String, List<String>>{};
+    for (final WorkCreatorsJoinData join in allWorkJoins) {
+      if (join.role == CreatorRole.author) {
+        (authoredWorksByCreator[join.creatorId] ??= <String>[]).add(join.workId);
+      } else if (join.role == CreatorRole.translator) {
+        (translatedWorksByCreator[join.creatorId] ??= <String>[]).add(join.workId);
+      }
+    }
+
+    return rows
+        .map(
+          (Creator row) => _buildCreatorModel(
+            row,
+            authoredBookIds: authoredBooksByCreator[row.id] ?? const <String>[],
+            translatedBookIds: translatedBooksByCreator[row.id] ?? const <String>[],
+            authoredWorkIds: authoredWorksByCreator[row.id] ?? const <String>[],
+            translatedWorkIds: translatedWorksByCreator[row.id] ?? const <String>[],
+          ),
+        )
+        .toList();
   }
 
   @override

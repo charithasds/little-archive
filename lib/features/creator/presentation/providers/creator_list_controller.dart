@@ -1,7 +1,12 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../book/domain/entities/book_entity.dart';
+import '../../../book/presentation/providers/book_usecase_providers.dart';
+import '../../../work/domain/entities/work_entity.dart';
+import '../../../work/presentation/providers/work_usecase_providers.dart';
 import '../../domain/entities/creator_entity.dart';
 import 'creator_provider.dart';
+import 'creator_usecase_providers.dart';
 
 part 'creator_list_controller.g.dart';
 
@@ -36,6 +41,14 @@ class CreatorListController extends _$CreatorListController {
 
     state = _calculateState(allCreators, query);
   }
+
+  Future<void> removeCreator(String id) => ref.read(removeCreatorUseCaseProvider)(id);
+
+  Future<void> editBook(BookEntity book, {BookEntity? oldBook}) =>
+      ref.read(editBookUseCaseProvider)(book, oldBook: oldBook);
+
+  Future<void> editWork(WorkEntity work, {WorkEntity? oldWork}) =>
+      ref.read(editWorkUseCaseProvider)(work, oldWork: oldWork);
 
   CreatorListState _calculateState(List<CreatorEntity> allCreators, String query) {
     final List<CreatorEntity> sortedCreators = List<CreatorEntity>.from(allCreators)

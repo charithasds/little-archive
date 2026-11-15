@@ -1,6 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
-import '../../../../core/shared/presentation/utils/images.dart';
+import '../../../../core/shared/utils/image_utils.dart';
 import '../../domain/entities/reader_entity.dart';
 import '../../domain/repositories/reader_repository.dart';
 import '../datasources/reader_remote_datasource.dart';
@@ -35,7 +35,7 @@ class ReaderRepositoryImpl implements ReaderRepository {
 
         final String? image = reader.image;
         if (image != null && image.length > 50000) {
-          final String? compressed = Images.compressImageIfNeeded(image);
+          final String? compressed = ImageUtils.compressImageIfNeeded(image);
           if (compressed != null && compressed != image) {
             final ReaderEntity updated = reader.copyWith(
               image: Nullable<String?>(compressed),
@@ -60,7 +60,7 @@ class ReaderRepositoryImpl implements ReaderRepository {
       ReaderModel(
         id: reader.id,
         name: reader.name,
-        image: Images.compressImageIfNeeded(reader.image),
+        image: ImageUtils.compressImageIfNeeded(reader.image),
         otherName: reader.otherName,
         email: reader.email,
         facebook: reader.facebook,
@@ -78,7 +78,7 @@ class ReaderRepositoryImpl implements ReaderRepository {
       ReaderModel(
         id: reader.id,
         name: reader.name,
-        image: Images.compressImageIfNeeded(reader.image),
+        image: ImageUtils.compressImageIfNeeded(reader.image),
         otherName: reader.otherName,
         email: reader.email,
         facebook: reader.facebook,

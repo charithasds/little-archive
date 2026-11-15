@@ -7,7 +7,7 @@ import '../../../../core/shared/presentation/utils/dialogs.dart';
 import '../../../../core/shared/presentation/utils/snack_bars.dart';
 import '../../../../core/shared/presentation/widgets/form_section.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-import '../controllers/settings_controller.dart';
+import '../providers/settings_controller.dart';
 
 class SettingsPage extends ConsumerWidget {
   const SettingsPage({super.key});

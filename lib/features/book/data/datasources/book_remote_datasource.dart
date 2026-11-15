@@ -13,7 +13,7 @@ import '../../../../core/shared/domain/enums/genre.dart';
 import '../../../../core/shared/domain/enums/language.dart';
 import '../../../../core/shared/domain/enums/original_language.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
-import '../../../../core/shared/presentation/utils/images.dart';
+import '../../../../core/shared/utils/image_utils.dart';
 import '../models/book_model.dart';
 
 part 'book_remote_datasource.g.dart';
@@ -40,6 +40,51 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
     final Random random = Random();
     return List<String>.generate(20, (_) => chars[random.nextInt(chars.length)]).join();
   }
+
+  BookModel _buildBookModel(
+    Book row, {
+    required List<String> authorIds,
+    required List<String> translatorIds,
+    required List<String> workIds,
+    required List<String> sequenceVolumeIds,
+  }) => BookModel(
+    id: row.id,
+    title: row.title,
+    compilationType:
+        CompilationType.values.asNameMap()[row.compilationType] ?? CompilationType.single,
+    isTranslation: row.isTranslation,
+    toBeTranslated: row.toBeTranslated,
+    cover: row.cover,
+    language: Language.values.asNameMap()[row.language ?? ''],
+    genre: Genre.values.asNameMap()[row.genre ?? ''],
+    isbn: row.isbn,
+    publishedDate: row.publishedDate,
+    noOfPages: row.noOfPages,
+    originalTitle: row.originalTitle,
+    originalLanguage: OriginalLanguage.values.asNameMap()[row.originalLanguage ?? ''],
+    collectionStatus:
+        CollectionStatus.values.asNameMap()[row.collectionStatus] ?? CollectionStatus.collected,
+    collectedDate: row.collectedDate,
+    lendedDate: row.lendedDate,
+    dueDate: row.dueDate,
+    readingStatus:
+        ReadingStatus.values.asNameMap()[row.readingStatus] ?? ReadingStatus.notStarted,
+    pausedPage: row.pausedPage,
+    completedDate: row.completedDate,
+    notes: row.notes,
+    authorIds: authorIds,
+    translatorIds: translatorIds,
+    workIds: workIds,
+    sequenceVolumeIds: sequenceVolumeIds,
+    publisherId: row.publisherId,
+    readerId: row.readerId,
+    notForSale: row.notForSale,
+    isSigned: row.isSigned,
+    signedDate: row.signedDate,
+    hasBookmark: row.hasBookmark,
+    createdDate: row.createdDate,
+    lastUpdated: row.lastUpdated,
+  );
 
   Future<BookModel> _mapToBookModel(Book row) async {
     // Fetch associated relations from join tables
@@ -74,43 +119,12 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
     final List<SequenceVolume> volumes = await volumesQuery.get();
     final List<String> sequenceVolumeIds = volumes.map((SequenceVolume v) => v.id).toList();
 
-    return BookModel(
-      id: row.id,
-      title: row.title,
-      compilationType:
-          CompilationType.values.asNameMap()[row.compilationType] ?? CompilationType.single,
-      isTranslation: row.isTranslation,
-      toBeTranslated: row.toBeTranslated,
-      cover: row.cover,
-      language: Language.values.asNameMap()[row.language ?? ''],
-      genre: Genre.values.asNameMap()[row.genre ?? ''],
-      isbn: row.isbn,
-      publishedDate: row.publishedDate,
-      noOfPages: row.noOfPages,
-      originalTitle: row.originalTitle,
-      originalLanguage: OriginalLanguage.values.asNameMap()[row.originalLanguage ?? ''],
-      collectionStatus:
-          CollectionStatus.values.asNameMap()[row.collectionStatus] ?? CollectionStatus.collected,
-      collectedDate: row.collectedDate,
-      lendedDate: row.lendedDate,
-      dueDate: row.dueDate,
-      readingStatus:
-          ReadingStatus.values.asNameMap()[row.readingStatus] ?? ReadingStatus.notStarted,
-      pausedPage: row.pausedPage,
-      completedDate: row.completedDate,
-      notes: row.notes,
+    return _buildBookModel(
+      row,
       authorIds: authorIds,
       translatorIds: translatorIds,
       workIds: workIds,
       sequenceVolumeIds: sequenceVolumeIds,
-      publisherId: row.publisherId,
-      readerId: row.readerId,
-      notForSale: row.notForSale,
-      isSigned: row.isSigned,
-      signedDate: row.signedDate,
-      hasBookmark: row.hasBookmark,
-      createdDate: row.createdDate,
-      lastUpdated: row.lastUpdated,
     );
   }
 
@@ -121,11 +135,55 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
         ($BooksTable t) => OrderingTerm(expression: t.title),
       ]);
     final List<Book> rows = await query.get();
-    final List<BookModel> books = <BookModel>[];
-    for (final Book row in rows) {
-      books.add(await _mapToBookModel(row));
+    if (rows.isEmpty) {
+      return <BookModel>[];
     }
-    return books;
+
+    final List<BookCreatorsJoinData> allCreatorJoins = await db.select(db.bookCreatorsJoin).get();
+    final List<Work> allBookWorks = await (db.select(
+      db.works,
+    )..where(($WorksTable t) => t.bookId.isNotNull())).get();
+    final List<SequenceVolume> allBookVolumes = await (db.select(
+      db.sequenceVolumes,
+    )..where(($SequenceVolumesTable t) => t.bookId.isNotNull())).get();
+
+    final Map<String, List<String>> authorsByBook = <String, List<String>>{};
+    final Map<String, List<String>> translatorsByBook = <String, List<String>>{};
+    for (final BookCreatorsJoinData join in allCreatorJoins) {
+      if (join.role == CreatorRole.author) {
+        (authorsByBook[join.bookId] ??= <String>[]).add(join.creatorId);
+      } else if (join.role == CreatorRole.translator) {
+        (translatorsByBook[join.bookId] ??= <String>[]).add(join.creatorId);
+      }
+    }
+
+    final Map<String, List<String>> worksByBook = <String, List<String>>{};
+    for (final Work work in allBookWorks) {
+      final String? bId = work.bookId;
+      if (bId != null) {
+        (worksByBook[bId] ??= <String>[]).add(work.id);
+      }
+    }
+
+    final Map<String, List<String>> volumesByBook = <String, List<String>>{};
+    for (final SequenceVolume volume in allBookVolumes) {
+      final String? bId = volume.bookId;
+      if (bId != null) {
+        (volumesByBook[bId] ??= <String>[]).add(volume.id);
+      }
+    }
+
+    return rows
+        .map(
+          (Book row) => _buildBookModel(
+            row,
+            authorIds: authorsByBook[row.id] ?? const <String>[],
+            translatorIds: translatorsByBook[row.id] ?? const <String>[],
+            workIds: worksByBook[row.id] ?? const <String>[],
+            sequenceVolumeIds: volumesByBook[row.id] ?? const <String>[],
+          ),
+        )
+        .toList();
   }
 
   @override
@@ -167,7 +225,7 @@ class BookRemoteDataSourceImpl implements BookRemoteDataSource {
               compilationType: book.compilationType.name,
               isTranslation: book.isTranslation,
               toBeTranslated: book.toBeTranslated,
-              cover: Images.compressImageIfNeeded(book.cover),
+              cover: ImageUtils.compressImageIfNeeded(book.cover),
               language: book.language?.name,
               genre: book.genre?.name,
               isbn: book.isbn,

@@ -8,8 +8,10 @@ import '../../../../core/shared/domain/enums/original_language.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
+import '../../../sequence/domain/entities/sequence_volume_entity.dart';
+import '../../../sequence/presentation/providers/sequence_volume_usecase_providers.dart';
 import '../../domain/entities/work_entity.dart';
-import '../../domain/usecases/work_usecases.dart';
+import 'work_usecase_providers.dart';
 
 part 'upsert_work_controller.g.dart';
 
@@ -55,13 +57,15 @@ class UpsertWorkController extends _$UpsertWorkController {
     Map<SequenceEntity, String> sequenceEntries = const <SequenceEntity, String>{},
     String? bookId,
   }) async {
+    final GenerateWorkIdUseCase generateWorkId = ref.read(generateWorkIdUseCaseProvider);
+    final UpsertWorkUseCase upsertWork = ref.read(upsertWorkUseCaseProvider);
     state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
     await Future<void>.delayed(Duration.zero);
 
     try {
       final WorkEntity? existingWork = state.existingWork;
-      final String workId = existingWork?.id ?? ref.read(generateWorkIdUseCaseProvider)();
+      final String workId = existingWork?.id ?? generateWorkId();
       final WorkEntity workToSave = existingWork != null
           ? existingWork.copyWith(
               title: title,
@@ -100,7 +104,7 @@ class UpsertWorkController extends _$UpsertWorkController {
               lastUpdated: DateTime.now(),
             );
 
-      final WorkEntity savedWork = await ref.read(upsertWorkUseCaseProvider)(
+      final WorkEntity savedWork = await upsertWork(
         work: workToSave,
         sequenceEntries: sequenceEntries,
         isEdit: existingWork != null,
@@ -116,4 +120,7 @@ class UpsertWorkController extends _$UpsertWorkController {
       return null;
     }
   }
+
+  Future<List<SequenceVolumeEntity>> fetchSequenceVolumesByWorkId(String workId) =>
+      ref.read(fetchSequenceVolumesByWorkIdUseCaseProvider)(workId);
 }

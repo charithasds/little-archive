@@ -2,7 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/database/app_database.dart';
 import '../../../../core/sync/data/services/backup_service.dart';
-import '../../domain/usecases/settings_usecases.dart';
+import 'settings_usecase_providers.dart';
 
 part 'settings_controller.g.dart';
 
@@ -42,6 +42,7 @@ class SettingsController extends _$SettingsController {
   SettingsState build() => const SettingsState(status: AsyncValue<void>.data(null));
 
   Future<void> clearAllData() async {
+    final ClearAllDataUseCase clearAllDataUseCase = ref.read(clearAllDataUseCaseProvider);
     state = const SettingsState(
       status: AsyncValue<void>.loading(),
       currentOperation: SettingsOperation.clearData,
@@ -49,7 +50,7 @@ class SettingsController extends _$SettingsController {
     );
     await Future<void>.delayed(Duration.zero);
     final AsyncValue<void> result = await AsyncValue.guard(() async {
-      await ref.read(clearAllDataUseCaseProvider).call(
+      await clearAllDataUseCase(
         onProgress: (double p) => state = state.copyWith(progress: p),
       );
     });
@@ -59,12 +60,13 @@ class SettingsController extends _$SettingsController {
   }
 
   Future<bool> exportLocalBackup() async {
+    final BackupService backupService = ref.read(backupServiceProvider);
     state = const SettingsState(
       status: AsyncValue<void>.loading(),
       currentOperation: SettingsOperation.exportLocal,
     );
     await Future<void>.delayed(Duration.zero);
-    final bool success = await ref.read(backupServiceProvider).exportLocalBackup(
+    final bool success = await backupService.exportLocalBackup(
       onProgress: (double p) => state = state.copyWith(progress: p),
     );
     if (success) {
@@ -78,21 +80,24 @@ class SettingsController extends _$SettingsController {
   }
 
   Future<bool> importLocalRestore() async {
+    final AppDatabase db = ref.read(appDatabaseProvider);
+    final BackupService backupService = ref.read(backupServiceProvider);
     state = const SettingsState(
       status: AsyncValue<void>.loading(),
       currentOperation: SettingsOperation.importLocal,
     );
     await Future<void>.delayed(Duration.zero);
-    final AppDatabase db = ref.read(appDatabaseProvider);
     await db.close();
-    
-    final bool success = await ref.read(backupServiceProvider).importLocalRestore(
+
+    final bool success = await backupService.importLocalRestore(
       onProgress: (double p) => state = state.copyWith(progress: p),
     );
     if (success) {
       state = const SettingsState(status: AsyncValue<void>.data(null));
     } else {
-      ref.invalidate(appDatabaseProvider);
+      if (ref.mounted) {
+        ref.invalidate(appDatabaseProvider);
+      }
       state = SettingsState(
         status: AsyncValue<void>.error('Local import failed or cancelled.', StackTrace.current),
       );
@@ -101,42 +106,52 @@ class SettingsController extends _$SettingsController {
   }
 
   Future<bool> backupToGoogleDrive() async {
+    final BackupService backupService = ref.read(backupServiceProvider);
     state = const SettingsState(
       status: AsyncValue<void>.loading(),
       currentOperation: SettingsOperation.backupDrive,
     );
     await Future<void>.delayed(Duration.zero);
-    final bool success = await ref.read(backupServiceProvider).backupToGoogleDrive(
+    final bool success = await backupService.backupToGoogleDrive(
       onProgress: (double p) => state = state.copyWith(progress: p),
     );
     if (success) {
       state = const SettingsState(status: AsyncValue<void>.data(null));
     } else {
       state = SettingsState(
-        status: AsyncValue<void>.error('Google Drive backup failed. Please check network/auth.', StackTrace.current),
+        status: AsyncValue<void>.error(
+          'Google Drive backup failed. Please check network/auth.',
+          StackTrace.current,
+        ),
       );
     }
     return success;
   }
 
   Future<bool> restoreFromGoogleDrive() async {
+    final AppDatabase db = ref.read(appDatabaseProvider);
+    final BackupService backupService = ref.read(backupServiceProvider);
     state = const SettingsState(
       status: AsyncValue<void>.loading(),
       currentOperation: SettingsOperation.restoreDrive,
     );
     await Future<void>.delayed(Duration.zero);
-    final AppDatabase db = ref.read(appDatabaseProvider);
     await db.close();
-    
-    final bool success = await ref.read(backupServiceProvider).restoreFromGoogleDrive(
+
+    final bool success = await backupService.restoreFromGoogleDrive(
       onProgress: (double p) => state = state.copyWith(progress: p),
     );
     if (success) {
       state = const SettingsState(status: AsyncValue<void>.data(null));
     } else {
-      ref.invalidate(appDatabaseProvider);
+      if (ref.mounted) {
+        ref.invalidate(appDatabaseProvider);
+      }
       state = SettingsState(
-        status: AsyncValue<void>.error('Google Drive restore failed or no backup found.', StackTrace.current),
+        status: AsyncValue<void>.error(
+          'Google Drive restore failed or no backup found.',
+          StackTrace.current,
+        ),
       );
     }
     return success;

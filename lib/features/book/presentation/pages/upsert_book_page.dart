@@ -25,11 +25,9 @@ import '../../../../core/shared/presentation/widgets/search_multi_picker_field.d
 import '../../../../core/shared/presentation/widgets/search_picker_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../creator/domain/entities/creator_entity.dart';
-import '../../../creator/domain/usecases/creator_usecases.dart';
 import '../../../creator/presentation/providers/creator_provider.dart';
 import '../../../creator/presentation/widgets/add_creator_bottom_sheet.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
-import '../../../publisher/domain/usecases/publisher_usecases.dart';
 import '../../../publisher/presentation/providers/publisher_provider.dart';
 import '../../../publisher/presentation/widgets/add_publisher_bottom_sheet.dart';
 import '../../../reader/domain/entities/reader_entity.dart';
@@ -37,7 +35,6 @@ import '../../../reader/presentation/providers/reader_provider.dart';
 import '../../../reader/presentation/widgets/add_reader_bottom_sheet.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/domain/entities/sequence_volume_entity.dart';
-import '../../../sequence/domain/usecases/sequence_volume_usecases.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
 import '../../../sequence/presentation/widgets/add_sequence_bottom_sheet.dart';
 import '../../../sequence/presentation/widgets/sequence_number_dialog.dart';
@@ -403,7 +400,9 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
             }
 
             for (final ScannedNameEntity sn in approvedData.newAuthors) {
-              final String newId = ref.read(generateCreatorIdUseCaseProvider)();
+              final String newId = ref
+                  .read(upsertBookControllerProvider.notifier)
+                  .generateCreatorId();
               final CreatorEntity newAuthor = CreatorEntity(
                 id: newId,
                 name: sn.name,
@@ -416,12 +415,14 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                 createdDate: DateTime.now(),
                 lastUpdated: DateTime.now(),
               );
-              await ref.read(addCreatorUseCaseProvider)(newAuthor);
+              await ref.read(upsertBookControllerProvider.notifier).addCreator(newAuthor);
               approvedData.selectedAuthors.add(newAuthor);
             }
 
             for (final ScannedNameEntity sn in approvedData.newTranslators) {
-              final String newId = ref.read(generateCreatorIdUseCaseProvider)();
+              final String newId = ref
+                  .read(upsertBookControllerProvider.notifier)
+                  .generateCreatorId();
               final CreatorEntity newTranslator = CreatorEntity(
                 id: newId,
                 name: sn.name,
@@ -434,13 +435,15 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                 createdDate: DateTime.now(),
                 lastUpdated: DateTime.now(),
               );
-              await ref.read(addCreatorUseCaseProvider)(newTranslator);
+              await ref.read(upsertBookControllerProvider.notifier).addCreator(newTranslator);
               approvedData.selectedTranslators.add(newTranslator);
             }
 
             PublisherEntity? finalPublisher = approvedData.selectedPublisher;
             if (approvedData.newPublisher != null) {
-              final String newId = ref.read(generatePublisherIdUseCaseProvider)();
+              final String newId = ref
+                  .read(upsertBookControllerProvider.notifier)
+                  .generatePublisherId();
               finalPublisher = PublisherEntity(
                 id: newId,
                 name: approvedData.newPublisher!.name,
@@ -450,7 +453,7 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
                 createdDate: DateTime.now(),
                 lastUpdated: DateTime.now(),
               );
-              await ref.read(addPublisherUseCaseProvider)(finalPublisher);
+              await ref.read(upsertBookControllerProvider.notifier).addPublisher(finalPublisher);
             }
 
             setState(() {
@@ -539,9 +542,9 @@ class _UpsertBookPageState extends ConsumerState<UpsertBookPage> {
             return;
           }
 
-          final List<SequenceVolumeEntity> volumes = await ref.read(
-            fetchSequenceVolumesByBookIdUseCaseProvider,
-          )(book.id);
+          final List<SequenceVolumeEntity> volumes = await ref
+              .read(upsertBookControllerProvider.notifier)
+              .fetchSequenceVolumesByBookId(book.id);
 
           final Map<SequenceEntity, String> sequencesMap = <SequenceEntity, String>{};
           if (sequencesAsync.value != null) {

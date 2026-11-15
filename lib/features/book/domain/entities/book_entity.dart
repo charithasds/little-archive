@@ -1,12 +1,12 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../../core/shared/domain/enums/collection_status.dart';
-import '../../../../core/shared/domain/enums/compilation_type.dart';
-import '../../../../core/shared/domain/enums/genre.dart';
-import '../../../../core/shared/domain/enums/language.dart';
-import '../../../../core/shared/domain/enums/original_language.dart';
-import '../../../../core/shared/domain/enums/reading_status.dart';
-import '../../../../core/shared/domain/utils/nullable.dart';
+import '../../../../domain/enums/collection_status.dart';
+import '../../../../domain/enums/compilation_type.dart';
+import '../../../../domain/enums/genre.dart';
+import '../../../../domain/enums/language.dart';
+import '../../../../domain/enums/original_language.dart';
+import '../../../../domain/enums/reading_status.dart';
+import '../../../../domain/utils/nullable.dart';
 
 class BookEntity extends Equatable {
   const BookEntity({

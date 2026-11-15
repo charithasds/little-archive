@@ -1,9 +1,12 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../../core/shared/presentation/providers/shared_preferences_provider.dart';
 
+import '../../../../core/shared/presentation/providers/shared_preferences_provider.dart';
+import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../domain/entities/book_fair_event_entity.dart';
-import '../../domain/usecases/get_book_fair_event_usecase.dart';
+import '../../domain/entities/book_fair_stall_entity.dart';
+import 'get_book_fair_event_usecase_provider.dart';
+import 'match_publishers_usecase_provider.dart';
 
 part 'book_fair_event_provider.g.dart';
 
@@ -30,4 +33,9 @@ class LastConfiguredFairId extends _$LastConfiguredFairId {
       ref.invalidateSelf();
     }
   }
+
+  BookFairStallEntity? findBestSuggestion(
+    PublisherEntity publisher,
+    List<BookFairStallEntity> bookfairStalls,
+  ) => ref.read(matchPublishersUseCaseProvider).findBestSuggestion(publisher, bookfairStalls);
 }

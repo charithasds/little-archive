@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../domain/entities/reader_entity.dart';
 import 'reader_provider.dart';
+import 'reader_usecase_providers.dart';
 
 part 'reader_list_controller.g.dart';
 
@@ -36,6 +37,8 @@ class ReaderListController extends _$ReaderListController {
 
     state = _calculateState(allReaders, query);
   }
+
+  Future<void> removeReader(String id) => ref.read(removeReaderUseCaseProvider)(id);
 
   ReaderListState _calculateState(List<ReaderEntity> allReaders, String query) {
     final List<ReaderEntity> sortedReaders = List<ReaderEntity>.from(allReaders)

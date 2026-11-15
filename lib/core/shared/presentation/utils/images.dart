@@ -1,9 +1,8 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'package:image/image.dart' as img;
+import '../../utils/image_utils.dart';
 
 enum ImageShape { circle, square, rectangle }
 
@@ -97,39 +96,6 @@ class Images {
             Image.asset(fallbackAsset, fit: fit, width: width, height: height),
   );
 
-  static String? compressImageIfNeeded(String? base64Image) {
-    if (base64Image == null || base64Image.isEmpty) {
-      return base64Image;
-    }
-
-    const int threshold = 50000;
-
-    if (base64Image.length < threshold) {
-      return base64Image;
-    }
-
-    try {
-      final Uint8List bytes = base64Decode(base64Image);
-      img.Image? decodedImage = img.decodeImage(bytes);
-      if (decodedImage == null) {
-        return base64Image;
-      }
-
-      if (decodedImage.width <= 400 && decodedImage.height <= 400) {
-        return base64Image;
-      }
-
-      decodedImage = img.copyResize(
-        decodedImage,
-        width: decodedImage.width > decodedImage.height ? 400 : null,
-        height: decodedImage.height >= decodedImage.width ? 400 : null,
-        interpolation: img.Interpolation.average,
-      );
-
-      final Uint8List compressed = Uint8List.fromList(img.encodeJpg(decodedImage, quality: 70));
-      return base64Encode(compressed);
-    } catch (e) {
-      return base64Image;
-    }
-  }
+  static String? compressImageIfNeeded(String? base64Image) =>
+      ImageUtils.compressImageIfNeeded(base64Image);
 }

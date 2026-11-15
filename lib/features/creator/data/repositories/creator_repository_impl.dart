@@ -1,6 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
-import '../../../../core/shared/presentation/utils/images.dart';
+import '../../../../core/shared/utils/image_utils.dart';
 import '../../domain/entities/creator_entity.dart';
 import '../../domain/repositories/creator_repository.dart';
 import '../datasources/creator_remote_datasource.dart';
@@ -35,7 +35,7 @@ class CreatorRepositoryImpl implements CreatorRepository {
 
         final String? image = creator.image;
         if (image != null && image.length > 50000) {
-          final String? compressed = Images.compressImageIfNeeded(image);
+          final String? compressed = ImageUtils.compressImageIfNeeded(image);
           if (compressed != null && compressed != image) {
             final CreatorEntity updated = creator.copyWith(
               image: Nullable<String?>(compressed),
@@ -60,7 +60,7 @@ class CreatorRepositoryImpl implements CreatorRepository {
       CreatorModel(
         id: creator.id,
         name: creator.name,
-        image: Images.compressImageIfNeeded(creator.image),
+        image: ImageUtils.compressImageIfNeeded(creator.image),
         otherName: creator.otherName,
         website: creator.website,
         facebook: creator.facebook,
@@ -81,7 +81,7 @@ class CreatorRepositoryImpl implements CreatorRepository {
       CreatorModel(
         id: creator.id,
         name: creator.name,
-        image: Images.compressImageIfNeeded(creator.image),
+        image: ImageUtils.compressImageIfNeeded(creator.image),
         otherName: creator.otherName,
         website: creator.website,
         facebook: creator.facebook,

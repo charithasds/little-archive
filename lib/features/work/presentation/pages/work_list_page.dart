@@ -13,7 +13,6 @@ import '../../../../core/shared/presentation/widgets/list_loading_state.dart';
 import '../../../../core/shared/presentation/widgets/search_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/work_entity.dart';
-import '../../domain/usecases/work_usecases.dart';
 import '../providers/work_list_controller.dart';
 import '../providers/work_provider.dart';
 import '../widgets/work_list_tile.dart';
@@ -26,7 +25,7 @@ class WorkListPage extends ConsumerStatefulWidget {
 }
 
 class _WorkListPageState extends ConsumerState<WorkListPage> {
-  bool _isExtended = true;
+  bool _isFabVisible = true;
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -38,6 +37,9 @@ class _WorkListPageState extends ConsumerState<WorkListPage> {
   void _clearSearch() {
     _searchController.clear();
     ref.read(workListControllerProvider.notifier).setSearchQuery('');
+    if (!_isFabVisible) {
+      setState(() => _isFabVisible = true);
+    }
   }
 
   Future<void> _navigateTo(Future<void> Function() navigation) async {
@@ -53,7 +55,7 @@ class _WorkListPageState extends ConsumerState<WorkListPage> {
       entityType: 'Work',
       entityName: workTitle,
       onConfirm: () async {
-        await ref.read(removeWorkUseCaseProvider)(workId);
+        await ref.read(workListControllerProvider.notifier).removeWork(workId);
       },
     );
   }
@@ -90,12 +92,12 @@ class _WorkListPageState extends ConsumerState<WorkListPage> {
           return NotificationListener<UserScrollNotification>(
             onNotification: (UserScrollNotification notification) {
               if (notification.direction == ScrollDirection.reverse) {
-                if (_isExtended) {
-                  setState(() => _isExtended = false);
+                if (_isFabVisible) {
+                  setState(() => _isFabVisible = false);
                 }
               } else if (notification.direction == ScrollDirection.forward) {
-                if (!_isExtended) {
-                  setState(() => _isExtended = true);
+                if (!_isFabVisible) {
+                  setState(() => _isFabVisible = true);
                 }
               }
 
@@ -106,8 +108,12 @@ class _WorkListPageState extends ConsumerState<WorkListPage> {
                 SearchField(
                   controller: _searchController,
                   hintText: 'Search',
-                  onChanged: (String query) =>
-                      ref.read(workListControllerProvider.notifier).setSearchQuery(query),
+                  onChanged: (String query) {
+                    ref.read(workListControllerProvider.notifier).setSearchQuery(query);
+                    if (!_isFabVisible) {
+                      setState(() => _isFabVisible = true);
+                    }
+                  },
                 ),
                 if (works.isEmpty)
                   Expanded(
@@ -177,14 +183,15 @@ class _WorkListPageState extends ConsumerState<WorkListPage> {
         loading: () => const ListLoadingState(),
         error: (Object err, StackTrace stack) => ListErrorState(error: err),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        isExtended: _isExtended,
-        backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
-        foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
-        onPressed: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertWork)),
-        icon: const FaIcon(FontAwesomeIcons.plus),
-        label: const Text('Add Work'),
-      ),
+      floatingActionButton: _isFabVisible
+          ? FloatingActionButton.extended(
+              backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
+              foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
+              onPressed: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertWork)),
+              icon: const FaIcon(FontAwesomeIcons.plus),
+              label: const Text('Add Work'),
+            )
+          : null,
     );
   }
 }

@@ -9,7 +9,6 @@ import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../../../core/shared/presentation/utils/validators.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
-import '../../../creator/data/models/creator_model.dart';
 import '../../../creator/domain/entities/creator_entity.dart';
 import '../../../publisher/domain/entities/publisher_entity.dart';
 import '../../domain/entities/book_entity.dart';
@@ -109,9 +108,6 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
     }
 
     // Initialize entity matching and controllers
-    final List<CreatorModel> existingCreatorModels = widget.existingCreators
-        .map(CreatorModel.fromEntity)
-        .toList();
     final Map<String, CreatorEntity> creatorMap = <String, CreatorEntity>{
       for (final CreatorEntity c in widget.existingCreators) c.id: c,
     };
@@ -119,10 +115,10 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
     for (final ScannedNameEntity sn in widget.scannedBook.authors) {
       _authorNameControllers[sn.name] = TextEditingController(text: sn.name);
       _authorOtherNameControllers[sn.name] = TextEditingController(text: sn.otherName ?? '');
-      final CreatorModel? matched = findExistingCreator(<String, dynamic>{
+      final CreatorEntity? matched = findExistingCreator(<String, dynamic>{
         'name': sn.name,
         'otherName': sn.otherName,
-      }, existingCreatorModels);
+      }, widget.existingCreators);
       _authorSelections[sn.name] =
           (matched != null ? creatorMap[matched.id] : null) ??
           _findBestMatch(
@@ -136,10 +132,10 @@ class _ScannedBookApprovalDialogState extends ConsumerState<ScannedBookApprovalD
     for (final ScannedNameEntity sn in widget.scannedBook.translators) {
       _translatorNameControllers[sn.name] = TextEditingController(text: sn.name);
       _translatorOtherNameControllers[sn.name] = TextEditingController(text: sn.otherName ?? '');
-      final CreatorModel? matched = findExistingCreator(<String, dynamic>{
+      final CreatorEntity? matched = findExistingCreator(<String, dynamic>{
         'name': sn.name,
         'otherName': sn.otherName,
-      }, existingCreatorModels);
+      }, widget.existingCreators);
       _translatorSelections[sn.name] =
           (matched != null ? creatorMap[matched.id] : null) ??
           _findBestMatch(

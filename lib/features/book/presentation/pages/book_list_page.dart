@@ -14,7 +14,6 @@ import '../../../../core/shared/presentation/widgets/list_loading_state.dart';
 import '../../../../core/shared/presentation/widgets/search_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/book_entity.dart';
-import '../../domain/usecases/book_usecases.dart';
 import '../providers/book_list_controller.dart';
 import '../providers/book_provider.dart';
 import '../widgets/book_list_tile.dart';
@@ -27,7 +26,7 @@ class BookListPage extends ConsumerStatefulWidget {
 }
 
 class _BookListPageState extends ConsumerState<BookListPage> {
-  bool _isExtended = true;
+  bool _isFabVisible = true;
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -39,6 +38,9 @@ class _BookListPageState extends ConsumerState<BookListPage> {
   void _clearSearch() {
     _searchController.clear();
     ref.read(bookListControllerProvider.notifier).setSearchQuery('');
+    if (!_isFabVisible) {
+      setState(() => _isFabVisible = true);
+    }
   }
 
   Future<void> _navigateTo(Future<void> Function() navigation) async {
@@ -54,7 +56,7 @@ class _BookListPageState extends ConsumerState<BookListPage> {
       entityType: 'Book',
       entityName: bookTitle,
       onConfirm: () async {
-        await ref.read(removeBookUseCaseProvider)(bookId);
+        await ref.read(bookListControllerProvider.notifier).removeBook(bookId);
       },
     );
   }
@@ -91,12 +93,12 @@ class _BookListPageState extends ConsumerState<BookListPage> {
           return NotificationListener<UserScrollNotification>(
             onNotification: (UserScrollNotification notification) {
               if (notification.direction == ScrollDirection.reverse) {
-                if (_isExtended) {
-                  setState(() => _isExtended = false);
+                if (_isFabVisible) {
+                  setState(() => _isFabVisible = false);
                 }
               } else if (notification.direction == ScrollDirection.forward) {
-                if (!_isExtended) {
-                  setState(() => _isExtended = true);
+                if (!_isFabVisible) {
+                  setState(() => _isFabVisible = true);
                 }
               }
 
@@ -107,8 +109,12 @@ class _BookListPageState extends ConsumerState<BookListPage> {
                 SearchField(
                   controller: _searchController,
                   hintText: 'Search',
-                  onChanged: (String query) =>
-                      ref.read(bookListControllerProvider.notifier).setSearchQuery(query),
+                  onChanged: (String query) {
+                    ref.read(bookListControllerProvider.notifier).setSearchQuery(query);
+                    if (!_isFabVisible) {
+                      setState(() => _isFabVisible = true);
+                    }
+                  },
                 ),
                 if (books.isEmpty)
                   Expanded(
@@ -134,8 +140,15 @@ class _BookListPageState extends ConsumerState<BookListPage> {
 
                               return BookListTile(
                                 book: book,
-                                onTap: () => _navigateTo(() => context.pushNamed(RouteConstants.bookDetail, pathParameters: <String, String>{'id': book.id})),
-                                onEdit: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertBook, extra: book)),
+                                onTap: () => _navigateTo(
+                                  () => context.pushNamed(
+                                    RouteConstants.bookDetail,
+                                    pathParameters: <String, String>{'id': book.id},
+                                  ),
+                                ),
+                                onEdit: () => _navigateTo(
+                                  () => context.pushNamed(RouteConstants.upsertBook, extra: book),
+                                ),
                                 onRemove: () => _handleRemove(book.id, book.title),
                               );
                             },
@@ -155,8 +168,15 @@ class _BookListPageState extends ConsumerState<BookListPage> {
 
                               return BookListTile(
                                 book: book,
-                                onTap: () => _navigateTo(() => context.pushNamed(RouteConstants.bookDetail, pathParameters: <String, String>{'id': book.id})),
-                                onEdit: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertBook, extra: book)),
+                                onTap: () => _navigateTo(
+                                  () => context.pushNamed(
+                                    RouteConstants.bookDetail,
+                                    pathParameters: <String, String>{'id': book.id},
+                                  ),
+                                ),
+                                onEdit: () => _navigateTo(
+                                  () => context.pushNamed(RouteConstants.upsertBook, extra: book),
+                                ),
                                 onRemove: () => _handleRemove(book.id, book.title),
                               );
                             },
@@ -172,14 +192,15 @@ class _BookListPageState extends ConsumerState<BookListPage> {
         loading: () => const ListLoadingState(),
         error: (Object err, StackTrace stack) => ListErrorState(error: err),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        isExtended: _isExtended,
-        backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
-        foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
-        onPressed: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertBook)),
-        icon: const FaIcon(FontAwesomeIcons.plus),
-        label: const Text('Add Book'),
-      ),
+      floatingActionButton: _isFabVisible
+          ? FloatingActionButton.extended(
+              backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
+              foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
+              onPressed: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertBook)),
+              icon: const FaIcon(FontAwesomeIcons.plus),
+              label: const Text('Add Book'),
+            )
+          : null,
     );
   }
 }

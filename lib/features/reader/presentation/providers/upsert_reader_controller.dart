@@ -9,7 +9,7 @@ import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
 import '../../domain/entities/reader_entity.dart';
-import '../../domain/usecases/reader_usecases.dart';
+import 'reader_usecase_providers.dart';
 
 part 'upsert_reader_controller.g.dart';
 
@@ -76,12 +76,15 @@ class UpsertReaderController extends _$UpsertReaderController {
     String? facebook,
     String? phoneNumber,
   }) async {
+    final GenerateReaderIdUseCase generateReaderId = ref.read(generateReaderIdUseCaseProvider);
+    final EditReaderUseCase editReader = ref.read(editReaderUseCaseProvider);
+    final AddReaderUseCase addReader = ref.read(addReaderUseCaseProvider);
     state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
     await Future<void>.delayed(Duration.zero);
 
     final ReaderEntity? existingReader = state.existingReader;
-    final String generatedId = ref.read(generateReaderIdUseCaseProvider)();
+    final String generatedId = generateReaderId();
 
     // Eagerly compress the image if it exists to prevent SQLite OOM and large documents.
     final String? compressedImage = Images.compressImageIfNeeded(state.pickedBase64Image);
@@ -114,9 +117,9 @@ class UpsertReaderController extends _$UpsertReaderController {
 
     try {
       if (existingReader != null) {
-        await ref.read(editReaderUseCaseProvider)(readerToSave);
+        await editReader(readerToSave);
       } else {
-        await ref.read(addReaderUseCaseProvider)(readerToSave);
+        await addReader(readerToSave);
       }
 
       state = state.copyWith(isLoading: false);

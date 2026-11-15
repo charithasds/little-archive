@@ -8,9 +8,10 @@ part 'initialization_provider.g.dart';
 
 @Riverpod(keepAlive: true)
 Future<void> initialization(Ref ref) async {
+  final Future<void> prefsFuture = ref.watch(sharedPreferencesProvider.future);
   if (Firebase.apps.isEmpty) {
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   }
 
-  await ref.read(sharedPreferencesProvider.future);
+  await prefsFuture;
 }

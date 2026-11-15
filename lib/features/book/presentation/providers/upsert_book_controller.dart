@@ -14,10 +14,16 @@ import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../../core/shared/presentation/utils/images.dart';
+import '../../../creator/domain/entities/creator_entity.dart';
+import '../../../creator/presentation/providers/creator_usecase_providers.dart';
+import '../../../publisher/domain/entities/publisher_entity.dart';
+import '../../../publisher/presentation/providers/publisher_usecase_providers.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
+import '../../../sequence/domain/entities/sequence_volume_entity.dart';
+import '../../../sequence/presentation/providers/sequence_volume_usecase_providers.dart';
 import '../../domain/entities/book_entity.dart';
 import '../../domain/entities/scan/scanned_book_entity.dart';
-import '../../domain/usecases/book_usecases.dart';
+import 'book_usecase_providers.dart';
 
 part 'upsert_book_controller.g.dart';
 
@@ -170,13 +176,15 @@ class UpsertBookController extends _$UpsertBookController {
     bool hasBookmark = false,
     bool applyToWorks = false,
   }) async {
+    final GenerateBookIdUseCase generateBookId = ref.read(generateBookIdUseCaseProvider);
+    final UpsertBookUseCase upsertBook = ref.read(upsertBookUseCaseProvider);
     state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
     await Future<void>.delayed(Duration.zero);
 
     try {
       final BookEntity? existingBook = state.existingBook;
-      final String bookId = existingBook?.id ?? ref.read(generateBookIdUseCaseProvider)();
+      final String bookId = existingBook?.id ?? generateBookId();
       // Eagerly compress the cover image if it exists to prevent SQLite OOM and large documents.
       final String? compressedCover = Images.compressImageIfNeeded(state.pickedBase64Image);
       if (compressedCover != state.pickedBase64Image) {
@@ -264,7 +272,7 @@ class UpsertBookController extends _$UpsertBookController {
               lastUpdated: DateTime.now(),
             );
 
-      final BookEntity savedBook = await ref.read(upsertBookUseCaseProvider)(
+      final BookEntity savedBook = await upsertBook(
         book: bookToSave,
         sequenceEntries: sequenceEntries,
         isEdit: existingBook != null,
@@ -281,4 +289,17 @@ class UpsertBookController extends _$UpsertBookController {
       return null;
     }
   }
+
+  String generateCreatorId() => ref.read(generateCreatorIdUseCaseProvider)();
+
+  Future<void> addCreator(CreatorEntity creator) =>
+      ref.read(addCreatorUseCaseProvider)(creator);
+
+  String generatePublisherId() => ref.read(generatePublisherIdUseCaseProvider)();
+
+  Future<void> addPublisher(PublisherEntity publisher) =>
+      ref.read(addPublisherUseCaseProvider)(publisher);
+
+  Future<List<SequenceVolumeEntity>> fetchSequenceVolumesByBookId(String bookId) =>
+      ref.read(fetchSequenceVolumesByBookIdUseCaseProvider)(bookId);
 }

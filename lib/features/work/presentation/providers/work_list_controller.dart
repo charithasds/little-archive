@@ -4,11 +4,16 @@ import '../../../book/domain/entities/book_entity.dart';
 import '../../../book/presentation/providers/book_provider.dart';
 import '../../../creator/domain/entities/creator_entity.dart';
 import '../../../creator/presentation/providers/creator_provider.dart';
+import '../../../publisher/domain/entities/publisher_entity.dart';
+import '../../../publisher/presentation/providers/publisher_provider.dart';
+import '../../../reader/domain/entities/reader_entity.dart';
+import '../../../reader/presentation/providers/reader_provider.dart';
 import '../../../sequence/domain/entities/sequence_entity.dart';
 import '../../../sequence/domain/entities/sequence_volume_entity.dart';
 import '../../../sequence/presentation/providers/sequence_provider.dart';
 import '../../domain/entities/work_entity.dart';
 import 'work_provider.dart';
+import 'work_usecase_providers.dart';
 
 part 'work_list_controller.g.dart';
 
@@ -32,6 +37,8 @@ class WorkListController extends _$WorkListController {
 
     ref.watch(creatorsStreamProvider);
     ref.watch(booksStreamProvider);
+    ref.watch(publishersStreamProvider);
+    ref.watch(readersStreamProvider);
     ref.watch(sequencesStreamProvider);
     ref.watch(allSequenceVolumesStreamProvider);
 
@@ -48,6 +55,8 @@ class WorkListController extends _$WorkListController {
     state = _calculateState(allWorks, query);
   }
 
+  Future<void> removeWork(String id) => ref.read(removeWorkUseCaseProvider)(id);
+
   WorkListState _calculateState(List<WorkEntity> allWorks, String query) {
     final List<WorkEntity> sortedWorks = List<WorkEntity>.from(
       allWorks,
@@ -57,51 +66,99 @@ class WorkListController extends _$WorkListController {
     if (query.isNotEmpty) {
       final String q = query.toLowerCase();
 
-      String getCreatorNames(List<String> ids) {
-        final List<CreatorEntity> creators =
-            ref.read(creatorsStreamProvider).value ?? <CreatorEntity>[];
+      final List<CreatorEntity> creators =
+          ref.read(creatorsStreamProvider).value ?? <CreatorEntity>[];
+      final List<BookEntity> books = ref.read(booksStreamProvider).value ?? <BookEntity>[];
+      final List<PublisherEntity> pubs =
+          ref.read(publishersStreamProvider).value ?? <PublisherEntity>[];
+      final List<ReaderEntity> readers =
+          ref.read(readersStreamProvider).value ?? <ReaderEntity>[];
+      final List<SequenceVolumeEntity> volumes =
+          ref.read(allSequenceVolumesStreamProvider).value ?? <SequenceVolumeEntity>[];
+      final List<SequenceEntity> sequences =
+          ref.read(sequencesStreamProvider).value ?? <SequenceEntity>[];
 
-        return creators
-            .where((CreatorEntity c) => ids.contains(c.id))
-            .map((CreatorEntity c) => c.name)
-            .join(' ')
-            .toLowerCase();
+      bool matchesCreatorIds(List<String> ids) {
+        if (ids.isEmpty) {
+          return false;
+        }
+        return creators.any(
+          (CreatorEntity c) =>
+              ids.contains(c.id) &&
+              (c.name.toLowerCase().contains(q) ||
+                  (c.otherName ?? '').toLowerCase().contains(q)),
+        );
       }
 
-      String getBookName(String? id) {
+      bool matchesPublisherId(String? id) {
         if (id == null) {
-          return '';
+          return false;
         }
-
-        final List<BookEntity> books = ref.read(booksStreamProvider).value ?? <BookEntity>[];
-
-        return books
-                .where((BookEntity b) => b.id == id)
-                .map((BookEntity b) => b.title)
-                .firstOrNull
-                ?.toLowerCase() ??
-            '';
+        final PublisherEntity? p = pubs.where((PublisherEntity p) => p.id == id).firstOrNull;
+        if (p == null) {
+          return false;
+        }
+        return p.name.toLowerCase().contains(q) ||
+            (p.otherName ?? '').toLowerCase().contains(q);
       }
 
-      String getSequenceNames(List<String> volumeIds) {
-        if (volumeIds.isEmpty) {
-          return '';
+      bool matchesReaderId(String? id) {
+        if (id == null) {
+          return false;
         }
+        final ReaderEntity? r = readers.where((ReaderEntity r) => r.id == id).firstOrNull;
+        if (r == null) {
+          return false;
+        }
+        return r.name.toLowerCase().contains(q) ||
+            (r.otherName ?? '').toLowerCase().contains(q);
+      }
 
-        final List<SequenceVolumeEntity> volumes =
-            ref.read(allSequenceVolumesStreamProvider).value ?? <SequenceVolumeEntity>[];
-        final List<SequenceEntity> sequences =
-            ref.read(sequencesStreamProvider).value ?? <SequenceEntity>[];
-        final List<String> sequenceIds = volumes
+      bool matchesSequenceVolumeIds(List<String> volumeIds) {
+        if (volumeIds.isEmpty) {
+          return false;
+        }
+        final Set<String> sequenceIds = volumes
             .where((SequenceVolumeEntity v) => volumeIds.contains(v.id))
             .map((SequenceVolumeEntity v) => v.sequenceId)
-            .toList();
+            .toSet();
+        return sequences.any(
+          (SequenceEntity s) =>
+              sequenceIds.contains(s.id) && s.name.toLowerCase().contains(q),
+        );
+      }
 
-        return sequences
-            .where((SequenceEntity s) => sequenceIds.contains(s.id))
-            .map((SequenceEntity s) => s.name)
-            .join(' ')
-            .toLowerCase();
+      bool matchesBook(String? id) {
+        if (id == null) {
+          return false;
+        }
+        final BookEntity? b = books.where((BookEntity b) => b.id == id).firstOrNull;
+        if (b == null) {
+          return false;
+        }
+
+        final bool matchesBookDirectFields =
+            b.title.toLowerCase().contains(q) ||
+            b.compilationType.name.toLowerCase().contains(q) ||
+            (b.language?.name ?? '').toLowerCase().contains(q) ||
+            (b.genre?.name ?? '').toLowerCase().contains(q) ||
+            (b.isbn ?? '').toLowerCase().contains(q) ||
+            (b.noOfPages ?? '').toString().toLowerCase().contains(q) ||
+            (b.originalTitle ?? '').toLowerCase().contains(q) ||
+            (b.originalLanguage?.name ?? '').toLowerCase().contains(q) ||
+            b.collectionStatus.name.toLowerCase().contains(q) ||
+            b.readingStatus.name.toLowerCase().contains(q) ||
+            (b.notes ?? '').toLowerCase().contains(q);
+
+        if (matchesBookDirectFields) {
+          return true;
+        }
+
+        return matchesCreatorIds(b.authorIds) ||
+            matchesCreatorIds(b.translatorIds) ||
+            matchesSequenceVolumeIds(b.sequenceVolumeIds) ||
+            matchesPublisherId(b.publisherId) ||
+            matchesReaderId(b.readerId);
       }
 
       filtered = sortedWorks.where((WorkEntity w) {
@@ -125,27 +182,10 @@ class WorkListController extends _$WorkListController {
           return true;
         }
 
-        final bool matchesAuthors = getCreatorNames(w.authorIds).contains(q);
-
-        if (matchesAuthors) {
-          return true;
-        }
-
-        final bool matchesTranslators = getCreatorNames(w.translatorIds).contains(q);
-
-        if (matchesTranslators) {
-          return true;
-        }
-
-        final bool matchesBook = getBookName(w.bookId).contains(q);
-
-        if (matchesBook) {
-          return true;
-        }
-
-        final bool matchesSequences = getSequenceNames(w.sequenceVolumeIds).contains(q);
-
-        if (matchesSequences) {
+        if (matchesCreatorIds(w.authorIds) ||
+            matchesCreatorIds(w.translatorIds) ||
+            matchesBook(w.bookId) ||
+            matchesSequenceVolumeIds(w.sequenceVolumeIds)) {
           return true;
         }
 

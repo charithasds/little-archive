@@ -6,12 +6,11 @@ import '../../../../core/shared/domain/enums/compilation_type.dart';
 import '../../../../core/shared/domain/enums/language.dart';
 import '../../../../core/shared/domain/enums/original_language.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
-import '../../../../core/shared/presentation/utils/images.dart';
-import '../../../sequence/data/repositories/sequence_volume_repository_impl.dart';
-import '../../../sequence/domain/repositories/sequence_volume_repository.dart';
-import '../../../work/data/repositories/work_repository_impl.dart';
+import '../../../../core/shared/utils/image_utils.dart';
+import '../../../sequence/data/datasources/sequence_volume_remote_datasource.dart';
+import '../../../work/data/datasources/work_remote_datasource.dart';
+import '../../../work/data/models/work_model.dart';
 import '../../../work/domain/entities/work_entity.dart';
-import '../../../work/domain/repositories/work_repository.dart';
 import '../../domain/entities/book_entity.dart';
 import '../../domain/entities/scan/scanned_book_entity.dart';
 import '../../domain/repositories/book_repository.dart';
@@ -24,13 +23,13 @@ part 'book_repository_impl.g.dart';
 class BookRepositoryImpl implements BookRepository {
   BookRepositoryImpl({
     required this.remoteDataSource,
-    required this.sequenceVolumeRepository,
-    required this.workRepository,
+    required this.sequenceVolumeRemoteDataSource,
+    required this.workRemoteDataSource,
   });
 
   final BookRemoteDataSource remoteDataSource;
-  final SequenceVolumeRepository sequenceVolumeRepository;
-  final WorkRepository workRepository;
+  final SequenceVolumeRemoteDataSource sequenceVolumeRemoteDataSource;
+  final WorkRemoteDataSource workRemoteDataSource;
 
   final Set<String> _processedCoverBookIds = <String>{};
 
@@ -54,7 +53,7 @@ class BookRepositoryImpl implements BookRepository {
 
         final String? cover = book.cover;
         if (cover != null && cover.length > 50000) {
-          final String? compressed = Images.compressImageIfNeeded(cover);
+          final String? compressed = ImageUtils.compressImageIfNeeded(cover);
           if (compressed != null && compressed != cover) {
             final BookEntity updated = book.copyWith(
               cover: Nullable<String?>(compressed),
@@ -82,7 +81,7 @@ class BookRepositoryImpl implements BookRepository {
         compilationType: book.compilationType,
         isTranslation: book.isTranslation,
         toBeTranslated: book.toBeTranslated,
-        cover: Images.compressImageIfNeeded(book.cover),
+        cover: ImageUtils.compressImageIfNeeded(book.cover),
         language: book.language,
         genre: book.genre,
         isbn: book.isbn,
@@ -123,7 +122,7 @@ class BookRepositoryImpl implements BookRepository {
         compilationType: book.compilationType,
         isTranslation: book.isTranslation,
         toBeTranslated: book.toBeTranslated,
-        cover: Images.compressImageIfNeeded(book.cover),
+        cover: ImageUtils.compressImageIfNeeded(book.cover),
         language: book.language,
         genre: book.genre,
         isbn: book.isbn,
@@ -161,7 +160,7 @@ class BookRepositoryImpl implements BookRepository {
 
     if (existingBook != null) {
       for (final String volumeId in existingBook.sequenceVolumeIds) {
-        await sequenceVolumeRepository.removeSequenceVolume(volumeId);
+        await sequenceVolumeRemoteDataSource.removeSequenceVolume(volumeId);
       }
 
       await remoteDataSource.removeBook(id);
@@ -175,7 +174,7 @@ class BookRepositoryImpl implements BookRepository {
     bool isEdit,
     bool applyToWorks,
   ) async {
-    final List<String> sequenceVolumeIds = await sequenceVolumeRepository.syncBookVolumes(
+    final List<String> sequenceVolumeIds = await sequenceVolumeRemoteDataSource.syncBookVolumes(
       book.id,
       sequenceIdToVolume,
       isEdit,
@@ -190,7 +189,7 @@ class BookRepositoryImpl implements BookRepository {
 
     if (applyToWorks && bookToSave.compilationType == CompilationType.multiple) {
       for (final String workId in bookToSave.workIds) {
-        final WorkEntity? work = await workRepository.fetchWorkById(workId);
+        final WorkModel? work = await workRemoteDataSource.fetchWorkById(workId);
 
         if (work != null) {
           final WorkEntity updatedWork = work.copyWith(
@@ -202,7 +201,26 @@ class BookRepositoryImpl implements BookRepository {
             originalLanguage: Nullable<OriginalLanguage?>(bookToSave.originalLanguage),
           );
 
-          await workRepository.editWork(updatedWork);
+          await workRemoteDataSource.editWork(
+            WorkModel(
+              id: updatedWork.id,
+              title: updatedWork.title,
+              contentCategory: updatedWork.contentCategory,
+              isTranslation: updatedWork.isTranslation,
+              toBeTranslated: updatedWork.toBeTranslated,
+              language: updatedWork.language,
+              genre: updatedWork.genre,
+              originalTitle: updatedWork.originalTitle,
+              originalLanguage: updatedWork.originalLanguage,
+              notes: updatedWork.notes,
+              authorIds: updatedWork.authorIds,
+              translatorIds: updatedWork.translatorIds,
+              sequenceVolumeIds: updatedWork.sequenceVolumeIds,
+              bookId: updatedWork.bookId,
+              createdDate: updatedWork.createdDate,
+              lastUpdated: updatedWork.lastUpdated,
+            ),
+          );
         }
       }
     }
@@ -221,14 +239,14 @@ class BookRepositoryImpl implements BookRepository {
 @riverpod
 BookRepository bookRepository(Ref ref) {
   final BookRemoteDataSource remoteDataSource = ref.watch(bookRemoteDataSourceProvider);
-  final SequenceVolumeRepository sequenceVolumeRepository = ref.watch(
-    sequenceVolumeRepositoryProvider,
+  final SequenceVolumeRemoteDataSource sequenceVolumeRemoteDataSource = ref.watch(
+    sequenceVolumeRemoteDataSourceProvider,
   );
-  final WorkRepository workRepository = ref.watch(workRepositoryProvider);
+  final WorkRemoteDataSource workRemoteDataSource = ref.watch(workRemoteDataSourceProvider);
 
   return BookRepositoryImpl(
     remoteDataSource: remoteDataSource,
-    sequenceVolumeRepository: sequenceVolumeRepository,
-    workRepository: workRepository,
+    sequenceVolumeRemoteDataSource: sequenceVolumeRemoteDataSource,
+    workRemoteDataSource: workRemoteDataSource,
   );
 }

@@ -6,8 +6,7 @@ import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../../book/data/datasources/book_remote_datasource.dart';
 import '../../../book/data/models/book_model.dart';
 import '../../../book/domain/entities/book_entity.dart';
-import '../../../sequence/data/repositories/sequence_volume_repository_impl.dart';
-import '../../../sequence/domain/repositories/sequence_volume_repository.dart';
+import '../../../sequence/data/datasources/sequence_volume_remote_datasource.dart';
 import '../../domain/entities/work_entity.dart';
 import '../../domain/repositories/work_repository.dart';
 import '../datasources/work_remote_datasource.dart';
@@ -18,12 +17,12 @@ part 'work_repository_impl.g.dart';
 class WorkRepositoryImpl implements WorkRepository {
   WorkRepositoryImpl({
     required this.remoteDataSource,
-    required this.sequenceVolumeRepository,
+    required this.sequenceVolumeRemoteDataSource,
     required this.bookRemoteDataSource,
   });
 
   final WorkRemoteDataSource remoteDataSource;
-  final SequenceVolumeRepository sequenceVolumeRepository;
+  final SequenceVolumeRemoteDataSource sequenceVolumeRemoteDataSource;
   final BookRemoteDataSource bookRemoteDataSource;
 
   @override
@@ -92,7 +91,7 @@ class WorkRepositoryImpl implements WorkRepository {
 
     if (existingWork != null) {
       for (final String volumeId in existingWork.sequenceVolumeIds) {
-        await sequenceVolumeRepository.removeSequenceVolume(volumeId);
+        await sequenceVolumeRemoteDataSource.removeSequenceVolume(volumeId);
       }
 
       await remoteDataSource.removeWork(id);
@@ -106,7 +105,7 @@ class WorkRepositoryImpl implements WorkRepository {
     bool isEdit,
     bool applyToBooks,
   ) async {
-    final List<String> sequenceVolumeIds = await sequenceVolumeRepository.syncWorkVolumes(
+    final List<String> sequenceVolumeIds = await sequenceVolumeRemoteDataSource.syncWorkVolumes(
       work.id,
       sequenceIdToVolume,
       isEdit,
@@ -177,14 +176,14 @@ class WorkRepositoryImpl implements WorkRepository {
 @riverpod
 WorkRepository workRepository(Ref ref) {
   final WorkRemoteDataSource remoteDataSource = ref.watch(workRemoteDataSourceProvider);
-  final SequenceVolumeRepository sequenceVolumeRepository = ref.watch(
-    sequenceVolumeRepositoryProvider,
+  final SequenceVolumeRemoteDataSource sequenceVolumeRemoteDataSource = ref.watch(
+    sequenceVolumeRemoteDataSourceProvider,
   );
   final BookRemoteDataSource bookRemoteDataSource = ref.watch(bookRemoteDataSourceProvider);
 
   return WorkRepositoryImpl(
     remoteDataSource: remoteDataSource,
-    sequenceVolumeRepository: sequenceVolumeRepository,
+    sequenceVolumeRemoteDataSource: sequenceVolumeRemoteDataSource,
     bookRemoteDataSource: bookRemoteDataSource,
   );
 }

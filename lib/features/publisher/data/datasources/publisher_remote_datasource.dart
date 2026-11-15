@@ -30,38 +30,69 @@ class PublisherRemoteDataSourceImpl implements PublisherRemoteDataSource {
     return List<String>.generate(20, (_) => chars[random.nextInt(chars.length)]).join();
   }
 
-  Future<PublisherModel> _mapToPublisherModel(Publisher row) async {
-    // Resolve bookIds where publisherId == row.id
-    final SimpleSelectStatement<$BooksTable, Book> booksQuery = db.select(db.books)..where(($BooksTable t) => t.publisherId.equals(row.id));
-    final List<Book> books = await booksQuery.get();
-    final List<String> bookIds = books.map((Book b) => b.id).toList();
+  PublisherModel _buildPublisherModel(Publisher row, {required List<String> bookIds}) =>
+      PublisherModel(
+        id: row.id,
+        name: row.name,
+        isSelfPublisher: row.isSelfPublisher,
+        logo: row.logo,
+        otherName: row.otherName,
+        website: row.website,
+        email: row.email,
+        facebook: row.facebook,
+        phoneNumber: row.phoneNumber,
+        bookIds: bookIds,
+        bookFairPublisherId: row.bookFairPublisherId,
+        createdDate: row.createdDate,
+        lastUpdated: row.lastUpdated,
+      );
 
-    return PublisherModel(
-      id: row.id,
-      name: row.name,
-      isSelfPublisher: row.isSelfPublisher,
-      logo: row.logo,
-      otherName: row.otherName,
-      website: row.website,
-      email: row.email,
-      facebook: row.facebook,
-      phoneNumber: row.phoneNumber,
-      bookIds: bookIds,
-      bookFairPublisherId: row.bookFairPublisherId,
-      createdDate: row.createdDate,
-      lastUpdated: row.lastUpdated,
-    );
+  Future<PublisherModel> _mapToPublisherModel(Publisher row) async {
+    final JoinedSelectStatement<$BooksTable, Book> booksQuery = db.selectOnly(db.books)
+      ..addColumns(<Expression<Object>>[db.books.id])
+      ..where(db.books.publisherId.equals(row.id));
+    final List<TypedResult> bookRows = await booksQuery.get();
+    final List<String> bookIds = bookRows
+        .map((TypedResult r) => r.read(db.books.id))
+        .whereType<String>()
+        .toList();
+
+    return _buildPublisherModel(row, bookIds: bookIds);
   }
 
   @override
   Future<List<PublisherModel>> fetchPublishers() async {
-    final SimpleSelectStatement<$PublishersTable, Publisher> query = db.select(db.publishers)..orderBy(<OrderClauseGenerator<$PublishersTable>>[($PublishersTable t) => OrderingTerm(expression: t.name)]);
+    final SimpleSelectStatement<$PublishersTable, Publisher> query = db.select(db.publishers)
+      ..orderBy(<OrderClauseGenerator<$PublishersTable>>[
+        ($PublishersTable t) => OrderingTerm(expression: t.name),
+      ]);
     final List<Publisher> rows = await query.get();
-    final List<PublisherModel> publishers = <PublisherModel>[];
-    for (final Publisher row in rows) {
-      publishers.add(await _mapToPublisherModel(row));
+    if (rows.isEmpty) {
+      return <PublisherModel>[];
     }
-    return publishers;
+
+    final JoinedSelectStatement<$BooksTable, Book> booksQuery = db.selectOnly(db.books)
+      ..addColumns(<Expression<Object>>[db.books.id, db.books.publisherId])
+      ..where(db.books.publisherId.isNotNull());
+    final List<TypedResult> bookRows = await booksQuery.get();
+
+    final Map<String, List<String>> booksByPublisher = <String, List<String>>{};
+    for (final TypedResult r in bookRows) {
+      final String? bookId = r.read(db.books.id);
+      final String? publisherId = r.read(db.books.publisherId);
+      if (bookId != null && publisherId != null) {
+        (booksByPublisher[publisherId] ??= <String>[]).add(bookId);
+      }
+    }
+
+    return rows
+        .map(
+          (Publisher row) => _buildPublisherModel(
+            row,
+            bookIds: booksByPublisher[row.id] ?? const <String>[],
+          ),
+        )
+        .toList();
   }
 
   @override

@@ -4,7 +4,7 @@ import '../../../../core/shared/domain/enums/collection_status.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../domain/entities/book_entity.dart';
-import '../../domain/usecases/book_usecases.dart';
+import 'book_usecase_providers.dart';
 
 part 'book_status_controller.g.dart';
 

@@ -14,18 +14,16 @@ import '../../../../core/shared/presentation/widgets/list_error_state.dart';
 import '../../../../core/shared/presentation/widgets/list_loading_state.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../../book/domain/entities/book_entity.dart';
-import '../../../book/domain/usecases/book_usecases.dart';
 import '../../../book/presentation/providers/book_provider.dart';
 import '../../../book/presentation/widgets/book_list_tile.dart';
 import '../../../book/presentation/widgets/book_quick_info_dialog.dart';
 import '../../../work/domain/entities/work_entity.dart';
-import '../../../work/domain/usecases/work_usecases.dart';
 import '../../../work/presentation/providers/work_provider.dart';
 import '../../../work/presentation/widgets/work_list_tile.dart';
 import '../../../work/presentation/widgets/work_quick_info_dialog.dart';
 import '../../domain/entities/sequence_entity.dart';
 import '../../domain/entities/sequence_volume_entity.dart';
-import '../../domain/usecases/sequence_usecases.dart';
+import '../providers/sequence_list_controller.dart';
 import '../providers/sequence_provider.dart';
 import '../widgets/sequence_number_dialog.dart';
 
@@ -51,7 +49,8 @@ class SequenceDetailPage extends ConsumerWidget {
       itemLabel: (BookEntity b) => b.title,
       itemKey: (BookEntity b) => b.id,
       icon: FontAwesomeIcons.book,
-      sortComparator: (BookEntity a, BookEntity b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+      sortComparator: (BookEntity a, BookEntity b) =>
+          a.title.toLowerCase().compareTo(b.title.toLowerCase()),
     );
 
     if (selectedBook == null || !context.mounted) {
@@ -60,16 +59,15 @@ class SequenceDetailPage extends ConsumerWidget {
 
     final String? volumeNum = await showDialog<String>(
       context: context,
-      builder: (BuildContext context) => SequenceNumberDialog(
-        sequenceName: sequence.name,
-      ),
+      builder: (BuildContext context) => SequenceNumberDialog(sequenceName: sequence.name),
     );
 
     if (volumeNum == null || volumeNum.trim().isEmpty) {
       return;
     }
 
-    final List<SequenceVolumeEntity> currentVolumes = ref.read(sequenceVolumesStreamProvider(sequence.id)).value ?? <SequenceVolumeEntity>[];
+    final List<SequenceVolumeEntity> currentVolumes =
+        ref.read(sequenceVolumesStreamProvider(sequence.id)).value ?? <SequenceVolumeEntity>[];
     final Map<SequenceEntity, String> sequenceEntries = <SequenceEntity, String>{};
 
     for (final SequenceVolumeEntity vol in currentVolumes) {
@@ -80,16 +78,21 @@ class SequenceDetailPage extends ConsumerWidget {
       }
     }
 
-    final AsyncValue<List<SequenceVolumeEntity>> allVolumesAsync = ref.read(allSequenceVolumesStreamProvider);
-    final List<SequenceVolumeEntity> bookExistingVolumes = (allVolumesAsync.value ?? <SequenceVolumeEntity>[])
-        .where((SequenceVolumeEntity v) => v.bookId == selectedBook.id)
-        .toList();
+    final AsyncValue<List<SequenceVolumeEntity>> allVolumesAsync = ref.read(
+      allSequenceVolumesStreamProvider,
+    );
+    final List<SequenceVolumeEntity> bookExistingVolumes =
+        (allVolumesAsync.value ?? <SequenceVolumeEntity>[])
+            .where((SequenceVolumeEntity v) => v.bookId == selectedBook.id)
+            .toList();
 
     final AsyncValue<List<SequenceEntity>> allSequencesAsync = ref.read(sequencesStreamProvider);
     final List<SequenceEntity> allSequences = allSequencesAsync.value ?? <SequenceEntity>[];
 
     for (final SequenceVolumeEntity vol in bookExistingVolumes) {
-      final SequenceEntity? seq = allSequences.where((SequenceEntity s) => s.id == vol.sequenceId).firstOrNull;
+      final SequenceEntity? seq = allSequences
+          .where((SequenceEntity s) => s.id == vol.sequenceId)
+          .firstOrNull;
       if (seq != null) {
         sequenceEntries[seq] = vol.volume;
       }
@@ -98,11 +101,9 @@ class SequenceDetailPage extends ConsumerWidget {
     sequenceEntries[sequence] = volumeNum.trim();
 
     try {
-      await ref.read(upsertBookUseCaseProvider)(
-        book: selectedBook,
-        sequenceEntries: sequenceEntries,
-        isEdit: true,
-      );
+      await ref
+          .read(sequenceListControllerProvider.notifier)
+          .upsertBook(book: selectedBook, sequenceEntries: sequenceEntries, isEdit: true);
       SnackBars.showSuccess('Book volume added successfully');
     } catch (e) {
       SnackBars.showError('Failed to add book volume: $e');
@@ -127,7 +128,8 @@ class SequenceDetailPage extends ConsumerWidget {
       itemLabel: (WorkEntity w) => w.title,
       itemKey: (WorkEntity w) => w.id,
       icon: FontAwesomeIcons.bookOpen,
-      sortComparator: (WorkEntity a, WorkEntity b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+      sortComparator: (WorkEntity a, WorkEntity b) =>
+          a.title.toLowerCase().compareTo(b.title.toLowerCase()),
     );
 
     if (selectedWork == null || !context.mounted) {
@@ -136,19 +138,20 @@ class SequenceDetailPage extends ConsumerWidget {
 
     final String? volumeNum = await showDialog<String>(
       context: context,
-      builder: (BuildContext context) => SequenceNumberDialog(
-        sequenceName: sequence.name,
-      ),
+      builder: (BuildContext context) => SequenceNumberDialog(sequenceName: sequence.name),
     );
 
     if (volumeNum == null || volumeNum.trim().isEmpty) {
       return;
     }
 
-    final AsyncValue<List<SequenceVolumeEntity>> allVolumesAsync = ref.read(allSequenceVolumesStreamProvider);
-    final List<SequenceVolumeEntity> workExistingVolumes = (allVolumesAsync.value ?? <SequenceVolumeEntity>[])
-        .where((SequenceVolumeEntity v) => v.workId == selectedWork.id)
-        .toList();
+    final AsyncValue<List<SequenceVolumeEntity>> allVolumesAsync = ref.read(
+      allSequenceVolumesStreamProvider,
+    );
+    final List<SequenceVolumeEntity> workExistingVolumes =
+        (allVolumesAsync.value ?? <SequenceVolumeEntity>[])
+            .where((SequenceVolumeEntity v) => v.workId == selectedWork.id)
+            .toList();
 
     final AsyncValue<List<SequenceEntity>> allSequencesAsync = ref.read(sequencesStreamProvider);
     final List<SequenceEntity> allSequences = allSequencesAsync.value ?? <SequenceEntity>[];
@@ -156,7 +159,9 @@ class SequenceDetailPage extends ConsumerWidget {
     final Map<SequenceEntity, String> sequenceEntries = <SequenceEntity, String>{};
 
     for (final SequenceVolumeEntity vol in workExistingVolumes) {
-      final SequenceEntity? seq = allSequences.where((SequenceEntity s) => s.id == vol.sequenceId).firstOrNull;
+      final SequenceEntity? seq = allSequences
+          .where((SequenceEntity s) => s.id == vol.sequenceId)
+          .firstOrNull;
       if (seq != null) {
         sequenceEntries[seq] = vol.volume;
       }
@@ -165,11 +170,9 @@ class SequenceDetailPage extends ConsumerWidget {
     sequenceEntries[sequence] = volumeNum.trim();
 
     try {
-      await ref.read(upsertWorkUseCaseProvider)(
-        work: selectedWork,
-        sequenceEntries: sequenceEntries,
-        isEdit: true,
-      );
+      await ref
+          .read(sequenceListControllerProvider.notifier)
+          .upsertWork(work: selectedWork, sequenceEntries: sequenceEntries, isEdit: true);
       SnackBars.showSuccess('Work volume added successfully');
     } catch (e) {
       SnackBars.showError('Failed to add work volume: $e');
@@ -182,7 +185,7 @@ class SequenceDetailPage extends ConsumerWidget {
       entityType: 'Sequence',
       entityName: sequence.name,
       onConfirm: () async {
-        await ref.read(removeSequenceUseCaseProvider)(sequence.id);
+        await ref.read(sequenceListControllerProvider.notifier).removeSequence(sequence.id);
         if (context.mounted) {
           context.pop();
         }
@@ -214,7 +217,8 @@ class SequenceDetailPage extends ConsumerWidget {
         final AsyncValue<List<WorkEntity>> worksAsync = ref.watch(worksStreamProvider);
 
         if (volumesAsync.hasError || booksAsync.hasError || worksAsync.hasError) {
-          final Object error = volumesAsync.error ?? booksAsync.error ?? worksAsync.error ?? 'Unknown error';
+          final Object error =
+              volumesAsync.error ?? booksAsync.error ?? worksAsync.error ?? 'Unknown error';
           return Scaffold(body: ListErrorState(error: error));
         }
 
@@ -243,9 +247,7 @@ class SequenceDetailPage extends ConsumerWidget {
               SliverAppBar.large(
                 title: Text(
                   sequence.name,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 centerTitle: true,
                 backgroundColor: theme.colorScheme.surface,

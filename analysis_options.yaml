@@ -13,6 +13,23 @@
 # This file contains the analysis options used for code in the flutter/flutter
 # repository.
 
+plugins:
+  clean_arch_lint:
+    version: ^3.2.0
+    diagnostics:
+      no_data_dependencies: true
+      domain_only_depends_on_itself: true
+      no_screens_dependencies: true
+      allow_third_party_packages_in_domain: true
+  clean_architecture_linter:
+    version: ^2.8.4
+    diagnostics:
+      freezed_usage: false
+      model_structure: false
+      model_naming_convention: false
+      riverpod_keep_alive: false
+      riverpod_generator: false
+
 analyzer:
   language:
     strict-casts: true
@@ -31,6 +48,9 @@ analyzer:
     - "engine/**"
     - build/**
     - android/**
+    - test/**
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
 
 formatter:
   page_width: 100

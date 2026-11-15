@@ -37,7 +37,7 @@ import '../../../work/presentation/providers/work_provider.dart';
 import '../../../work/presentation/widgets/work_list_tile.dart';
 import '../../../work/presentation/widgets/work_quick_info_dialog.dart';
 import '../../domain/entities/book_entity.dart';
-import '../../domain/usecases/book_usecases.dart';
+import '../providers/book_list_controller.dart';
 import '../providers/book_provider.dart';
 
 class BookDetailPage extends ConsumerWidget {
@@ -50,7 +50,7 @@ class BookDetailPage extends ConsumerWidget {
       entityType: 'Book',
       entityName: book.title,
       onConfirm: () async {
-        await ref.read(removeBookUseCaseProvider)(book.id);
+        await ref.read(bookListControllerProvider.notifier).removeBook(book.id);
         if (context.mounted) {
           context.pop();
         }

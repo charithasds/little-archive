@@ -18,7 +18,7 @@ import '../../../book/presentation/providers/book_provider.dart';
 import '../../../book/presentation/widgets/book_list_tile.dart';
 import '../../../book/presentation/widgets/book_quick_info_dialog.dart';
 import '../../domain/entities/reader_entity.dart';
-import '../../domain/usecases/reader_usecases.dart';
+import '../providers/reader_list_controller.dart';
 import '../providers/reader_provider.dart';
 
 class ReaderDetailPage extends ConsumerWidget {
@@ -31,7 +31,7 @@ class ReaderDetailPage extends ConsumerWidget {
       entityType: 'Reader',
       entityName: reader.name,
       onConfirm: () async {
-        await ref.read(removeReaderUseCaseProvider)(reader.id);
+        await ref.read(readerListControllerProvider.notifier).removeReader(reader.id);
         if (context.mounted) {
           context.pop();
         }

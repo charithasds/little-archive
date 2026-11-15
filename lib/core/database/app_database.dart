@@ -245,7 +245,7 @@ class AppDatabase extends _$AppDatabase {
 LazyDatabase _openConnection() => LazyDatabase(() async {
     final Directory dbFolder = await getApplicationDocumentsDirectory();
     final File file = File(p.join(dbFolder.path, 'little_archive.db'));
-    return NativeDatabase(file);
+    return NativeDatabase.createInBackground(file);
   });
 
 @Riverpod(keepAlive: true)

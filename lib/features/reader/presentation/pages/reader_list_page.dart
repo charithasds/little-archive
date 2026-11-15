@@ -14,7 +14,6 @@ import '../../../../core/shared/presentation/widgets/list_loading_state.dart';
 import '../../../../core/shared/presentation/widgets/search_field.dart';
 import '../../../../core/theme/presentation/providers/theme_provider.dart';
 import '../../domain/entities/reader_entity.dart';
-import '../../domain/usecases/reader_usecases.dart';
 import '../providers/reader_list_controller.dart';
 import '../providers/reader_provider.dart';
 import '../widgets/reader_list_tile.dart';
@@ -27,7 +26,7 @@ class ReaderListPage extends ConsumerStatefulWidget {
 }
 
 class _ReaderListPageState extends ConsumerState<ReaderListPage> {
-  bool _isExtended = true;
+  bool _isFabVisible = true;
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -39,6 +38,9 @@ class _ReaderListPageState extends ConsumerState<ReaderListPage> {
   void _clearSearch() {
     _searchController.clear();
     ref.read(readerListControllerProvider.notifier).setSearchQuery('');
+    if (!_isFabVisible) {
+      setState(() => _isFabVisible = true);
+    }
   }
 
   Future<void> _navigateTo(Future<void> Function() navigation) async {
@@ -54,7 +56,7 @@ class _ReaderListPageState extends ConsumerState<ReaderListPage> {
       entityType: 'Reader',
       entityName: readerName,
       onConfirm: () async {
-        await ref.read(removeReaderUseCaseProvider)(readerId);
+        await ref.read(readerListControllerProvider.notifier).removeReader(readerId);
       },
     );
   }
@@ -91,12 +93,12 @@ class _ReaderListPageState extends ConsumerState<ReaderListPage> {
           return NotificationListener<UserScrollNotification>(
             onNotification: (UserScrollNotification notification) {
               if (notification.direction == ScrollDirection.reverse) {
-                if (_isExtended) {
-                  setState(() => _isExtended = false);
+                if (_isFabVisible) {
+                  setState(() => _isFabVisible = false);
                 }
               } else if (notification.direction == ScrollDirection.forward) {
-                if (!_isExtended) {
-                  setState(() => _isExtended = true);
+                if (!_isFabVisible) {
+                  setState(() => _isFabVisible = true);
                 }
               }
 
@@ -107,8 +109,12 @@ class _ReaderListPageState extends ConsumerState<ReaderListPage> {
                 SearchField(
                   controller: _searchController,
                   hintText: 'Search',
-                  onChanged: (String query) =>
-                      ref.read(readerListControllerProvider.notifier).setSearchQuery(query),
+                  onChanged: (String query) {
+                    ref.read(readerListControllerProvider.notifier).setSearchQuery(query);
+                    if (!_isFabVisible) {
+                      setState(() => _isFabVisible = true);
+                    }
+                  },
                 ),
                 if (readers.isEmpty)
                   Expanded(
@@ -134,8 +140,16 @@ class _ReaderListPageState extends ConsumerState<ReaderListPage> {
 
                               return ReaderListTile(
                                 reader: reader,
-                                onTap: () => _navigateTo(() => context.pushNamed(RouteConstants.readerDetail, pathParameters: <String, String>{'id': reader.id})),
-                                onEdit: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertReader, extra: reader)),
+                                onTap: () => _navigateTo(
+                                  () => context.pushNamed(
+                                    RouteConstants.readerDetail,
+                                    pathParameters: <String, String>{'id': reader.id},
+                                  ),
+                                ),
+                                onEdit: () => _navigateTo(
+                                  () =>
+                                      context.pushNamed(RouteConstants.upsertReader, extra: reader),
+                                ),
                                 onRemove: () => _handleRemove(reader.id, reader.name),
                               );
                             },
@@ -155,8 +169,16 @@ class _ReaderListPageState extends ConsumerState<ReaderListPage> {
 
                               return ReaderListTile(
                                 reader: reader,
-                                onTap: () => _navigateTo(() => context.pushNamed(RouteConstants.readerDetail, pathParameters: <String, String>{'id': reader.id})),
-                                onEdit: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertReader, extra: reader)),
+                                onTap: () => _navigateTo(
+                                  () => context.pushNamed(
+                                    RouteConstants.readerDetail,
+                                    pathParameters: <String, String>{'id': reader.id},
+                                  ),
+                                ),
+                                onEdit: () => _navigateTo(
+                                  () =>
+                                      context.pushNamed(RouteConstants.upsertReader, extra: reader),
+                                ),
                                 onRemove: () => _handleRemove(reader.id, reader.name),
                               );
                             },
@@ -172,14 +194,15 @@ class _ReaderListPageState extends ConsumerState<ReaderListPage> {
         loading: () => const ListLoadingState(),
         error: (Object err, StackTrace stack) => ListErrorState(error: err),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        isExtended: _isExtended,
-        backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
-        foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
-        onPressed: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertReader)),
-        icon: const FaIcon(FontAwesomeIcons.plus),
-        label: const Text('Add Reader'),
-      ),
+      floatingActionButton: _isFabVisible
+          ? FloatingActionButton.extended(
+              backgroundColor: Buttons.getPrimaryActionBackgroundColor(theme),
+              foregroundColor: Buttons.getPrimaryActionForegroundColor(theme),
+              onPressed: () => _navigateTo(() => context.pushNamed(RouteConstants.upsertReader)),
+              icon: const FaIcon(FontAwesomeIcons.plus),
+              label: const Text('Add Reader'),
+            )
+          : null,
     );
   }
 }

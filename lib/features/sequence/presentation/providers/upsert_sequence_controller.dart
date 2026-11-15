@@ -4,7 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/shared/domain/error/exceptions.dart';
 import '../../../../core/shared/domain/utils/nullable.dart';
 import '../../domain/entities/sequence_entity.dart';
-import '../../domain/usecases/sequence_usecases.dart';
+import 'sequence_usecase_providers.dart';
 
 part 'upsert_sequence_controller.g.dart';
 
@@ -36,12 +36,15 @@ class UpsertSequenceController extends _$UpsertSequenceController {
   }
 
   Future<SequenceEntity?> saveSequence({required String name, String? notes}) async {
+    final GenerateSequenceIdUseCase generateSequenceId = ref.read(generateSequenceIdUseCaseProvider);
+    final EditSequenceUseCase editSequence = ref.read(editSequenceUseCaseProvider);
+    final AddSequenceUseCase addSequence = ref.read(addSequenceUseCaseProvider);
     state = state.copyWith(isLoading: true, error: const Nullable<String?>(null));
 
     await Future<void>.delayed(Duration.zero);
 
     final SequenceEntity? existingSequence = state.existingSequence;
-    final String generatedId = ref.read(generateSequenceIdUseCaseProvider)();
+    final String generatedId = generateSequenceId();
 
     final SequenceEntity sequenceToSave = existingSequence != null
         ? existingSequence.copyWith(
@@ -60,9 +63,9 @@ class UpsertSequenceController extends _$UpsertSequenceController {
 
     try {
       if (existingSequence != null) {
-        await ref.read(editSequenceUseCaseProvider)(sequenceToSave);
+        await editSequence(sequenceToSave);
       } else {
-        await ref.read(addSequenceUseCaseProvider)(sequenceToSave);
+        await addSequence(sequenceToSave);
       }
 
       state = state.copyWith(isLoading: false);

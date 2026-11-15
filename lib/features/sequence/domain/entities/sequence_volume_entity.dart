@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import '../../../../core/shared/domain/utils/nullable.dart';
+import '../../../../domain/utils/nullable.dart';
 
 class SequenceVolumeEntity extends Equatable {
   const SequenceVolumeEntity({

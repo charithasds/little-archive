@@ -30,35 +30,65 @@ class ReaderRemoteDataSourceImpl implements ReaderRemoteDataSource {
     return List<String>.generate(20, (_) => chars[random.nextInt(chars.length)]).join();
   }
 
-  Future<ReaderModel> _mapToReaderModel(Reader row) async {
-    // Resolve bookIds where readerId == row.id
-    final SimpleSelectStatement<$BooksTable, Book> booksQuery = db.select(db.books)..where(($BooksTable t) => t.readerId.equals(row.id));
-    final List<Book> books = await booksQuery.get();
-    final List<String> bookIds = books.map((Book b) => b.id).toList();
+  ReaderModel _buildReaderModel(Reader row, {required List<String> bookIds}) => ReaderModel(
+    id: row.id,
+    name: row.name,
+    image: row.image,
+    otherName: row.otherName,
+    email: row.email,
+    facebook: row.facebook,
+    phoneNumber: row.phoneNumber,
+    bookIds: bookIds,
+    createdDate: row.createdDate,
+    lastUpdated: row.lastUpdated,
+  );
 
-    return ReaderModel(
-      id: row.id,
-      name: row.name,
-      image: row.image,
-      otherName: row.otherName,
-      email: row.email,
-      facebook: row.facebook,
-      phoneNumber: row.phoneNumber,
-      bookIds: bookIds,
-      createdDate: row.createdDate,
-      lastUpdated: row.lastUpdated,
-    );
+  Future<ReaderModel> _mapToReaderModel(Reader row) async {
+    final JoinedSelectStatement<$BooksTable, Book> booksQuery = db.selectOnly(db.books)
+      ..addColumns(<Expression<Object>>[db.books.id])
+      ..where(db.books.readerId.equals(row.id));
+    final List<TypedResult> bookRows = await booksQuery.get();
+    final List<String> bookIds = bookRows
+        .map((TypedResult r) => r.read(db.books.id))
+        .whereType<String>()
+        .toList();
+
+    return _buildReaderModel(row, bookIds: bookIds);
   }
 
   @override
   Future<List<ReaderModel>> fetchReaders() async {
-    final SimpleSelectStatement<$ReadersTable, Reader> query = db.select(db.readers)..orderBy(<OrderClauseGenerator<$ReadersTable>>[($ReadersTable t) => OrderingTerm(expression: t.name)]);
+    final SimpleSelectStatement<$ReadersTable, Reader> query = db.select(db.readers)
+      ..orderBy(<OrderClauseGenerator<$ReadersTable>>[
+        ($ReadersTable t) => OrderingTerm(expression: t.name),
+      ]);
     final List<Reader> rows = await query.get();
-    final List<ReaderModel> readerModels = <ReaderModel>[];
-    for (final Reader row in rows) {
-      readerModels.add(await _mapToReaderModel(row));
+    if (rows.isEmpty) {
+      return <ReaderModel>[];
     }
-    return readerModels;
+
+    final JoinedSelectStatement<$BooksTable, Book> booksQuery = db.selectOnly(db.books)
+      ..addColumns(<Expression<Object>>[db.books.id, db.books.readerId])
+      ..where(db.books.readerId.isNotNull());
+    final List<TypedResult> bookRows = await booksQuery.get();
+
+    final Map<String, List<String>> booksByReader = <String, List<String>>{};
+    for (final TypedResult r in bookRows) {
+      final String? bookId = r.read(db.books.id);
+      final String? readerId = r.read(db.books.readerId);
+      if (bookId != null && readerId != null) {
+        (booksByReader[readerId] ??= <String>[]).add(bookId);
+      }
+    }
+
+    return rows
+        .map(
+          (Reader row) => _buildReaderModel(
+            row,
+            bookIds: booksByReader[row.id] ?? const <String>[],
+          ),
+        )
+        .toList();
   }
 
   @override

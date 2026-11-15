@@ -2,41 +2,41 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../features/book/domain/entities/book_entity.dart';
-import '../../../../features/book/presentation/pages/book_collection_status_manage_page.dart';
-import '../../../../features/book/presentation/pages/book_data_quality_manage_page.dart';
-import '../../../../features/book/presentation/pages/book_detail_page.dart';
-import '../../../../features/book/presentation/pages/book_list_page.dart';
-import '../../../../features/book/presentation/pages/book_reading_status_manage_page.dart';
-import '../../../../features/book/presentation/pages/upsert_book_page.dart';
-import '../../../../features/book_fair/presentation/pages/book_fair_setup_page.dart';
-import '../../../../features/book_fair/presentation/pages/book_fair_shopping_plan_page.dart';
-import '../../../../features/creator/domain/entities/creator_entity.dart';
-import '../../../../features/creator/presentation/pages/creator_detail_page.dart';
-import '../../../../features/creator/presentation/pages/creator_list_page.dart';
-import '../../../../features/creator/presentation/pages/upsert_creator_page.dart';
-import '../../../../features/home/presentation/pages/home_page.dart';
-import '../../../../features/publisher/domain/entities/publisher_entity.dart';
-import '../../../../features/publisher/presentation/pages/publisher_detail_page.dart';
-import '../../../../features/publisher/presentation/pages/publisher_list_page.dart';
-import '../../../../features/publisher/presentation/pages/upsert_publisher_page.dart';
-import '../../../../features/reader/domain/entities/reader_entity.dart';
-import '../../../../features/reader/presentation/pages/reader_detail_page.dart';
-import '../../../../features/reader/presentation/pages/reader_list_page.dart';
-import '../../../../features/reader/presentation/pages/upsert_reader_page.dart';
-import '../../../../features/sequence/domain/entities/sequence_entity.dart';
-import '../../../../features/sequence/presentation/pages/sequence_detail_page.dart';
-import '../../../../features/sequence/presentation/pages/sequence_list_page.dart';
-import '../../../../features/sequence/presentation/pages/upsert_sequence_page.dart';
-import '../../../../features/settings/presentation/pages/settings_page.dart';
-import '../../../../features/work/domain/entities/work_entity.dart';
-import '../../../../features/work/presentation/pages/upsert_work_page.dart';
-import '../../../../features/work/presentation/pages/work_detail_page.dart';
-import '../../../../features/work/presentation/pages/work_list_page.dart';
-import '../../presentation/providers/initialization_provider.dart';
-import '../pages/error_page.dart';
-import '../pages/loading_page.dart';
-import 'route_constants.dart';
+import '../../core/shared/presentation/pages/error_page.dart';
+import '../../core/shared/presentation/pages/loading_page.dart';
+import '../../core/shared/presentation/providers/initialization_provider.dart';
+import '../../core/shared/presentation/routes/route_constants.dart';
+import '../../features/book/domain/entities/book_entity.dart';
+import '../../features/book/presentation/pages/book_collection_status_manage_page.dart';
+import '../../features/book/presentation/pages/book_data_quality_manage_page.dart';
+import '../../features/book/presentation/pages/book_detail_page.dart';
+import '../../features/book/presentation/pages/book_list_page.dart';
+import '../../features/book/presentation/pages/book_reading_status_manage_page.dart';
+import '../../features/book/presentation/pages/upsert_book_page.dart';
+import '../../features/book_fair/presentation/pages/book_fair_setup_page.dart';
+import '../../features/book_fair/presentation/pages/book_fair_shopping_plan_page.dart';
+import '../../features/creator/domain/entities/creator_entity.dart';
+import '../../features/creator/presentation/pages/creator_detail_page.dart';
+import '../../features/creator/presentation/pages/creator_list_page.dart';
+import '../../features/creator/presentation/pages/upsert_creator_page.dart';
+import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/publisher/domain/entities/publisher_entity.dart';
+import '../../features/publisher/presentation/pages/publisher_detail_page.dart';
+import '../../features/publisher/presentation/pages/publisher_list_page.dart';
+import '../../features/publisher/presentation/pages/upsert_publisher_page.dart';
+import '../../features/reader/domain/entities/reader_entity.dart';
+import '../../features/reader/presentation/pages/reader_detail_page.dart';
+import '../../features/reader/presentation/pages/reader_list_page.dart';
+import '../../features/reader/presentation/pages/upsert_reader_page.dart';
+import '../../features/sequence/domain/entities/sequence_entity.dart';
+import '../../features/sequence/presentation/pages/sequence_detail_page.dart';
+import '../../features/sequence/presentation/pages/sequence_list_page.dart';
+import '../../features/sequence/presentation/pages/upsert_sequence_page.dart';
+import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/work/domain/entities/work_entity.dart';
+import '../../features/work/presentation/pages/upsert_work_page.dart';
+import '../../features/work/presentation/pages/work_detail_page.dart';
+import '../../features/work/presentation/pages/work_list_page.dart';
 
 part 'router_service.g.dart';
 
@@ -217,7 +217,6 @@ class RouterService {
           name: RouteConstants.settings,
           builder: (BuildContext context, GoRouterState state) => const SettingsPage(),
         ),
-
 
         GoRoute(
           path: RouteConstants.pathCollectionStatus,

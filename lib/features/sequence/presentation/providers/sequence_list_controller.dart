@@ -1,7 +1,12 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../book/domain/entities/book_entity.dart';
+import '../../../book/presentation/providers/book_usecase_providers.dart';
+import '../../../work/domain/entities/work_entity.dart';
+import '../../../work/presentation/providers/work_usecase_providers.dart';
 import '../../domain/entities/sequence_entity.dart';
 import 'sequence_provider.dart';
+import 'sequence_usecase_providers.dart';
 
 part 'sequence_list_controller.g.dart';
 
@@ -37,6 +42,32 @@ class SequenceListController extends _$SequenceListController {
 
     state = _calculateState(allSequences, query);
   }
+
+  Future<void> removeSequence(String id) => ref.read(removeSequenceUseCaseProvider)(id);
+
+  Future<BookEntity> upsertBook({
+    required BookEntity book,
+    required Map<SequenceEntity, String> sequenceEntries,
+    required bool isEdit,
+    bool applyToWorks = false,
+  }) => ref.read(upsertBookUseCaseProvider)(
+    book: book,
+    sequenceEntries: sequenceEntries,
+    isEdit: isEdit,
+    applyToWorks: applyToWorks,
+  );
+
+  Future<WorkEntity> upsertWork({
+    required WorkEntity work,
+    required Map<SequenceEntity, String> sequenceEntries,
+    required bool isEdit,
+    bool applyToBooks = false,
+  }) => ref.read(upsertWorkUseCaseProvider)(
+    work: work,
+    sequenceEntries: sequenceEntries,
+    isEdit: isEdit,
+    applyToBooks: applyToBooks,
+  );
 
   SequenceListState _calculateState(List<SequenceEntity> allSequences, String query) {
     final List<SequenceEntity> sortedSequences = List<SequenceEntity>.from(allSequences)

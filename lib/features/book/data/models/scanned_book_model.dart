@@ -4,7 +4,7 @@ import '../../../../core/shared/domain/enums/language.dart';
 import '../../../../core/shared/domain/enums/original_language.dart';
 import '../../../../core/shared/domain/enums/reading_status.dart';
 import '../../../../core/shared/domain/utils/string_extensions.dart';
-import '../../../../core/shared/presentation/utils/validators.dart';
+import '../../../../core/shared/utils/validators.dart';
 import '../../domain/entities/book_entity.dart';
 import '../../domain/entities/scan/scanned_book_entity.dart';
 import '../../domain/entities/scan/scanned_name_entity.dart';
