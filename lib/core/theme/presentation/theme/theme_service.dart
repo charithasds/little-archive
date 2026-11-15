@@ -51,7 +51,26 @@ class ThemeService {
   static const Color _e80 = Color(0xFFFFB4AB);
   static const Color _e90 = Color(0xFFFFDAD6);
 
-  TextTheme get _textTheme => GoogleFonts.merriweatherTextTheme();
+  TextTheme get _textTheme {
+    final TextTheme base = ThemeData.light().textTheme;
+    return TextTheme(
+      displayLarge: GoogleFonts.merriweather(textStyle: base.displayLarge),
+      displayMedium: GoogleFonts.merriweather(textStyle: base.displayMedium),
+      displaySmall: GoogleFonts.merriweather(textStyle: base.displaySmall),
+      headlineLarge: GoogleFonts.merriweather(textStyle: base.headlineLarge),
+      headlineMedium: GoogleFonts.merriweather(textStyle: base.headlineMedium),
+      headlineSmall: GoogleFonts.merriweather(textStyle: base.headlineSmall),
+      titleLarge: GoogleFonts.merriweather(textStyle: base.titleLarge),
+      titleMedium: GoogleFonts.merriweather(textStyle: base.titleMedium),
+      titleSmall: GoogleFonts.merriweather(textStyle: base.titleSmall),
+      bodyLarge: GoogleFonts.merriweather(textStyle: base.bodyLarge),
+      bodyMedium: GoogleFonts.merriweather(textStyle: base.bodyMedium),
+      bodySmall: GoogleFonts.merriweather(textStyle: base.bodySmall),
+      labelLarge: GoogleFonts.merriweather(textStyle: base.labelLarge),
+      labelMedium: GoogleFonts.merriweather(textStyle: base.labelMedium),
+      labelSmall: GoogleFonts.merriweather(textStyle: base.labelSmall),
+    );
+  }
 
   ThemeData get lightTheme => ThemeData(
     useMaterial3: true,

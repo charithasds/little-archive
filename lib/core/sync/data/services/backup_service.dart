@@ -65,18 +65,18 @@ class BackupService {
       
       final Uint8List bytes = builder.toBytes();
       final String timestamp = (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
-      final String? savePath = await FilePicker.saveFile(
+      final Uri? saveUri = await FilePicker.saveFile(
         dialogTitle: 'Save database backup',
         fileName: 'little_archive_backup_$timestamp.db',
         bytes: bytes,
       );
       
-      if (savePath != null) {
+      if (saveUri != null) {
         onProgress?.call(1.0);
       }
       
-      // savePath is null only when the user cancels the picker.
-      return savePath != null;
+      // saveUri is null only when the user cancels the picker.
+      return saveUri != null;
     } catch (e) {
 
       return false;
@@ -85,14 +85,15 @@ class BackupService {
 
   /// Restores the local database from a user-selected backup file.
   ///
-  /// Uses [withReadStream: true] to read the file in chunks instead of loading
-  /// the entire file into memory with [withData: true], avoiding OutOfMemoryError.
+  /// Uses [PlatformFile.readAsByteStream] to read the file in chunks instead of
+  /// loading the entire file into memory with [PlatformFile.readAsBytes],
+  /// avoiding OutOfMemoryError.
   Future<bool> importLocalRestore({void Function(double)? onProgress}) async {
     try {
-      final FilePickerResult? result = await FilePicker.pickFiles(withReadStream: true);
+      final PlatformFile? pickedFile = await FilePicker.pickFile();
 
-      if (result == null || result.files.single.readStream == null) {
-        return false; // User cancelled or file unreadable
+      if (pickedFile == null) {
+        return false; // User cancelled
       }
 
       final File dbFile = await _getDatabaseFile();
@@ -103,9 +104,9 @@ class BackupService {
       
       final IOSink sink = dbFile.openWrite();
       int bytesWritten = 0;
-      final int totalBytes = result.files.single.size;
+      final int totalBytes = pickedFile.lengthSync() ?? await pickedFile.length() ?? 0;
       
-      final Stream<List<int>> progressStream = result.files.single.readStream!.map((List<int> chunk) {
+      final Stream<List<int>> progressStream = pickedFile.readAsByteStream().map((Uint8List chunk) {
         bytesWritten += chunk.length;
         if (totalBytes > 0) {
           onProgress?.call(bytesWritten / totalBytes);
